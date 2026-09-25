@@ -1327,7 +1327,7 @@ public class Coinsph extends CoinsphApi
                 put( "symbol", market.get("id") );
                 put( "interval", interval );
             }};
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -1370,7 +1370,7 @@ public class Coinsph extends CoinsphApi
             //     ]
             //
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

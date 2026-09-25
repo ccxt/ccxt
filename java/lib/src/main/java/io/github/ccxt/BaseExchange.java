@@ -4488,17 +4488,30 @@ public Object describe()
         }
     }
 
-    public void handleDeltas(Object orderbook, Object deltas)
+    public void handleDeltas(Object bookside, Object deltas)
     {
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
     }
 
     public void handleDelta(Object bookside, Object delta)
     {
         throw new NotSupported((this.id + " handleDelta not supported yet")) ;
+    }
+
+    public void handleBookDeltas(Object orderbook, Object deltas)
+    {
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        {
+            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
+        }
+    }
+
+    public void handleBookDelta(Object orderbook, Object delta)
+    {
+        throw new NotSupported((this.id + " handleBookDelta not supported yet")) ;
     }
 
     public void handleDeltasWithKeys(Object bookSide, Object deltas, Object priceKey, Object amountKey, Object countOrIdKey)

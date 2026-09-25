@@ -605,7 +605,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual object parseMyTrade(object trade, IDictionary<string, object> market = null)
+    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -673,7 +673,7 @@ public partial class alpaca : ccxt.alpaca
         }, market);
     }
 
-    public async virtual Task<object> authenticate(string? url, object parameters = null)
+    public async virtual Task<object> authenticate(string? url, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

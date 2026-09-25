@@ -628,7 +628,7 @@ class BaseExchange(SyncExchange):
                 index = self.get_cache_index(order_book, cache)
                 if index >= 0:
                     stored.reset(order_book)
-                    self.handle_deltas(stored, cache[index:])
+                    self.handle_book_deltas(stored, cache[index:])
                     cache.clear()
                     client.resolve(stored, messageHash)
                     return

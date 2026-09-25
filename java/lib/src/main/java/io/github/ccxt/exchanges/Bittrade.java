@@ -2367,10 +2367,10 @@ public class Bittrade extends BittradeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limit, null) || (limit > 100))
             {
-                limitResolved = 100;
+                limitResolved = 100L;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2396,7 +2396,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> response = (this.privateGetQueryDepositWithdraw(this.extend(request, parameters))).join();
             // return response
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2416,10 +2416,10 @@ public class Bittrade extends BittradeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limit, null) || (limit > 100))
             {
-                limitResolved = 100;
+                limitResolved = 100L;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2445,7 +2445,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> response = (this.privateGetQueryDepositWithdraw(this.extend(request, parameters))).join();
             // return response
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

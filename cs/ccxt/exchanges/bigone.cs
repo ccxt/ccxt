@@ -1191,7 +1191,7 @@ public partial class bigone : Exchange
         return result;
     }
 
-    public virtual object parseContractOrderBook(object orderbook, object symbol, Int64? limit = null)
+    public virtual object parseContractOrderBook(IDictionary<string, object> orderbook, object symbol, Int64? limit = null)
     {
         IDictionary<string, object> responseBids = this.safeDict(orderbook, "bids");
         IDictionary<string, object> responseAsks = this.safeDict(orderbook, "asks");

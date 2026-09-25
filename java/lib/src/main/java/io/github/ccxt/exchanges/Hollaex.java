@@ -1100,13 +1100,13 @@ public class Hollaex extends HollaexApi
                 put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             Boolean paginate = false;
-            Integer maxLimit = 500;
+            Long maxLimit = 500L;
             List<Object> paginateOptionparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
             Boolean paginateOption = (Boolean) ((List<Object>) paginateOptionparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateOptionparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginateOption))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, maxLimit)).join();
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             Long timeDelta = ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * ((long) maxLimit)) * 1000L);

@@ -232,7 +232,7 @@ export default class luno extends lunoRest {
             this.orderbooks[symbol] = this.indexedOrderBook (snapshot);
         } else {
             const ob = this.orderbooks[symbol];
-            this.handleDelta (ob, message);
+            this.handleBookDelta (ob, message);
             ob['timestamp'] = timestamp;
             ob['datetime'] = this.iso8601 (timestamp);
         }
@@ -275,7 +275,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleDelta (orderbook: any, message: any) {
+    override handleBookDelta (orderbook: any, message: any) {
         //
         //  create
         //     {

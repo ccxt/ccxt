@@ -70,7 +70,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
                     if (Helpers.isGreaterThanOrEqual(index, 0)) {
                         Helpers.callDynamically(stored, "reset", new Object[]{orderBook});
                         int idx = ((Number) index).intValue();
-                        this.handleDeltas(stored, cache.subList(idx, cache.size()));
+                        this.handleBookDeltas(stored, cache.subList(idx, cache.size()));
                         ((java.util.List<Object>) Helpers.GetValue(stored, "cache")).clear();
                         client.resolve(stored, messageHash);
                         return;

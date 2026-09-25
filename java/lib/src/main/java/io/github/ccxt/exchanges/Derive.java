@@ -1331,10 +1331,10 @@ public class Derive extends DeriveApi
                 market = this.market(symbol);
                 request.put("instrument_name", market.get("id"));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (!java.util.Objects.equals(limit, null) && (limit > 1000))
             {
-                limitResolved = 1000;
+                limitResolved = 1000L;
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
@@ -1385,7 +1385,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1631,10 +1631,10 @@ public class Derive extends DeriveApi
     public Object signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials(true);
-        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = Helpers.GetValue(signature, "r");
-        Object s = Helpers.GetValue(signature, "s");
-        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Object r = signature.get("r");
+        Object s = signature.get("s");
+        String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
@@ -3365,7 +3365,7 @@ public class Derive extends DeriveApi
     {
         // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
         // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

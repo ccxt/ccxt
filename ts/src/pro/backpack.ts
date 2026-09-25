@@ -933,11 +933,11 @@ export default class backpack extends backpackRest {
         } else if ((deltaNonce !== undefined) && (nonce > deltaNonce)) {
             return;
         }
-        this.handleDelta (storedOrderBook, data);
+        this.handleBookDelta (storedOrderBook, data);
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         const timestamp = this.parseToInt (this.safeInteger (delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

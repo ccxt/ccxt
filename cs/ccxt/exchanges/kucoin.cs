@@ -2720,10 +2720,10 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    public async virtual Task<bool> loadMigrationStatus(object force = null)
+    public async virtual Task<bool> loadMigrationStatus(bool? force = null)
     {
         force ??= false;
-        if (!(this.options.ContainsKey("hf")) || (isEqual((this.options.ContainsKey("hf") ? this.options["hf"] : null), null)) || isTrue(force))
+        if (!(this.options.ContainsKey("hf")) || (isEqual((this.options.ContainsKey("hf") ? this.options["hf"] : null), null)) || force == true)
         {
             Dictionary<string, object> result = await this.privateGetHfAccountsOpened();
             this.options["hf"] = this.safeBool(result, "data");
@@ -5434,7 +5434,7 @@ public partial class kucoin : Exchange
      * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5443,7 +5443,7 @@ public partial class kucoin : Exchange
         }
         bool isSpot = false;
         bool isContract = false;
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -7192,7 +7192,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual string? handleTradeType(object isContractMarket = null, object marginMode = null, object isUnified = null, object parameters = null)
+    public virtual string? handleTradeType(object isContractMarket = null, object marginMode = null, bool? isUnified = null, object parameters = null)
     {
         isContractMarket ??= false;
         isUnified ??= false;
@@ -7206,7 +7206,7 @@ public partial class kucoin : Exchange
             } else if ((marginMode != null))
             {
                 tradeType = ((string)marginMode).ToUpper();
-                if (isTrue(isUnified))
+                if (isUnified == true)
                 {
                     if (tradeType == "ISOLATED")
                     {
@@ -9289,7 +9289,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(responseData, currency, since, limit, new Dictionary<string, object>() {             { "type", "withdrawal" },         }));
     }
 
-    public virtual object parseBalanceHelper(object entry)
+    public virtual object parseBalanceHelper(IDictionary<string, object> entry)
     {
         Dictionary<string, object> account = this.account();
         account["used"] = this.safeString2(entry, "holdBalance", "hold");
@@ -9532,7 +9532,7 @@ public partial class kucoin : Exchange
      * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async virtual Task<ccxt.Balances> FetchContractBalance(object parameters = null)
+    public async virtual Task<ccxt.Balances> FetchContractBalance(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10804,7 +10804,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10867,7 +10867,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11162,7 +11162,7 @@ public partial class kucoin : Exchange
         return this.parseMarginLoan(data, currency);
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -12777,7 +12777,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12785,7 +12785,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         string posMode = "0";
-        if (isTrue(hedged))
+        if (hedged)
         {
             posMode = "1";
         }

@@ -1306,7 +1306,7 @@ public class Digifinex extends DigifinexApi
                 orderBook = response;
                 timestamp = this.safeTimestamp(response, "date");
             }
-            return this.parseOrderBook(orderBook, market.get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(orderBook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }

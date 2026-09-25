@@ -933,12 +933,12 @@ public class Zebpay extends ZebpayApi
             Long until = (Long) this.safeInteger2(parameters, "until", "endtime");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "endtime", "endTime", "interval", "startTime")));
             Map<String, Object> response = null;
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 if (java.util.Objects.equals(limit, null))
                 {
-                    limitResolved = 100;
+                    limitResolved = 100L;
                 }
                 request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
                 if (!java.util.Objects.equals(since, null))
@@ -1008,7 +1008,7 @@ public class Zebpay extends ZebpayApi
             //             ]
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

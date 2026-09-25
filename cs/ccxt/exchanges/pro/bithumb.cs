@@ -506,7 +506,7 @@ public partial class bithumb : ccxt.bithumb
                 ((IDictionary<string,object>)this.orderbooks)[(string)legacySymbol] = ob;
             }
             ccxt.pro.IOrderBook legacyOrderbook = this.getOrderBook(this.orderbooks, legacySymbol);
-            this.handleDeltas(legacyOrderbook, list);
+            this.handleBookDeltas(legacyOrderbook, list);
             legacyOrderbook["timestamp"] = legacyTimestamp;
             legacyOrderbook["datetime"] = this.iso8601(legacyTimestamp);
             string legacyMessageHash = (("orderbook" + ":") + legacySymbol);
@@ -564,7 +564,7 @@ public partial class bithumb : ccxt.bithumb
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         //
         //    {
@@ -586,11 +586,11 @@ public partial class bithumb : ccxt.bithumb
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(object orderbook, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, getValue(deltas, i));
+            this.handleBookDelta(orderbook, getValue(deltas, i));
         }
     }
 
@@ -929,7 +929,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} subscription the subscription entry for that type
      * @returns {object[]} the SUBSCRIBE frame to send
      */
-    public virtual List<object> buildGen2SubscriptionRequest(object subscriptionType, object subscription)
+    public virtual List<object> buildGen2SubscriptionRequest(object subscriptionType, IDictionary<string, object> subscription)
     {
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new Dictionary<string, object>() {});
@@ -947,7 +947,7 @@ public partial class bithumb : ccxt.bithumb
         return request;
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

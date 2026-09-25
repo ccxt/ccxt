@@ -82,7 +82,7 @@ public partial class woo : ccxt.woo
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, object message)
+    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
     {
         string urlUid = "";
         if (!isEqual(this.uid, ""))
@@ -311,7 +311,7 @@ public partial class woo : ccxt.woo
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 
-    public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(message, "topic");
@@ -706,7 +706,7 @@ public partial class woo : ccxt.woo
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1013,12 +1013,12 @@ public partial class woo : ccxt.woo
         }, marketResolved);
     }
 
-    public virtual bool checkRequiredUid(object error = null)
+    public virtual bool checkRequiredUid(bool? error = null)
     {
         error ??= true;
         if (((this.uid == null)) || (isEqual(this.uid, "")))
         {
-            if (isTrue(error))
+            if (error == true)
             {
                 throw new AuthenticationError ((this.id + " requires `uid` credential (woox calls it `application_id`)")) ;
             } else
@@ -1058,7 +1058,7 @@ public partial class woo : ccxt.woo
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object message, object parameters = null)
+    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
@@ -1071,7 +1071,7 @@ public partial class woo : ccxt.woo
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
-    public async virtual Task<object> watchPrivateMultiple(IList<object> messageHashes, object message, object parameters = null)
+    public async virtual Task<object> watchPrivateMultiple(IList<object> messageHashes, IDictionary<string, object> message, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);

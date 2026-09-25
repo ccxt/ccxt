@@ -113,7 +113,7 @@ public partial class grvt : ccxt.grvt
         }
     }
 
-    public async virtual Task<object> subscribeMultiple(object messageHashes, object request, object rawHashes, object publicOrPrivate = null)
+    public async virtual Task<object> subscribeMultiple(object messageHashes, IDictionary<string, object> request, object rawHashes, object publicOrPrivate = null)
     {
         publicOrPrivate ??= true;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -301,7 +301,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(ticker, ("ticker::" + symbol));
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> message, object market = null)
     {
         // same dict as REST api
         return this.parseTicker(message, market);
@@ -703,7 +703,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(orderbook, messageHash);
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -828,7 +828,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(this.myTrades, "myTrades");
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(object trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         return this.parseTrade(trade, market);
     }

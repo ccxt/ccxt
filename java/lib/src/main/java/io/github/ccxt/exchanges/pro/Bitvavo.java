@@ -325,7 +325,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             Object trades = (this.watchPublic("trades", symbolValue, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1298,7 +1298,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             return (this.watchRequest("privateCreateOrder", (Map<String, Object>) (request))).join();
         }).thenApply(Order::new);
 
@@ -1328,7 +1328,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Object request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             return (this.watchRequest("privateUpdateOrder", (Map<String, Object>) (request))).join();
         }).thenApply(Order::new);
 

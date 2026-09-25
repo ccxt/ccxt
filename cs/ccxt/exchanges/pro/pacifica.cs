@@ -1648,7 +1648,7 @@ public partial class pacifica : ccxt.pacifica
         return this.uuid();  // uuid v4
     }
 
-    public virtual Dictionary<string, object> wrapAsPostAction(object operationType, object request)
+    public virtual Dictionary<string, object> wrapAsPostAction(object operationType, IDictionary<string, object> request)
     {
         if ((operationType == null))
         {

@@ -126,7 +126,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

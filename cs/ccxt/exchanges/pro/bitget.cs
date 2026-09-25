@@ -95,7 +95,7 @@ public partial class bitget : ccxt.bitget
         });
     }
 
-    public virtual List<object> getInstType(object methodName, IDictionary<string, object> market, object uta = null, object parameters = null)
+    public virtual List<object> getInstType(object methodName, IDictionary<string, object> market, bool? uta = null, object parameters = null)
     {
         uta ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -114,7 +114,7 @@ public partial class bitget : ccxt.bitget
         string? instTypeOption = (string)instTypeOptionparamsInstTypeVariable[0];
         IDictionary<string, object> paramsInstType = ((IDictionary<string, object>)instTypeOptionparamsInstTypeVariable[1]);
         string? instType = instTypeOption;
-        if (isTrue(uta) && ((instTypeOption != null)))
+        if (uta == true && ((instTypeOption != null)))
         {
             instType = instTypeOption.ToLower();
         }
@@ -1683,7 +1683,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(newPositions, (instType + ":positions"));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2869,7 +2869,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(this.balance, messageHash);
     }
 
-    public async virtual Task<object> watchPublic(object uta, object messageHash, object args, object parameters = null)
+    public async virtual Task<object> watchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = (isEqual(uta, true)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
@@ -2896,7 +2896,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> unWatchPublic(object uta, object messageHash, object args, object parameters = null)
+    public async virtual Task<object> unWatchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = (isEqual(uta, true)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
@@ -2945,7 +2945,7 @@ public partial class bitget : ccxt.bitget
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2975,7 +2975,7 @@ public partial class bitget : ccxt.bitget
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, object args, object parameters = null)
+    public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = (isEqual(uta, true)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");

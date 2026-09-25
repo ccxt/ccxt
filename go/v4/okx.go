@@ -6694,9 +6694,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["begin"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	typeVar, query := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil)
 	AddElementToObject(requestUntil, "instType", this.ConvertToInstrumentType(typeVar))
 	if (limit != nil) && (since == nil) {
@@ -6848,7 +6846,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["ccy"] = GetValue(currency, "id")
 	}
-	var requestUntil any = GetValue(this.HandleUntilOption("end", request, paramsMarginMode), 0)
+	var requestUntil any = GetValue(TupleSlice(this.HandleUntilOption("end", request, paramsMarginMode)), 0)
 	var response any = nil
 	if method != nil && *method == "privateGetAccountBillsArchive" {
 
@@ -7373,9 +7371,7 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("after", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
 	response := (<-this.PrivateGetAssetDepositHistory(this.Extend(requestUntil, paramsUntil)))
 	PanicOnError(response)
@@ -7521,9 +7517,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("after", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
 	response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(requestUntil, paramsUntil)))
 	PanicOnError(response)
@@ -11521,9 +11515,7 @@ func (this *Okx) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("after", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("after", request, params)
 	if since != nil {
 		AddElementToObject(requestUntil, "before", since)
 	}

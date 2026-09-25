@@ -372,7 +372,7 @@ public partial class deribit : ccxt.deribit
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "instrument_name");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);

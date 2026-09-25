@@ -908,16 +908,16 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limitResolved, null))
             {
-                limitResolved = 50;
+                limitResolved = 50L;
             }
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -949,16 +949,16 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limitResolved, null))
             {
-                limitResolved = 50;
+                limitResolved = 50L;
             }
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1416,7 +1416,7 @@ public class Independentreserve extends IndependentreserveApi
     public Long nonce()
     {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

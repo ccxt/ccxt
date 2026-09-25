@@ -932,7 +932,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public async virtual Task<ccxt.Ticker> FetchTicker2(string symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> FetchTicker2(string symbol, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

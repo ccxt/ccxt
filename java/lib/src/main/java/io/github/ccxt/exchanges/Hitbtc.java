@@ -860,7 +860,7 @@ public class Hitbtc extends HitbtcApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     /**

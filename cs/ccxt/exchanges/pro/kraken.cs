@@ -112,7 +112,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(object method, string? symbol, string? type, object request, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(object method, string? symbol, string? type, IDictionary<string, object> request, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -122,7 +122,7 @@ public partial class kraken : ccxt.kraken
             {
                 throw new ArgumentsRequired ((this.id + " limit orders require a price argument")) ;
             }
-            ((IDictionary<string,object>)getValue(request, "params"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
         bool isMarket = ((type == "market"));
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
@@ -130,17 +130,17 @@ public partial class kraken : ccxt.kraken
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         if ((postOnly == true))
         {
-            ((IDictionary<string,object>)getValue(request, "params"))["post_only"] = true;
+            ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["post_only"] = true;
         }
         string? clientOrderId = this.safeString(paramsPostOnly, "clientOrderId");
         if ((clientOrderId != null))
         {
-            ((IDictionary<string,object>)getValue(request, "params"))["cl_ord_id"] = clientOrderId;
+            ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["cl_ord_id"] = clientOrderId;
         }
         string? cost = this.safeString(paramsPostOnly, "cost");
         if ((cost != null))
         {
-            ((IDictionary<string,object>)getValue(request, "params"))["order_qty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
+            ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_qty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
         }
         IDictionary<string, object> stopLoss = this.safeDict(paramsPostOnly, "stopLoss", new Dictionary<string, object>() {});
         IDictionary<string, object> takeProfit = this.safeDict(paramsPostOnly, "takeProfit", new Dictionary<string, object>() {});
@@ -193,85 +193,85 @@ public partial class kraken : ccxt.kraken
             bool? reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly");
             if ((reduceOnly == true))
             {
-                ((IDictionary<string,object>)getValue(request, "params"))["reduce_only"] = true;
+                ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["reduce_only"] = true;
             }
             string? timeInForce = this.safeStringLower(paramsPostOnly, "timeInForce");
             if ((timeInForce != null))
             {
-                ((IDictionary<string,object>)getValue(request, "params"))["time_in_force"] = timeInForce;
+                ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["time_in_force"] = timeInForce;
             }
             if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder)
             {
-                ((IDictionary<string,object>)getValue(request, "params"))["triggers"] = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["triggers"] = new Dictionary<string, object>() {};
             }
             if (isPresetStopLoss || isPresetTakeProfit)
             {
-                ((IDictionary<string,object>)getValue(request, "params"))["conditional"] = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["conditional"] = new Dictionary<string, object>() {};
                 if (isPresetStopLoss)
                 {
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "stop-loss";
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss));
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["order_type"] = "stop-loss";
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss));
                 } else if (isPresetTakeProfit)
                 {
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "take-profit";
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit));
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["order_type"] = "take-profit";
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit));
                 }
                 if ((presetStopLossLimit != null))
                 {
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "stop-loss-limit";
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit));
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["order_type"] = "stop-loss-limit";
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit));
                 } else if ((presetTakeProfitLimit != null))
                 {
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "take-profit-limit";
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["order_type"] = "take-profit-limit";
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
                 }
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder)
             {
                 if (isStopLossPriceOrder)
                 {
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                     if (isLimitOrder)
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "stop-loss-limit";
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_type"] = "stop-loss-limit";
                     } else
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "stop-loss";
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_type"] = "stop-loss";
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
                     if (isLimitOrder)
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "take-profit-limit";
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_type"] = "take-profit-limit";
                     } else
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "take-profit";
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_type"] = "take-profit";
                     }
                 }
             } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder)
             {
-                ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price_type"] = priceType;
+                ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price_type"] = priceType;
                 if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder))
                 {
-                    ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "trailing-stop";
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_type"] = "trailing-stop";
                     if (isTrailingAmountOrder)
                     {
-                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingAmountString);
+                        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price"] = this.parseToNumeric(trailingAmountString);
                     } else
                     {
-                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingPercentString);
+                        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price"] = this.parseToNumeric(trailingPercentString);
                     }
                 } else
                 {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    ((IDictionary<string,object>)getValue(request, "params"))["limit_price_type"] = priceType;
-                    ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "trailing-stop-limit";
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["limit_price_type"] = priceType;
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["order_type"] = "trailing-stop-limit";
                     if (isTrailingLimitAmountOrder)
                     {
-                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingLimitAmountString);
+                        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price"] = this.parseToNumeric(trailingLimitAmountString);
                     } else
                     {
-                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingLimitPercentString);
+                        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("params") ? request["params"] : null), "triggers"))["price"] = this.parseToNumeric(trailingLimitPercentString);
                     }
                 }
             }
@@ -285,32 +285,32 @@ public partial class kraken : ccxt.kraken
             {
                 if (isStopLossPriceOrder)
                 {
-                    ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
                 }
             } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder)
             {
-                ((IDictionary<string,object>)getValue(request, "params"))["trigger_price_type"] = priceType;
+                ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price_type"] = priceType;
                 if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder))
                 {
                     if (isTrailingAmountOrder)
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingAmountString);
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price"] = this.parseToNumeric(trailingAmountString);
                     } else
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingPercentString);
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price"] = this.parseToNumeric(trailingPercentString);
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(request, "params"))["limit_price_type"] = priceType;
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["limit_price_type"] = priceType;
                     if (isTrailingLimitAmountOrder)
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingLimitAmountString);
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price"] = this.parseToNumeric(trailingLimitAmountString);
                     } else
                     {
-                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingLimitPercentString);
+                        ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["trigger_price"] = this.parseToNumeric(trailingLimitPercentString);
                     }
                 }
             }
@@ -937,13 +937,13 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true));
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> marketsByWsName = this.safeDict(this.options, "marketsByWsName");
-        if (((marketsByWsName == null)) || isTrue(reload))
+        if (((marketsByWsName == null)) || reload == true)
         {
             marketsByWsName = new Dictionary<string, object>() {};
             List<object> symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -983,7 +983,7 @@ public partial class kraken : ccxt.kraken
         return message;
     }
 
-    public async virtual Task<object> watchHeartbeat(object parameters = null)
+    public async virtual Task<object> watchHeartbeat(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1145,10 +1145,10 @@ public partial class kraken : ccxt.kraken
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void customHandleDeltas(object bookside, object deltas)
+    public virtual void customHandleDeltas(object bookside, IList<object> deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (int j = 0; j < getArrayLength(deltas); j++)
+        for (int j = 0; j < (deltas?.Count ?? 0); j++)
         {
             IDictionary<string, object> delta = this.safeDict(deltas, j);
             double? price = this.safeNumber(delta, "price");
@@ -1206,7 +1206,7 @@ public partial class kraken : ccxt.kraken
         return message;
     }
 
-    public async virtual Task<string?> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));

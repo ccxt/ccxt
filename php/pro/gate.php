@@ -642,7 +642,7 @@ class gate extends \ccxt\async\gate {
             if (($nonce === null) || (($deltaStart !== null) && ($nonce >= $deltaStart))) {
                 return;
             }
-            $this->handle_delta($orderbook, $result);
+            $this->handle_book_delta($orderbook, $result);
         }
         $client->resolve($orderbook, $messageHash);
     }
@@ -742,7 +742,7 @@ class gate extends \ccxt\async\gate {
         } elseif (($deltaEnd !== null) && ($nonce >= $deltaEnd)) {
             return;
         } elseif (($deltaStart !== null) && ($nonce >= $deltaStart - 1)) {
-            $this->handle_delta($storedOrderBook, $delta);
+            $this->handle_book_delta($storedOrderBook, $delta);
         } else {
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
@@ -786,7 +786,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->safe_integer($delta, 't');
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);

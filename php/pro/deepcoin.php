@@ -905,13 +905,13 @@ class deepcoin extends \ccxt\async\deepcoin {
         $currentTimestamp = $this->safe_integer($orderbook, 'timestamp');
         if (($currentTimestamp !== null) && ($timestamp > $currentTimestamp)) {
             $response = $this->safe_list($message, 'r', array());
-            $this->handle_deltas($orderbook, $response);
+            $this->handle_book_deltas($orderbook, $response);
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
     }
 
-    public function handle_delta(mixed $orderbook, mixed $entry) {
+    public function handle_book_delta(mixed $orderbook, mixed $entry) {
         $data = $this->safe_dict($entry, 'd', array());
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];

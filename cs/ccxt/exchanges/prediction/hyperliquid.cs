@@ -139,7 +139,7 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public override void setSandboxMode(object enabled)
+    public override void setSandboxMode(bool? enabled)
     {
         base.setSandboxMode(enabled);
         this.options["sandboxMode"] = enabled;
@@ -284,7 +284,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    public virtual string? buildOutcomeParentSymbol(object desc, object outcomeId, object name = null, object question = null)
+    public virtual string? buildOutcomeParentSymbol(IDictionary<string, object> desc, object outcomeId, object name = null, IDictionary<string, object>? question = null)
     {
         name ??= "";
         question ??= new Dictionary<string, object>();
@@ -525,7 +525,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, object question = null)
+    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, IDictionary<string, object>? question = null)
     {
         question ??= new Dictionary<string, object>();
         string? description = this.safeString(outcomeInfo, "description", "");
@@ -2264,7 +2264,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} raw a dict with parentSymbol and markets entries
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object raw)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> raw)
     {
         string? parentSymbol = this.safeString(raw, "parentSymbol");
         IList<object> markets = (IList<object>)(this.safeList(raw, "markets", new List<object>() {}));
@@ -2394,11 +2394,11 @@ public partial class hyperliquid : PredictionExchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual Dictionary<string, object> constructPhantomAgent(object hash, object isTestnet = null)
+    public virtual Dictionary<string, object> constructPhantomAgent(object hash, bool? isTestnet = null)
     {
         isTestnet ??= true;
         string source = "a";
-        if (isTrue(isTestnet))
+        if (isTestnet == true)
         {
             source = "b";
         }

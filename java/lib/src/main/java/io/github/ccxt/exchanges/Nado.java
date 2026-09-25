@@ -3555,10 +3555,10 @@ public class Nado extends NadoApi
         {
             throw new ArgumentsRequired((this.id + " signHash() requires privateKey")) ;
         }
-        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = Helpers.GetValue(signature, "r");
-        Object s = Helpers.GetValue(signature, "s");
-        String v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Object r = signature.get("r");
+        Object s = signature.get("s");
+        String v = ((String)this.intToBase16(this.sum(27, signature.get("v")))).toLowerCase();
         return ((("0x" + this.padHex(r, 64, true)) + this.padHex(s, 64, true)) + v);
     }
 

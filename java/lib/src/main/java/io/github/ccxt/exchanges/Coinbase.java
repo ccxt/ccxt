@@ -4378,7 +4378,7 @@ public class Coinbase extends CoinbaseApi
             {
                 request.put("product_id", market.get("id"));
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             request.put("limit", limitResolved);
             if (!java.util.Objects.equals(since, null))
             {
@@ -4441,7 +4441,7 @@ public class Coinbase extends CoinbaseApi
                 first.put("cursor", cursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
-            return this.parseOrders(orders, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limitResolved, new HashMap<String, Object>() {{}});
         });
 
     }

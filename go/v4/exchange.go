@@ -2219,7 +2219,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			if index >= 0 {
 				// Call Reset method on stored orderbook
 				orderBookInterface.Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				this.DerivedExchange.HandleBookDeltas(stored, cache[int(index):])
 				orderBookInterface.SetCache(map[string]any{})
 				// this.SetProperty(cache, "length", 0)
 				client.(ClientInterface).Resolve(stored, messageHash)

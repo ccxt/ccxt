@@ -1572,6 +1572,28 @@ function syncCoreCallType (printer, node) {
     return printedDeclarationAgrees (printer, node, type) ? type : undefined;
 }
 
+// bare `f(...)` of a ts/src/base function prints the inherited BaseExchange method of that name:
+// the same on-disk declaration read as this-calls (a venue redeclaration with another type fails closed)
+function bareBaseFunctionCallType (printer, node) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    const name = String (node.expression.text);
+    if (declaration === undefined || !/(^|[\\/])ts[\\/]src[\\/]base[\\/]/.test (declaration.getSourceFile ().fileName)
+        || JAVA_CORE_SYNC_DECLINED.has (name)) {
+        return undefined;
+    }
+    const entry = javaCoreDeclarationTable (node)?.get (name);
+    if (entry === undefined || entry.future || entry.types.size !== 1) {
+        return undefined;
+    }
+    const type = [ ...entry.types ][0];
+    return type !== 'Object' && JAVA_CORE_TYPE_OK.test (type) ? type : undefined;
+}
+
 function printedDeclarationAgrees (printer, call, type) {
     let declaration;
     try {
@@ -2738,6 +2760,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
 
     const assertedCall = unwrapNoCastAssertion (initializer);
     const asserted = assertedCall !== initializer;
+    if (!asserted && ts.isCallExpression (initializer) && ts.isIdentifier (initializer.expression)) {
+        const bare = bareBaseFunctionCallType (printer, initializer);
+        if (bare !== undefined) {
+            return { type: bare, valuePrefix: String (initializer.expression.text) + '(' };
+        }
+    }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
     }
@@ -3622,7 +3650,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
             return false;
         }
-        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
+        // a venue-own async callee that overrides nothing has no typed wrapper overload to capture the argument
+        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)
+            && !literalFeedsVenueOwnAsyncCall (printer, n, scope)) {
             return false;
         }
     }
@@ -12987,4 +13017,230 @@ export function patchJavaBaseMapFieldReceiverCasts (transpiler) {
         const head = `${JAVA_MAP_RECEIVER_CAST}this.${receiver.name.text}).get(`;
         return printed.startsWith (head) ? `this.${receiver.name.text}.get(` + printed.slice (head.length) : printed;
     };
+}
+
+// ===== 32. Long limit locals: integer-literal / null-default ternary locals fed to Long slots =====
+// Text pass over one generated class. `Integer x = 100;` and `Object x = (limit == null) ? 200 :
+// Math.min(limit, 200);` become `Long x = ...L`, and `Helpers.toLongOrNull(y)` on a Long-declared
+// name prints `y`. Every other mention must be a use whose result is the same for an Integer or
+// a Long box (normalizeIntIfNeeded helpers, null tests, `(long)` casts, serialized map values).
+const LONG_LIMIT_MEMBER_START = /^    (?:public|private|protected)\b/;
+const LONG_LIMIT_INT = /^-?\d+$/;
+
+function longLimitSplitTernary (value) {
+    // `(((java.util.Objects.equals(a, null)))) ? T : F` or `(((...))) ? T : F` at depth 0
+    let depth = 0;
+    let q = -1;
+    let c = -1;
+    for (let k = 0; k < value.length; k++) {
+        const ch = value[k];
+        if (ch === '"') {
+            return undefined;
+        }
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && ch === '?' && q === -1) q = k;
+        else if (depth === 0 && ch === ':' && q !== -1 && c === -1) c = k;
+        else if (depth === 0 && (ch === '?' || ch === ':')) return undefined;
+    }
+    if (q === -1 || c === -1 || depth !== 0) {
+        return undefined;
+    }
+    return { cond: value.slice (0, q).trim (), whenTrue: value.slice (q + 1, c).trim (), whenFalse: value.slice (c + 1).trim () };
+}
+
+// declarations of `name` in one member: [{ index, type }] (signature params included)
+function longLimitDeclarations (lines, from, to, name) {
+    const out = [];
+    const local = new RegExp (`^\\s*(?:final\\s+)?([A-Za-z_][\\w.<>, ]*?)\\s+${name}\\s*(?:=|;)`);
+    const param = new RegExp (`[(,]\\s*(?:final\\s+)?([A-Za-z_][\\w.<>]*)\\s+${name}\\s*[,)]`);
+    for (let i = from; i < to; i++) {
+        const m = (i === from ? param : local).exec (lines[i]);
+        if (m !== null) {
+            out.push ({ index: i, type: m[1].trim () });
+        }
+        if (i === from) {
+            const l = local.exec (lines[i]);
+            if (l !== null && m === null) out.push ({ index: i, type: l[1].trim () });
+        }
+    }
+    return out;
+}
+
+function longLimitIsLong (lines, from, to, name) {
+    const decls = longLimitDeclarations (lines, from, to, name);
+    return decls.length === 1 && decls[0].type === 'Long';
+}
+
+// an arm whose Java type is long/Long: a Long-declared name or Math.min/max over Long names/int literals
+function longLimitLongArm (lines, from, to, arm) {
+    const a = arm.replace (/^\((.*)\)$/, '$1').trim ();
+    if (/^[A-Za-z_]\w*$/.test (a)) {
+        return longLimitIsLong (lines, from, to, a);
+    }
+    const m = a.match (/^Math\.(?:min|max)\(([A-Za-z_]\w*|-?\d+L?), ([A-Za-z_]\w*|-?\d+L?)\)$/);
+    if (m === null) {
+        return false;
+    }
+    const ops = [ m[1], m[2] ];
+    return ops.some ((o) => /^[A-Za-z_]/.test (o) && longLimitIsLong (lines, from, to, o))
+        && ops.every ((o) => /^-?\d+L?$/.test (o) || longLimitIsLong (lines, from, to, o));
+}
+
+// the printed initializer with `L` literals, or undefined; `boxChanges` = the old box was Integer
+function longLimitInitializer (lines, from, to, type, value) {
+    if (LONG_LIMIT_INT.test (value)) {
+        return (type === 'Integer' || type === 'Object') ? { text: value + 'L', boxChanges: true } : undefined;
+    }
+    // a copy of a Long name (or Math.min/max over one) already holds a Long box
+    if (type === 'Object' && longLimitLongArm (lines, from, to, value)) {
+        return { text: value, boxChanges: false };
+    }
+    const t = longLimitSplitTernary (value);
+    if (t === undefined || /\?|:/.test (t.whenTrue + t.whenFalse)) {
+        return undefined;
+    }
+    const arms = [ t.whenTrue, t.whenFalse ];
+    const lit = (x) => LONG_LIMIT_INT.test (x);
+    if (arms.every (lit)) {
+        // `c ? 1000 : 1440` is an Integer box
+        return { text: `${t.cond} ? ${t.whenTrue}L : ${t.whenFalse}L`, boxChanges: true };
+    }
+    if (type !== 'Object') {
+        return undefined;
+    }
+    // one Long arm: binary numeric promotion already boxed the value as Long (a null arm keeps it
+    // boxed); any unboxing of a Long arm happens today already
+    const longArm = arms.some ((x) => longLimitLongArm (lines, from, to, x));
+    const ok = arms.every ((x) => lit (x) || x === 'null' || longLimitLongArm (lines, from, to, x));
+    if (!longArm || !ok) {
+        return undefined;
+    }
+    const fix = (x) => (lit (x) ? x + 'L' : x);
+    return { text: `${t.cond} ? ${fix (t.whenTrue)} : ${fix (t.whenFalse)}`, boxChanges: false };
+}
+
+const LONG_LIMIT_BOX_NEUTRAL_CALLEES = /^(?:Helpers\.(?:multiply|subtract|add|divide|mod|isEqual|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual)|this\.sum)$/;
+
+function longLimitCodeOnly (line) {
+    return line.replace (/\/\/.*$/, '').replace (/"(?:[^"\\]|\\.)*"/g, '""');
+}
+
+// callee of the innermost call whose argument list holds position `at`
+function longLimitCallee (code, at) {
+    let depth = 0;
+    for (let k = at - 1; k >= 0; k--) {
+        const ch = code[k];
+        if (ch === ')') depth++;
+        else if (ch === '(') {
+            if (depth === 0) {
+                const head = code.slice (0, k).match (/([\w$.]+)\s*$/);
+                return head === null ? '' : head[1];
+            }
+            depth--;
+        }
+    }
+    return undefined;
+}
+
+// every mention on this line is a use whose result does not depend on Integer vs Long
+function longLimitUseOk (line, name, boxChanges) {
+    const code = longLimitCodeOnly (line);
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index);
+        const after = code.slice (m.index + name.length);
+        if (/Helpers\.toLongOrNull\($/.test (before) && /^\)/.test (after)) continue;
+        if (/java\.util\.Objects\.equals\($/.test (before) && /^, null\)/.test (after)) continue;
+        if (/\(long\) $/.test (before) && /^\)/.test (after)) continue;
+        // a map value: request.put("k", x) / put( "k", x ); / newMap(..., "k", x
+        if (/(?:\.put\(|^\s*put\( )""\s*,\s*$/.test (before) && /^\s*\)/.test (after)) continue;
+        if (/^\s*""\s*,\s*$/.test (before) && /^\s*,?\s*$/.test (after)) continue;
+        const callee = longLimitCallee (code, m.index);
+        if (callee !== undefined && LONG_LIMIT_BOX_NEUTRAL_CALLEES.test (callee)) continue;
+        // mathMin/mathMax hand back one of their operands: only as a serialized map value
+        if ((callee === 'Helpers.mathMin' || callee === 'Helpers.mathMax')
+            && (!boxChanges || /^\s*(?:\w+\.)?put\(""\s*,\s*Helpers\.math(?:Min|Max)\([^()]*\)\);\s*$/.test (code))) continue;
+        // a Long-typed slot binds the same way (the Object local held a Long already)
+        if (!boxChanges && callee !== undefined && /^this\.(?:filterBy\w*|parse\w+s|fetchPaginatedCall\w+)$/.test (callee)) continue;
+        return false;
+    }
+    return true;
+}
+
+function longLimitRetypeMember (lines, from, to) {
+    let changed = false;
+    const decl = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null) continue;
+        const [ , iden, type, name, value, comment ] = d;
+        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
+        const init = longLimitInitializer (lines, from, to, type, value.trim ());
+        if (init === undefined) continue;
+        // the local must reach a Long slot (a toLongOrNull argument) to be worth the retype
+        const plan = [];
+        let fed = false;
+        let ok = true;
+        let why = '';
+        // an int literal write stored an Integer box: judge every use as a box change
+        const writeRe = new RegExp (`^\\s*${name} = (-?\\d+);`);
+        const boxChanges = init.boxChanges || lines.slice (from, to).some ((l) => writeRe.test (l));
+        for (let j = from; j < to && ok; j++) {
+            if (j === i) continue;
+            const code = longLimitCodeOnly (lines[j]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`).test (code)) continue;
+            const w = new RegExp (`^(\\s*)${name} = (.*?);(\\s*//.*)?$`).exec (lines[j]);
+            if (w !== null) {
+                if (LONG_LIMIT_INT.test (w[2].trim ())) {
+                    plan.push ([ j, `${w[1]}${name} = ${w[2].trim ()}L;${w[3] ?? ''}` ]);
+                    continue;
+                }
+                if (w[2].trim () === 'null' || longLimitLongArm (lines, from, to, w[2].trim ())) {
+                    continue;
+                }
+                ok = false;
+                why = lines[j].trim ();
+                break;
+            }
+            if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) { ok = false; break; }
+            if (!longLimitUseOk (lines[j], name, boxChanges)) { ok = false; why = lines[j].trim (); break; }
+            if (code.includes (`Helpers.toLongOrNull(${name})`)) fed = true;
+        }
+        if (process.env.JAVA_LONG_LIMIT_DEBUG && !(ok && fed) && lines.slice (from, to).some ((l) => l.includes (`toLongOrNull(${name})`))) {
+            console.log (`long-limit reject ${name}: ${lines[i].trim ()} || ${why}`);
+        }
+        if (!ok || !fed) continue;
+        lines[i] = `${iden}Long ${name} = ${init.text};${comment ?? ''}`;
+        for (const [ j, text ] of plan) lines[j] = text;
+        changed = true;
+    }
+    // a Long-declared name needs no toLongOrNull conversion
+    for (let j = from; j < to; j++) {
+        if (!lines[j].includes ('Helpers.toLongOrNull(')) continue;
+        // BaseExchange declares `Long milliseconds()` / `Long seconds()`
+        const next = lines[j].replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (whole, n) =>
+            (longLimitIsLong (lines, from, to, n) ? n : whole))
+            .replace (/Helpers\.toLongOrNull\((this\.(?:milliseconds|seconds)\(\))\)/g, '$1');
+        if (next !== lines[j]) { lines[j] = next; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaLongLimitLocals (content) {
+    if (!content.includes ('Helpers.toLongOrNull(')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    }
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        if (longLimitRetypeMember (lines, starts[s], to)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
 }

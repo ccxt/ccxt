@@ -192,7 +192,7 @@ public class Binance extends BinanceApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     /**

@@ -94,7 +94,7 @@ public partial class bydfi : ccxt.bydfi
         return reqid;
     }
 
-    public async virtual Task<object> watchPublic(object messageHashes, object channels, object parameters = null, object subscription = null)
+    public async virtual Task<object> watchPublic(object messageHashes, object channels, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
@@ -931,7 +931,7 @@ public partial class bydfi : ccxt.bydfi
         client.resolve(new List<object>() {parsedPosition}, symbolMessageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

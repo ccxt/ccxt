@@ -76,7 +76,7 @@ public partial class lighter : ccxt.lighter
         return ((string?)((object)(hash)));
     }
 
-    public async virtual Task<object> subscribePublic(object messageHash, object parameters = null)
+    public async virtual Task<object> subscribePublic(object messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -90,7 +90,7 @@ public partial class lighter : ccxt.lighter
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePublicMultiple(object messageHashes, object parameters = null)
+    public async virtual Task<object> subscribePublicMultiple(object messageHashes, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -104,7 +104,7 @@ public partial class lighter : ccxt.lighter
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
     }
 
-    public async virtual Task<object> unsubscribe(object messageHash, object parameters = null)
+    public async virtual Task<object> unsubscribe(object messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -118,11 +118,11 @@ public partial class lighter : ccxt.lighter
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash, object parameters = null)
+    public async virtual Task<object> subscribePrivate(object messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.preLoadLighterLibrary();
-        ((IDictionary<string,object>)parameters)["auth"] = this.createAuth(parameters);
+        parameters["auth"] = this.createAuth(parameters);
         return await this.subscribePublic(messageHash, parameters);
     }
 

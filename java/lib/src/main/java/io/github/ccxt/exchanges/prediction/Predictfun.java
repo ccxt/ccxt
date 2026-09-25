@@ -1957,14 +1957,14 @@ public class Predictfun extends PredictfunApi
      */
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        Object rRaw = Helpers.GetValue(signature, "r");
-        Object sRaw = Helpers.GetValue(signature, "s");
+        Object rRaw = signature.get("r");
+        Object sRaw = signature.get("s");
         String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
         String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
-        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        String v = this.intToBase16(this.sum(27, signature.get("v")));
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
         String signatureHex = ((("0x" + r) + s) + v);
         return signatureHex.toLowerCase();
@@ -3116,7 +3116,7 @@ public class Predictfun extends PredictfunApi
         List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
-        Object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
+        Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
         Object rHex = this.safeString(signature, "r");
         Object sHex = this.safeString(signature, "s");
         rHex = this.padHexToEven((String) (rHex));
@@ -4390,7 +4390,7 @@ public class Predictfun extends PredictfunApi
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     /**

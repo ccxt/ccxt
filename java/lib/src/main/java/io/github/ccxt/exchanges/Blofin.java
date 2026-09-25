@@ -1343,7 +1343,7 @@ public class Blofin extends BlofinApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(query), 100L)).join();
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100, max 100
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit; // default 100, max 100
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
                 put( "bar", Blofin.this.safeString(Blofin.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -1357,7 +1357,7 @@ public class Blofin extends BlofinApi
             }
             Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, query))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

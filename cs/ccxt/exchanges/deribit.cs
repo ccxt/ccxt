@@ -3396,7 +3396,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchVolatilityHistory(string code, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchVolatilityHistory(string code, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3425,7 +3425,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(response));
     }
 
-    public virtual List<object> parseVolatilityHistory(object volatility)
+    public virtual List<object> parseVolatilityHistory(IDictionary<string, object> volatility)
     {
         //
         //     {

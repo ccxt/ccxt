@@ -561,7 +561,7 @@ class gate(ccxt.async_support.gate):
             deltaStart = self.safe_integer(result, 'u')
             if (nonce is None) or ((deltaStart is not None) and (nonce >= deltaStart)):
                 return
-            self.handle_delta(orderbook, result)
+            self.handle_book_delta(orderbook, result)
         client.resolve(orderbook, messageHash)
 
     def handle_order_book(self, client: Client, message: dict):
@@ -654,7 +654,7 @@ class gate(ccxt.async_support.gate):
         elif (deltaEnd is not None) and (nonce >= deltaEnd):
             return
         elif (deltaStart is not None) and (nonce >= deltaStart - 1):
-            self.handle_delta(storedOrderBook, delta)
+            self.handle_book_delta(storedOrderBook, delta)
         else:
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
@@ -688,7 +688,7 @@ class gate(ccxt.async_support.gate):
                 amount = self.safe_float(bidAsk, 's')
                 bookSide.store(price, amount)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         timestamp = self.safe_integer(delta, 't')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)

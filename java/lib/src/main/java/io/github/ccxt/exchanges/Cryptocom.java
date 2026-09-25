@@ -1478,10 +1478,10 @@ public class Cryptocom extends CryptocomApi
                 put( "instrument_name", market.get("id") );
                 put( "timeframe", Cryptocom.this.safeString(Cryptocom.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if ((!java.util.Objects.equals(limit, null)) && ((limit > 300)))
             {
-                limitResolved = 300;
+                limitResolved = 300L;
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
@@ -1529,7 +1529,7 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -4146,7 +4146,7 @@ public class Cryptocom extends CryptocomApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object paramsToString(Object obj, Object level)

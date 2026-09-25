@@ -4564,9 +4564,7 @@ func (this *Binance) TokenizedConvertHistory(optionalArgs ...any) any {
 	if limit != nil {
 		request["size"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response any = this.SapiGetEquityTokenizedHistory(this.Extend(requestUntil, paramsUntil))
 	//
 	//     {
@@ -15045,9 +15043,7 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	var isPortfolioMarginparamsPapiVariable []any = this.HandleOptionBoolAndParams2(paramsSubType, "fetchFundingHistory", "papi", "portfolioMargin", false)
 	var isPortfolioMargin bool = GetValueBool(isPortfolioMarginparamsPapiVariable, 0, false)
 	var paramsPapi map[string]any = MapTyped(GetValue(isPortfolioMarginparamsPapiVariable, 1))
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPapi)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPapi)
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
 	}
@@ -17007,9 +17003,7 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 	if limit != nil {
 		request["size"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPapi)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPapi)
 	var response any = nil
 	if isPortfolioMargin {
 
@@ -17647,9 +17641,7 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 			request["limit"] = limit
 		}
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPapi)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPapi)
 	var response any = nil
 	if typeVar != nil && *typeVar == "spot" {
 		if isPortfolioMargin {
@@ -18984,9 +18976,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"period": period,
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
 	}

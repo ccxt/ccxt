@@ -230,11 +230,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        this.handleDelta(storedOrderBook, delta);
+        this.handleBookDelta(storedOrderBook, delta);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Long timestamp = this.safeTimestamp(delta, "timestamp");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);

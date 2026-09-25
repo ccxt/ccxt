@@ -216,7 +216,7 @@ impl DeepcoinCore {
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "create_public_request" => self.create_public_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1314,13 +1314,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currentTimestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
         if (currentTimestamp != Value::Null) && (timestamp.as_f64().unwrap_or(f64::NAN) > currentTimestamp.as_f64().unwrap_or(f64::NAN)) {
             let mut response: Value = (match message.get("r") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-            self.handle_deltas(orderbook.clone(), response);
+            self.handle_book_deltas(orderbook.clone(), response);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
 }
 
-    pub fn handle_delta(&self, mut orderbook: Value, mut entry: Value) {
+    pub fn handle_book_delta(&self, mut orderbook: Value, mut entry: Value) {
         let mut data: Value = self.safe_dict_k(entry, "d", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

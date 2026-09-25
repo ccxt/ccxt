@@ -174,10 +174,10 @@ class bitstamp(ccxt.async_support.bitstamp):
             return
         elif nonce >= deltaNonce:
             return
-        self.handle_delta(storedOrderBook, delta)
+        self.handle_book_delta(storedOrderBook, delta)
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         timestamp = self.safe_timestamp(delta, 'timestamp')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)

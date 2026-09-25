@@ -1990,7 +1990,7 @@ public class Bitstamp extends BitstampApi
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long until = this.safeInteger(parameters, "until");
             Boolean untilIsDefined = (!java.util.Objects.equals(until, null));
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
             if (java.util.Objects.equals(limit, null))
             {
                 if (java.util.Objects.equals(since, null))
@@ -2051,7 +2051,7 @@ public class Bitstamp extends BitstampApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> ohlc = (List<Object>) this.safeList(data, "ohlc", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(ohlc, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlc, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -3658,7 +3658,7 @@ public class Bitstamp extends BitstampApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

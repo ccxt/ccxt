@@ -3319,7 +3319,7 @@ public class Kalshi extends KalshiApi
             // RSA-PSS SHA-256 signature with the private key PEM
             Object keyParts = new ArrayList<Object>(Arrays.asList(((String)this.privateKey).split(java.util.regex.Pattern.quote("\\n"))));
             String cleanPrivateKey = String.join("\n", (List<String>)keyParts);
-            Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
+            String signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             headersValue = this.extend(headersValue, Helpers.newMap(
                 "KALSHI-ACCESS-KEY", this.apiKey,
                 "KALSHI-ACCESS-SIGNATURE", signature,

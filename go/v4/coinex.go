@@ -4082,9 +4082,7 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_time"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 		AddElementToObject(requestUntil, "market_type", "FUTURES")
@@ -4828,9 +4826,7 @@ func (this *Coinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		"market":      market["id"],
 		"market_type": "FUTURES",
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 	if since != nil {
 		AddElementToObject(requestUntil, "start_time", since)
 	}
@@ -5238,9 +5234,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesFundingRateHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -5550,9 +5544,7 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsMarginMode)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsMarginMode)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsTransferHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -6429,9 +6421,7 @@ func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol string, optiona
 	if since != nil {
 		request["start_time"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -6792,9 +6782,7 @@ func (this *Coinex) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs .
 		"market_type": "FUTURES",
 		"position_id": positionId,
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsOmitted)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsOmitted)
 	if since != nil {
 		AddElementToObject(requestUntil, "start_time", since)
 	}

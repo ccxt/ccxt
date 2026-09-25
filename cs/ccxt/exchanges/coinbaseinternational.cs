@@ -1031,7 +1031,7 @@ public partial class coinbaseinternational : Exchange
         return (networksArray != null && 0 < networksArray.Count ? networksArray[0] : null);
     }
 
-    public async virtual Task<bool> loadCurrencyNetworks(object code, object parameters = null)
+    public async virtual Task<bool> loadCurrencyNetworks(object code, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> currency = this.currency(((string)code));
@@ -1066,7 +1066,7 @@ public partial class coinbaseinternational : Exchange
         return true;
     }
 
-    public virtual Dictionary<string, object> parseNetworks(object networks, object parameters = null)
+    public virtual Dictionary<string, object> parseNetworks(object networks, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1078,7 +1078,7 @@ public partial class coinbaseinternational : Exchange
         return result;
     }
 
-    public virtual object parseNetwork(object network, object parameters = null)
+    public virtual object parseNetwork(object network, IDictionary<string, object>? parameters = null)
     {
         //
         //    {

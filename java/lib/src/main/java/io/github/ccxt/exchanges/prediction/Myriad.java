@@ -926,7 +926,7 @@ public class Myriad extends MyriadApi
         List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
-        Object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
+        Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
         String rHex = this.safeString(signature, "r");
         String sHex = this.safeString(signature, "s");
         if (java.util.Objects.equals(rHex, null))
@@ -1426,12 +1426,12 @@ public class Myriad extends MyriadApi
         );
         Object encoded = this.ethEncodeStructuredData(domain, types, message);
         Object digest = this.hash(encoded, keccak(), "hex");
-        Object signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
-        Object rRaw = Helpers.GetValue(signature, "r");
-        Object sRaw = Helpers.GetValue(signature, "s");
+        Map<String,Object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
+        Object rRaw = signature.get("r");
+        Object sRaw = signature.get("s");
         String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
         String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
-        Object v = this.sum(27, Helpers.GetValue(signature, "v"));
+        Object v = this.sum(27, signature.get("v"));
         String sigHex = ((("0x" + r) + s) + this.intToBase16(v));
         return sigHex.toLowerCase();
     }

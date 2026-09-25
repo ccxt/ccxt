@@ -122,13 +122,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Object market = this.market(symbol);
-            String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
+            Map<String, Object> market = this.market(symbol);
+            String messageHash = ("trade:" + market.get("symbol"));
             Object trades = (this.watchPublic("trade", market, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
             }
             return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -249,12 +249,12 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Object market = this.market(symbol);
-            String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(((Map<String, Object>)market).get("symbol"))))
+            Map<String, Object> market = this.market(symbol);
+            String messageHash = ("orderbook:" + market.get("symbol"));
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(market.get("symbol"))))
             {
                 OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.orderbooks, ((Map<String, Object>)market).get("symbol"), this.orderBook(snapshot, limit));
+                Helpers.addElementToObject(this.orderbooks, market.get("symbol"), this.orderBook(snapshot, limit));
             }
             Object orderbook = (this.watchPublic("book_depth", market, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -377,8 +377,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Object market = this.market(symbol);
-            String messageHash = ((("ohlcv:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + ((Map<String, Object>)market).get("symbol"));
+            Map<String, Object> market = this.market(symbol);
+            String messageHash = ((("ohlcv:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "granularity", Nado.this.safeInteger(Nado.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), Nado.this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
             }};
@@ -387,7 +387,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(stored, ((Map<String, Object>)market).get("symbol"), limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(stored, market.get("symbol"), limit);
             }
             return this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1033,7 +1033,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
             }
-            Object request = (this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsExtended))).join();
+            Map<String, Object> request = (this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsExtended))).join();
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             if (placeOrder.containsKey("trigger"))
             {
@@ -1100,7 +1100,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
             }
-            Object request = (this.editOrderRequest(id, symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsExtended))).join();
+            Map<String, Object> request = (this.editOrderRequest(id, symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsExtended))).join();
             Object response = (this.watchExecuteRequest((String) (requestIdString), (Map<String, Object>) (request))).join();
             //
             //     {
@@ -1186,7 +1186,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
             }
-            Object request = (this.cancelOrdersRequest(ids, symbol, Helpers.toMapArg(paramsExtended))).join();
+            Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, Helpers.toMapArg(paramsExtended))).join();
             Object response = (this.watchExecuteRequest((String) (requestIdString), (Map<String, Object>) (request))).join();
             //
             //     {
@@ -1250,7 +1250,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
             }
-            Object request = (this.cancelAllOrdersRequest(symbol, Helpers.toMapArg(paramsExtended))).join();
+            Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, Helpers.toMapArg(paramsExtended))).join();
             Object response = (this.watchExecuteRequest((String) (requestIdString), (Map<String, Object>) (request))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));

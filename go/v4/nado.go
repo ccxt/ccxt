@@ -1360,9 +1360,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if market != nil {
 		ordersRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
-	var ordersRequestUntilparamsUntilVariable []any = this.HandleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001)
-	var ordersRequestUntil map[string]any = MapTyped(GetValue(ordersRequestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(ordersRequestUntilparamsUntilVariable, 1))
+	ordersRequestUntil, paramsUntil := this.HandleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001)
 	if limit != nil {
 		AddElementToObject(ordersRequestUntil, "limit", mathMin(limit, 500))
 	}
@@ -1527,9 +1525,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if market != nil {
 		matchesRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
-	var matchesRequestUntilparamsUntilVariable []any = this.HandleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001)
-	var matchesRequestUntil map[string]any = MapTyped(GetValue(matchesRequestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(matchesRequestUntilparamsUntilVariable, 1))
+	matchesRequestUntil, paramsUntil := this.HandleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001)
 	if limit != nil {
 		AddElementToObject(matchesRequestUntil, "limit", mathMin(limit, 500))
 	}
@@ -1752,9 +1748,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType string
 	if currency != nil {
 		eventsRequest["product_ids"] = []any{this.ParseToInt(GetValue(currency, "id"))}
 	}
-	var eventsRequestUntilparamsUntilVariable []any = this.HandleUntilOption("max_time", eventsRequest, paramsSubaccount, 0.001)
-	var eventsRequestUntil map[string]any = MapTyped(GetValue(eventsRequestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(eventsRequestUntilparamsUntilVariable, 1))
+	eventsRequestUntil, paramsUntil := this.HandleUntilOption("max_time", eventsRequest, paramsSubaccount, 0.001)
 	var request map[string]any = map[string]any{
 		"events": eventsRequestUntil,
 	}

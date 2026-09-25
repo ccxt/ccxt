@@ -814,7 +814,7 @@ public partial class lighter : Exchange
         return true;
     }
 
-    public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? strAccountIndex = this.numberToString(accountIndex);
@@ -844,7 +844,7 @@ public partial class lighter : Exchange
         return response;
     }
 
-    public async virtual Task<object> changeApiKey(object parameters = null)
+    public async virtual Task<object> changeApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> apiKeyIndexparamsApiKeyIndexVariable = (IList<object>)this.handleApiKeyIndex(parameters, "changeApiKey", "apiKeyIndex", "api_key_index");
@@ -884,11 +884,11 @@ public partial class lighter : Exchange
         return signer;
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;
-        this.options["chainId"] = isTrue(enable) ? 300 : 304;
+        this.options["chainId"] = enable == true ? 300 : 304;
     }
 
     public virtual List<object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)

@@ -251,7 +251,7 @@ public partial class luno : ccxt.luno
         } else
         {
             ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);
-            this.handleDelta(ob, message);
+            this.handleBookDelta(ob, message);
             ob["timestamp"] = timestamp;
             ob["datetime"] = this.iso8601(timestamp);
         }
@@ -310,7 +310,7 @@ public partial class luno : ccxt.luno
         return result;
     }
 
-    public override void handleDelta(object orderbook, object message)
+    public override void handleBookDelta(object orderbook, object message)
     {
         //
         //  create

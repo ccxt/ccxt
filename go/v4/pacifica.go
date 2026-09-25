@@ -1639,9 +1639,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		"interval":   tf,
 		"start_time": since,
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsPaginate)
 	var nowMillis int64 = this.Milliseconds()
 	var until any = DerefScalar(this.SafeInteger(requestUntil, "end_time"))
 	if IsEqual(until, nil) {
@@ -1816,9 +1814,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsOriginAndSingleAddress)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsOriginAndSingleAddress)
 	AddElementToObject(requestUntil, "account", userAddress)
 	if symbol != nil {
 		AddElementToObject(requestUntil, "symbol", this.SafeString(market, "id"))

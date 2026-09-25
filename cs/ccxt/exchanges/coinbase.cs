@@ -865,7 +865,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async virtual Task<List<ccxt.Account>> FetchPortfolios(object parameters = null)
+    public async virtual Task<List<ccxt.Account>> FetchPortfolios(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.v3PrivateGetBrokeragePortfolios(parameters);
@@ -1045,7 +1045,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Trade>> FetchMySells(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Trade>> FetchMySells(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         // v2 did't have an endpoint for all historical trades
         parameters ??= new Dictionary<string, object>();
@@ -1072,7 +1072,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Trade>> FetchMyBuys(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Trade>> FetchMyBuys(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         // v2 did't have an endpoint for all historical trades
         parameters ??= new Dictionary<string, object>();
@@ -1864,7 +1864,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(newMarkets);
     }
 
-    public virtual Dictionary<string, object> parseSpotMarket(object market, object feeTier)
+    public virtual Dictionary<string, object> parseSpotMarket(object market, IDictionary<string, object> feeTier)
     {
         //
         //         {
@@ -1966,7 +1966,7 @@ public partial class coinbase : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseContractMarket(object market, object feeTier)
+    public virtual Dictionary<string, object> parseContractMarket(object market, IDictionary<string, object> feeTier)
     {
         // expiring
         //
@@ -2732,7 +2732,7 @@ public partial class coinbase : Exchange
         }, marketResolved);
     }
 
-    public virtual object parseCustomBalance(Dictionary<string, object> response, object parameters = null)
+    public virtual object parseCustomBalance(IDictionary<string, object> response, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> balances = this.safeList2(response, "data", "accounts", new List<object>() {});
@@ -5011,7 +5011,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.accountId] the id of the account to deposit into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<Dictionary<string, object>> deposit(string code, double amount, string? id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> deposit(string code, double amount, string? id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5092,7 +5092,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.accountId] the id of the account that the funds were deposited into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5167,7 +5167,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchDepositMethodIds(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchDepositMethodIds(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5207,7 +5207,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    public async virtual Task<Dictionary<string, object>> FetchDepositMethodId(string? id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchDepositMethodId(string? id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5239,7 +5239,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToDict(this.parseDepositMethodId(result));
     }
 
-    public virtual List<object> parseDepositMethodIds(IList<object> ids, object parameters = null)
+    public virtual List<object> parseDepositMethodIds(IList<object> ids, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
@@ -5804,7 +5804,7 @@ public partial class coinbase : Exchange
      * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
      * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchPortfolioDetails(object portfolioUuid, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchPortfolioDetails(object portfolioUuid, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5819,7 +5819,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToDictList(result);
     }
 
-    public virtual List<object> parsePortfolioDetails(Dictionary<string, object> portfolioData)
+    public virtual List<object> parsePortfolioDetails(IDictionary<string, object> portfolioData)
     {
         IDictionary<string, object> breakdown = this.safeDict(portfolioData, "breakdown");
         IDictionary<string, object> portfolioInfo = this.safeDict(breakdown, "portfolio", new Dictionary<string, object>() {});
@@ -5869,7 +5869,7 @@ public partial class coinbase : Exchange
         return parsedPositions;
     }
 
-    public virtual string createAuthToken(object seconds, object method = null, object url = null, object useEddsa = null)
+    public virtual string createAuthToken(object seconds, object method = null, object url = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -5889,12 +5889,12 @@ public partial class coinbase : Exchange
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         object nonce = this.randomBytes(16);
         string aud = "retail_rest_api_proxy";
-        if (isTrue(useEddsa))
+        if (useEddsa == true)
         {
             aud = "cdp_service";
         }
         string iss = "coinbase-cloud";
-        if (isTrue(useEddsa))
+        if (useEddsa == true)
         {
             iss = "cdp";
         }
@@ -5908,7 +5908,7 @@ public partial class coinbase : Exchange
         };
         if ((uri != null))
         {
-            if (!isTrue(useEddsa))
+            if (useEddsa != true)
             {
                 request["uri"] = uri;
             } else
@@ -5916,7 +5916,7 @@ public partial class coinbase : Exchange
                 request["uris"] = new List<object>() {uri};
             }
         }
-        if (isTrue(useEddsa))
+        if (useEddsa == true)
         {
             byte[] byteArray = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(byteArray, 0, 32);
