@@ -571,7 +571,7 @@ export default class bigone extends Exchange {
         }
         const chainLength = chains.length;
         let type: Str = undefined;
-        if (this.safeBool (rawCurrency, 'is_fiat') === true) {
+        if (this.safeBool (rawCurrency, 'is_fiat', false)) {
             type = 'fiat';
         } else if (chainLength === 0) {
             if (this.isLeveragedCurrency (id)) {

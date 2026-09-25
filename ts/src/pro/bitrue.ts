@@ -430,7 +430,7 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
             const candidate = markets[symbols[i]];
-            if (this.safeBool (candidate, 'swap') !== true) {
+            if (!this.safeBool (candidate, 'swap', false)) {
                 continue;
             }
             const baseId = this.safeStringLower (candidate, 'baseId');

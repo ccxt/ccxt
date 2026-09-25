@@ -1380,7 +1380,7 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         if (this.checkRequiredCredentials (false)) {
@@ -1532,7 +1532,7 @@ export default class gate extends Exchange {
     async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const result: List = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
-        if (this.safeBool (this.options, 'sandboxMode') === true) {
+        if (this.safeBool (this.options, 'sandboxMode', false)) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
         }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
@@ -1553,7 +1553,7 @@ export default class gate extends Exchange {
     }
 
     async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'sandboxMode') === true) {
+        if (this.safeBool (this.options, 'sandboxMode', false)) {
             return []; // right now sandbox does not have inverse swaps
         }
         const result: List = [];
@@ -2129,8 +2129,8 @@ export default class gate extends Exchange {
                     'id': networkId,
                     'network': networkCode,
                     'active': undefined,
-                    'deposit': this.safeBool (chain, 'deposit_disabled') !== true,
-                    'withdraw': this.safeBool (chain, 'withdraw_disabled') !== true,
+                    'deposit': !this.safeBool (chain, 'deposit_disabled', false),
+                    'withdraw': !this.safeBool (chain, 'withdraw_disabled', false),
                     'fee': undefined,
                     'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
                     'limits': {
@@ -2151,9 +2151,9 @@ export default class gate extends Exchange {
             'code': code,
             'name': this.safeString (rawCurrency, 'name'),
             'type': type,
-            'active': this.safeBool (rawCurrency, 'delisted') !== true,
-            'deposit': this.safeBool (rawCurrency, 'deposit_disabled') !== true,
-            'withdraw': this.safeBool (rawCurrency, 'withdraw_disabled') !== true,
+            'active': !this.safeBool (rawCurrency, 'delisted', false),
+            'deposit': !this.safeBool (rawCurrency, 'deposit_disabled', false),
+            'withdraw': !this.safeBool (rawCurrency, 'withdraw_disabled', false),
             'fee': undefined,
             'networks': networks,
             'precision': this.parseNumber ('0.0001'),
@@ -8352,7 +8352,7 @@ export default class gate extends Exchange {
         let response: Dict;
         const isUnified = this.safeBool (params, 'unified');
         const paramsOmitted: Dict = this.omit (params, 'unified');
-        if (this.safeBool (market, 'spot') === true) {
+        if (this.safeBool (market, 'spot', false)) {
             request['currency_pair'] = this.safeString (market, 'id');
             if (isUnified === true) {
                 response = await this.publicMarginGetUniCurrencyPairsCurrencyPair (this.extend (request, paramsOmitted));

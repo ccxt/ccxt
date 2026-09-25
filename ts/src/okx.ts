@@ -1756,7 +1756,7 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         let types = [ 'spot', 'future', 'swap', 'option' ];
@@ -3255,7 +3255,7 @@ export default class okx extends Exchange {
         const trailingPrice = this.safeString2 (params, 'trailingPrice', 'callbackSpread');
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
-        const isReduceOnly = (this.safeBool (params, 'reduceOnly', false) === true) || (closeFraction !== undefined);
+        const isReduceOnly = (this.safeBool (params, 'reduceOnly', false)) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         let margin: Bool = false;

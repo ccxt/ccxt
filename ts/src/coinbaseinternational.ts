@@ -370,7 +370,7 @@ export default class coinbaseinternational extends Exchange {
         for (let i = 0; i < accounts.length; i++) {
             const account = this.safeDict (accounts, i);
             const info = this.safeDict (account, 'info', {});
-            if (this.safeBool (info, 'is_default') === true) {
+            if (this.safeBool (info, 'is_default', false)) {
                 const portfolioId = this.safeString (info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [ portfolioId, paramsPortfolio ];
