@@ -3536,7 +3536,7 @@ class btse(Exchange, ImplicitAPI):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         return None
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
         requestBody = None
         requestHeaders = None
         apiUrl = self.safe_string(self.urls['api'], api)

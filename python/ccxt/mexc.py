@@ -5947,12 +5947,13 @@ class mexc(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestHeaders = headers
         requestBody = body
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
-        pathValue, paramsValue = self.resolve_path(path, params)
+        pathValue = self.implode_params(path, params)
+        paramsValue = self.omit(params, self.extract_params(path))
         url = None
         if section == 'spot' or section == 'broker':
             if section == 'broker':

@@ -3033,7 +3033,7 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         baseUrl = self.urls['api'][api]
         url = baseUrl + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
