@@ -2984,7 +2984,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	}
 	var market any = GetValue(markets, symbol)
 	var feeSide *string = this.SafeString(market, "feeSide", "quote")
-	var useQuote any = nil
+	var useQuote bool
 	if feeSide != nil && *feeSide == "get" {
 		// the fee is always in the currency you get
 		useQuote = (side == "sell")

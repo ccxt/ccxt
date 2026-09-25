@@ -1339,7 +1339,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 					// 4. Drop any event where u is <= lastUpdateId in the snapshot
 					if u != nil && (nonce == nil || *u > *nonce) {
 						var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
-						var conditional any = nil
+						var conditional bool
 						if timestamp == nil {
 							// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
 							conditional = (ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), nonce)) && (ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), nonce))
