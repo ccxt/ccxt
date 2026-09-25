@@ -7380,7 +7380,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7394,8 +7394,12 @@ public Object describe()
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7404,8 +7408,12 @@ public Object describe()
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.fetchSpotOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7413,6 +7421,10 @@ public Object describe()
             throw new NotSupported((this.id + " fetchContractOHLCV() is not supported yet")) ;
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.fetchContractOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -9636,7 +9648,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Order> cancelSpotOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelSpotOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -9645,8 +9657,12 @@ public Object describe()
         }).thenApply(Order::new);
 
     }
+    public CompletableFuture<Order> cancelSpotOrder(String id, Object... optionalArgs)
+    {
+        return this.cancelSpotOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Order> cancelContractOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelContractOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -9654,6 +9670,10 @@ public Object describe()
             throw new NotSupported((this.id + " cancelContractOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
+    }
+    public CompletableFuture<Order> cancelContractOrder(String id, Object... optionalArgs)
+    {
+        return this.cancelContractOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<Order>> cancelAllSpotOrders(String symbol, Map<String, Object> parameters)

@@ -2379,7 +2379,7 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
     {
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
@@ -2436,7 +2436,7 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2762,7 +2762,7 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2815,7 +2815,7 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3041,7 +3041,7 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
@@ -3147,7 +3147,7 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

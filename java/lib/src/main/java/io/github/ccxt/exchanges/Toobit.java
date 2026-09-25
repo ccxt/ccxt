@@ -1614,7 +1614,7 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
         final Long since3 = since2;
         final Long limit3 = limit2;
@@ -1685,7 +1685,7 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2269,7 +2269,7 @@ public class Toobit extends ToobitApi
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -2336,7 +2336,7 @@ public class Toobit extends ToobitApi
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2667,7 +2667,7 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
@@ -2722,7 +2722,7 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

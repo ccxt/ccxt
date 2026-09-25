@@ -375,10 +375,11 @@ public class Limitless extends LimitlessApi
             {
                 Object page = 1;
                 Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-                Map<String, Object> request = Helpers.newMap(
-                    "page", page,
-                    "limit", pageSize
-                );
+                final Object finalPage = page;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "page", finalPage );
+                    put( "limit", pageSize );
+                }};
                 Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
                 Long totalMarketsCount = this.safeInteger(firstPageResponse, "totalMarketsCount");
                 List<Object> firstData = (List<Object>) this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
@@ -398,11 +399,11 @@ public class Limitless extends LimitlessApi
                 Integer length = ((List<?>)responses).size();
                 for (var j = 0; (length != null && j < length); j++)
                 {
-                    Map<String, Object> response = (Map<String, Object>) this.safeDict(responses, j, (Object) null);
+                    Map<String, Object> response = (Map<String, Object>) this.safeDict(responses, j);
                     List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                     allRaw = (List<Object>) this.arrayConcat(allRaw, data);
                 }
-                Map<String, Object> lastPageResponse = (Map<String, Object>) this.safeDict(responses, (((long) length) - 1L), (Object) null);
+                Map<String, Object> lastPageResponse = (Map<String, Object>) this.safeDict(responses, (((long) length) - 1L));
                 List<Object> lastPageData = (List<Object>) this.safeList(lastPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Integer lastPageLength = ((List<?>)lastPageData).size();
                 Integer allRawLength = ((List<?>)allRaw).size();
@@ -458,12 +459,13 @@ public class Limitless extends LimitlessApi
                 {
                     if (!(eventGroups.containsKey(eventKey)))
                     {
-                        eventGroups.put((String)eventKey, Helpers.newMap(
-        "groupId", groupId,
-        "title", this.safeString2(raw, "groupTitle", "title", groupId),
-        "raw", raw,
-        "markets", new ArrayList<Object>(Arrays.asList())
-    ));
+                        final String finalGroupId = groupId;
+                        eventGroups.put((String)eventKey, new HashMap<String, Object>() {{
+        put( "groupId", finalGroupId );
+        put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
+        put( "raw", raw );
+        put( "markets", new ArrayList<Object>(Arrays.asList()) );
+    }});
                     }
                     Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                     // push through a local and write the slice back — the go transpiler's
@@ -491,6 +493,21 @@ public class Limitless extends LimitlessApi
             return markets;
         });
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchMarkets
+     * @description fetches all active limitless markets paginated and returns one CCXT market per child market, each containing a list of outcome objects (YES/NO)
+     * @see https://docs.limitless.exchange/api-reference/markets/get-active-markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.query] a single search query string to filter markets by
+     * @param {string[]} [params.queries] multiple search query strings (alternative to query)
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarket(Object raw)
@@ -587,7 +604,7 @@ public class Limitless extends LimitlessApi
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         Long expiryTimestamp = this.safeInteger(raw, "expirationTimestamp");
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
-        Double volume24h = this.safeNumber(raw, "volumeFormatted", (Object) null);
+        Double volume24h = this.safeNumber(raw, "volumeFormatted");
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         Long winningOutcomeIndex = this.safeInteger(raw, "winningOutcomeIndex");
         Boolean marketResolved = (!java.util.Objects.equals(winningOutcomeIndex, null));
@@ -659,43 +676,44 @@ public class Limitless extends LimitlessApi
         Integer outcomesLength = ((List<?>)outcomes).size();
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
-        return Helpers.newMap(
-            "id", slug,
-            "market", marketSymbol,
-            "marketType", (((Helpers.isGreaterThan(outcomesLength, 2)))) ? "categorical" : "binary",
-            "executionModel", "clob",
-            "collateral", "USDC",
-            "base", slug,
-            "quote", "USDC",
-            "settle", null,
-            "baseId", slug,
-            "quoteId", "USDC",
-            "settleId", null,
-            "type", "prediction",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", marketResolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", expiryTimestamp,
-            "expiryDatetime", this.iso8601(expiryTimestamp),
-            "strike", null,
-            "optionType", null,
-            "taker", 0.02,
-            "maker", 0.02,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        final Integer finalOutcomesLength = outcomesLength;
+        return new HashMap<String, Object>() {{
+            put( "id", slug );
+            put( "market", marketSymbol );
+            put( "marketType", (((Helpers.isGreaterThan(finalOutcomesLength, 2)))) ? "categorical" : "binary" );
+            put( "executionModel", "clob" );
+            put( "collateral", "USDC" );
+            put( "base", slug );
+            put( "quote", "USDC" );
+            put( "settle", null );
+            put( "baseId", slug );
+            put( "quoteId", "USDC" );
+            put( "settleId", null );
+            put( "type", "prediction" );
+            put( "spot", false );
+            put( "margin", false );
+            put( "swap", false );
+            put( "future", false );
+            put( "option", false );
+            put( "prediction", true );
+            put( "active", active );
+            put( "resolved", marketResolved );
+            put( "resolvedOutcome", marketResolvedOutcome );
+            put( "contract", false );
+            put( "linear", null );
+            put( "inverse", null );
+            put( "contractSize", null );
+            put( "expiry", expiryTimestamp );
+            put( "expiryDatetime", Limitless.this.iso8601(expiryTimestamp) );
+            put( "strike", null );
+            put( "optionType", null );
+            put( "taker", 0.02 );
+            put( "maker", 0.02 );
+            put( "percentage", true );
+            put( "tierBased", false );
+            put( "feeSide", "get" );
+            put( "precision", precision );
+            put( "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -712,15 +730,15 @@ public class Limitless extends LimitlessApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", this.extend(raw, new HashMap<String, Object>() {{
+            }} );
+            put( "outcomes", outcomes );
+            put( "info", Limitless.this.extend(raw, new HashMap<String, Object>() {{
                 put( "slug", slug );
                 put( "address", address );
                 put( "volume24h", volume24h );
-            }}),
-            "created", null
-        );
+            }}) );
+            put( "created", null );
+        }};
     }
 
     /**
@@ -754,6 +772,19 @@ public class Limitless extends LimitlessApi
         }).thenApply(PredictionEvent::new);
 
     }
+    /**
+     * @method
+     * @name limitless#fetchEvent
+     * @description fetches a single prediction-market event by its market slug or address
+     * @see https://docs.limitless.exchange/api-reference/markets/get-market
+     * @param {string} id the market slug or address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
+    {
+        return this.fetchEvent(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -773,7 +804,7 @@ public class Limitless extends LimitlessApi
         {
             Object raw = (rawRows == null || i < 0 || i >= ((List<?>)rawRows).size() ? null : ((List<?>)rawRows).get(i));
             String rowType = this.safeString(raw, "marketType");
-            List<Object> nestedMarkets = (List<Object>) this.safeList(raw, "markets", (Object) null);
+            List<Object> nestedMarkets = (List<Object>) this.safeList(raw, "markets");
             if ((java.util.Objects.equals(rowType, "group")) && (!java.util.Objects.equals(nestedMarkets, null)))
             {
                 String groupSlug = this.safeString(raw, "slug");
@@ -1043,7 +1074,7 @@ public class Limitless extends LimitlessApi
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
             // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             String marketSymbol = this.safeString2(rawMarket, "market", "symbol");
-            List<Object> marketOutcomes = (List<Object>) this.safeList(rawMarket, "outcomes", (Object) null);
+            List<Object> marketOutcomes = (List<Object>) this.safeList(rawMarket, "outcomes");
             if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketOutcomes, null))
             {
                 ((List<Object>)markets).add(rawMarket);
@@ -1056,29 +1087,33 @@ public class Limitless extends LimitlessApi
             // make the event volume 1,000,000x too big and useless for cross-venue ranking
             totalVolume = this.sum(totalVolume, this.safeNumber(marketInfo, "volumeFormatted", 0));
         }
-        return this.extend(Helpers.newMap(
-            "id", groupId,
-            "slug", groupId,
-            "event", eventSlug,
-            "title", title,
-            "description", this.safeString(eventVar, "description"),
-            "markets", markets,
-            "volume", totalVolume,
-            "liquidity", this.safeNumber(eventVar, "liquidity", (Object) null),
-            "url", this.safeString(eventVar, "url"),
-            "image", this.safeString(eventVar, "imageUrl", this.safeString(eventVar, "image")),
-            "active", this.safeBool(eventVar, "active", true),
-            "resolved", this.safeBool(eventVar, "resolved", false),
-            "category", this.safeString(eventVar, "category"),
-            "tags", this.safeList(eventVar, "tags", (Object) null),
-            "created", this.parse8601(this.safeString(eventVar, "createdAt")),
-            "createdDatetime", this.safeString(eventVar, "createdAt"),
-            "end", endTimestamp,
-            "endDatetime", endDate,
-            "lastUpdatedAt", this.parse8601(this.safeString(eventVar, "updatedAt")),
-            "resolutionSource", this.safeString(eventVar, "resolutionSource"),
-            "info", eventVar
-        ));
+        final String finalGroupId = groupId;
+        final String finalEventSlug = eventSlug;
+        final Object finalTotalVolume = totalVolume;
+        final String finalEndDate = endDate;
+        return this.extend(new HashMap<String, Object>() {{
+            put( "id", finalGroupId );
+            put( "slug", finalGroupId );
+            put( "event", finalEventSlug );
+            put( "title", title );
+            put( "description", Limitless.this.safeString(eventVar, "description") );
+            put( "markets", markets );
+            put( "volume", finalTotalVolume );
+            put( "liquidity", Limitless.this.safeNumber(eventVar, "liquidity") );
+            put( "url", Limitless.this.safeString(eventVar, "url") );
+            put( "image", Limitless.this.safeString(eventVar, "imageUrl", Limitless.this.safeString(eventVar, "image")) );
+            put( "active", Limitless.this.safeBool(eventVar, "active", true) );
+            put( "resolved", Limitless.this.safeBool(eventVar, "resolved", false) );
+            put( "category", Limitless.this.safeString(eventVar, "category") );
+            put( "tags", Limitless.this.safeList(eventVar, "tags") );
+            put( "created", Limitless.this.parse8601(Limitless.this.safeString(eventVar, "createdAt")) );
+            put( "createdDatetime", Limitless.this.safeString(eventVar, "createdAt") );
+            put( "end", endTimestamp );
+            put( "endDatetime", finalEndDate );
+            put( "lastUpdatedAt", Limitless.this.parse8601(Limitless.this.safeString(eventVar, "updatedAt")) );
+            put( "resolutionSource", Limitless.this.safeString(eventVar, "resolutionSource") );
+            put( "info", eventVar );
+        }});
     }
 
     /**
@@ -1096,7 +1131,7 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1174,9 +1209,23 @@ public class Limitless extends LimitlessApi
                 put( "market", response );
                 put( "book", (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)) );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchTicker
+     * @description fetches the current price and best bid/ask for a single outcome token, combining the market detail and order book endpoints
+     * @see https://docs.limitless.exchange/api-reference/markets/get-market
+     * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+     * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
+    {
+        return this.fetchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1259,7 +1308,7 @@ public class Limitless extends LimitlessApi
         if (ticker.containsKey("market"))
         {
             raw = this.safeDict(ticker, "market", new HashMap<String, Object>() {{}});
-            book = (Map<String, Object>) this.safeDict(ticker, "book", (Object) null);
+            book = (Map<String, Object>) this.safeDict(ticker, "book");
         }
         String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(((Map<String, Object>)market).get("info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !java.util.Objects.equals(rawLabel.toLowerCase(), "no");
@@ -1336,31 +1385,52 @@ public class Limitless extends LimitlessApi
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
         Object outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
-        return (Map<String, Object>) (this.safePredictionTicker(Helpers.newMap(
-            "outcome", outcomeSymbol,
-            "outcomeId", this.safeString(market, "outcomeId"),
-            "label", this.safeString(market, "label"),
-            "market", this.safeString(market, "market"),
-            "timestamp", null,
-            "datetime", null,
-            "high", null,
-            "low", null,
-            "bid", this.parseNumber(bidStr),
-            "bidVolume", this.parseNumber(bidSizeStr),
-            "ask", this.parseNumber(askStr),
-            "askVolume", this.parseNumber(askSizeStr),
-            "vwap", null,
-            "open", null,
-            "close", this.parseNumber(lastStr),
-            "last", this.parseNumber(lastStr),
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", this.parseNumber(midStr),
-            "baseVolume", null,
-            "quoteVolume", this.parseNumber(volumeStr),
-            "info", ticker
-        ), (Object) null));
+        final Map<String, Object> finalMarket = market;
+        final String finalBidStr = bidStr;
+        final String finalBidSizeStr = bidSizeStr;
+        final String finalAskStr = askStr;
+        final String finalAskSizeStr = askSizeStr;
+        final String finalLastStr = lastStr;
+        final String finalMidStr = midStr;
+        final String finalVolumeStr = volumeStr;
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
+            put( "outcome", outcomeSymbol );
+            put( "outcomeId", Limitless.this.safeString(finalMarket, "outcomeId") );
+            put( "label", Limitless.this.safeString(finalMarket, "label") );
+            put( "market", Limitless.this.safeString(finalMarket, "market") );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "high", null );
+            put( "low", null );
+            put( "bid", Limitless.this.parseNumber(finalBidStr) );
+            put( "bidVolume", Limitless.this.parseNumber(finalBidSizeStr) );
+            put( "ask", Limitless.this.parseNumber(finalAskStr) );
+            put( "askVolume", Limitless.this.parseNumber(finalAskSizeStr) );
+            put( "vwap", null );
+            put( "open", null );
+            put( "close", Limitless.this.parseNumber(finalLastStr) );
+            put( "last", Limitless.this.parseNumber(finalLastStr) );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", Limitless.this.parseNumber(finalMidStr) );
+            put( "baseVolume", null );
+            put( "quoteVolume", Limitless.this.parseNumber(finalVolumeStr) );
+            put( "info", ticker );
+        }}));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parsePredictionTicker
+     * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
+     * @param {object} ticker a raw limitless market object or a dict with market and book entries
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    {
+        return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1373,11 +1443,11 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes2, Map<String, Object> parameters)
     {
-
+        final Object outcomes3 = outcomes2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object outcomes = outcomes3;
             if (java.util.Objects.equals(outcomes, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
@@ -1385,9 +1455,9 @@ public class Limitless extends LimitlessApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             // resolve the uncached outcomes first, then group by parent market to fetch each
             // market and book only once
-            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+            (this.loadOutcomes(outcomes)).join();
             Map<String, Object> outcomesBySlug = new HashMap<String, Object>() {{}};
-            List<String> slugs = new ArrayList<String>(Arrays.asList());
+            List<Object> slugs = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
@@ -1402,7 +1472,7 @@ public class Limitless extends LimitlessApi
                     {
                         outcomesBySlug.put((String)slug, new ArrayList<Object>(Arrays.asList()));
                     }
-                    slugs.add(slug);
+                    ((List<Object>)slugs).add(slug);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
                 Object grouped = this.safeValue(outcomesBySlug, slug);
@@ -1415,18 +1485,19 @@ public class Limitless extends LimitlessApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)slugs).size(); i++)
             {
-                String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(Helpers.newMap(
-                    "addressOrSlug", slug
-                ), parameters)));
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsSlugOrderbook(Helpers.newMap(
-                    "slug", slug
-                )));
+                Object slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
+    final Object finalSlug = slug;
+                            ((List<Object>)promises).add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(new HashMap<String, Object>() {{
+                    put( "addressOrSlug", finalSlug );
+                }}, parameters)));
+                ((List<Object>)promises).add(this.limitlessPublicGetMarketsSlugOrderbook(new HashMap<String, Object>() {{
+                    put( "slug", finalSlug );
+                }}));
             }
             Object responses = (Helpers.promiseAll(promises)).join();
             for (var i = 0; i < ((List<?>)slugs).size(); i++)
             {
-                String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
+                Object slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
                 Object detailIndex = Helpers.multiply(i, 2);
                 Object detail = Helpers.GetValue(responses, detailIndex);
                 Object book = Helpers.GetValue(responses, this.sum(detailIndex, 1));
@@ -1437,7 +1508,7 @@ public class Limitless extends LimitlessApi
                 Object grouped = (outcomesBySlug == null || !(slug instanceof String) ? null : outcomesBySlug.get(slug));
                 for (var j = 0; j < Helpers.getArrayLength(grouped); j++)
                 {
-                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.toMapArg(Helpers.GetValue(grouped, j)));
+                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.GetValue(grouped, j));
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
@@ -1448,6 +1519,20 @@ public class Limitless extends LimitlessApi
             return result;
         }).thenApply(PredictionTickers::new);
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchTickers
+     * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market (two requests per market: detail + order book)
+     * @see https://docs.limitless.exchange/api-reference/markets/get-market
+     * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+     * @param {string[]} outcomes unified outcomes or outcome token ids — required: limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1461,12 +1546,12 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            (this.loadOutcome((String) (outcome), false)).join();
+            Long limit = limit3;
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
             String tokenId = this.safeString(outcomeObj, "outcomeId");
@@ -1512,9 +1597,24 @@ public class Limitless extends LimitlessApi
                 }
                 ((List<Object>)filtered).add(row);
             }
-            return this.parsePredictionTrades(filtered, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
+            return this.parsePredictionTrades(filtered, outcomeObj, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchTrades
+     * @description fetches recent public trades for a single outcome token from the market events feed
+     * @see https://docs.limitless.exchange/api-reference/trading/market-events
+     * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
+    {
+        return this.fetchTrades(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1532,7 +1632,7 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1619,6 +1719,20 @@ public class Limitless extends LimitlessApi
         }).thenApply(PredictionOrderBook::new);
 
     }
+    /**
+     * @method
+     * @name limitless#fetchOrderBook
+     * @description fetches the order book for a single outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
+     * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+     * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {int} [limit] not used by limitless fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1632,16 +1746,16 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
             String outcomeLabel = this.safeStringUpper(((Map<String, Object>)outcomeObj).get("info"), "outcomeLabel");
-            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "1d");
+            String interval = this.safeString(this.timeframes, timeframe, "1d");
             Map<String, Object> response = (this.limitlessPublicGetMarketsSlugHistoricalPrice(this.extend(new HashMap<String, Object>() {{
                 put( "slug", slug );
                 put( "interval", interval );
@@ -1690,7 +1804,7 @@ public class Limitless extends LimitlessApi
             if ((rawHistoryLength != null && rawHistoryLength > 0))
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(rawHistory, 0, new HashMap<String, Object>() {{}});
-                List<Object> firstPrices = (List<Object>) this.safeList(first, "prices", (Object) null);
+                List<Object> firstPrices = (List<Object>) this.safeList(first, "prices");
                 if (!java.util.Objects.equals(firstPrices, null))
                 {
                     Map<String, Object> selectedSeries = first;
@@ -1716,8 +1830,8 @@ public class Limitless extends LimitlessApi
             List<Object> pseudoTrades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)history).size(); i++)
             {
-                Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i, (Object) null);
-                Double pointPrice = this.safeNumber(point, "price", (Object) null);
+                Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i);
+                Double pointPrice = this.safeNumber(point, "price");
                 Object pointTs = this.safeInteger(point, "timestamp");
                 if (java.util.Objects.equals(pointTs, null))
                 {
@@ -1730,11 +1844,13 @@ public class Limitless extends LimitlessApi
                 }
                 if ((!java.util.Objects.equals(pointPrice, null)) && (!java.util.Objects.equals(pointTs, null)))
                 {
-                    ((List<Object>)pseudoTrades).add(Helpers.newMap(
-                        "timestamp", pointTs,
-                        "price", pointPrice,
-                        "amount", 0
-                    ));
+    final Object finalPointTs = pointTs;
+                    final Double finalPointPrice = pointPrice;
+                                    ((List<Object>)pseudoTrades).add(new HashMap<String, Object>() {{
+                        put( "timestamp", finalPointTs );
+                        put( "price", finalPointPrice );
+                        put( "amount", 0 );
+                    }});
                 }
             }
             // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
@@ -1742,14 +1858,14 @@ public class Limitless extends LimitlessApi
             // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
             // timestamps keep their relative order consistently across languages
             List<Object> sorted = this.sortBy(pseudoTrades, "timestamp");
-            Long ms = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1d"))) * 1000L);
+            Long ms = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Map<String, Object> candles = new HashMap<String, Object>() {{}};
             List<Object> bucketOrder = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)sorted).size(); i++)
             {
-                Map<String, Object> point = (Map<String, Object>) this.safeDict(sorted, i, (Object) null);
+                Map<String, Object> point = (Map<String, Object>) this.safeDict(sorted, i);
                 Long pTs = this.safeInteger(point, "timestamp");
-                Double pPrice = this.safeNumber(point, "price", (Object) null);
+                Double pPrice = this.safeNumber(point, "price");
                 if (java.util.Objects.equals(pTs, null))
                 {
                     throw new ExchangeError((this.id + " method() missing pTs")) ;
@@ -1777,9 +1893,25 @@ public class Limitless extends LimitlessApi
             {
                 ((List<Object>)result).add(Helpers.GetValue(candles, (bucketOrder == null || i < 0 || i >= bucketOrder.size() ? null : bucketOrder.get(i))));
             }
-            return this.filterBySinceLimit(result, since, limit, 0, false);
+            return this.filterBySinceLimit(result, since, limit, 0);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchOHLCV
+     * @description fetches historical prices for a single limitless market outcome and maps them to OHLCV format, uses the `interval` query parameter and selects the YES/NO series that matches the requested outcome
+     * @see https://docs.limitless.exchange/api-reference/trading/historical-price
+     * @param {string} outcome outcome, e.g. "TRUMP_OUT:YES"
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1d", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1793,18 +1925,20 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
+            Long limit = limit3;
             if (java.util.Objects.equals(outcome, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders requires an outcome argument")) ;
             }
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", (Object) null);
+            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "slug", Limitless.this.safeString(info, "slug") );
                 put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE", "MATCHED")) );
@@ -1836,9 +1970,24 @@ public class Limitless extends LimitlessApi
             // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
             // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-            return this.parsePredictionOrders(this.toArray(response), (Object) null, since, limit, new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrders(this.toArray(response), null, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchOrders
+     * @description fetches orders for the authenticated user for a single outcome
+     * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1852,22 +2001,39 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(outcome, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders requires an outcome argument")) ;
             }
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
+            (this.loadOutcome((String) (outcome))).join();
+            parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE")) );
             }});
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchOpenOrders
+     * @description fetches open orders for the authenticated user for a single outcome
+     * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1881,22 +2047,39 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(outcome, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchClosedOrders requires an outcome argument")) ;
             }
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
+            (this.loadOutcome((String) (outcome))).join();
+            parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "statuses", new ArrayList<Object>(Arrays.asList("MATCHED")) );
             }});
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchClosedOrders
+     * @description fetches closed orders for the authenticated user for a single outcome
+     * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1909,14 +2092,14 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<Object> fetchOrdersByIds(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByIds(Object ids, String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
+                (this.loadOutcome((String) (outcome))).join();
             }
             Integer length = Helpers.getArrayLength(ids);
             if ((length != null && length > 50))
@@ -2043,9 +2226,23 @@ public class Limitless extends LimitlessApi
                     ((List<Object>)found).add(item);
                 }
             }
-            return this.parsePredictionOrders(found, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrders(found);
         });
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchOrdersByIds
+     * @description fetch orders by the list of order id
+     * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
+     * @param {string[]} ids list of order id
+     * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<Object> fetchOrdersByIds(Object ids, Object... optionalArgs)
+    {
+        return this.fetchOrdersByIds(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2058,17 +2255,17 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
+                (this.loadOutcome((String) (outcome))).join();
             }
             Object orders = (this.fetchOrdersByIds(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
             if (java.util.Objects.equals(order, null))
             {
                 throw new OrderNotFound(((this.id + " fetchOrder() could not find order ") + id)) ;
@@ -2076,6 +2273,20 @@ public class Limitless extends LimitlessApi
             return order;
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
+     * @param {string} id the order id
+     * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2198,10 +2409,10 @@ public class Limitless extends LimitlessApi
         //             }
         //         }
         //     }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(order, "data", (Object) null);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(order, "data");
         Object rawOrder = this.safeDict(data, "order", order);
         // createOrder returns the order nested under an 'order' key
-        Map<String, Object> wrappedOrder = (Map<String, Object>) this.safeDict(rawOrder, "order", (Object) null);
+        Map<String, Object> wrappedOrder = (Map<String, Object>) this.safeDict(rawOrder, "order");
         if (!java.util.Objects.equals(wrappedOrder, null))
         {
             rawOrder = wrappedOrder;
@@ -2233,14 +2444,14 @@ public class Limitless extends LimitlessApi
             type = "market";
         }
         String rawStatus = this.safeString(rawOrder, "status");
-        Map<String, Object> execution = (Map<String, Object>) this.safeDict(data, "execution", (Object) null);
+        Map<String, Object> execution = (Map<String, Object>) this.safeDict(data, "execution");
         Map<String, Object> fee = null;
         String filled = null;
         String cost = null;
         if (!java.util.Objects.equals(execution, null))
         {
             rawStatus = this.safeString(execution, "settlementStatus");
-            Map<String, Object> totals = (Map<String, Object>) this.safeDict(execution, "totalsRaw", (Object) null);
+            Map<String, Object> totals = (Map<String, Object>) this.safeDict(execution, "totalsRaw");
             cost = this.safeString(totals, "usdGross");
             filled = this.safeString(totals, "contractsGross");
             String feeCurrency = "USDC";
@@ -2250,38 +2461,60 @@ public class Limitless extends LimitlessApi
                 feeCurrency = outcomeSymbol;
                 feeCost = this.safeString(totals, "contractsFee");
             }
-            fee = Helpers.newMap(
-                "cost", this.parseNumber(this.applyScale((String) (feeCost), false)),
-                "currency", feeCurrency
-            );
+            final String finalFeeCost = feeCost;
+            final String finalFeeCurrency = feeCurrency;
+            fee = new HashMap<String, Object>() {{
+                put( "cost", Limitless.this.parseNumber(Limitless.this.applyScale((String) (finalFeeCost))) );
+                put( "currency", finalFeeCurrency );
+            }};
         }
-        return this.safePredictionOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "info", order,
-            "timestamp", ts,
-            "datetime", datetime,
-            "lastTradeTimestamp", null,
-            "status", this.parseOrderStatus((String) (rawStatus)),
-            "outcome", outcomeSymbol,
-            "outcomeId", this.safeString(mkt, "outcomeId"),
-            "label", this.safeString(mkt, "label"),
-            "market", this.safeString(mkt, "market"),
-            "type", type,
-            "timeInForce", this.parseOrderTimeInForce((String) (timeInForce)),
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "stopPrice", null,
-            "triggerPrice", null,
-            "average", null,
-            "amount", this.applyScale((String) (amount), false),
-            "cost", this.applyScale(cost, false),
-            "filled", this.applyScale(filled, false),
-            "remaining", this.applyScale((String) (remaining), false),
-            "fee", fee,
-            "trades", new ArrayList<Object>(Arrays.asList())
-        ), (Object) null);
+        final String finalRawStatus = rawStatus;
+        final String finalType = type;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
+        final String finalCost = cost;
+        final String finalFilled = filled;
+        final Map<String, Object> finalFee = fee;
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "clientOrderId", null );
+            put( "info", order );
+            put( "timestamp", ts );
+            put( "datetime", datetime );
+            put( "lastTradeTimestamp", null );
+            put( "status", Limitless.this.parseOrderStatus((String) (finalRawStatus)) );
+            put( "outcome", outcomeSymbol );
+            put( "outcomeId", Limitless.this.safeString(mkt, "outcomeId") );
+            put( "label", Limitless.this.safeString(mkt, "label") );
+            put( "market", Limitless.this.safeString(mkt, "market") );
+            put( "type", finalType );
+            put( "timeInForce", Limitless.this.parseOrderTimeInForce((String) (finalTimeInForce)) );
+            put( "postOnly", null );
+            put( "side", finalSide );
+            put( "price", price );
+            put( "stopPrice", null );
+            put( "triggerPrice", null );
+            put( "average", null );
+            put( "amount", Limitless.this.applyScale((String) (amount)) );
+            put( "cost", Limitless.this.applyScale((String) (finalCost)) );
+            put( "filled", Limitless.this.applyScale((String) (finalFilled)) );
+            put( "remaining", Limitless.this.applyScale((String) (remaining)) );
+            put( "fee", finalFee );
+            put( "trades", new ArrayList<Object>(Arrays.asList()) );
+        }});
+    }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parsePredictionOrder
+     * @description parses a raw limitless order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public Object parsePredictionOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parsePredictionOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2344,13 +2577,17 @@ public class Limitless extends LimitlessApi
     {
         Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
         String scale = this.numberToString(Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(decimals))));
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(multiply, false)))
+        if (Helpers.isTrue(multiply))
         {
             return Precise.stringMul(amount, scale);
         } else
         {
             return Precise.stringDiv(amount, scale);
         }
+    }
+    public String applyScale(String amount, Object... optionalArgs)
+    {
+        return this.applyScale(amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
 
     public Object parseAccount(Object account)
@@ -2379,9 +2616,21 @@ public class Limitless extends LimitlessApi
 
             Map<String, Object> response = (this.limitlessPrivateGetProfilesMe(parameters)).join();
             List<Object> responseList = new ArrayList<Object>(Arrays.asList(response));
-            return this.parseAccounts(responseList, new HashMap<String, Object>() {{}});
+            return this.parseAccounts(responseList);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchAccounts
+     * @description query for account id and info
+     * @see https://docs.limitless.exchange/api-reference/portfolio/get-current-profile
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    {
+        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2397,16 +2646,22 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
-
+        final String type3 = type2;
+        final String side3 = side2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            List<Account> accounts = (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            (this.loadOutcome((String) (outcome), false)).join();
+            String type = type3;
+            String side = side3;
+            Object price = price3;
+            Map<String, Object> parameters = parameters3;
+            List<Account> accounts = (this.loadAccounts()).join();
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, 0, (Object) null);
-            Map<String, Object> accountInfo = (Map<String, Object>) this.safeDict(account, "info", (Object) null);
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, 0);
+            Map<String, Object> accountInfo = (Map<String, Object>) this.safeDict(account, "info");
             // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
             // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
             // smartWallet field can stay populated after switching to eoa, so key off the option here
@@ -2425,13 +2680,12 @@ public class Limitless extends LimitlessApi
             {
                 maker = this.walletAddress;
             }
-            Object paramsValue = parameters;
-            List<Object> makerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "maker", maker);
-            maker = ((List<Object>) makerparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) makerparamsValueVariable).get(1);
+            List<Object> makerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
+            maker = ((List<Object>) makerparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) makerparametersVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(maker));
+                this.checkAddress(maker);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
@@ -2446,23 +2700,23 @@ public class Limitless extends LimitlessApi
             {
                 signer = embeddedAddress;
             }
-            List<Object> signerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signer", signer);
-            signer = ((List<Object>) signerparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) signerparamsValueVariable).get(1);
+            List<Object> signerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "signer", signer);
+            signer = ((List<Object>) signerparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) signerparametersVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(signer));
+                this.checkAddress(signer);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
             }
             Object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
-            List<Object> takerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "taker", taker);
-            taker = ((List<Object>) takerparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) takerparamsValueVariable).get(1);
+            List<Object> takerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
+            taker = ((List<Object>) takerparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) takerparametersVariable).get(1);
             try
             {
-                this.checkAddress(Helpers.toStringArg(taker));
+                this.checkAddress(taker);
             } catch(Exception e)
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
@@ -2474,28 +2728,32 @@ public class Limitless extends LimitlessApi
             }};
             this.checkRequiredArgument("createOrder", side, "side");
             Long sideValue = this.safeInteger(sides, ((String)side).toLowerCase());
-            Map<String, Object> rank = (Map<String, Object>) this.safeDict(accountInfo, "rank", (Object) null);
+            Map<String, Object> rank = (Map<String, Object>) this.safeDict(accountInfo, "rank");
             // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
             Object signatureType = ((Boolean.TRUE.equals(isSmartWallet))) ? 2 : 0;
-            List<Object> signatureTypeparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
-            signatureType = ((List<Object>) signatureTypeparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) signatureTypeparamsValueVariable).get(1);
-            Map<String, Object> signRequest = Helpers.newMap(
-                "salt", nonce,
-                "maker", maker,
-                "signer", signer,
-                "taker", taker,
-                "tokenId", ((Map<String, Object>)outcomeObj).get("outcomeId"),
-                "nonce", 0,
-                "feeRateBps", this.safeInteger(rank, "feeRateBps", 0),
-                "side", sideValue,
-                "signatureType", signatureType
-            );
+            List<Object> signatureTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "signatureType", signatureType);
+            signatureType = ((List<Object>) signatureTypeparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) signatureTypeparametersVariable).get(1);
+            final Object finalMaker = maker;
+            final Object finalSigner = signer;
+            final Object finalTaker = taker;
+            final Object finalSignatureType = signatureType;
+            Map<String, Object> signRequest = new HashMap<String, Object>() {{
+                put( "salt", nonce );
+                put( "maker", finalMaker );
+                put( "signer", finalSigner );
+                put( "taker", finalTaker );
+                put( "tokenId", ((Map<String, Object>)outcomeObj).get("outcomeId") );
+                put( "nonce", 0 );
+                put( "feeRateBps", Limitless.this.safeInteger(rank, "feeRateBps", 0) );
+                put( "side", sideValue );
+                put( "signatureType", finalSignatureType );
+            }};
             // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-            Long expirationInt = this.safeInteger(paramsValue, "expiration");
+            Long expirationInt = this.safeInteger(parameters, "expiration");
             if (!java.util.Objects.equals(expirationInt, null))
             {
-                paramsValue = this.omit(paramsValue, "expiration");
+                parameters = (Map<String, Object>) this.omit(parameters, "expiration");
                 signRequest.put("expiration", this.numberToString(expirationInt));
             } else
             {
@@ -2507,11 +2765,11 @@ public class Limitless extends LimitlessApi
             Object takerAmount = null;
             Boolean isMarket = java.util.Objects.equals(type, "market");
             Boolean postOnly = false;
-            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsValue);
-            postOnly = (Boolean) ((List<Object>) postOnlyparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) postOnlyparamsValueVariable).get(1);
-            String timeInForce = this.safeString(paramsValue, "timeInForce");
-            paramsValue = this.omit(paramsValue, "timeInForce");
+            List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarket, false, parameters);
+            postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
+            String timeInForce = this.safeString(parameters, "timeInForce");
+            parameters = (Map<String, Object>) this.omit(parameters, "timeInForce");
             if (java.util.Objects.equals(timeInForce, null))
             {
                 timeInForce = ((Boolean.TRUE.equals(isMarket))) ? "FOK" : "GTC";
@@ -2520,11 +2778,11 @@ public class Limitless extends LimitlessApi
             if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
             {
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparamsValueVariable = (List<Object>) this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsValueVariable).get(0);
-                paramsValue = ((List<Object>) createMarketBuyOrderRequiresPriceparamsValueVariable).get(1);
-                Double cost = this.safeNumber(paramsValue, "cost", (Object) null);
-                paramsValue = this.omit(paramsValue, "cost");
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+                parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                Double cost = this.safeNumber(parameters, "cost");
+                parameters = (Map<String, Object>) this.omit(parameters, "cost");
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
@@ -2567,18 +2825,19 @@ public class Limitless extends LimitlessApi
                 signRequest.put("price", this.parseNumber(priceString));
             }
             String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
-            Map<String, Object> request = Helpers.newMap(
-                "ownerId", this.safeInteger(account, "id"),
-                "order", signRequest,
-                "marketSlug", slug,
-                "orderType", timeInForce
-            );
+            final String finalTimeInForce = timeInForce;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "ownerId", Limitless.this.safeInteger(account, "id") );
+                put( "order", signRequest );
+                put( "marketSlug", slug );
+                put( "orderType", finalTimeInForce );
+            }};
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", postOnly);
             }
-            Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, paramsValue))).join();
-            Object parsedOrder = this.parsePredictionOrder((Map<String, Object>) (response), Helpers.toMapArg(outcomeObj));
+            Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, parameters))).join();
+            Object parsedOrder = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
             // the create-order response omits a status field; a freshly accepted order is open
             if (java.util.Objects.equals(((Map<String, Object>)parsedOrder).get("status"), null))
             {
@@ -2588,17 +2847,34 @@ public class Limitless extends LimitlessApi
         }).thenApply(PredictionOrder::new);
 
     }
+    /**
+     * @method
+     * @name limitless#createOrder
+     * @description places a limit or market order on limitless for the given outcome token
+     * @see https://docs.limitless.exchange/api-reference/orders/create-order
+     * @param {string} outcome outcome, e.g. "TRUMP_OUT:YES"
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount amount of outcome tokens
+     * @param {float} [price] limit price (0–1 range)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public Object signOrderRequest(Map<String, Object> signRequest, Object marketSymbol)
     {
-        this.checkRequiredCredentials(true);
+        this.checkRequiredCredentials();
         if (java.util.Objects.equals(this.privateKey, null))
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", (Object) null);
-        Map<String, Object> venue = (Map<String, Object>) this.safeDict(info, "venue", (Object) null);
+        Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info");
+        Map<String, Object> venue = (Map<String, Object>) this.safeDict(info, "venue");
         String exchange = this.safeString(venue, "exchange");
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "chainId", 8453 );
@@ -2713,7 +2989,7 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.checkRequiredCredentials(true);
+            this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.privateKey, null))
             {
                 throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
@@ -2743,9 +3019,26 @@ public class Limitless extends LimitlessApi
             // approve(spender, amount) -> selector 0x095ea7b3
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
             Object txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
+            return (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash))).join();
         });
 
+    }
+    /**
+     * @method
+     * @name limitless#approve
+     * @description sets the on-chain ERC20 collateral (USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders ("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
+     * @param {object} [params] extra parameters
+     * @param {string} [params.token] the collateral token address (default USDC on Base)
+     * @param {string} [params.spender] the exchange contract to approve (default the limitless CTF exchange); read from a market's venue when omitted
+     * @param {string} [params.owner] the token holder address (default this.walletAddress or the address derived from the privateKey)
+     * @param {float} [params.amount] the allowance in USDC (default: unlimited / maxUint256)
+     * @param {string} [params.rpcUrl] the Base RPC url to broadcast through
+     * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
+     * @returns {object} the transaction receipt
+     */
+    public CompletableFuture<Object> approve(Object... optionalArgs)
+    {
+        return this.approve(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2758,21 +3051,21 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
+                (this.loadOutcome((String) (outcome))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters))).join();
             // the delete response carries no order body, so backfill the id and the resulting status
-            Object order = this.parsePredictionOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+            Object order = this.parsePredictionOrder((Map<String, Object>) (response));
             if (java.util.Objects.equals(((Map<String, Object>)order).get("id"), null))
             {
                 Helpers.addElementToObject(order, "id", id);
@@ -2785,6 +3078,20 @@ public class Limitless extends LimitlessApi
         }).thenApply(PredictionOrder::new);
 
     }
+    /**
+     * @method
+     * @name limitless#cancelOrder
+     * @description cancels a single open order by id
+     * @see https://docs.limitless.exchange/api-reference/orders/cancel-order
+     * @param {string} id order id
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2796,11 +3103,11 @@ public class Limitless extends LimitlessApi
      * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
      * @returns {object} the raw redemption response
      */
-    public CompletableFuture<Object> redeem(String outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> redeem(String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
             String conditionId = this.safeString2(parameters, "conditionId", "condition_id");
             if (java.util.Objects.equals(conditionId, null))
             {
@@ -2808,7 +3115,7 @@ public class Limitless extends LimitlessApi
                 {
                     throw new ArgumentsRequired((this.id + " redeem() requires an outcome or a params.conditionId")) ;
                 }
-                (this.loadOutcome((String) (outcome), false)).join();
+                (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 conditionId = this.safeString(this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}}), "conditionId");
             }
@@ -2816,18 +3123,33 @@ public class Limitless extends LimitlessApi
             {
                 throw new ArgumentsRequired((this.id + " redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "conditionId", conditionId
-            );
+            final String finalConditionId = conditionId;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "conditionId", finalConditionId );
+            }};
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
             Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
-            return Helpers.newMap(
-                "info", response,
-                "id", conditionId,
-                "conditionId", conditionId
-            );
+            return new HashMap<String, Object>() {{
+                put( "info", response );
+                put( "id", finalConditionId );
+                put( "conditionId", finalConditionId );
+            }};
         });
 
+    }
+    /**
+     * @method
+     * @name limitless#redeem
+     * @description redeem a resolved winning position back to collateral (gasless — the operator settles on-chain)
+     * @see https://docs.limitless.exchange/api-reference/portfolio/redeem
+     * @param {string} [outcome] a unified outcome on the resolved market to redeem (used to resolve the market conditionId)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
+     * @returns {object} the raw redemption response
+     */
+    public CompletableFuture<Object> redeem(Object... optionalArgs)
+    {
+        return this.redeem(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2840,14 +3162,14 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome), false)).join();
+                (this.loadOutcome((String) (outcome))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderIds", ids );
@@ -2862,9 +3184,23 @@ public class Limitless extends LimitlessApi
                 String feedback = ((this.id + " cancelOrders failed: ") + message);
                 throw new OrderNotFound(feedback) ;
             }
-            return this.parsePredictionOrders(canceled, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrders(canceled);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#cancelOrders
+     * @description cancel multiple orders at the same time
+     * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified market outcome, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2877,34 +3213,35 @@ public class Limitless extends LimitlessApi
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome2, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object paramsValue = parameters;
+            String outcome = outcome3;
+            Map<String, Object> parameters = parameters3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 Object warn = true;
-                List<Object> warnparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
-                warn = ((List<Object>) warnparamsValueVariable).get(0);
-                paramsValue = ((List<Object>) warnparamsValueVariable).get(1);
+                List<Object> warnparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
+                warn = ((List<Object>) warnparametersVariable).get(0);
+                parameters = (Map<String, Object>) ((List<Object>) warnparametersVariable).get(1);
                 if (Boolean.TRUE.equals(warn))
                 {
                     throw new BadRequest((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String slug = this.safeString(paramsValue, "slug");
+            String slug = this.safeString(parameters, "slug");
             if (!java.util.Objects.equals(outcome, null))
             {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 request.put("slug", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug"));
             } else if (java.util.Objects.equals(slug, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;
             }
-            Map<String, Object> response = (this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, paramsValue))).join();
+            Map<String, Object> response = (this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, parameters))).join();
             //
             //     {
             //         "message": "Orders canceled successfully"
@@ -2912,9 +3249,23 @@ public class Limitless extends LimitlessApi
             //
             return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}, (Object) null)));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#cancelAllOrders
+     * @description cancels all open orders for one market slug
+     * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.slug] the market slug to cancel all orders for
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2928,35 +3279,38 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String outcome = outcome3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             // resolve the handle for the final filter — the caller may have passed an outcomeId
             String outcomeSymbol = outcome;
             if (!java.util.Objects.equals(outcome, null))
             {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcomeSymbol = this.safeString(outcomeObj, "outcome");
             }
             Object paginate = false;
             Integer maxLimit = 100;
-            Object paramsValue = parameters;
-            List<Object> paginateparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
-            paginate = ((List<Object>) paginateparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) paginateparamsValueVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
+            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                paramsValue = this.omit(paramsValue, "paginate");
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, Helpers.toMapArg(paramsValue), "nextCursor", "cursor", (Long) null, Helpers.toLongOrNull(maxLimit))).join();
+                parameters = (Map<String, Object>) this.omit(parameters, "paginate");
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, parameters, "nextCursor", "cursor", null, maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", Helpers.mathMin(limit, maxLimit));
             }
-            Map<String, Object> response = (this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue))).join();
+            Map<String, Object> response = (this.limitlessPrivateGetPortfolioHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -3025,7 +3379,7 @@ public class Limitless extends LimitlessApi
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i);
                 String strategy = this.safeStringLower(item, "strategy");
                 if (!java.util.Objects.equals(strategy, null))
                 {
@@ -3037,10 +3391,25 @@ public class Limitless extends LimitlessApi
                     }
                 }
             }
-            Object parsedTrades = this.parsePredictionTrades(trades, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit, false);
+            Object parsedTrades = this.parsePredictionTrades(trades);
+            return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.limitless.exchange/api-reference/trades/get-trades
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3076,24 +3445,27 @@ public class Limitless extends LimitlessApi
                 costStr = Precise.stringMul(priceStr, amountStr);
             }
             Object feedOutcome = this.safeOutcomeSymbol((String) (null), market);
-            return this.safePredictionTrade(Helpers.newMap(
-                "id", this.safeString(trade, "txHash"),
-                "info", trade,
-                "timestamp", ts,
-                "datetime", this.iso8601(ts),
-                "outcome", feedOutcome,
-                "outcomeId", this.safeString(market, "outcomeId"),
-                "label", this.safeString(market, "label"),
-                "market", this.safeString(market, "market"),
-                "order", null,
-                "type", null,
-                "side", feedSide,
-                "takerOrMaker", "taker",
-                "price", this.parseNumber(priceStr),
-                "amount", this.parseNumber(amountStr),
-                "cost", this.parseNumber(costStr),
-                "fee", null
-            ), (Object) null);
+            final String finalFeedSide = feedSide;
+            final String finalPriceStr = priceStr;
+            final String finalCostStr = costStr;
+            return this.safePredictionTrade(new HashMap<String, Object>() {{
+                put( "id", Limitless.this.safeString(trade, "txHash") );
+                put( "info", trade );
+                put( "timestamp", ts );
+                put( "datetime", Limitless.this.iso8601(ts) );
+                put( "outcome", feedOutcome );
+                put( "outcomeId", Limitless.this.safeString(market, "outcomeId") );
+                put( "label", Limitless.this.safeString(market, "label") );
+                put( "market", Limitless.this.safeString(market, "market") );
+                put( "order", null );
+                put( "type", null );
+                put( "side", finalFeedSide );
+                put( "takerOrMaker", "taker" );
+                put( "price", Limitless.this.parseNumber(finalPriceStr) );
+                put( "amount", Limitless.this.parseNumber(amountStr) );
+                put( "cost", Limitless.this.parseNumber(finalCostStr) );
+                put( "fee", null );
+            }});
         }
         //
         //     {
@@ -3171,33 +3543,49 @@ public class Limitless extends LimitlessApi
         }
         Object outcome = this.getOutcomeBySlugAndLabel((String) (slug), label, market);
         String tradeOutcome = this.safeString(outcome, "outcome");
-        return this.safePredictionTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "outcome", tradeOutcome,
-            "outcomeId", this.safeString(trade, "asset"),
-            "label", this.safeString(outcome, "label"),
-            "market", this.safeString(outcome, "market"),
-            "order", null,
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", null
-        ), (Object) null);
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "info", trade );
+            put( "timestamp", timestamp );
+            put( "datetime", Limitless.this.iso8601(timestamp) );
+            put( "outcome", tradeOutcome );
+            put( "outcomeId", Limitless.this.safeString(trade, "asset") );
+            put( "label", Limitless.this.safeString(outcome, "label") );
+            put( "market", Limitless.this.safeString(outcome, "market") );
+            put( "order", null );
+            put( "type", finalType );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "price", price );
+            put( "amount", amount );
+            put( "cost", cost );
+            put( "fee", null );
+        }});
+    }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parsePredictionTrade
+     * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public Object parsePredictionTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parsePredictionTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object getOutcomeBySlugAndLabel(String slug, String label, Map<String, Object> market)
     {
-        Map<String, Object> mkt = (Map<String, Object>) this.safeMarket(slug, market, (String) null, (String) null);
+        Map<String, Object> mkt = (Map<String, Object>) this.safeMarket(slug, market);
         List<Object> outcomes = (List<Object>) this.safeList(mkt, "outcomes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)outcomes).size(); i++)
         {
-            Map<String, Object> outcome = (Map<String, Object>) this.safeDict(outcomes, i, (Object) null);
+            Map<String, Object> outcome = (Map<String, Object>) this.safeDict(outcomes, i);
             String outcomeLabel = this.safeString(outcome, "label");
             if (java.util.Objects.equals(outcomeLabel, label))
             {
@@ -3205,6 +3593,10 @@ public class Limitless extends LimitlessApi
             }
         }
         return null;
+    }
+    public Object getOutcomeBySlugAndLabel(String slug, String label, Object... optionalArgs)
+    {
+        return this.getOutcomeBySlugAndLabel(slug, label, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3216,11 +3608,11 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes2, Map<String, Object> parameters)
     {
-
+        final Object outcomes3 = outcomes2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object outcomes = outcomes3;
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(outcomes, null))
             {
@@ -3228,7 +3620,7 @@ public class Limitless extends LimitlessApi
             }
             if ((symbolsLength != null && symbolsLength > 0))
             {
-                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+                (this.loadOutcomes(outcomes)).join();
             }
             // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
             // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
@@ -3318,7 +3710,7 @@ public class Limitless extends LimitlessApi
             List<String> labels = new ArrayList<String>(Arrays.asList("yes", "no"));
             for (var i = 0; i < ((List<?>)clob).size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(clob, i, (Object) null);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(clob, i);
                 for (var j = 0; j < ((List<?>)labels).size(); j++)
                 {
                     String label = this.safeString(labels, j);
@@ -3333,6 +3725,19 @@ public class Limitless extends LimitlessApi
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name limitless#fetchPositions
+     * @description fetches open positions for the authenticated limitless user from the portfolio endpoint
+     * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public Object getPositionFromClobEntry(String label, Object entry)
     {
@@ -3340,28 +3745,32 @@ public class Limitless extends LimitlessApi
         {
             return null;
         }
-        Map<String, Object> tokensBalance = (Map<String, Object>) this.safeDict(entry, "tokensBalance", (Object) null);
+        Map<String, Object> tokensBalance = (Map<String, Object>) this.safeDict(entry, "tokensBalance");
         String contracts = this.omitZero(this.safeString(tokensBalance, label));
         if (java.util.Objects.equals(contracts, null))
         {
             return null;
         }
-        Map<String, Object> positions = (Map<String, Object>) this.safeDict(entry, "positions", (Object) null);
+        Map<String, Object> positions = (Map<String, Object>) this.safeDict(entry, "positions");
         Map<String, Object> position = (Map<String, Object>) this.safeDict(positions, label, new HashMap<String, Object>() {{}});
-        Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(entry, "market", (Object) null);
+        Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(entry, "market");
         String slug = this.safeString(rawMarket, "slug");
-        Object outcomeObj = this.getOutcomeBySlugAndLabel((String) (slug), (String) (label), (Map<String, Object>) null);
-        Object parsed = this.parsePredictionPosition((Map<String, Object>) (position), Helpers.toMapArg(outcomeObj));
-        ((Map<String, Object>)parsed).put("contracts", this.parseNumber(this.applyScale((String) (contracts), false)));
-        Map<String, Object> latestTrade = (Map<String, Object>) this.safeDict(entry, "latestTrade", (Object) null);
+        Object outcomeObj = this.getOutcomeBySlugAndLabel((String) (slug), (String) (label));
+        Object parsed = this.parsePredictionPosition((Map<String, Object>) (position), outcomeObj);
+        ((Map<String, Object>)parsed).put("contracts", this.parseNumber(this.applyScale((String) (contracts))));
+        Map<String, Object> latestTrade = (Map<String, Object>) this.safeDict(entry, "latestTrade");
         String key = "latestYesPrice";
         if (java.util.Objects.equals(label, "no"))
         {
             key = "latestNoPrice";
         }
-        ((Map<String, Object>)parsed).put("markPrice", this.safeNumber(latestTrade, key, (Object) null));
+        ((Map<String, Object>)parsed).put("markPrice", this.safeNumber(latestTrade, key));
         ((Map<String, Object>)parsed).put("info", entry);
         return this.safePredictionPosition((Map<String, Object>) (parsed));
+    }
+    public Object getPositionFromClobEntry(String label, Object... optionalArgs)
+    {
+        return this.getPositionFromClobEntry(label, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     /**
@@ -3385,11 +3794,11 @@ public class Limitless extends LimitlessApi
         //     }
         //
         String outcomeSymbol = this.safeString(market, "outcome");
-        String notional = this.applyScale(this.safeString(position, "marketValue"), false);
-        String unrealizedPnl = this.applyScale(this.safeString(position, "unrealizedPnl"), false);
-        String realizedPnl = this.applyScale(this.safeString(position, "realisedPnl"), false);
-        String collateral = this.applyScale(this.safeString(position, "cost"), false);
-        String entryPrice = this.applyScale(this.safeString(position, "fillPrice"), false);
+        String notional = this.applyScale(this.safeString(position, "marketValue"));
+        String unrealizedPnl = this.applyScale(this.safeString(position, "unrealizedPnl"));
+        String realizedPnl = this.applyScale(this.safeString(position, "realisedPnl"));
+        String collateral = this.applyScale(this.safeString(position, "cost"));
+        String entryPrice = this.applyScale(this.safeString(position, "fillPrice"));
         return new HashMap<String, Object>() {{
             put( "id", null );
             put( "outcome", outcomeSymbol );
@@ -3421,6 +3830,19 @@ public class Limitless extends LimitlessApi
             put( "info", position );
         }};
     }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parsePredictionPosition
+     * @description parses a raw limitless portfolio position into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public Object parsePredictionPosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePredictionPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3440,8 +3862,8 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.requireEventQuery(Helpers.toMapArg(parameters));
-            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
+            this.requireEventQuery(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             if (java.util.Objects.equals(queries, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
@@ -3483,16 +3905,17 @@ public class Limitless extends LimitlessApi
                 }
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(Helpers.newMap(
-                    "addressOrSlug", eventId
-                ), rest))).join();
+                final String finalEventId = eventId;
+                Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(new HashMap<String, Object>() {{
+                    put( "addressOrSlug", finalEventId );
+                }}, rest))).join();
                 ((List<Object>)rawMarkets).add(response);
             } else
             {
                 // tags scope: resolve the tags to limitless categories and page only those
                 // categories' listings server-side — never the whole active listing
                 List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-                Object listRaw = (this.fetchRawMarketsByTags(requestedTags, Helpers.toMapArg(parameters))).join();
+                Object listRaw = (this.fetchRawMarketsByTags(requestedTags, parameters)).join();
                 Integer listRawLength = ((List<?>)listRaw).size();
                 for (var i = 0; (listRawLength != null && i < listRawLength); i++)
                 {
@@ -3531,12 +3954,13 @@ public class Limitless extends LimitlessApi
                 {
                     if (!(eventGroups.containsKey(eventKey)))
                     {
-                        eventGroups.put((String)eventKey, Helpers.newMap(
-        "groupId", groupId,
-        "title", this.safeString2(raw, "groupTitle", "title", groupId),
-        "raw", raw,
-        "markets", new ArrayList<Object>(Arrays.asList())
-    ));
+                        final String finalGroupId = groupId;
+                        eventGroups.put((String)eventKey, new HashMap<String, Object>() {{
+        put( "groupId", finalGroupId );
+        put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
+        put( "raw", raw );
+        put( "markets", new ArrayList<Object>(Arrays.asList()) );
+    }});
                     }
                     Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                     // push through a local and write the slice back — the go transpiler's
@@ -3569,9 +3993,26 @@ public class Limitless extends LimitlessApi
                 put( "searchIn", "both" );
             }}, parameters);
             Map<String, Object> postParams = (Map<String, Object>) this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
-            return this.applyEventFetchParams(result, Helpers.toMapArg(postParams), queries);
+            return this.applyEventFetchParams(result, postParams, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name limitless#fetchEvents
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
+     * @see https://docs.limitless.exchange/api-reference/markets/search
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single search term; an eventId/slug does a direct lookup and tags resolve to limitless categories, paging only those categories' listings
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] category names to scope by (matched against GET /categories, e.g. ['crypto'])
+     * @param {string} [params.eventId] direct lookup by market address or slug
+     * @param {int} [params.limit] maximum number of markets per query, defaults to 50
+     * @returns {object[]} an array of event structures
+     */
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
+    {
+        return this.fetchEvents(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -3584,11 +4025,11 @@ public class Limitless extends LimitlessApi
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    public CompletableFuture<Object> fetchRawActiveMarkets(Map<String, Object> parameters, String categoryId)
+    public CompletableFuture<Object> fetchRawActiveMarkets(Map<String, Object> parameters, String categoryId2)
     {
-
+        final String categoryId3 = categoryId2;
         return BaseExchange.supplyAsync(() -> {
-
+            String categoryId = categoryId3;
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
             Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
@@ -3597,10 +4038,11 @@ public class Limitless extends LimitlessApi
             Object collected = 0;
             while (true)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "page", page,
-                    "limit", pageSize
-                );
+                final Object finalPage = page;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "page", finalPage );
+                    put( "limit", pageSize );
+                }};
                 Map<String, Object> response = null;
                 if (!java.util.Objects.equals(categoryId, null))
                 {
@@ -3634,6 +4076,20 @@ public class Limitless extends LimitlessApi
         });
 
     }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#fetchRawActiveMarkets
+     * @description pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect
+     * @param {string} [categoryId] a limitless category id — pages only that category's listing
+     * @returns {object[]} raw limitless market objects
+     */
+    public CompletableFuture<Object> fetchRawActiveMarkets(Object... optionalArgs)
+    {
+        return this.fetchRawActiveMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 1, null));
+    }
 
     /**
      * @ignore
@@ -3661,11 +4117,11 @@ public class Limitless extends LimitlessApi
             {
                 ((List<Object>)wanted).add(((String)(tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i))).toLowerCase());
             }
-            List<String> categoryIds = new ArrayList<String>(Arrays.asList());
+            List<Object> categoryIds = new ArrayList<Object>(Arrays.asList());
             Integer categoriesLength = ((List<?>)categories).size();
             for (var i = 0; (categoriesLength != null && i < categoriesLength); i++)
             {
-                Map<String, Object> category = (Map<String, Object>) this.safeDict(categories, i, (Object) null);
+                Map<String, Object> category = (Map<String, Object>) this.safeDict(categories, i);
                 String name = this.safeStringLower(category, "name", "");
                 String categoryId = this.safeString(category, "id");
                 Boolean matched = false;
@@ -3683,7 +4139,7 @@ public class Limitless extends LimitlessApi
                 }
                 if (Boolean.TRUE.equals(matched) && (!java.util.Objects.equals(categoryId, null)))
                 {
-                    categoryIds.add(categoryId);
+                    ((List<Object>)categoryIds).add(categoryId);
                 }
             }
             Integer categoryIdsLength = ((List<?>)categoryIds).size();
@@ -3695,7 +4151,7 @@ public class Limitless extends LimitlessApi
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             for (var ci = 0; (categoryIdsLength != null && ci < categoryIdsLength); ci++)
             {
-                Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, Helpers.toStringArg((categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci))))).join();
+                Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
                 Integer categoryMarketsLength = ((List<?>)categoryMarkets).size();
                 for (var mi = 0; (categoryMarketsLength != null && mi < categoryMarketsLength); mi++)
                 {
@@ -3711,6 +4167,20 @@ public class Limitless extends LimitlessApi
             return allRaw;
         });
 
+    }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#fetchRawMarketsByTags
+     * @description resolves the requested tags to limitless categories via GET /categories, then pages only those categories' active listings server-side
+     * @param {string[]} tags tag/category names to match (case-insensitive substring match on the category name)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect per category
+     * @returns {object[]} raw limitless market objects, deduped by slug
+     */
+    public CompletableFuture<Object> fetchRawMarketsByTags(Object tags, Object... optionalArgs)
+    {
+        return this.fetchRawMarketsByTags(tags, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Long nonce()
@@ -3735,57 +4205,77 @@ public class Limitless extends LimitlessApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "limitless") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 1);
+        Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
+        Object access = (((api instanceof String))) ? "public" : Helpers.GetValue(api, 1);
         Object baseUrls = ((Map<String, Object>)this.urls).get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("limitless"));
         Object url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String querystring = this.urlencodeWithArrayRepeat(query);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (!java.util.Objects.equals(querystring, "")))
+        if (java.util.Objects.equals(method, "GET") && (!java.util.Objects.equals(querystring, "")))
         {
             url = (url + ("?" + querystring));
         }
-        Object headersValue = headers;
-        Object bodyValue = body;
         if (java.util.Objects.equals(access, "private"))
         {
             String bodyString = "";
-            if (java.util.Objects.equals(headersValue, null))
+            if (java.util.Objects.equals(headers, null))
             {
-                headersValue = new HashMap<String, Object>() {{}};
+                headers = new HashMap<String, Object>() {{}};
             }
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && (!java.util.Objects.equals(querystring, "")))
+            if (java.util.Objects.equals(method, "POST") && (!java.util.Objects.equals(querystring, "")))
             {
                 bodyString = this.json(query);
-                bodyValue = bodyString;
-                Object headerDefaults = (((!java.util.Objects.equals(headersValue, null)))) ? headersValue : new HashMap<String, Object>() {{}};
-                headersValue = this.extend(new HashMap<String, Object>() {{
+                body = bodyString;
+                Object headerDefaults = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+                headers = this.extend(new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                     put( "Content-Type", "application/json" );
                 }}, headerDefaults);
             }
-            this.checkRequiredCredentials(true);
+            this.checkRequiredCredentials();
             String timestamp = this.iso8601(this.milliseconds());
             String newline = "\n"; // eslint-disable-line quotes
-            String payload = ((((Helpers.add((timestamp + newline), java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
+            String payload = ((((Helpers.add((timestamp + newline), method) + newline) + url) + newline) + bodyString);
             String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
-            headersValue = this.extend(headersValue, Helpers.newMap(
-                "lmts-timestamp", timestamp,
-                "lmts-signature", signature
-            ));
+            final String finalTimestamp = timestamp;
+            headers = this.extend(headers, new HashMap<String, Object>() {{
+                put( "lmts-timestamp", finalTimestamp );
+                put( "lmts-signature", signature );
+            }});
             String headerKey = ("lmts-api" + "-key"); // concatenating because of the php version
             Map<String, Object> headersKey = new HashMap<String, Object>() {{}};
             headersKey.put((String)headerKey, this.apiKey);
-            headersValue = this.extend(headersValue, headersKey);
+            headers = this.extend(headers, headersKey);
         }
         url = Helpers.add(baseUrl, url);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        final Object finalUrl = url;
+        final Object finalMethod = method;
+        final Object finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    /**
+     * @ignore
+     * @method
+     * @name limitless#sign
+     * @description builds the request URL and attaches the lmts authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} [api] the api group and access level
+     * @param {string} [method] HTTP method
+     * @param {object} [params] request parameters
+     * @param {object} [headers] request headers
+     * @param {object} [body] request body
+     * @returns {object} a dictionary with url, method, body and headers
+     */
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "limitless", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

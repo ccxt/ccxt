@@ -1987,7 +1987,7 @@ public class Weex extends WeexApi
      * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1999,10 +1999,10 @@ public class Weex extends WeexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                return (this.fetchSpotOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+                return (this.fetchSpotOHLCV(symbol, (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             } else
             {
-                return (this.fetchContractOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+                return (this.fetchContractOHLCV(symbol, (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2024,7 +2024,7 @@ public class Weex extends WeexApi
      * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2042,7 +2042,7 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2074,7 +2074,7 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchSpotOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2098,7 +2098,7 @@ public class Weex extends WeexApi
      * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
         final Long since3 = since2;
         final Long limit3 = limit2;
@@ -2215,7 +2215,7 @@ public class Weex extends WeexApi
      * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchContractOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2968,7 +2968,7 @@ public class Weex extends WeexApi
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3011,7 +3011,7 @@ public class Weex extends WeexApi
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3456,13 +3456,13 @@ public class Weex extends WeexApi
      * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id2, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(String id2, String symbol2, Map<String, Object> parameters2)
     {
-        final Object id3 = id2;
+        final String id3 = id2;
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object id = id3;
+            String id = id3;
             String symbol = symbol3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -3543,7 +3543,7 @@ public class Weex extends WeexApi
      * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -5510,7 +5510,7 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters)
+    public CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5539,7 +5539,7 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Order> closePosition(String symbol, Object... optionalArgs)
     {
         return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

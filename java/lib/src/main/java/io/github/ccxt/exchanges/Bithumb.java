@@ -1609,7 +1609,7 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe2, Long since, Long limit2, Map<String, Object> parameters2)
     {
         final Object timeframe3 = timeframe2;
         final Long limit3 = limit2;
@@ -1739,7 +1739,7 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2223,7 +2223,7 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(String symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters2)
     {
         final String type3 = type2;
         final String side3 = side2;
@@ -2314,7 +2314,7 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2348,7 +2348,7 @@ public class Bithumb extends BithumbApi
                 throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
             }
             ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder(symbol, "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3260,7 +3260,7 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final Map<String, Object> parameters3 = parameters2;
@@ -3362,7 +3362,7 @@ public class Bithumb extends BithumbApi
      * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3455,7 +3455,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", ((Map<String, Object>)order).get("side") );
             }};
-            return (this.cancelOrder((Object)(((String)((Map<String, Object>)order).get("id"))), (Object)(((Map<String, Object>)order).get("symbol")), (Object)(this.extend(request, parameters)))).join();
+            return (this.cancelOrder(((String)((Map<String, Object>)order).get("id")), (Object)(((Map<String, Object>)order).get("symbol")), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(Order::new);
 
     }

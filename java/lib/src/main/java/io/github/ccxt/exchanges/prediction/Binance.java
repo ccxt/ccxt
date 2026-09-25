@@ -2354,7 +2354,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
@@ -2486,7 +2486,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2510,7 +2510,7 @@ final Object finalMarketSymbol = marketSymbol;
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2540,7 +2540,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2560,7 +2560,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

@@ -1638,7 +1638,7 @@ public class Bigone extends BigoneApi
      * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
         final Long since3 = since2;
         final Long limit3 = limit2;
@@ -1728,7 +1728,7 @@ public class Bigone extends BigoneApi
      * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -1942,7 +1942,7 @@ public class Bigone extends BigoneApi
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder(symbol, "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -1982,7 +1982,7 @@ public class Bigone extends BigoneApi
      * @param {string} [params.client_order_id] must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String side3 = side2;
         final Object price3 = price2;
@@ -2124,7 +2124,7 @@ public class Bigone extends BigoneApi
      * @param {string} [params.client_order_id] must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2139,7 +2139,7 @@ public class Bigone extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2179,7 +2179,7 @@ public class Bigone extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

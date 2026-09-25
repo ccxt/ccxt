@@ -1201,7 +1201,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1242,7 +1242,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1519,7 +1519,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            (this.cancelOrder((Object)(id), (Object)(outcome), (Object)(parameters))).join();
+            (this.cancelOrder(id, (Object)(outcome), (Object)(parameters))).join();
             return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, parameters)).join();
         }).thenApply(PredictionOrder::new);
 
@@ -1564,7 +1564,7 @@ public class Myriad extends MyriadApi
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<Object> createAmmOrder(Object outcome, String type, String side2, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createAmmOrder(String outcome, String type, String side2, Object amount, Object price, Map<String, Object> parameters)
     {
         final String side3 = side2;
         return BaseExchange.supplyAsync(() -> {
@@ -1648,7 +1648,7 @@ public class Myriad extends MyriadApi
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<Object> createAmmOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createAmmOrder(String outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createAmmOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1674,7 +1674,7 @@ public class Myriad extends MyriadApi
                 put( "enableAmm", true );
                 put( "costDenominated", true );
             }});
-            return (this.createOrder((Object)(outcome), "market", "buy", (Object)(cost), (Object)(null), (Object)(request))).join();
+            return (this.createOrder(outcome, "market", "buy", (Object)(cost), (Object)(null), (Object)(request))).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2253,7 +2253,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, String outcome2, Map<String, Object> parameters2)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome2, Map<String, Object> parameters2)
     {
         final String outcome3 = outcome2;
         final Map<String, Object> parameters3 = parameters2;
@@ -2337,7 +2337,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3835,7 +3835,7 @@ final Object finalNetworkId = networkId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3961,7 +3961,7 @@ final Object finalNetworkId = networkId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object... optionalArgs)
     {
         return this.fetchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1d", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
