@@ -965,8 +965,12 @@ export default class lighter extends Exchange {
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        const isStandardTier = await this.checkIfStandardTier (accountIndex as number);
-        if (isStandardTier) {
+        try {
+            const isStandardTier = await this.checkIfStandardTier (accountIndex as number);
+            if (isStandardTier) {
+                this.options['builderFee'] = false;
+            }
+        } catch (e) {
             this.options['builderFee'] = false;
         }
         const market = this.market (symbol);
