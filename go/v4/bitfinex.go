@@ -912,7 +912,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var market any = this.SafeValue(pairObj, 1, map[string]any{})
 		var spot bool = true
 		var typeVar string
-		if GetIndexOf(id, "F0") >= 0 {
+		if func() int {
+			if id == nil {
+				return -1
+			}
+			return strings.Index(*id, "F0")
+		}() >= 0 {
 			spot = false
 			typeVar = "swap"
 		} else {
@@ -921,7 +926,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var swap bool = (typeVar == "swap")
 		var baseId any = nil
 		var quoteId any = nil
-		if GetIndexOf(id, ":") >= 0 {
+		if func() int {
+			if id == nil {
+				return -1
+			}
+			return strings.Index(*id, ":")
+		}() >= 0 {
 			var parts []string = Split(id, ":")
 			baseId = GetValue(parts, 0)
 			quoteId = GetValue(parts, 1)

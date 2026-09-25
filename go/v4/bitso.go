@@ -1972,7 +1972,12 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag *string = nil
-	if GetIndexOf(address, "?dt=") >= 0 {
+	if func() int {
+		if address == nil {
+			return -1
+		}
+		return strings.Index(*address, "?dt=")
+	}() >= 0 {
 		var parts []string = Split(address, "?dt=")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
