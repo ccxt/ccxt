@@ -998,7 +998,11 @@ public partial class gate : ccxt.gate
         if (this.newUpdates)
         {
             Dictionary<string, object> items = new Dictionary<string, object>() {};
-            items[(string)getValue(tickerOrBidAsk, "symbol")] = tickerOrBidAsk;
+            string? tickerOrBidAskSymbol = this.safeString(tickerOrBidAsk, "symbol");
+            if ((tickerOrBidAskSymbol != null))
+            {
+                items[(string)tickerOrBidAskSymbol] = tickerOrBidAsk;
+            }
             return items;
         }
         object result = isWatchTickers ? this.tickers : this.bidsasks;

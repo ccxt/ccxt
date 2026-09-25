@@ -239,7 +239,11 @@ public partial class bitget : ccxt.bitget
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(tickers, "symbol")] = tickers;
+            string? tickersSymbol = this.safeString(tickers, "symbol");
+            if ((tickersSymbol != null))
+            {
+                result[(string)tickersSymbol] = tickers;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsList));
@@ -505,7 +509,11 @@ public partial class bitget : ccxt.bitget
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(tickers, "symbol")] = tickers;
+            string? tickersSymbol = this.safeString(tickers, "symbol");
+            if ((tickersSymbol != null))
+            {
+                result[(string)tickersSymbol] = tickers;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsList));

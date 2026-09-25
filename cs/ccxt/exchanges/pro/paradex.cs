@@ -344,7 +344,11 @@ public partial class paradex : ccxt.paradex
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(newTicker, "symbol")] = newTicker;
+            string? newTickerSymbol = this.safeString(newTicker, "symbol");
+            if ((newTickerSymbol != null))
+            {
+                result[(string)newTickerSymbol] = newTicker;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
@@ -568,7 +572,11 @@ public partial class paradex : ccxt.paradex
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(newFundingRates, "symbol")] = newFundingRates;
+            string? newFundingRatesSymbol = this.safeString(newFundingRates, "symbol");
+            if ((newFundingRatesSymbol != null))
+            {
+                result[(string)newFundingRatesSymbol] = newFundingRates;
+            }
             return ccxt.BaseExchange.ToFundingRates(result);
         }
         return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbolsNormalized));

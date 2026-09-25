@@ -409,7 +409,11 @@ public partial class hitbtc : ccxt.hitbtc
             if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-                tickers[(string)getValue(newTickers, "symbol")] = newTickers;
+                string? newTickersSymbol = this.safeString(newTickers, "symbol");
+                if ((newTickersSymbol != null))
+                {
+                    tickers[(string)newTickersSymbol] = newTickers;
+                }
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
         }
@@ -570,7 +574,11 @@ public partial class hitbtc : ccxt.hitbtc
             if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-                tickers[(string)getValue(newTickers, "symbol")] = newTickers;
+                string? newTickersSymbol = this.safeString(newTickers, "symbol");
+                if ((newTickersSymbol != null))
+                {
+                    tickers[(string)newTickersSymbol] = newTickers;
+                }
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
         }

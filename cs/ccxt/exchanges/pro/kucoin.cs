@@ -538,7 +538,11 @@ public partial class kucoin : ccxt.kucoin
             if (this.newUpdates)
             {
                 Dictionary<string, object> newDict = new Dictionary<string, object>() {};
-                newDict[(string)getValue(tickers, "symbol")] = tickers;
+                string? tickersSymbol = this.safeString(tickers, "symbol");
+                if ((tickersSymbol != null))
+                {
+                    newDict[(string)tickersSymbol] = tickers;
+                }
                 return ccxt.BaseExchange.ToTickers(newDict);
             }
         }
@@ -855,7 +859,11 @@ public partial class kucoin : ccxt.kucoin
         if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-            tickers[(string)getValue(ticker, "symbol")] = ticker;
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
+            {
+                tickers[(string)tickerSymbol] = ticker;
+            }
             return ccxt.BaseExchange.ToTickers(tickers);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));

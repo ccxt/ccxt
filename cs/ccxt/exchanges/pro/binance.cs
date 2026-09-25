@@ -2850,7 +2850,11 @@ public partial class binance : ccxt.binance
         } else
         {
             Dictionary<string, object> newDict = new Dictionary<string, object>() {};
-            newDict[(string)getValue(result, "symbol")] = result;
+            string? resultSymbol = this.safeString(result, "symbol");
+            if ((resultSymbol != null))
+            {
+                newDict[(string)resultSymbol] = result;
+            }
             return newDict;
         }
     }

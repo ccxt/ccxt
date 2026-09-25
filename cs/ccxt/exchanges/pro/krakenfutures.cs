@@ -220,7 +220,11 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(ticker, "symbol")] = ticker;
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
+            {
+                result[(string)tickerSymbol] = ticker;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
@@ -242,7 +246,11 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(ticker, "symbol")] = ticker;
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
+            {
+                result[(string)tickerSymbol] = ticker;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));

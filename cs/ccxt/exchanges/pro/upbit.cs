@@ -116,7 +116,11 @@ public partial class upbit : ccxt.upbit
         if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-            tickers[(string)getValue(newTickers, "symbol")] = newTickers;
+            string? newTickersSymbol = this.safeString(newTickers, "symbol");
+            if ((newTickersSymbol != null))
+            {
+                tickers[(string)newTickersSymbol] = newTickers;
+            }
             return ccxt.BaseExchange.ToTickers(tickers);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
