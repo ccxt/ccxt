@@ -1856,7 +1856,7 @@ export default class kraken extends Exchange {
         }
     }
 
-    getDelistedMarketById (id: string) {
+    getDelistedMarketById (id: any) {
         if (id === undefined) {
             return id;
         }

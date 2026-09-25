@@ -2950,6 +2950,8 @@ function ccxtGoCounterCallType (goTranspiler, initializer, printedValue) {
 const CCXT_GO_ANNOTATED_RETURN_NATIVE = {
     'Str': [ '*string', 'string' ],
     'Dict': [ 'map[string]any' ],
+    // `Market` is MarketInterface | undefined: the dict or nil, like a Dict return
+    'Market': [ 'map[string]any' ],
     'List': [ '[]any' ],
     'Bool': [ 'bool' ],
     'number': [ 'float64' ],
@@ -3021,7 +3023,7 @@ function ccxtGoAnnotatedReturnTypes (goTranspiler, node) {
     const alias = type?.aliasSymbol?.escapedName;
     const annotation = (node.type !== undefined) ? node.type.getText () : undefined;
     const key = (typeof alias === 'string') ? alias : annotation;
-    if ((key === 'Str') || (key === 'Dict') || (key === 'List') || (key === 'Bool')) {
+    if ((key === 'Str') || (key === 'Dict') || (key === 'Market') || (key === 'List') || (key === 'Bool')) {
         return CCXT_GO_ANNOTATED_RETURN_NATIVE[key];
     }
     // `number` is a builtin: no alias to read, so the annotation text and the
@@ -6287,13 +6289,13 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
         return;
     }
     const shipped = goTranspiler.goGetArgPointerInHelperArithmetic;
-    // parent `+` -> printed as Add(...), memoised; any query made while a parent is being printed
-    // (by this probe or the shipped one) answers false, so probes never nest
+    // parent `+` -> printed as Add(...), memoised; a query made while a parent is being printed
+    // gets the shipped answer only (no nested Add probe): goGetArgParameterType caches it per parameter
     const addParents = new WeakMap ();
     let probing = false;
     goTranspiler.goGetArgPointerInHelperArithmetic = function (n) {
         if (probing) {
-            return false;
+            return shipped.call (this, n);
         }
         let viaShipped;
         probing = true;
