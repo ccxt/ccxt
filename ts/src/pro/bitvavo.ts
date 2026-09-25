@@ -177,6 +177,9 @@ export default class bitvavo extends bitvavoRest {
         //
         this.handleBidAsk (client, message);
         const event = this.safeString (message, 'event');
+        if (event === undefined) {
+            return;
+        }
         const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
@@ -793,6 +796,9 @@ export default class bitvavo extends bitvavoRest {
         const marketId = this.safeString (message, 'market');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
+        if (event === undefined) {
+            return;
+        }
         const messageHash = event + '@' + market['id'];
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {

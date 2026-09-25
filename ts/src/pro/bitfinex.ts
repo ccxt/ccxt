@@ -251,6 +251,9 @@ export default class bitfinex extends bitfinexRest {
         const key = this.safeString (subscription, 'key', '');
         const keyParts = key.split (':');
         const interval = this.safeString (keyParts, 1);
+        if ((channel === undefined) || (interval === undefined)) {
+            return;
+        }
         let marketId = key;
         marketId = marketId.replace ('trade:', '');
         marketId = marketId.replace (interval + ':', '');
@@ -431,6 +434,9 @@ export default class bitfinex extends bitfinexRest {
         const channel = this.safeString (subscription, 'channel');
         const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
+        if (channel === undefined) {
+            return;
+        }
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const symbol = market['symbol'];

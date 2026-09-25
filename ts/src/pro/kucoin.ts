@@ -152,6 +152,9 @@ export default class kucoin extends kucoinRest {
             const firstInstanceServer = this.safeDict (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
             const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+            if (endpoint === undefined) {
+                throw new ExchangeError (this.id + ' negotiate() response has no websocket endpoint');
+            }
             const token = this.safeString (data, 'token');
             const result = endpoint + '?' + this.urlencode ({
                 'token': token,

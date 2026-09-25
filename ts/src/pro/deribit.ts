@@ -650,6 +650,9 @@ export default class deribit extends deribitRest {
             const group = this.safeString (parts, 2);
             const depth = this.safeString (parts, 3);
             const interval = this.safeString (parts, 4);
+            if (group === undefined) {
+                return;
+            }
             descriptor = group + '.' + depth + '.' + interval;
         } else {
             const interval = this.safeString (parts, 2);

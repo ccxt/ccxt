@@ -741,6 +741,9 @@ export default class xt extends xtRest {
             const symbol = fundingRate['symbol'];
             this.fundingRates[(symbol as string)] = fundingRate;
             const event = this.safeString (message, 'event');
+            if (event === undefined) {
+                return message;
+            }
             const messageHash = event + '::contract';
             client.resolve (fundingRate, messageHash);
         }
@@ -907,6 +910,9 @@ export default class xt extends xtRest {
             let messageHashTail: Str = 'contract';
             if (isSpot) {
                 messageHashTail = 'spot';
+            }
+            if (event === undefined) {
+                return message;
             }
             const messageHash = event + '::' + messageHashTail;
             client.resolve (ticker, messageHash);
@@ -1075,6 +1081,9 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
+            if (event === undefined) {
+                return message;
+            }
             const messageHash = event + '::' + tradeType;
             client.resolve (stored, messageHash);
         }
@@ -1131,6 +1140,9 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
+            if (event === undefined) {
+                return message;
+            }
             const messageHash = event + '::' + tradeType;
             client.resolve (tradesArray, messageHash);
         }

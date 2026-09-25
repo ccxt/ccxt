@@ -1123,6 +1123,9 @@ export default class hyperliquid extends hyperliquidRest {
             this.balance = {};
         }
         const topic = this.safeString (message, 'channel');
+        if (topic === undefined) {
+            return;
+        }
         const messageHash = topic + '::balance';
         let info: NullableDict = undefined;
         let rawBalances: any[] = [];

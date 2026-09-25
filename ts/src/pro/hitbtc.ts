@@ -976,6 +976,9 @@ export default class hitbtc extends hitbtcRest {
         const parsed = this.parseOrder (order);
         orders.append (parsed);
         client.resolve (orders, messageHash);
+        if (messageHash === undefined) {
+            return;
+        }
         client.resolve (orders, messageHash + '::' + symbol);
     }
 

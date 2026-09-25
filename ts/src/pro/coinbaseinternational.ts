@@ -299,6 +299,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = this.parseWsInstrument (message);
         const channel = this.safeString (message, 'channel');
         client.resolve (ticker, channel);
+        if (channel === undefined) {
+            return;
+        }
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
@@ -410,6 +413,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = this.parseWsTicker (message);
         const channel = this.safeString (message, 'channel');
         client.resolve (ticker, channel);
+        if (channel === undefined) {
+            return;
+        }
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
@@ -517,6 +523,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }
+        if (messageHash === undefined) {
+            return;
+        }
         client.resolve (stored, messageHash + '::' + symbol);
     }
 
@@ -586,6 +595,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         tradesArray.append (trade);
         this.trades[(symbol as string)] = tradesArray;
         client.resolve (tradesArray, channel);
+        if (channel === undefined) {
+            return message;
+        }
         client.resolve (tradesArray, channel + '::' + trade['symbol']);
         return message;
     }
@@ -708,6 +720,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['datetime'] = datetime;
         orderbook['timestamp'] = this.parse8601 (datetime);
         this.orderbooks[symbol] = orderbook;
+        if (channel === undefined) {
+            return;
+        }
         client.resolve (orderbook, channel + '::' + symbol);
     }
 
@@ -783,6 +798,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channel = this.safeString (message, 'channel');
         const fundingRate = this.parseFundingRate (message);
         this.fundingRates[fundingRate['symbol']] = fundingRate;
+        if (channel === undefined) {
+            return;
+        }
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 

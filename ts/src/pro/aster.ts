@@ -651,6 +651,9 @@ export default class aster extends asterRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = this.safeStringLower (market, 'id');
+            if (marketId === undefined) {
+                continue;
+            }
             subscriptionArgs.push (marketId + '@aggTrade');
             messageHashes.push ('trade::' + market['symbol']);
         }

@@ -137,6 +137,9 @@ export default class blofin extends blofinRest {
         //
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
+        if (channelName === undefined) {
+            return;
+        }
         const data = this.safeList (message, 'data') as List;
         if (data === undefined) {
             return;
@@ -224,6 +227,9 @@ export default class blofin extends blofinRest {
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        if (channelName === undefined) {
+            return;
+        }
         const messageHash = channelName + ':' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -303,6 +309,9 @@ export default class blofin extends blofinRest {
         this.handleBidAsk (client, message);
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
+        if (channelName === undefined) {
+            return;
+        }
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsTicker (data[i]);
@@ -586,6 +595,9 @@ export default class blofin extends blofinRest {
         const orders = this.orders;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
+        if (channelName === undefined) {
+            return;
+        }
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const order = this.parseWsOrder (data[i]);
@@ -639,6 +651,9 @@ export default class blofin extends blofinRest {
         const cache: ArrayCacheBySymbolBySide = this.positions;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
+        if (channelName === undefined) {
+            return;
+        }
         const data = this.safeList (message, 'data') as List;
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
