@@ -3974,7 +3974,7 @@ export default class bingx extends Exchange {
             marketType = 'spot';
         }
         const marketId = this.safeString2 (orderData, 'symbol', 's');
-        const marketResolved = (market === undefined) ? this.safeMarket (marketId, undefined, undefined, marketType) : market;
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market, undefined, marketType);
         const side = this.safeStringLower2 (orderData, 'side', 'S');
         const timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
         const lastTradeTimestamp = this.safeInteger2 (orderData, 'updateTime', 'T');

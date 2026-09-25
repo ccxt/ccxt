@@ -1350,7 +1350,7 @@ export default class digifinex extends Exchange {
         const amountString = this.safeStringN (trade, [ 'amount', 'volume', 'size' ]);
         const marketId = this.safeStringUpper2 (trade, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market);
-        const marketResolved: Market = (market === undefined) ? this.safeMarket (marketId) : market;
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market);
         let timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         let side = this.safeString2 (trade, 'type', 'side');
         let type: Str = undefined;

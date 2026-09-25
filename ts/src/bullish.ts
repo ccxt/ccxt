@@ -1987,7 +1987,7 @@ export default class bullish extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const marketResolved: Market = (market === undefined) ? this.safeMarket (marketId) : market;
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market);
         const symbol = this.safeSymbol (marketId, marketResolved);
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'createdAtTimestamp');
