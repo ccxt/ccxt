@@ -35,6 +35,7 @@ import io.github.ccxt.base.Time;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
+import io.github.ccxt.base.Pair;
 import io.github.ccxt.errors.*;
 import java.util.Random;
 import java.lang.reflect.Constructor;
@@ -3912,6 +3913,115 @@ public class BaseExchange {
         }
         clientsMap.clear();
         return java.util.concurrent.CompletableFuture.completedFuture(null);
+    }
+
+    // handle*AndParams returning a typed [value, params] Pair (the option lookup of handleOptionAndParams on a Map params bag)
+    private Pair<Object, java.util.Map<String, Object>> optionAndParams(java.util.Map<String, Object> parameters, Object methodName, Object optionName, Object defaultValue) {
+        String defaultOptionName = ("default" + this.capitalize(optionName));
+        Object value = this.safeValue2(parameters, optionName, defaultOptionName);
+        if (value != null) {
+            return new Pair<>(value, this.omit(parameters, new ArrayList<Object>(Arrays.asList(optionName, defaultOptionName))));
+        }
+        // routed methods like "watchTrades > watchTradesForSymbols" (handleParamString of callerMethodName)
+        String callerMethodName = this.safeString(parameters, "callerMethodName", Helpers.toStringArg(methodName));
+        java.util.Map<String, Object> paramsCallerMethodName = (callerMethodName != null) ? this.omit(parameters, "callerMethodName") : parameters;
+        Object exchangeWideMethodOptions = this.safeValue(this.options, callerMethodName);
+        if (exchangeWideMethodOptions != null) {
+            value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
+        }
+        if (value == null) {
+            value = this.safeValue2(this.options, optionName, defaultOptionName);
+        }
+        return new Pair<>((value != null) ? value : defaultValue, paramsCallerMethodName);
+    }
+
+    private Pair<Object, java.util.Map<String, Object>> optionAndParams2(java.util.Map<String, Object> parameters, Object methodName1, Object optionName1, Object optionName2, Object defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option1 = this.optionAndParams(parameters, methodName1, optionName1, null);
+        if (option1.first() != null) {
+            return new Pair<>(option1.first(), this.omit(option1.second(), optionName2));
+        }
+        return this.optionAndParams(option1.second(), methodName1, optionName2, defaultValue);
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams(java.util.Map<String, Object> parameters, String methodName, Object optionName, String defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams(parameters, methodName, optionName, defaultValue);
+        return new Pair<>(this.checkOptionString(methodName, optionName, option.first()), option.second());
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams2(java.util.Map<String, Object> parameters, Object methodName, Object optionName1, Object optionName2, String defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        return new Pair<>(this.checkOptionString((String) (methodName), optionName1, option.first()), option.second());
+    }
+
+    public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams(java.util.Map<String, Object> parameters, String methodName, Object optionName, Object defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams(parameters, methodName, optionName, defaultValue);
+        return new Pair<>(this.checkOptionBool(methodName, optionName, option.first()), option.second());
+    }
+
+    public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams2(java.util.Map<String, Object> parameters, Object methodName, Object optionName1, Object optionName2, Object defaultValue) {
+        Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        return new Pair<>(this.checkOptionBool((String) (methodName), optionName1, option.first()), option.second());
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleMarginModeAndParams(Object methodName, java.util.Map<String, Object> parameters, String defaultValue) {
+        return this.handleOptionStringAndParams(parameters, (String) (methodName), "marginMode", defaultValue);
+    }
+
+    public Pair<String, java.util.Map<String, Object>> handleMarketTypeAndParams(Object methodName, java.util.Map<String, Object> market, java.util.Map<String, Object> parameters, String defaultValue) {
+        // type from params, then market, then the caller's default, then options[methodName], then options
+        String type = this.safeString2(parameters, "defaultType", "type");
+        if (type != null) {
+            return new Pair<>(type, this.omit(parameters, new ArrayList<Object>(Arrays.asList("defaultType", "type"))));
+        }
+        if (market != null) {
+            return new Pair<>((String) market.get("type"), parameters);
+        }
+        if (defaultValue != null) {
+            return new Pair<>(defaultValue, parameters);
+        }
+        Object methodOptions = this.safeDict(this.options, methodName, (Object) null);
+        if (methodOptions != null) {
+            if (methodOptions instanceof String methodType) {
+                return new Pair<>(methodType, parameters);
+            }
+            String typeFromMethod = this.safeString2(methodOptions, "defaultType", "type");
+            if (typeFromMethod != null) {
+                return new Pair<>(typeFromMethod, parameters);
+            }
+        }
+        return new Pair<>(this.safeString2(this.options, "defaultType", "type", "spot"), parameters);
+    }
+
+    // element 0 is an unchecked option value when neither params nor market name the sub type
+    public Pair<Object, java.util.Map<String, Object>> handleSubTypeAndParams(Object methodName, java.util.Map<String, Object> market, java.util.Map<String, Object> parameters, Object defaultValue) {
+        Object subType = null;
+        String subTypeInParams = this.safeString2(parameters, "subType", "defaultSubType");
+        if (subTypeInParams != null) {
+            if (subTypeInParams.equals("linear") || subTypeInParams.equals("inverse")) {
+                subType = subTypeInParams;
+            }
+            return new Pair<>(subType, this.omit(parameters, new ArrayList<Object>(Arrays.asList("subType", "defaultSubType"))));
+        }
+        if (market != null) {
+            if (java.util.Objects.equals(market.get("linear"), true)) {
+                subType = "linear";
+            } else if (java.util.Objects.equals(market.get("inverse"), true)) {
+                subType = "inverse";
+            }
+        }
+        if (subType == null) {
+            subType = this.optionAndParams(new HashMap<String, Object>(), methodName, "subType", defaultValue).first();
+        }
+        return new Pair<>(subType, parameters);
+    }
+
+    public Pair<java.util.Map<String, Object>, java.util.Map<String, Object>> handleUntilOption(Object key, java.util.Map<String, Object> request, java.util.Map<String, Object> parameters, Object multiplier) {
+        Long until = this.safeInteger2(parameters, "until", "till");
+        if (until != null) {
+            request.put((String) key, this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1))));
+            return new Pair<>(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
+        }
+        return new Pair<>(request, parameters);
     }
 
     // ------------------------------------------------------------------------
@@ -9205,45 +9315,15 @@ public Object describe()
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionStringAndParams(Object parameters, String methodName, Object optionName, String defaultValue)
-    {
-        // handleOptionAndParams read as a string; the statically typed ports throw on another type
-        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
-        var value = ((List<Object>) valuenewParamsVariable).get(0);
-        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
-        return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName, value), newParams));
-    }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionStringAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, String defaultValue)
-    {
-        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
-        var value = ((List<Object>) valuenewParamsVariable).get(0);
-        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
-        return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName1, value), newParams));
-    }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionBoolAndParams(Object parameters, String methodName, Object optionName, Object defaultValue)
-    {
-        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
-        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
-        var value = ((List<Object>) valuenewParamsVariable).get(0);
-        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
-        return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName, value), newParams));
-    }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionBoolAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object defaultValue)
-    {
-        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
-        var value = ((List<Object>) valuenewParamsVariable).get(0);
-        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
-        return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName1, value), newParams));
-    }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
@@ -9272,103 +9352,8 @@ public Object describe()
         return this.safeValue(res, 0);
     }
 
-    public Object handleMarketTypeAndParams(Object methodName, Map<String, Object> market, Map<String, Object> parameters, Object defaultValue)
-    {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#handleMarketTypeAndParams
-         * @param methodName the method calling handleMarketTypeAndParams
-         * @param {Market} market
-         * @param {object} params
-         * @param {string} [params.type] type assigned by user
-         * @param {string} [params.defaultType] same as params.type
-         * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
-         * @returns {[string, object]} the market type and params with type and defaultType omitted
-         */
-        // type from param
-        String type = this.safeString2(parameters, "defaultType", "type");
-        if (!java.util.Objects.equals(type, null))
-        {
-            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("defaultType", "type")));
-            return new ArrayList<Object>(Arrays.asList(type, paramsOmitted));
-        }
-        // type from market
-        if (!java.util.Objects.equals(market, null))
-        {
-            return new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("type"), parameters));
-        }
-        // type from default-argument
-        if (!java.util.Objects.equals(defaultValue, null))
-        {
-            return new ArrayList<Object>(Arrays.asList(defaultValue, parameters));
-        }
-        Object methodOptions = this.safeDict(this.options, methodName, (Object) null);
-        if (!java.util.Objects.equals(methodOptions, null))
-        {
-            if ((methodOptions instanceof String))
-            {
-                return new ArrayList<Object>(Arrays.asList(methodOptions, parameters));
-            } else
-            {
-                String typeFromMethod = this.safeString2(methodOptions, "defaultType", "type");
-                if (!java.util.Objects.equals(typeFromMethod, null))
-                {
-                    return new ArrayList<Object>(Arrays.asList(typeFromMethod, parameters));
-                }
-            }
-        }
-        String defaultType = this.safeString2(this.options, "defaultType", "type", "spot");
-        return new ArrayList<Object>(Arrays.asList(defaultType, parameters));
-    }
 
-    public Object handleSubTypeAndParams(Object methodName, Map<String, Object> market, Map<String, Object> parameters, Object defaultValue)
-    {
-        Object subType = null;
-        // if set in params, it takes precedence
-        String subTypeInParams = this.safeString2(parameters, "subType", "defaultSubType");
-        // avoid omitting if it's not present
-        if (!java.util.Objects.equals(subTypeInParams, null))
-        {
-            if ((java.util.Objects.equals(subTypeInParams, "linear")) || (java.util.Objects.equals(subTypeInParams, "inverse")))
-            {
-                subType = subTypeInParams;
-            }
-            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("subType", "defaultSubType")));
-            return new ArrayList<Object>(Arrays.asList(subType, paramsOmitted));
-        } else
-        {
-            // at first, check from market object
-            if (!java.util.Objects.equals(market, null))
-            {
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
-                {
-                    subType = "linear";
-                } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
-                {
-                    subType = "inverse";
-                }
-            }
-            // if it was not defined in market object
-            if (java.util.Objects.equals(subType, null))
-            {
-                List<Object> values = (List<Object>) this.handleOptionAndParams(new HashMap<String, Object>() {{}}, methodName, "subType", defaultValue); // no need to re-test params here
-                subType = ((List<Object>)values).get(0);
-            }
-        }
-        return new ArrayList<Object>(Arrays.asList(subType, parameters));
-    }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
-    {
-        /**
-         * @ignore
-         * @method
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
-         */
-        return this.handleOptionStringAndParams(parameters, (String) (methodName), "marginMode", defaultValue);
-    }
 
     public void throwExactlyMatchedException(Object exact, Object str, Object message)
     {
@@ -11779,16 +11764,6 @@ public Object describe()
         return newDict;
     }
 
-    public Object handleUntilOption(Object key, Map<String, Object> request, Map<String, Object> parameters, Object multiplier)
-    {
-        Long until = (Long) this.safeInteger2(parameters, "until", "till");
-        if (!java.util.Objects.equals(until, null))
-        {
-            request.put((String)key, this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1))));
-        }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
-        return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
-    }
 
     public Object safeOpenInterest(Object interest, Map<String, Object> market)
     {

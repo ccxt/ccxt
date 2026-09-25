@@ -3837,12 +3837,10 @@ export default class hitbtc extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         const [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
-        const isIsolatedDefault = (marginMode === undefined) && ((defaultType === 'margin') || (isMargin === true));
-        let marginModeResolved = marginMode;
-        if (isIsolatedDefault) {
-            marginModeResolved = 'isolated';
+        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin === true))) {
+            return [ 'isolated', paramsMarginMode ];
         }
-        return [ marginModeResolved, paramsMarginMode ];
+        return [ marginMode, paramsMarginMode ];
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

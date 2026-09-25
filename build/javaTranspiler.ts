@@ -18,7 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, installJavaTuplePairReturns } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -253,6 +253,11 @@ const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
+// hand-written above the delimiter of BaseExchange.java with typed Pair returns
+const JAVA_HAND_WRITTEN_PAIR_METHODS = [
+    'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
+    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption',
+];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
 // methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
 // TS `export default class Exchange extends BaseExchange` block and are injected here,
@@ -503,6 +508,8 @@ function retypeCopyWrite (rhs: string, token: string, name: string): string | un
     const write = (v: string) => `${v};${comment}`;
     if (value === 'null' || retypeWrittenValueMatches (value, token)) return rhs;
     // the pass runs before applyJavaImports, so the printed casts are still `java.util.`-qualified
+    // second() of a typed handle* Pair is its params Map in every Pair the base declares
+    const pairRead = value.match (/^[A-Za-z_$][\w$]*Variable\.(first|second)\(\)$/)?.[1];
     const tupleRead = /^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
     if (RETYPE_COPY_MAP_TOKEN.test (token)) {
         const extend = value.match (/^this\.extend\((.*)\)$/);
@@ -511,6 +518,7 @@ function retypeCopyWrite (rhs: string, token: string, name: string): string | un
             return fixed ? rhs : write (`(${token}) ${value}`);
         }
         if (/^this\.(?:deepExtend|keysort)\(/.test (value)) return rhs;
+        if (pairRead === 'second') return rhs;
         const castable = tupleRead
             || new RegExp (`^this\\.omit\\(${name},`).test (value)
             || /^this\.safeDict\(/.test (value);
@@ -2263,6 +2271,8 @@ class NewTranspiler {
         patchJavaBaseMapFieldReceiverCasts(this.transpiler);
         // element writes on fresh unshared local maps (section 33; also in java-worker.ts)
         patchJavaFreshMapElementWrites(this.transpiler);
+        // typed Pair returns of handle*AndParams (section 34; also in java-worker.ts)
+        installJavaTuplePairReturns(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -2940,6 +2950,9 @@ class NewTranspiler {
                 if (ch === inStr) inStr = null;
                 continue;
             }
+            // comments may hold quotes or braces (`it's`)
+            if (ch === '/' && classBody[j + 1] === '/') { const e = classBody.indexOf ('\n', j); j = e < 0 ? classBody.length : e; continue; }
+            if (ch === '/' && classBody[j + 1] === '*') { const e = classBody.indexOf ('*/', j + 2); j = e < 0 ? classBody.length : e + 1; continue; }
             if (ch === '"' || ch === '\'') { inStr = ch; continue; }
             if (ch === '{') depth++;
             else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
@@ -2989,6 +3002,9 @@ class NewTranspiler {
             // BaseExchange output (keeping BaseExchange's closing brace).
             let baseMethods = parts[1];
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
+            for (const name of JAVA_HAND_WRITTEN_PAIR_METHODS) {
+                baseMethods = this.removeJavaMethod(baseMethods, name);
+            }
             baseMethods = typeCoreReturns(baseMethods, typedReturnTable('rest'));
             log.magenta('→', (javaExchangeBase as any).yellow)
             this.spliceTranspiledJavaBody(javaExchangeBase, javaDelimiter, restOfFile, baseMethods.trim() + '\n', false);
