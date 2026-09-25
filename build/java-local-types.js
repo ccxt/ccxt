@@ -13243,6 +13243,8 @@ function longLimitUseOk (line, name, boxChanges) {
         if (/^\s*""\s*,\s*$/.test (before) && /^\s*,?\s*$/.test (after)) continue;
         const callee = longLimitCallee (code, m.index);
         if (callee !== undefined && LONG_LIMIT_BOX_NEUTRAL_CALLEES.test (callee)) continue;
+        // a native Math.min beside a long operand is unboxed to long either way (section 57 proved it non-null)
+        if (callee === 'Math.min' && new RegExp (`Math\\.min\\((?:${name}, -?\\d+L|-?\\d+L, ${name})\\)`).test (code)) continue;
         // mathMin/mathMax hand back one of their operands: only as a serialized map value
         if ((callee === 'Helpers.mathMin' || callee === 'Helpers.mathMax')
             && (!boxChanges || /^\s*(?:\w+\.)?put\(""\s*,\s*Helpers\.math(?:Min|Max)\([^()]*\)\);\s*$/.test (code))) continue;
@@ -13577,6 +13579,8 @@ function longLimitRetypeGroups (lines, from, to) {
 // a Long slot: a toLongOrNull argument or a bare Helpers.multiply operand (section 56)
 function longLimitFeeds (code, name) {
     if (code.includes (`Helpers.toLongOrNull(${name})`)) return true;
+    // section 57: an operand of a native Math.min must print long
+    if (new RegExp (`Math\\.min\\((?:${name}, [^()]*|[^()]*, ${name})\\)`).test (code)) return true;
     const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
     let m;
     while ((m = re.exec (code)) !== null) {
@@ -13588,7 +13592,7 @@ function longLimitFeeds (code, name) {
 }
 
 export function nativeJavaLongLimitLocals (content) {
-    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(')) {
+    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(')) {
         return content;
     }
     const lines = content.split ('\n');
@@ -13600,6 +13604,11 @@ export function nativeJavaLongLimitLocals (content) {
     for (let s = 0; s < starts.length; s++) {
         const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         if (longLimitRetypeMember (lines, starts[s], to)) changed = true;
+        // section 57: a native Math.min result is a long for the retype and multiply passes
+        if (nativeJavaMathMinMember (lines, starts[s], to)) {
+            longLimitRetypeMember (lines, starts[s], to);
+            changed = true;
+        }
         if (nativeJavaLongMultiplyMember (lines, starts[s], to)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
@@ -13688,6 +13697,8 @@ function longMultiplyKind (ctx, text, nonNull) {
     }
     const x = longLimitType (ctx, e, new Set (), true);
     if (x === undefined || x.ternary !== undefined || x.atoms.length !== 0) return undefined;
+    // a native Math.min/max result is a primitive (its operands were proven when it was printed)
+    if (x.kind === 'long' && /^Math\.(?:min|max)\(/.test (e) && longLimitCallArgs (e, e.slice (0, 8)) !== undefined) return 'long';
     // a primitive expression over names: every boxed name in it must be non-null too
     const names = e.replace (/\(long\) /g, '').match (/(?<![\w$.])[A-Za-z_]\w*(?![\w(])/g) ?? [];
     if (!names.every ((n) => [ 'int', 'long' ].includes (ctx.declType (n)) || nonNull (n))) return undefined;
@@ -15700,4 +15711,302 @@ export function installJavaStringReturnSites (transpiler) {
         }
         return false;
     };
+}
+
+// ===== 57. Helpers.mathMin on non-null integral operands prints Math.min =====
+// The helper returns the smaller ORIGINAL box (null when either side is null). Over two non-null
+// Long/long operands Math.min is the same value and box; an int operand (literal / Integer local)
+// changes an Integer result to Long, so its consumer must be box-neutral (serialized put, section-32 use).
+function mathMinGuardConjuncts (cond) {
+    const s = longLimitStrip (cond);
+    const out = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < s.length; k++) {
+        if (s[k] === '(') depth++;
+        else if (s[k] === ')') depth--;
+        else if (depth === 0 && s.startsWith (' && ', k)) { out.push (s.slice (last, k)); last = k + 4; k += 3; }
+        else if (depth === 0 && s.startsWith (' || ', k)) return [];
+    }
+    out.push (s.slice (last));
+    return out.map ((c) => longLimitStrip (c));
+}
+
+// `name` is never written in the member and an enclosing `if (... !equals(name, null) ...)` block holds
+function mathMinBlockGuarded (lines, from, to, j, name) {
+    const write = new RegExp (`(?<![\\w$.])${name}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+    const decls = longLimitDeclarations (lines, from, to, name);
+    if (decls.length !== 1) return false;
+    const writes = [];
+    for (let k = from + 1; k < to; k++) {
+        if (k !== decls[0].index && write.test (longLimitCodeOnly (lines[k]))) writes.push (k);
+    }
+    // a write after the guard (or any loop that could repeat one) is unproven
+    if (writes.length > 0 && lines.slice (from + 1, to).some ((l) => /^\s*(?:for|while|do)\b/.test (l))) return false;
+    const want = `!java.util.Objects.equals(${name}, null)`;
+    let depth = 0;
+    for (let k = j - 1; k > decls[0].index; k--) {
+        const code = longLimitCodeOnly (lines[k]);
+        for (let c = code.length - 1; c >= 0; c--) {
+            if (code[c] === '}') depth++;
+            else if (code[c] === '{') depth--;
+        }
+        if (depth < 0) {
+            depth = 0;
+            if (code.trim () !== '{') return false;
+            const m = /^\s*(?:\} else )?if \((.*)\)\s*$/.exec (longLimitCodeOnly (lines[k - 1]));
+            if (m !== null && !/^\s*\}/.test (lines[k - 1]) && mathMinGuardConjuncts (m[1]).includes (want)) return writes.every ((w) => w < k - 1);
+        }
+    }
+    return false;
+}
+
+// 'long' | 'int' for a non-null integral operand, else undefined
+function mathMinOperandKind (lines, from, to, j, state, text, armGuard) {
+    const e = longLimitStrip (text);
+    if (/^-?\d+L$/.test (e)) return 'long';
+    if (LONG_LIMIT_INT.test (e)) return 'int';
+    if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    const orElse = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), -?\d+L\)$/.exec (e);
+    if (orElse !== null) return state.ctx.declType (orElse[1]) === 'Long' ? 'long' : undefined;
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        if (state.assumed.has (e)) return 'long';
+        const t = state.ctx.declType (e);
+        if (t === 'Integer' && mathMinLiteralLocal (lines, from, to, e)) {
+            state.literals.add (e);
+            return 'long';
+        }
+        // an int / Integer operand would change the result box: only Long names and literals
+        if (t === 'long') return 'long';
+        if (t !== 'Long') return undefined;
+        if (state.nonNull (e) || armGuard (e) || mathMinBlockGuarded (lines, from, to, j, e)) return 'long';
+        return undefined;
+    }
+    return longMultiplyKind (state.ctx, e, state.nonNull) === 'long' ? 'long' : undefined;
+}
+
+// every other mention of an Object/Long local reads it where an Integer and a Long box behave the same
+function mathMinTargetNeutral (lines, from, to, j, name) {
+    const decls = longLimitDeclarations (lines, from, to, name);
+    if (decls.length !== 1 || ![ 'Object', 'Long' ].includes (decls[0].type)) return false;
+    const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+    const write = new RegExp (`^\\s*(?:(?:final )?(?:Object|Long) )?${name} = (.*?);(\\s*//.*)?$`);
+    for (let k = from + 1; k < to; k++) {
+        if (k === j) continue;
+        const code = longLimitCodeOnly (lines[k]);
+        if (!mention.test (code)) continue;
+        const w = write.exec (lines[k]);
+        if (w !== null && !mention.test (longLimitCodeOnly (w[1]))) continue;
+        if (/->/.test (code) || !longLimitUseOk (lines[k], name, true)) return false;
+    }
+    return true;
+}
+
+function mathMinDebug (why, what, line) {
+    if (process.env.JAVA_MATHMIN_DEBUG) console.log (`mathMin reject ${why} ${what}: ${line.trim ()}`);
+}
+
+// targets whose other uses are not box-neutral convert only when section 32 then retypes each Long
+function nativeJavaMathMinMember (lines, from, to) {
+    const pending = new Set ();
+    let changed = nativeJavaMathMinPass (lines, from, to, new Set (), pending);
+    const set = new Set (pending);
+    for (let k = from + 1; k < to; k++) {
+        const code = longLimitCodeOnly (lines[k]);
+        for (const m of code.matchAll (/Helpers\.mathMin\(([A-Za-z_]\w*)(?=[,)])|Helpers\.mathMin\([^()]*, ([A-Za-z_]\w*)\)/g)) {
+            const n = m[1] ?? m[2];
+            const d = longLimitDeclarations (lines, from, to, n);
+            if (d.length === 1 && d[0].type === 'Object' && d[0].index !== from) set.add (n);
+        }
+    }
+    while (set.size > 0) {
+        const trial = lines.slice ();
+        nativeJavaMathMinPass (trial, from, to, set, new Set ());
+        for (const n of set) mathMinRetypeTarget (trial, from, to, n, set);
+        longLimitRetypeMember (trial, from, to);
+        const proof = longMultiplyMemberCtx (mathMinMaskLines (trial), from, to);
+        const bad = [ ...set ].filter ((n) => !longLimitIsLong (trial, from, to, n)
+            || trial.slice (from, to).some ((l) => /Helpers\.mathMin\(/.test (l) && new RegExp (`(?<![\\w$.])${n}\\b`).test (longLimitCodeOnly (l)))
+            || !mathMinOperandsNonNull (trial, from, to, n, proof));
+        if (bad.length === 0) {
+            for (let k = from; k < to; k++) lines[k] = trial[k];
+            changed = true;
+            break;
+        }
+        bad.forEach ((n) => set.delete (n));
+    }
+    return changed;
+}
+
+// `Object x` whose writes are int literals (printed NL), null, native Math.min, Long names or `set`
+// members, and whose other mentions ignore the box: retype Long
+function mathMinRetypeTarget (lines, from, to, name, set) {
+    const decls = longLimitDeclarations (lines, from, to, name);
+    if (decls.length !== 1 || decls[0].type !== 'Object' || decls[0].index === from) return;
+    const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+    const write = new RegExp (`^(\\s*)(Object )?${name} = (.*?);(\\s*//.*)?$`);
+    const value = (v) => {
+        const e = longLimitStrip (v);
+        if (LONG_LIMIT_INT.test (e)) return e + 'L';
+        if (e === 'null' || /^-?\d+L$/.test (e)) return e;
+        if (/^[A-Za-z_]\w*$/.test (e)) return (set.has (e) || longLimitIsLong (lines, from, to, e)) ? e : undefined;
+        if (/^Math\.min\(/.test (e) && longLimitCallArgs (e, 'Math.min') !== undefined) return e;
+        return undefined;
+    };
+    const plan = [];
+    for (let k = from + 1; k < to; k++) {
+        const code = longLimitCodeOnly (lines[k]);
+        if (!mention.test (code)) continue;
+        if (/->/.test (code)) return;
+        const w = write.exec (lines[k]);
+        if (w !== null && (w[2] !== undefined) === (k === decls[0].index)) {
+            const v = value (w[3]);
+            if (v === undefined) return;
+            plan.push ([ k, `${w[1]}${w[2] === undefined ? '' : 'Long '}${name} = ${v};${w[4] ?? ''}` ]);
+            continue;
+        }
+        if (new RegExp (`(?<![\\w$.])${name}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)`).test (code)) return;
+        if (!longLimitUseOk (lines[k], name, true)) return;
+    }
+    for (const [ k, text ] of plan) lines[k] = text;
+}
+
+// every native Math.min reading `name` sees a non-null value (all writes non-null, or a dominating guard)
+function mathMinOperandsNonNull (lines, from, to, name, proof) {
+    if (proof.nonNull (name)) return true;
+    const arg = new RegExp (`Math\\.min\\((?:${name}, [^()]*|[^()]*, ${name})\\)`);
+    for (let k = from + 1; k < to; k++) {
+        const code = longLimitCodeOnly (lines[k]);
+        if (!arg.test (code)) continue;
+        if (!mathMinBlockGuarded (lines, from, to, k, name)) return false;
+    }
+    return true;
+}
+
+// string literals blanked to an identifier so the ternary splitter reads the condition
+function mathMinMaskLines (lines) {
+    return lines.map ((l) => l.replace (/"(?:[^"\\]|\\.)*"/g, 'STR_'));
+}
+
+// `assumed` names are targets retyped Long afterwards (checked by the caller): allowed and read as long
+function nativeJavaMathMinPass (lines, from, to, assumed, pending) {
+    const snapshot = lines.slice (from, to);
+    let state;
+    let changed = false;
+    for (let j = from + 1; j < to; j++) {
+        if (!lines[j].includes ('Helpers.mathMin(')) continue;
+        if (state === undefined) {
+            state = longMultiplyMemberCtx (mathMinMaskLines (lines), from, to);
+            const nonNull = state.nonNull;
+            state = { ctx: state.ctx, nonNull, assumed, literals: new Set () };
+        }
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (let k = mask0.indexOf ('Helpers.mathMin('); k !== -1; k = mask0.indexOf ('Helpers.mathMin(', k + 1)) starts.push (k);
+        for (const start of starts.reverse ()) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + 'Helpers.mathMin'.length);
+            if (call === undefined || call.spans.length !== 2) continue;
+            // the value holding the call: a put value or the whole right side of a local write
+            let value;
+            let target;
+            const w = /^(\s*(?:(?:final )?(?:Object|Long) )?)([A-Za-z_]\w*) = /.exec (mask);
+            if (w !== null && /;\s*$/.test (mask)) {
+                value = [ w[0].length, mask.trimEnd ().length - 1 ];
+                target = w[2];
+            } else {
+                const p = /^(\s*[^;="]*\.put\(|\s*put\( )"_*", /.exec (mask);
+                const spans = p === null ? undefined : longMultiplyArgSpans (mask, p[1].length - 1);
+                if (spans === undefined || spans.spans.length !== 2 || !/^\s*;?\s*$/.test (mask.slice (spans.close + 1))) { mathMinDebug ('position', '', line); continue; }
+                value = spans.spans[1];
+            }
+            const callText = line.slice (start, call.close + 1);
+            const valueText = longLimitStrip (line.slice (value[0], value[1]));
+            let other;
+            let armGuard = () => false;
+            if (valueText !== callText) {
+                const t = longLimitSplitTernary (valueText);
+                if (t === undefined || /[?:]/.test (t.whenTrue + t.whenFalse)) continue;
+                const isTrue = longLimitStrip (t.whenTrue) === callText;
+                if (!isTrue && longLimitStrip (t.whenFalse) !== callText) continue;
+                other = longLimitStrip (isTrue ? t.whenFalse : t.whenTrue);
+                const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond).replace (/^!\((.*)\)$/, '!$1'));
+                armGuard = (n) => g !== null && g[2] === n && ((g[1] === '!') === isTrue);
+            }
+            const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
+            const kinds = args.map ((a) => mathMinOperandKind (lines, from, to, j, state, a, armGuard));
+            if (kinds.includes (undefined) || !kinds.includes ('long')) { mathMinDebug ('operands', kinds, line); continue; }
+            // the other ternary arm is unboxed by numeric promotion: it must be non-null
+            if (other !== undefined && other !== 'null' && mathMinOperandKind (lines, from, to, j, state, other, () => false) === undefined) { mathMinDebug ('arm', other, line); continue; }
+            const boxChanges = kinds.includes ('int') || other !== undefined;
+            if (boxChanges && target !== undefined && !mathMinTargetNeutral (lines, from, to, j, target) && !assumed.has (target)) {
+                pending.add (target);
+                mathMinDebug ('target', target, line);
+                continue;
+            }
+            const printed = args.map ((a) => (LONG_LIMIT_INT.test (longLimitStrip (a)) ? longLimitStrip (a) + 'L' : a));
+            line = line.slice (0, start) + `Math.min(${printed[0]}, ${printed[1]})` + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    if (state !== undefined && state.literals.size > 0 && !mathMinRetypeLiterals (lines, from, to, state.literals)) {
+        // an Integer literal local whose every mathMin did not convert stays Integer: undo this member
+        for (let k = from; k < to; k++) lines[k] = snapshot[k - from];
+        return false;
+    }
+    return changed;
+}
+
+// `Integer x = 1000;` / `c ? 500 : 1000`, only literal writes, every mention box-neutral or a mathMin operand
+function mathMinLiteralLocal (lines, from, to, name) {
+    const decls = longLimitDeclarations (lines, from, to, name);
+    if (decls.length !== 1 || decls[0].type !== 'Integer' || decls[0].index === from) return false;
+    const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+    const write = new RegExp (`^\\s*(?:Integer )?${name} = (.*?);(\\s*//.*)?$`);
+    const literal = (v) => {
+        if (LONG_LIMIT_INT.test (v)) return true;
+        const t = longLimitSplitTernary (v.replace (/"(?:[^"\\]|\\.)*"/g, 'STR_'));
+        return t !== undefined && !/[?:]/.test (t.cond) && LONG_LIMIT_INT.test (t.whenTrue) && LONG_LIMIT_INT.test (t.whenFalse);
+    };
+    for (let k = from + 1; k < to; k++) {
+        const code = longLimitCodeOnly (lines[k]);
+        if (!mention.test (code)) continue;
+        if (/->/.test (code)) return false;
+        const w = write.exec (lines[k]);
+        if (w !== null) {
+            if (!literal (longLimitStrip (w[1]))) return false;
+            continue;
+        }
+        if (new RegExp (`(?<![\\w$.])${name}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)`).test (code)) return false;
+        if (code.includes ('Helpers.mathMin(') || longLimitUseOk (lines[k], name, true)) continue;
+        return false;
+    }
+    return true;
+}
+
+// retype the literal locals Long; false when one still reaches a Helpers.mathMin
+function mathMinRetypeLiterals (lines, from, to, names) {
+    for (const name of names) {
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        if (lines.slice (from + 1, to).some ((l) => l.includes ('Helpers.mathMin(') && mention.test (longLimitCodeOnly (l)))) return false;
+    }
+    for (const name of names) {
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const write = new RegExp (`^\\s*(?:Integer )?${name} = `);
+        // lines holding a converted Math.min were proven by the operand / arm checks
+        if (lines.slice (from + 1, to).some ((l) => mention.test (longLimitCodeOnly (l)) && !write.test (l) && !l.includes ('Math.min(') && !longLimitUseOk (l, name, true))) return false;
+    }
+    for (const name of names) {
+        const write = new RegExp (`^(\\s*)(Integer )?${name} = (.*?);(\\s*//.*)?$`);
+        for (let k = from + 1; k < to; k++) {
+            const w = write.exec (lines[k]);
+            if (w === null) continue;
+            const v = longLimitStrip (w[3]);
+            // both ternary arms are int literals (mathMinLiteralLocal)
+            const text = LONG_LIMIT_INT.test (v) ? v + 'L' : v.replace (/\?\s*(-?\d+)\s*:\s*(-?\d+)$/, '? $1L : $2L');
+            lines[k] = `${w[1]}${w[2] === undefined ? '' : 'Long '}${name} = ${text};${w[4] ?? ''}`;
+        }
+    }
+    return true;
 }
