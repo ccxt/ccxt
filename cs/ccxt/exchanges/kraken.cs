@@ -663,7 +663,7 @@ public partial class kraken : Exchange
         });
     }
 
-    public override string? feeToPrecision(object symbol, object fee)
+    public override string? feeToPrecision(string? symbol, object fee)
     {
         return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.market(symbol), "precision"), "amount"), this.precisionMode);
     }
@@ -2048,7 +2048,7 @@ public partial class kraken : Exchange
         }
     }
 
-    public virtual object resolveMarketByAltnameOrId(object marketId, object market = null)
+    public virtual object resolveMarketByAltnameOrId(string? marketId, object market = null)
     {
         object foundMarket = this.findMarketByAltnameOrId(marketId);
         if ((foundMarket != null))

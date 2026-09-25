@@ -2177,7 +2177,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
      * @returns dictionary response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> setUserAbstraction(object abstraction, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> setUserAbstraction(string abstraction, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("setUserAbstraction", parameters);
@@ -2276,7 +2276,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params]
      * @returns dictionary response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> setAgentAbstraction(object abstraction, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> setAgentAbstraction(string abstraction, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? nonce = this.incrementingNonce();
@@ -3328,7 +3328,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async virtual Task<Dictionary<string, object>> CreateVault(object name, object description, object initialUsd, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateVault(string name, string description, object initialUsd, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -5483,7 +5483,7 @@ public partial class hyperliquid : Exchange
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(string name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? nonce = this.incrementingNonce();
@@ -5519,20 +5519,20 @@ public partial class hyperliquid : Exchange
         return records;
     }
 
-    public virtual string? formatVaultAddress(object address = null)
+    public virtual string? formatVaultAddress(string? address = null)
     {
         if ((address == null))
         {
             return null;
         }
-        if (((string)address).StartsWith("0x"))
+        if (address.StartsWith("0x"))
         {
-            return ((string)address).Replace("0x", (string)"");
+            return address.Replace("0x", (string)"");
         }
         return ((string?)((object)(address)));
     }
 
-    public virtual List<object> handlePublicAddress(object methodName, object parameters)
+    public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
         IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = (string)userAuxparamsUserVariable[0];
@@ -5548,10 +5548,10 @@ public partial class hyperliquid : Exchange
         {
             return new List<object>() {this.walletAddress, paramsAddress};
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a user parameter inside 'params' or the wallet address set")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
-    public virtual string? coinToMarketId(object coin)
+    public virtual string? coinToMarketId(string? coin)
     {
         // handle also hip3 tokens like flx:CRCL
         if ((coin == null))
@@ -5566,15 +5566,15 @@ public partial class hyperliquid : Exchange
             object code = this.safeString(hip3Dict, "code", coin);
             return ((string?)((object)(add(add(add(add(code, "/"), quote), ":"), quote))));
         }
-        if (((string)coin).IndexOf("/", StringComparison.Ordinal) > -1 || ((string)coin).IndexOf("@", StringComparison.Ordinal) > -1)
+        if (coin.IndexOf("/", StringComparison.Ordinal) > -1 || coin.IndexOf("@", StringComparison.Ordinal) > -1)
         {
             return ((string?)((object)(coin)));  // spot
         }
         // hip3
         object coinId = coin;
-        if (((string)coin).IndexOf(":", StringComparison.Ordinal) > -1)
+        if (coin.IndexOf(":", StringComparison.Ordinal) > -1)
         {
-            coinId = ((string)coin).Replace(":", (string)"-");
+            coinId = coin.Replace(":", (string)"-");
         }
         return (this.safeCurrencyCode(coinId) + "/USDC:USDC");
     }
@@ -5692,7 +5692,7 @@ public partial class hyperliquid : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public virtual List<object> parseCreateEditOrderArgs(object id, object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> parseCreateEditOrderArgs(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);

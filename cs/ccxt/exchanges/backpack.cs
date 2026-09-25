@@ -2746,7 +2746,7 @@ public partial class backpack : Exchange
         };
     }
 
-    public virtual string generateBatchPayload(object parameters, object ts, object recvWindow, object instruction)
+    public virtual string generateBatchPayload(object parameters, string? ts, string? recvWindow, string? instruction)
     {
         string payload = "";
         for (int i = 0; i < getArrayLength(parameters); i++)
@@ -2754,10 +2754,10 @@ public partial class backpack : Exchange
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
             string orderQuery = this.urlencode(sortedOrder);
-            payload = payload + (((("instruction=" + (instruction)) + "&") + orderQuery) + "&");
+            payload = payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&");
             if (isEqual(i, ((getArrayLength(parameters) - 1))))
             {
-                payload = payload + ((("timestamp=" + (ts)) + "&window=") + (recvWindow));
+                payload = payload + ((("timestamp=" + ts) + "&window=") + recvWindow);
             }
         }
         return payload;

@@ -192,7 +192,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} name websocket endpoint name
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> tradeRequest(object name, object parameters = null)
+    public async virtual Task<object> tradeRequest(string name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

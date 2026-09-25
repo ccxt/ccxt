@@ -455,7 +455,7 @@ public partial class bitrue : ccxt.bitrue
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual object findSwapMarketByWsBaseQuote(object wsBaseQuote)
+    public virtual object findSwapMarketByWsBaseQuote(string? wsBaseQuote)
     {
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         if ((markets == null))

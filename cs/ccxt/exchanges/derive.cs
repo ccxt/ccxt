@@ -1575,7 +1575,7 @@ public partial class derive : Exchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual string? parseUnits(object num, object dec = null)
+    public virtual string? parseUnits(string? num, string? dec = null)
     {
         dec ??= "1000000000000000000";
         return Precise.stringMul(num, dec);
@@ -3178,7 +3178,7 @@ public partial class derive : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual List<object> handleDeriveSubaccountId(object methodName, object parameters)
+    public virtual List<object> handleDeriveSubaccountId(string methodName, object parameters)
     {
         IList<object> derivesubAccountIdparamsSubaccountIdVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "subaccount_id");
         var derivesubAccountId = derivesubAccountIdparamsSubaccountIdVariable[0];
@@ -3193,10 +3193,10 @@ public partial class derive : Exchange
         {
             return new List<object>() {optionsWallet, paramsSubaccountId};
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
-    public virtual List<object> handleDeriveWalletAddress(object methodName, object parameters)
+    public virtual List<object> handleDeriveWalletAddress(string methodName, object parameters)
     {
         IList<object> deriveWalletAddressparamsDeriveWalletAddressVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
         string? deriveWalletAddress = (string)deriveWalletAddressparamsDeriveWalletAddressVariable[0];
@@ -3211,7 +3211,7 @@ public partial class derive : Exchange
         {
             return new List<object>() {optionsWallet, paramsDeriveWalletAddress};
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
     }
 
     public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

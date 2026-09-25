@@ -1364,7 +1364,7 @@ public partial class bitvavo : ccxt.bitvavo
         return parseInt((ts + randomPart));
     }
 
-    public async virtual Task<object> watchRequest(object action, object request)
+    public async virtual Task<object> watchRequest(string? action, object request)
     {
         object messageHash = this.requestId();
         string messageHashStr = messageHash.ToString();
@@ -1838,7 +1838,7 @@ public partial class bitvavo : ccxt.bitvavo
         client.resolve(markets, messageHash);
     }
 
-    public virtual object buildMessageHash(object action, object parameters = null)
+    public virtual object buildMessageHash(string? action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> methods = new Dictionary<string, object>() {

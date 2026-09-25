@@ -66,7 +66,7 @@ public partial class pacifica : ccxt.pacifica
         });
     }
 
-    public virtual void setupApiKeyHeaders(object key = null)
+    public virtual void setupApiKeyHeaders(string? key = null)
     {
         Dictionary<string, object> headers = new Dictionary<string, object>() {};
         if ((key != null))

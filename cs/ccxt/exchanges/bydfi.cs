@@ -1558,7 +1558,7 @@ public partial class bydfi : Exchange
         return this.extend(request, query);
     }
 
-    public virtual string? encodeWorkingType(object workingType)
+    public virtual string? encodeWorkingType(string? workingType)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "markPrice", "MARK_PRICE" },
@@ -1698,7 +1698,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
     }
 
-    public virtual Dictionary<string, object> createEditOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createEditOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");

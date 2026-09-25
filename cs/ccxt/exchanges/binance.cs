@@ -4254,14 +4254,14 @@ public partial class binance : Exchange
         }
     }
 
-    public virtual bool isLinear(object type, object subType = null)
+    public virtual bool isLinear(object type, string? subType = null)
     {
         if ((subType == null))
         {
             return (isEqual(type, "future")) || (isEqual(type, "swap"));
         } else
         {
-            return isEqual(subType, "linear");
+            return (subType == "linear");
         }
     }
 
@@ -4422,7 +4422,7 @@ public partial class binance : Exchange
         throw new BadSymbol ((string)((this.id + " does not have market symbol ") + (symbol))) ;
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
         if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
@@ -4456,7 +4456,7 @@ public partial class binance : Exchange
      * @param {int} [params.recvWindow] cannot be greater than 60000
      * @returns {object} the response from the exchange
      */
-    public virtual object mintTokenizedAsset(object underlyingAsset, object underlyingAssetAmount, IDictionary<string, object>? parameters = null)
+    public virtual object mintTokenizedAsset(string underlyingAsset, string underlyingAssetAmount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4487,7 +4487,7 @@ public partial class binance : Exchange
      * @param {int} [params.recvWindow] cannot be greater than 60000
      * @returns {object} the response from the exchange
      */
-    public virtual object redeemTokenizedAsset(object tokenizedAsset, object tokenizedAssetAmount, IDictionary<string, object>? parameters = null)
+    public virtual object redeemTokenizedAsset(string tokenizedAsset, string tokenizedAssetAmount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4517,7 +4517,7 @@ public partial class binance : Exchange
      * @param {int} [params.recvWindow] cannot be greater than 60000
      * @returns {object} the response from the exchange
      */
-    public virtual object tokenizedConvertStatus(object issuerRequestId, object convertType, IDictionary<string, object>? parameters = null)
+    public virtual object tokenizedConvertStatus(string issuerRequestId, string convertType, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -7557,7 +7557,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> editSpotOrderRequest(string? id, object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> editSpotOrderRequest(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -7617,10 +7617,10 @@ public partial class binance : Exchange
         {
             if ((initialUppercaseType != uppercaseType))
             {
-                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + (symbol)) + " ") + (type)) + " orders")) ;
+                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + (type)) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
+                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + symbol) + " market")) ;
             }
         }
         if ((clientOrderId == null))
@@ -7729,7 +7729,7 @@ public partial class binance : Exchange
         return this.extend(request, paramsOmitted);
     }
 
-    public virtual Dictionary<string, object> editContractOrderRequest(string? id, object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editContractOrderRequest(string? id, string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -8010,10 +8010,10 @@ public partial class binance : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseOrderTypeByMarket(string? type, object marketType)
+    public virtual string? parseOrderTypeByMarket(string? type, string? marketType)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {};
-        if (((marketType != null)) && isEqual(marketType, "spot"))
+        if (((marketType != null)) && (marketType == "spot"))
         {
             types = new Dictionary<string, object>() {
                 { "limit_maker", "limit" },
@@ -15516,7 +15516,7 @@ public partial class binance : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
-    public virtual string? getNetworkCodeByNetworkUrl(object currencyCode, object depositUrl = null)
+    public virtual string? getNetworkCodeByNetworkUrl(string? currencyCode, string? depositUrl = null)
     {
         // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
         if ((depositUrl == null))
@@ -15524,7 +15524,7 @@ public partial class binance : Exchange
             return null;
         }
         string? networkCode = null;
-        Dictionary<string, object> currency = this.currency(((string)currencyCode));
+        Dictionary<string, object> currency = this.currency(currencyCode);
         IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         List<object> networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; i < networkCodes.Count; i++)
@@ -15534,7 +15534,7 @@ public partial class binance : Exchange
             string? siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             string? baseDomain = this.getBaseDomainFromUrl(siteUrl);
-            if ((siteUrl != null) && (baseDomain != null) && ((string)depositUrl).StartsWith(baseDomain))
+            if ((siteUrl != null) && (baseDomain != null) && depositUrl.StartsWith(baseDomain))
             {
                 networkCode = currentNetworkCode;
             }
@@ -15542,13 +15542,13 @@ public partial class binance : Exchange
         return networkCode;
     }
 
-    public virtual string? getBaseDomainFromUrl(object url)
+    public virtual string? getBaseDomainFromUrl(string? url)
     {
         if ((url == null))
         {
             return null;
         }
-        List<object> urlParts = ((string)url).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        List<object> urlParts = url.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? scheme = this.safeString(urlParts, 0);
         if ((scheme == null))
         {
@@ -15763,7 +15763,7 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual object getExceptionsByUrl(object url, object exactOrBroad)
+    public virtual object getExceptionsByUrl(string? url, string exactOrBroad)
     {
         if ((url == null))
         {
@@ -15771,19 +15771,19 @@ public partial class binance : Exchange
         }
         string? marketType = null;
         string? hostname = ((this.hostname != null)) ? this.hostname : "binance.com";
-        if (((string)url).StartsWith((("https://api." + hostname) + "/")) || ((string)url).StartsWith("https://demo-api") || ((string)url).StartsWith("https://testnet.binance.vision"))
+        if (url.StartsWith((("https://api." + hostname) + "/")) || url.StartsWith("https://demo-api") || url.StartsWith("https://testnet.binance.vision"))
         {
             marketType = "spot";
-        } else if (((string)url).StartsWith((("https://dapi." + hostname) + "/")) || ((string)url).StartsWith("https://demo-dapi") || ((string)url).StartsWith("https://testnet.binancefuture.com/dapi"))
+        } else if (url.StartsWith((("https://dapi." + hostname) + "/")) || url.StartsWith("https://demo-dapi") || url.StartsWith("https://testnet.binancefuture.com/dapi"))
         {
             marketType = "inverse";
-        } else if (((string)url).StartsWith((("https://fapi." + hostname) + "/")) || ((string)url).StartsWith("https://demo-fapi") || ((string)url).StartsWith("https://testnet.binancefuture.com/fapi"))
+        } else if (url.StartsWith((("https://fapi." + hostname) + "/")) || url.StartsWith("https://demo-fapi") || url.StartsWith("https://testnet.binancefuture.com/fapi"))
         {
             marketType = "linear";
-        } else if (((string)url).StartsWith((("https://eapi." + hostname) + "/")))
+        } else if (url.StartsWith((("https://eapi." + hostname) + "/")))
         {
             marketType = "option";
-        } else if (((string)url).StartsWith((("https://papi." + hostname) + "/")))
+        } else if (url.StartsWith((("https://papi." + hostname) + "/")))
         {
             marketType = "portfolioMargin";
         }

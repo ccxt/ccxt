@@ -62,13 +62,13 @@ public partial class lbank : ccxt.lbank
         return newValue;
     }
 
-    public virtual void checkContractMarket(IDictionary<string, object> market, object methodName)
+    public virtual void checkContractMarket(IDictionary<string, object> market, string methodName)
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
         if (((market != null)) && (isEqual((market != null && market.ContainsKey("contract") ? market["contract"] : null), true)))
         {
-            throw new NotSupported ((((((this.id + " ") + (methodName)) + "() does not support ") + ((market != null && market.ContainsKey("type") ? market["type"] : null))) + " markets yet")) ;
+            throw new NotSupported ((((((this.id + " ") + methodName) + "() does not support ") + ((market != null && market.ContainsKey("type") ? market["type"] : null))) + " markets yet")) ;
         }
     }
 

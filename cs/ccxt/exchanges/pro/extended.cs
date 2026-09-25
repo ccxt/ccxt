@@ -940,7 +940,7 @@ public partial class extended : ccxt.extended
         client.resolve(stored, messageHash);
     }
 
-    public virtual object findSubscription(WebSocketClient client, object name)
+    public virtual object findSubscription(WebSocketClient client, string name)
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -948,7 +948,7 @@ public partial class extended : ccxt.extended
             string? key = ((string)keys[i]);
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, key);
             string? subscriptionName = this.safeString(subscription, "name");
-            if (isEqual(subscriptionName, name))
+            if ((subscriptionName == name))
             {
                 return subscription;
             }

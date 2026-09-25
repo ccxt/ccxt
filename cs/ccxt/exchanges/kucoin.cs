@@ -3145,7 +3145,7 @@ public partial class kucoin : Exchange
         return result;
     }
 
-    public virtual bool isFuturesMethod(object methodName, IDictionary<string, object> parameters)
+    public virtual bool isFuturesMethod(string methodName, IDictionary<string, object> parameters)
     {
         //
         // Helper
@@ -5168,7 +5168,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> createUtaOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createUtaOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -6913,7 +6913,7 @@ public partial class kucoin : Exchange
      * @param {object} [params.marginMode] 'cross' or 'isolated'
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchSpotOrder(string? id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchSpotOrder(string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7023,7 +7023,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchContractOrder(string? id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchContractOrder(string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7107,7 +7107,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchUtaOrder(string? id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchUtaOrder(string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -9982,9 +9982,9 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public virtual bool isHfOrMining(object fromId, object toId)
+    public virtual bool isHfOrMining(string? fromId, string? toId)
     {
-        return (isEqual(fromId, "trade_hf") || isEqual(toId, "trade_hf") || isEqual(fromId, "pool") || isEqual(toId, "pool"));
+        return ((fromId == "trade_hf") || (toId == "trade_hf") || (fromId == "pool") || (toId == "pool"));
     }
 
     public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
@@ -10151,7 +10151,7 @@ public partial class kucoin : Exchange
         return this.safeString(types, type, type);
     }
 
-    public virtual string? parseLedgerDirection(object direction)
+    public virtual string? parseLedgerDirection(string? direction)
     {
         Dictionary<string, object> directions = new Dictionary<string, object>() {
             { "in", "in" },
@@ -11369,7 +11369,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> setContractLeverage(object leverage, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> setContractLeverage(object leverage, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -11614,7 +11614,7 @@ public partial class kucoin : Exchange
         };
     }
 
-    public virtual string? parseFundingInterval(object interval)
+    public virtual string? parseFundingInterval(string? interval)
     {
         Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },

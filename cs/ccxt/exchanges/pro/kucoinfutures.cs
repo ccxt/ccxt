@@ -96,7 +96,7 @@ public partial class kucoinfutures : kucoin
         return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
-    public virtual string? parseTransferType(object transferType)
+    public virtual string? parseTransferType(string? transferType)
     {
         Dictionary<string, object> transferTypes = new Dictionary<string, object>() {
             { "spot", "TRADE" },

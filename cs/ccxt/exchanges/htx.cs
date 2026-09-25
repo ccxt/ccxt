@@ -2475,24 +2475,24 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsByTypeAndSubType(string? type, string? subType, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if (!isSpot)
         {
-            if (isEqual(subType, "linear"))
+            if ((subType == "linear"))
             {
                 request["business_type"] = "all"; // override default to fetch all linear markets
                 response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo(this.extend(request, parameters));
-            } else if (isEqual(subType, "inverse"))
+            } else if ((subType == "inverse"))
             {
-                if (isEqual(type, "future"))
+                if ((type == "future"))
                 {
                     response = await this.contractPublicGetApiV1ContractContractInfo(this.extend(request, parameters));
-                } else if (isEqual(type, "swap"))
+                } else if ((type == "swap"))
                 {
                     response = await this.contractPublicGetSwapApiV1SwapContractInfo(this.extend(request, parameters));
                 }
@@ -4178,7 +4178,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async virtual Task<string> FetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
+    public async virtual Task<string> FetchAccountIdByType(object type, string? marginMode = null, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
@@ -4190,10 +4190,10 @@ public partial class htx : Exchange
         object accountType = type;
         if (isEqual(type, "spot"))
         {
-            if (isEqual(marginMode, "cross"))
+            if ((marginMode == "cross"))
             {
                 accountType = "super-margin";
-            } else if (isEqual(marginMode, "isolated"))
+            } else if ((marginMode == "isolated"))
             {
                 accountType = "margin";
             }
@@ -4954,7 +4954,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual object parseMarginBalanceHelper(object balance, object code, IDictionary<string, object> result)
+    public virtual object parseMarginBalanceHelper(object balance, string? code, IDictionary<string, object> result)
     {
         object account = null;
         if (inOp(result, code))
@@ -8689,7 +8689,7 @@ public partial class htx : Exchange
         };
     }
 
-    public virtual string? parseFundingInterval(object interval)
+    public virtual string? parseFundingInterval(string? interval)
     {
         Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },

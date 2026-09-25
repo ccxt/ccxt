@@ -1797,7 +1797,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
-    public virtual object handlePaginationParams(object method, Int64? since = null, object parameters = null)
+    public virtual object handlePaginationParams(string method, Int64? since = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 ninetyDays = ((((90L * 24L) * 60) * 60) * 1000);
@@ -1805,7 +1805,7 @@ public partial class bullish : Exchange
         Int64 allowedSince = (now - ninetyDays);
         if (((since != null)) && (isLessThan(since, allowedSince)))
         {
-            throw new BadRequest ((((this.id + " ") + (method)) + "() only allows fetching entries up to 90 days in the past")) ;
+            throw new BadRequest ((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
         }
         object paramsOmitted = this.omit(parameters, "paginate");
         Dictionary<string, object> paramsExtended = this.extend(paramsOmitted, new Dictionary<string, object>() {

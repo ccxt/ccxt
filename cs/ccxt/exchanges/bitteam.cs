@@ -1501,7 +1501,7 @@ public partial class bitteam : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseValueToPricision(object valueObject, object valueKey, object preciseObject, object precisionKey)
+    public virtual string? parseValueToPricision(object valueObject, string valueKey, object preciseObject, string precisionKey)
     {
         string? valueRawString = this.safeString(valueObject, valueKey);
         string? precisionRawString = this.safeString(preciseObject, precisionKey);

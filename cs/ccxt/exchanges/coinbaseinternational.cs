@@ -446,7 +446,7 @@ public partial class coinbaseinternational : Exchange
         });
     }
 
-    public async virtual Task<object> handlePortfolioAndParams(object methodName, object parameters = null)
+    public async virtual Task<object> handlePortfolioAndParams(string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> portfolioparamsPortfolioVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "portfolio");
@@ -473,10 +473,10 @@ public partial class coinbaseinternational : Exchange
                 return new List<object>() {portfolioId, paramsPortfolio};
             }
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
     }
 
-    public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters = null)
+    public async virtual Task<object> handleNetworkIdAndParams(string? currencyCode, string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> networkIdOptionparamsNetworkArnIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "network_arn_id");
@@ -493,7 +493,7 @@ public partial class coinbaseinternational : Exchange
                 // find default network
                 if (this.isEmpty(networks))
                 {
-                    throw new BadRequest ((((this.id + " createDepositAddress network not found for currency ") + (currencyCode)) + " please specify networkId in params")) ;
+                    throw new BadRequest ((((this.id + " createDepositAddress network not found for currency ") + currencyCode) + " please specify networkId in params")) ;
                 }
                 object defaultNetwork = this.findDefaultNetwork(networks);
                 networkId = getValue(defaultNetwork, "id");
@@ -1031,10 +1031,10 @@ public partial class coinbaseinternational : Exchange
         return (networksArray != null && 0 < networksArray.Count ? networksArray[0] : null);
     }
 
-    public async virtual Task<bool> loadCurrencyNetworks(object code, IDictionary<string, object>? parameters = null)
+    public async virtual Task<bool> loadCurrencyNetworks(string? code, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         IDictionary<string, object> networks = this.safeDict(currency, "networks");
         if ((networks != null))
         {

@@ -190,7 +190,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
     }
 
-    public async virtual Task<object> subscribePublicUta(object messageHash, object channel, object symbol, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublicUta(string? messageHash, string? channel, string? symbol, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -217,7 +217,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> message = this.extend(request, parameters);
         string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), urlType);
         var client = this.client(url);
-        if (!(inOp(client.subscriptions, messageHash)))
+        if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
         {
             ((IDictionary<string,object>)client.subscriptions)[requestId] = messageHash;
         }
@@ -418,7 +418,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -861,7 +861,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiHelper(object methodName, object channelName, object isFuturesChannel, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string methodName, object channelName, object isFuturesChannel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -872,7 +872,7 @@ public partial class kucoin : ccxt.kucoin
         int length = symbolsNormalized?.Count ?? 0;
         if (length > 100)
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() accepts a maximum of 100 symbols")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() accepts a maximum of 100 symbols")) ;
         }
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -2254,16 +2254,16 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual string getOrdersMessageHashSuffix(object topic)
+    public virtual string getOrdersMessageHashSuffix(string? topic)
     {
         string suffix = "-spot";
-        if (isEqual(topic, "/spotMarket/advancedOrders"))
+        if ((topic == "/spotMarket/advancedOrders"))
         {
             suffix = suffix + "-trigger";
-        } else if (isEqual(topic, "/contractMarket/tradeOrders"))
+        } else if ((topic == "/contractMarket/tradeOrders"))
         {
             suffix = "-contract";
-        } else if (isEqual(topic, "/contractMarket/advancedOrders"))
+        } else if ((topic == "/contractMarket/advancedOrders"))
         {
             suffix = "-contract-trigger";
         }
@@ -3281,7 +3281,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual object getCurrentPosition(object symbol)
+    public virtual object getCurrentPosition(string? symbol)
     {
         if ((this.positions == null))
         {
@@ -3337,12 +3337,12 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void setPositionCache(WebSocketClient client, object symbol)
+    public virtual void setPositionCache(WebSocketClient client, string? symbol)
     {
         bool fetchPositionSnapshot = ((bool)this.handleOption("watchPosition", "fetchPositionSnapshot", false));
         if ((fetchPositionSnapshot == true))
         {
-            string messageHash = ("fetchPositionSnapshot:" + (symbol));
+            string messageHash = ("fetchPositionSnapshot:" + symbol);
             if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);

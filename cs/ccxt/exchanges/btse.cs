@@ -2588,7 +2588,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual string? encodeTriggerPriceType(object priceType)
+    public virtual string? encodeTriggerPriceType(string? priceType)
     {
         Dictionary<string, object> priceTypes = new Dictionary<string, object>() {
             { "last", "LAST_PRICE" },
@@ -4268,9 +4268,9 @@ public partial class btse : Exchange
         return this.safeString((market != null && market.ContainsKey("info") ? market["info"] : null), "tradeCurrency", (market != null && market.ContainsKey("id") ? market["id"] : null));
     }
 
-    public virtual string cleanPath(object path)
+    public virtual string cleanPath(string? path)
     {
-        string result = ((string)path).Replace("spot", (string)"");
+        string result = path.Replace("spot", (string)"");
         result = result.Replace("futures", (string)"");
         result = result.Replace("otc", (string)"");
         return result;

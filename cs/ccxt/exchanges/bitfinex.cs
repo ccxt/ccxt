@@ -1963,7 +1963,7 @@ public partial class bitfinex : Exchange
         return this.safeString(statuses, state, status);
     }
 
-    public virtual object parseOrderFlags(object flags)
+    public virtual object parseOrderFlags(string? flags)
     {
         // flags can be added to each other...
         Dictionary<string, object> flagValues = new Dictionary<string, object>() {

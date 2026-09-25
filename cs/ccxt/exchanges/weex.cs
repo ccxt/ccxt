@@ -2847,7 +2847,7 @@ public partial class weex : Exchange
         return this.extend(request, paramsOmitted);
     }
 
-    public virtual string? encodeTriggerPriceType(object triggerPriceType)
+    public virtual string? encodeTriggerPriceType(string? triggerPriceType)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "mark", "MARK_PRICE" },
@@ -3753,7 +3753,7 @@ public partial class weex : Exchange
         return this.safeString(types, type, type);
     }
 
-    public virtual void handleOrderOrPositionError(object errorCode, object errorMessage, object order)
+    public virtual void handleOrderOrPositionError(string? errorCode, string? errorMessage, object order)
     {
         object errorCodeValue = ((errorCode == null)) ? "" : errorCode;
         object errorMessageValue = ((errorMessage == null)) ? "" : errorMessage;
@@ -4606,7 +4606,7 @@ public partial class weex : Exchange
         };
     }
 
-    public virtual string? parseMarginType(object marginType)
+    public virtual string? parseMarginType(string? marginType)
     {
         Dictionary<string, object> marginTypes = new Dictionary<string, object>() {
             { "CROSSED", "cross" },
@@ -4976,20 +4976,20 @@ public partial class weex : Exchange
      * @param {string} [marketId] a market id from an exchange response
      * @returns {string} the live market id
      */
-    public virtual string? fromSandboxMarketId(object marketId)
+    public virtual string? fromSandboxMarketId(string? marketId)
     {
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (((sandboxMode != true)) || ((marketId == null)))
         {
             return ((string?)((object)(marketId)));
         }
-        if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
+        if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey(marketId))))
         {
             return ((string?)((object)(marketId)));  // a live market id, not a demo one
         }
-        if (((string)marketId).EndsWith("SUSDT"))
+        if (marketId.EndsWith("SUSDT"))
         {
-            int baseLength = (((string)marketId).Length - 5);
+            int baseLength = (marketId.Length - 5);
             return (slice(marketId, 0, baseLength) + "USDT");
         }
         return ((string?)((object)(marketId)));

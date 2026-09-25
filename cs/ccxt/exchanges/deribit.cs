@@ -878,7 +878,7 @@ public partial class deribit : Exchange
         });
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).EndsWith("-C")) || (((string)marketId).EndsWith("-P")));
         if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
@@ -987,7 +987,7 @@ public partial class deribit : Exchange
         });
     }
 
-    public virtual string? codeFromOptions(object methodName, object parameters = null)
+    public virtual string? codeFromOptions(string? methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? defaultCode = this.safeString(this.options, "code", "BTC");

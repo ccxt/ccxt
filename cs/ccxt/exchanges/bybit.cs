@@ -2499,7 +2499,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
         if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
@@ -2555,7 +2555,7 @@ public partial class bybit : Exchange
         return price;
     }
 
-    public virtual string? getCost(object symbol, object cost)
+    public virtual string? getCost(string? symbol, object cost)
     {
         Dictionary<string, object> market = this.market(symbol);
         bool emptyPrecisionPrice = (isEqual(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), null));
@@ -6467,7 +6467,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOrderClassic(string? id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOrderClassic(string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -10453,7 +10453,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public async virtual Task<object> getLeverageTiersPaginated(object symbol = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> getLeverageTiersPaginated(string? symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

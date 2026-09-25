@@ -50,7 +50,7 @@ public partial class hashkey : ccxt.hashkey
         });
     }
 
-    public async virtual Task<object> wathPublic(IDictionary<string, object> market, object topic, object messageHash, object parameters = null)
+    public async virtual Task<object> wathPublic(IDictionary<string, object> market, string? topic, string? messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {

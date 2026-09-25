@@ -538,7 +538,7 @@ public partial class lighter : Exchange
         }
     }
 
-    public virtual object getLighterPrivateKey(object strAccountIndex, object strApiKeyIndex)
+    public virtual object getLighterPrivateKey(string? strAccountIndex, string? strApiKeyIndex)
     {
         if (!(this.options.ContainsKey("auths")))
         {
@@ -591,7 +591,7 @@ public partial class lighter : Exchange
         return ((signer != null));
     }
 
-    public virtual List<object> handleApiKeyIndex(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
+    public virtual List<object> handleApiKeyIndex(object parameters, string? methodName1, string optionName1, string optionName2, object defaultValue = null)
     {
         IList<object> apiKeyIndexOptionparamsApiKeyIndexVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
         var apiKeyIndexOption = apiKeyIndexOptionparamsApiKeyIndexVariable[0];
@@ -606,7 +606,7 @@ public partial class lighter : Exchange
         return new List<object> {this.parseToInt(apiKeyIndex), paramsApiKeyIndex};
     }
 
-    public async virtual Task<object> handleAccountIndex(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
+    public async virtual Task<object> handleAccountIndex(object parameters, string? methodName1, string optionName1, string optionName2, object defaultValue = null)
     {
         IList<object> accountIndexOptionparamsAccountIndexVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
         var accountIndexOption = accountIndexOptionparamsAccountIndexVariable[0];
@@ -625,7 +625,7 @@ public partial class lighter : Exchange
             }
             if ((walletAddress == null) || walletAddress == "")
             {
-                throw new ArgumentsRequired ((string)(((((((this.id + " ") + (methodName1)) + "() requires an ") + (optionName1)) + "/") + (optionName2)) + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
+                throw new ArgumentsRequired ((string)(((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + "/") + optionName2) + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
             }
             Dictionary<string, object> res = await this.publicGetAccountsByL1Address(new Dictionary<string, object>() {
                 { "l1_address", walletAddress },
@@ -659,7 +659,7 @@ public partial class lighter : Exchange
                 IDictionary<string, object> account = this.safeDict(subAccounts, 0);
                 if ((account == null))
                 {
-                    throw new ArgumentsRequired ((string)(((((((this.id + " ") + (methodName1)) + "() requires an ") + (optionName1)) + " or ") + (optionName2)) + " parameter")) ;
+                    throw new ArgumentsRequired ((string)(((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + " or ") + optionName2) + " parameter")) ;
                 }
                 accountIndex = GetValue(account, "index");
                 this.options["accountIndex"] = accountIndex;
@@ -668,7 +668,7 @@ public partial class lighter : Exchange
         return new List<object> {this.parseToInt(accountIndex), paramsAccountIndex};
     }
 
-    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(string name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> apiKeyIndexparamsApiKeyIndexVariable = (IList<object>)this.handleApiKeyIndex(parameters, "createSubAccount", "apiKeyIndex", "api_key_index");
@@ -1120,7 +1120,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "nonce"));
     }
 
-    public async virtual Task<object> signAndCreateOrder(object method, string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<object> signAndCreateOrder(string method, string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3522,7 +3522,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, string? marginMode, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, string? marginMode, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3566,7 +3566,7 @@ public partial class lighter : Exchange
         return ((Dictionary<string, object>)((object)(await this.publicPostSendTx(request))));
     }
 
-    public async virtual Task<object> signAndCancelOrder(object method, string? id, object symbol = null, object parameters = null)
+    public async virtual Task<object> signAndCancelOrder(string method, string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3575,7 +3575,7 @@ public partial class lighter : Exchange
         }
         if ((symbol == null))
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (method)) + " requires a symbol argument")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + method) + " requires a symbol argument")) ;
         }
         IList<object> apiKeyIndexparamsApiKeyIndexVariable = (IList<object>)this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
         Int64? apiKeyIndex = (Int64?)apiKeyIndexparamsApiKeyIndexVariable[0];
@@ -3604,7 +3604,7 @@ public partial class lighter : Exchange
             signRaw["order_index"] = this.parseToInt(id);
         } else
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (method)) + " requires order id or client order id")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + method) + " requires order id or client order id")) ;
         }
         var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, paramsOmitted));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
@@ -3638,7 +3638,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public async virtual Task<object> signAndCancelAllOrders(object method, string? symbol = null, object parameters = null)
+    public async virtual Task<object> signAndCancelAllOrders(string method, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -2603,7 +2603,7 @@ public partial class grvt : Exchange
         return ((Int64?)((object)(parseInt(x))));
     }
 
-    public virtual Dictionary<string, object> eipMessageForOrder(IDictionary<string, object> order, object structureType)
+    public virtual Dictionary<string, object> eipMessageForOrder(IDictionary<string, object> order, string? structureType)
     {
         string priceMultiplier = "1000000000";
         List<object> orderLegs = this.safeList(order, "legs", new List<object>() {});
@@ -2654,7 +2654,7 @@ public partial class grvt : Exchange
             { "nonce", getValue((order != null && order.ContainsKey("signature") ? order["signature"] : null), "nonce") },
             { "expiration", getValue((order != null && order.ContainsKey("signature") ? order["signature"] : null), "expiration") },
         };
-        if (isEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && (this.safeBool(this.options, "builderFee", true) == true))
+        if ((structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") && (this.safeBool(this.options, "builderFee", true) == true))
         {
             returnValue["builder"] = (order != null && order.ContainsKey("builder") ? order["builder"] : null);
             returnValue["builderFee"] = this.parseToInt(multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), parseFloat((order != null && order.ContainsKey("builder_fee") ? order["builder_fee"] : null)))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
@@ -3664,10 +3664,10 @@ public partial class grvt : Exchange
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public virtual Dictionary<string, object> createSignedRequest(IDictionary<string, object> request, object structureType, object currencyObj = null, object signerAddress = null)
+    public virtual Dictionary<string, object> createSignedRequest(IDictionary<string, object> request, string? structureType, object currencyObj = null, string? signerAddress = null)
     {
         Dictionary<string, object> messageData = null;
-        if (isEqual(structureType, "EIP712_TRANSFER_TYPE"))
+        if ((structureType == "EIP712_TRANSFER_TYPE"))
         {
             Int64? amountMultiplier = this.convertToBigIntCustom("1000000");
             object amountInt = multiply((request != null && request.ContainsKey("num_tokens") ? request["num_tokens"] : null), amountMultiplier);
@@ -3685,7 +3685,7 @@ public partial class grvt : Exchange
                 { "nonce", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "nonce") },
                 { "expiration", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "expiration") },
             };
-        } else if (isEqual(structureType, "EIP712_WITHDRAWAL_TYPE"))
+        } else if ((structureType == "EIP712_WITHDRAWAL_TYPE"))
         {
             Int64? amountMultiplier = this.convertToBigIntCustom("1000000");
             if ((currencyObj == null))
@@ -3700,10 +3700,10 @@ public partial class grvt : Exchange
                 { "nonce", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "nonce") },
                 { "expiration", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "expiration") },
             };
-        } else if (isEqual(structureType, "EIP712_ORDER_TYPE") || isEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE"))
+        } else if ((structureType == "EIP712_ORDER_TYPE") || (structureType == "EIP712_ORDER_WITH_BUILDER_TYPE"))
         {
             messageData = this.eipMessageForOrder(request, structureType);
-        } else if (isEqual(structureType, "EIP712_BUILDER_APPROVAL_TYPE"))
+        } else if ((structureType == "EIP712_BUILDER_APPROVAL_TYPE"))
         {
             Int64? amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
             messageData = new Dictionary<string, object>() {
@@ -3714,7 +3714,7 @@ public partial class grvt : Exchange
                 { "nonce", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "nonce") },
                 { "expiration", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "expiration") },
             };
-        } else if (isEqual(structureType, "EIP712_WALLETLOGIN_TYPE"))
+        } else if ((structureType == "EIP712_WALLETLOGIN_TYPE"))
         {
             messageData = new Dictionary<string, object>() {
                 { "signer", (request != null && request.ContainsKey("address") ? request["address"] : null) },
@@ -3763,7 +3763,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual List<object> handleUntilOptionString(object key, IDictionary<string, object> request, object parameters = null, object multiplier = null)
+    public virtual List<object> handleUntilOptionString(string key, IDictionary<string, object> request, object parameters = null, object multiplier = null)
     {
         parameters ??= new Dictionary<string, object>();
         multiplier ??= 1;

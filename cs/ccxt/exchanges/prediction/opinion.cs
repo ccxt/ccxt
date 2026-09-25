@@ -297,7 +297,7 @@ public partial class opinion : PredictionExchange
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual object parseOpinionMarket(object raw, object eventSlug = null)
+    public virtual object parseOpinionMarket(object raw, string? eventSlug = null)
     {
         // {
         //     "chainId": "56",
@@ -327,7 +327,7 @@ public partial class opinion : PredictionExchange
         string? marketId = this.safeString(raw, "marketId");
         string? slug = this.safeString(raw, "slug");
         object effectiveEventSlug = eventSlug;
-        if (((eventSlug != null)) && ((slug != null)) && ((slug.IndexOf(((string)eventSlug), StringComparison.Ordinal) == 0)))
+        if (((eventSlug != null)) && ((slug != null)) && ((slug.IndexOf(eventSlug, StringComparison.Ordinal) == 0)))
         {
             effectiveEventSlug = null;
         }
@@ -998,13 +998,13 @@ public partial class opinion : PredictionExchange
      * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field
      * @returns {object} the matching quote-token entry
      */
-    public async virtual Task<IDictionary<string, object>> loadQuoteToken(object quoteTokenAddress)
+    public async virtual Task<IDictionary<string, object>> loadQuoteToken(string? quoteTokenAddress)
     {
         if ((quoteTokenAddress == null))
         {
             throw new ArgumentsRequired ((this.id + " loadQuoteToken() requires a quoteTokenAddress")) ;
         }
-        string cacheKey = ((string)quoteTokenAddress).ToLower();
+        string cacheKey = quoteTokenAddress.ToLower();
         IDictionary<string, object> cached = this.safeDict(this.options, "quoteTokens", new Dictionary<string, object>() {});
         IDictionary<string, object> existing = this.safeDict(cached, cacheKey);
         if ((existing != null))
@@ -1029,7 +1029,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> quoteToken = this.safeDict(quoteTokens, cacheKey);
         if ((quoteToken == null))
         {
-            throw new ExchangeError ((string)((this.id + " loadQuoteToken() could not find quote token ") + (quoteTokenAddress))) ;
+            throw new ExchangeError (((this.id + " loadQuoteToken() could not find quote token ") + quoteTokenAddress)) ;
         }
         return quoteToken;
     }
@@ -1056,7 +1056,7 @@ public partial class opinion : PredictionExchange
         return ((string?)((object)(multiSignAddress)));
     }
 
-    public virtual string signOpinionOrder(IDictionary<string, object> order, object exchangeAddress)
+    public virtual string signOpinionOrder(IDictionary<string, object> order, string? exchangeAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "OPINION CTF Exchange" },
@@ -1767,7 +1767,7 @@ public partial class opinion : PredictionExchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual string signApiKeyAuth(object walletAddress, object action, object timestamp)
+    public virtual string signApiKeyAuth(object walletAddress, string? action, string? timestamp)
     {
         // EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
         Dictionary<string, object> domain = new Dictionary<string, object>() {
@@ -1943,11 +1943,11 @@ public partial class opinion : PredictionExchange
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public async virtual Task<object> subscribeOpinionChannel(object messageHash, object channel, object marketId)
+    public async virtual Task<object> subscribeOpinionChannel(string? messageHash, string channel, object marketId)
     {
         await this.loadApiKey();
         string? url = this.opinionWsUrl();
-        object subscriptionKey = add(add(channel, ":"), this.numberToString(marketId));
+        string subscriptionKey = ((channel + ":") + this.numberToString(marketId));
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "action", "SUBSCRIBE" },
             { "channel", channel },
@@ -2057,13 +2057,13 @@ public partial class opinion : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public async virtual Task seedOrderBook(object outcome, object sym, Int64? limit = null)
+    public async virtual Task seedOrderBook(string? outcome, string? sym, Int64? limit = null)
     {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
-        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));
+        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome,ccxt.BaseExchange.ToInt64Arg(limit)));
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
-        ((IDictionary<string,object>)this.orderbooks)[(string)((string)sym)] = orderbook;
+        ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)

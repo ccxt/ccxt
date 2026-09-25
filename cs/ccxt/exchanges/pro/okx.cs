@@ -530,7 +530,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -3008,53 +3008,53 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnSubscriptionTrades(WebSocketClient client, object symbol, object channel)
+    public virtual void handleUnSubscriptionTrades(WebSocketClient client, string? symbol, object channel)
     {
         object subMessageHash = add(add(channel, ":"), symbol);
         string messageHash = ("unsubscribe:" + (subMessageHash));
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.trades, symbol))
+        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
         {
-            this.trades.Remove((string)symbol);
+            this.trades.Remove(symbol);
         }
     }
 
-    public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, object symbol, object channel)
+    public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, string? symbol, object channel)
     {
         object subMessageHash = add(add(channel, ":"), symbol);
-        string messageHash = ("unsubscribe:orderbook:" + (symbol));
+        string messageHash = ("unsubscribe:orderbook:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.orderbooks, symbol))
+        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
     }
 
-    public virtual void handleUnsubscriptionOHLCV(WebSocketClient client, object symbol, object channel)
+    public virtual void handleUnsubscriptionOHLCV(WebSocketClient client, string? symbol, string? channel)
     {
-        string tf = ((string)channel).Replace("candle", (string)"");
+        string tf = channel.Replace("candle", (string)"");
         string? timeframe = this.findTimeframe(tf);
         if ((timeframe == null))
         {
             return;
         }
-        string subMessageHash = ((("multi:" + (channel)) + ":") + (symbol));
+        string subMessageHash = ((("multi:" + channel) + ":") + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (((symbol != null)) && ((timeframe != null)) && (inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        if (((symbol != null)) && ((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove(timeframe);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
         }
     }
 
-    public virtual void handleUnsubscriptionTicker(WebSocketClient client, object symbol, object channel)
+    public virtual void handleUnsubscriptionTicker(WebSocketClient client, string? symbol, object channel)
     {
         object subMessageHash = add(add(channel, "::"), symbol);
-        string messageHash = ("unsubscribe:ticker:" + (symbol));
+        string messageHash = ("unsubscribe:ticker:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.tickers, symbol))
+        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
         {
-            this.tickers.Remove((string)symbol);
+            this.tickers.Remove(symbol);
         }
     }
 

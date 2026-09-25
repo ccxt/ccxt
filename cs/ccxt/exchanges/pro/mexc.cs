@@ -532,7 +532,7 @@ public partial class mexc : ccxt.mexc
         return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
     }
 
-    public async virtual Task<object> watchSpotPrivate(object channel, object messageHash, object parameters = null)
+    public async virtual Task<object> watchSpotPrivate(string? channel, string? messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -562,7 +562,7 @@ public partial class mexc : ccxt.mexc
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchSwapPrivate(object messageHash, object parameters = null)
+    public async virtual Task<object> watchSwapPrivate(string? messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1665,7 +1665,7 @@ public partial class mexc : ccxt.mexc
         return this.safeString(types, type);
     }
 
-    public virtual string? parseWsTimeInForce(object timeInForce)
+    public virtual string? parseWsTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForceIds = new Dictionary<string, object>() {
             { "1", "GTC" },
@@ -1864,7 +1864,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

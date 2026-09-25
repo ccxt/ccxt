@@ -318,7 +318,7 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    public async virtual Task<Dictionary<string, object>> FetchRawTopicDetail(object topicId, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchRawTopicDetail(string? topicId, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1757,7 +1757,7 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public async virtual Task<Dictionary<string, object>> FetchWallet(object methodName, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchWallet(string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object cachedWallet = this.safeDict(this.options, "wallet");

@@ -284,7 +284,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -566,22 +566,22 @@ public partial class deepcoin : ccxt.deepcoin
         }, market);
     }
 
-    public virtual string? parseTradeSide(object direction)
+    public virtual string? parseTradeSide(string? direction)
     {
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "0", "buy" },
             { "1", "sell" },
         };
-        return this.safeString(sides, ((string)direction), direction);
+        return this.safeString(sides, direction, direction);
     }
 
-    public virtual string? handleTakerOrMaker(object matchRole)
+    public virtual string? handleTakerOrMaker(string? matchRole)
     {
         Dictionary<string, object> roles = new Dictionary<string, object>() {
             { "0", "maker" },
             { "1", "taker" },
         };
-        return this.safeString(roles, ((string)matchRole), matchRole);
+        return this.safeString(roles, matchRole, matchRole);
     }
 
     /**
@@ -777,7 +777,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, suffix);
     }
 
-    public virtual List<object> orderBookSuffix(IDictionary<string, object> market, object methodName, object parameters = null)
+    public virtual List<object> orderBookSuffix(IDictionary<string, object> market, string methodName, object parameters = null)
     {
         // the 25-level book is published per price-aggregation level and the
         // level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
@@ -803,7 +803,7 @@ public partial class deepcoin : ccxt.deepcoin
             double? tickSize = this.safeNumber(precision, "price");
             if ((tickSize == null))
             {
-                throw new BadRequest ((((((this.id + " ") + (methodName)) + "() requires a params[\"aggregation\"] price level for ") + symbol) + " because the market has no price precision")) ;
+                throw new BadRequest ((((((this.id + " ") + methodName) + "() requires a params[\"aggregation\"] price level for ") + symbol) + " because the market has no price precision")) ;
             }
             aggregation = this.numberToString(tickSize);
         }
@@ -1345,7 +1345,7 @@ public partial class deepcoin : ccxt.deepcoin
         return this.safeString(directions, direction, direction);
     }
 
-    public virtual string? parseWsMarginMode(object marginMode)
+    public virtual string? parseWsMarginMode(string? marginMode)
     {
         if ((marginMode == null))
         {

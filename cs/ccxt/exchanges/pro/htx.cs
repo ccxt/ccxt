@@ -182,7 +182,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1032,7 +1032,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual List<object> getOrderChannelAndMessageHash(object type, object subType, IDictionary<string, object> market = null, object parameters = null)
+    public virtual List<object> getOrderChannelAndMessageHash(string? type, string? subType, IDictionary<string, object> market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object messageHash = null;
@@ -1052,7 +1052,7 @@ public partial class htx : ccxt.htx
         }
         object prefix = orderType;
         messageHash = prefix;
-        if (isEqual(subType, "linear"))
+        if ((subType == "linear"))
         {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             string? marginMode = this.safeString(paramsOmitted, "margin", "cross");
@@ -1070,7 +1070,7 @@ public partial class htx : ccxt.htx
             {
                 channel = add(add(marginPrefix, "."), "*");
             }
-        } else if (isEqual(type, "future"))
+        } else if ((type == "future"))
         {
             // inverse futures Example: BCH/USD:BCH-220408
             if ((baseId != null))
@@ -1096,7 +1096,7 @@ public partial class htx : ccxt.htx
         return new List<object>() {channel, messageHash};
     }
 
-    public virtual List<object> getV5LinearChannelAndMessageHash(object topic, IDictionary<string, object> market = null, object parameters = null)
+    public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object> market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object contractCode = null;
@@ -1107,11 +1107,11 @@ public partial class htx : ccxt.htx
         {
             contractCode = this.safeString(parameters, "contract_code", "*");
         }
-        object channel = topic;
+        string? channel = topic;
         object messageHash = topic;
         if (((contractCode != null)) && (!isEqual(contractCode, "*")))
         {
-            messageHash = add(add(topic, "."), ((string)contractCode).ToLower());
+            messageHash = ((topic + ".") + ((string)contractCode).ToLower());
         }
         object paramsOmitted = this.omit(parameters, "contract_code");
         Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {
@@ -3227,7 +3227,7 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> unsubscribePublic(IDictionary<string, object> market, object subMessageHash, object topic, object parameters = null)
+    public async virtual Task<object> unsubscribePublic(IDictionary<string, object> market, string? subMessageHash, string? topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = ((string)this.requestId());
@@ -3235,8 +3235,8 @@ public partial class htx : ccxt.htx
             { "unsub", subMessageHash },
             { "id", requestId },
         };
-        string messageHash = ("unsubscribe::" + (subMessageHash));
-        bool isFeed = (isEqual(topic, "orderbook"));
+        string messageHash = ("unsubscribe::" + subMessageHash);
+        bool isFeed = ((topic == "orderbook"));
         if ((market == null))
         {
             throw new ArgumentsRequired ((this.id + " unsubscribePublic() market is required")) ;

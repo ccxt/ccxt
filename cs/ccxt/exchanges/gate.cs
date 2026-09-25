@@ -2069,7 +2069,7 @@ public partial class gate : Exchange
         });
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
         if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
@@ -2836,7 +2836,7 @@ public partial class gate : Exchange
         return new List<object>() {marginMode, paramsUnifiedAccount};
     }
 
-    public virtual object getSettlementCurrencies(string? type, object method)
+    public virtual object getSettlementCurrencies(string? type, string? method)
     {
         IDictionary<string, object> options = this.safeDict(this.options, type, new Dictionary<string, object>() {}); // [ 'BTC', 'USDT' ] unified codes
         IDictionary<string, object> fetchMarketsContractOptions = this.safeDict(options, method, new Dictionary<string, object>() {});
@@ -3180,7 +3180,7 @@ public partial class gate : Exchange
         };
     }
 
-    public virtual string? parseFundingInterval(object interval)
+    public virtual string? parseFundingInterval(string? interval)
     {
         Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },
@@ -6583,7 +6583,7 @@ public partial class gate : Exchange
         }, market);
     }
 
-    public virtual List<object> fetchOrderRequest(string? id, object symbol = null, object parameters = null)
+    public virtual List<object> fetchOrderRequest(string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = ((symbol == null)) ? null : this.market(symbol);

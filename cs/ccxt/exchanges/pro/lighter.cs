@@ -104,7 +104,7 @@ public partial class lighter : ccxt.lighter
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
     }
 
-    public async virtual Task<object> unsubscribe(object messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> unsubscribe(string? messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -376,7 +376,7 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1773,7 +1773,7 @@ public partial class lighter : ccxt.lighter
         this.cleanCache(myTradesStructure);
     }
 
-    public virtual void handleOrdersUnSubscription(WebSocketClient client, object marketId)
+    public virtual void handleOrdersUnSubscription(WebSocketClient client, string? marketId)
     {
         string? symbol = this.safeSymbol(marketId);
         string? subMessageHash = this.getMessageHash("orders", symbol);

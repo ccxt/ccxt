@@ -205,14 +205,14 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object filterEventsByStatus(object events, object status = null)
+    public virtual object filterEventsByStatus(object events, string? status = null)
     {
         // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
-        if (((status == null)) || (isEqual(status, "all")))
+        if (((status == null)) || ((status == "all")))
         {
             return events;
         }
-        bool wantActive = (isEqual(status, "active"));
+        bool wantActive = ((status == "active"));
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(events); i++)
         {
@@ -227,7 +227,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object filterEventsBySearchIn(object events, object queries, object searchIn = null)
+    public virtual object filterEventsBySearchIn(object events, object queries, string? searchIn = null)
     {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
@@ -240,8 +240,8 @@ public partial class PredictionExchange : BaseExchange
         {
             return events;
         }
-        bool checkTitle = (isEqual(searchIn, "title")) || (isEqual(searchIn, "both"));
-        bool checkDescription = (isEqual(searchIn, "description")) || (isEqual(searchIn, "both"));
+        bool checkTitle = ((searchIn == "title")) || ((searchIn == "both"));
+        bool checkDescription = ((searchIn == "description")) || ((searchIn == "both"));
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(events); i++)
         {
@@ -466,7 +466,7 @@ public partial class PredictionExchange : BaseExchange
         return await this.loadEventsHelper(reload, parameters);
     }
 
-    public virtual object getEvent(object eventIdOrSlug)
+    public virtual object getEvent(string eventIdOrSlug)
     {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
@@ -478,7 +478,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return getValue(this.events_by_slug, eventIdOrSlug);
         }
-        throw new BadSymbol ((((this.id + " has no cached event ") + (eventIdOrSlug)) + " - call fetchEvents ({ 'query': ... }) first")) ;
+        throw new BadSymbol ((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
     public virtual IDictionary<string, object> outcome(object outcomeSymbol)
@@ -1907,7 +1907,7 @@ public partial class PredictionExchange : BaseExchange
         return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
     }
 
-    public virtual string? amountToPredictionPrecision(object outcome, double? amount)
+    public virtual string? amountToPredictionPrecision(string? outcome, double? amount)
     {
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? marketSymbol = this.safeString(outcomeObj, "market");
@@ -1921,7 +1921,7 @@ public partial class PredictionExchange : BaseExchange
         return this.priceToPrecision(marketSymbol, price);
     }
 
-    public virtual string? costToPredictionPrecision(object outcome, object cost)
+    public virtual string? costToPredictionPrecision(string? outcome, object cost)
     {
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? marketSymbol = this.safeString(outcomeObj, "market");
@@ -1935,17 +1935,17 @@ public partial class PredictionExchange : BaseExchange
     // it needs the noble crypto imports (keccak/ecdsa/secp256k1) which the
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
-    public virtual string? padHexToEven(object hex)
+    public virtual string? padHexToEven(string? hex)
     {
         if ((hex == null))
         {
             return "";
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
-        int hexLength = ((string)hex).Length;
+        int hexLength = hex.Length;
         if (!isEqual((((Int64)hexLength % 2L)), 0))
         {
-            return ("0" + (hex));
+            return ("0" + hex);
         }
         return ((string?)((object)(hex)));
     }
@@ -1961,14 +1961,14 @@ public partial class PredictionExchange : BaseExchange
         return ("000000000000000000000000" + stripped);
     }
 
-    public virtual string? rlpEncodeBytes(object hex)
+    public virtual string? rlpEncodeBytes(string? hex)
     {
         if ((hex == null))
         {
             return "";
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Int64? byteLength = this.parseToInt(((double)((string)hex).Length / 2));
+        Int64? byteLength = this.parseToInt(((double)hex.Length / 2));
         if ((byteLength == 0))
         {
             return "80";
@@ -1979,12 +1979,12 @@ public partial class PredictionExchange : BaseExchange
         }
         if (isLessThan(byteLength, 56))
         {
-            return (this.intToBase16(add(128, byteLength)) + (hex));
+            return (this.intToBase16(add(128, byteLength)) + hex);
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + (hex));
+        return ((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex);
     }
 
     public virtual string? rlpEncodeList(object items)
@@ -2051,7 +2051,7 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported ((this.id + " signEvmTransaction() must be overridden by the exchange")) ;
     }
 
-    public async virtual Task<object> ethRpc(object rpcUrl, object method, IList<object> rpcParams)
+    public async virtual Task<object> ethRpc(string? rpcUrl, string method, IList<object> rpcParams)
     {
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -2066,14 +2066,14 @@ public partial class PredictionExchange : BaseExchange
         object rpcError = this.safeValue(response, "error");
         if ((rpcError != null))
         {
-            throw new ExchangeError (((((this.id + " rpc ") + (method)) + " error: ") + this.json(rpcError))) ;
+            throw new ExchangeError (((((this.id + " rpc ") + method) + " error: ") + this.json(rpcError))) ;
         }
         // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
         // safeString would coerce a receipt object to "[object Object]"
         return this.safeValue(response, "result");
     }
 
-    public async virtual Task<object> sendEvmTransaction(object rpcUrl, object chainId, object fromAddress, object to, object value, object data, object gasLimit)
+    public async virtual Task<object> sendEvmTransaction(string? rpcUrl, object chainId, string? fromAddress, string? to, string? value, string? data, string? gasLimit)
     {
         object nonce = await this.ethRpc(rpcUrl, "eth_getTransactionCount", new List<object>() {fromAddress, "pending"});
         object gasPrice = await this.ethRpc(rpcUrl, "eth_gasPrice", new List<object>() {});
@@ -2091,7 +2091,7 @@ public partial class PredictionExchange : BaseExchange
         return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
     }
 
-    public async virtual Task<object> waitForTransactionReceipt(object rpcUrl, object txHash, object timeout = null)
+    public async virtual Task<object> waitForTransactionReceipt(string? rpcUrl, object txHash, object timeout = null)
     {
         timeout ??= 60000;
         Int64 start = this.milliseconds();

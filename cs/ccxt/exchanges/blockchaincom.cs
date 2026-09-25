@@ -589,7 +589,7 @@ public partial class blockchaincom : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
-    public virtual string? parseOrderState(object state)
+    public virtual string? parseOrderState(string? state)
     {
         Dictionary<string, object> states = new Dictionary<string, object>() {
             { "OPEN", "open" },
@@ -1020,7 +1020,7 @@ public partial class blockchaincom : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", (currency.ContainsKey("code") ? currency["code"] : null) },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
-    public virtual string? parseTransactionState(object state)
+    public virtual string? parseTransactionState(string? state)
     {
         Dictionary<string, object> states = new Dictionary<string, object>() {
             { "COMPLETED", "ok" },

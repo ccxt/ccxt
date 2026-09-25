@@ -184,7 +184,7 @@ public partial class bydfi : ccxt.bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -987,13 +987,13 @@ public partial class bydfi : ccxt.bydfi
         });
     }
 
-    public virtual string? parseWsPositionSide(object rawPositionSide)
+    public virtual string? parseWsPositionSide(string? rawPositionSide)
     {
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "1", "long" },
             { "2", "short" },
         };
-        return this.safeString(sides, ((string)rawPositionSide), rawPositionSide);
+        return this.safeString(sides, rawPositionSide, rawPositionSide);
     }
 
     /**

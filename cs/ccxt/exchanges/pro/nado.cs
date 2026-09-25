@@ -464,7 +464,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1124,7 +1124,7 @@ public partial class nado : ccxt.nado
         return ccxt.BaseExchange.ToOrderList(result);
     }
 
-    public async virtual Task<object> watchExecuteRequest(object requestIdString, IDictionary<string, object> request)
+    public async virtual Task<object> watchExecuteRequest(string? requestIdString, IDictionary<string, object> request)
     {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
@@ -1134,7 +1134,7 @@ public partial class nado : ccxt.nado
             throw new ArgumentsRequired ((this.id + " watchExecuteRequest() requires requestIdString")) ;
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "gateway"));
-        string messageHash = ("execute:" + (requestIdString));
+        string messageHash = ("execute:" + requestIdString);
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -1199,12 +1199,12 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash);
     }
 
-    public async virtual Task<object> unWatchPrivate(IDictionary<string, object> stream, object messageHash, object parameters = null)
+    public async virtual Task<object> unWatchPrivate(IDictionary<string, object> stream, string? messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         Int64 id = this.requestId();
-        string unsubscribeHash = ("unsubscribe:" + (messageHash));
+        string unsubscribeHash = ("unsubscribe:" + messageHash);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "stream", this.deepExtend(stream, parameters) },
@@ -1270,7 +1270,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash, this.extend(request, paramsSubaccount), messageHash);
     }
 
-    public virtual object signStreamAuthentication(IDictionary<string, object> tx, object chainId, object endpointAddress)
+    public virtual object signStreamAuthentication(IDictionary<string, object> tx, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -1292,7 +1292,7 @@ public partial class nado : ccxt.nado
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual Dictionary<string, object> createPublicSubscriptionRequest(object method, object streamType, object market = null, object id = null, object parameters = null)
+    public virtual Dictionary<string, object> createPublicSubscriptionRequest(string method, object streamType, object market = null, object id = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> stream = new Dictionary<string, object>() {
@@ -1387,7 +1387,7 @@ public partial class nado : ccxt.nado
         return results;
     }
 
-    public virtual Int64? parseWsTimestamp(object message, object key)
+    public virtual Int64? parseWsTimestamp(object message, string key)
     {
         string? value = this.safeString(message, key);
         if ((value == null))
@@ -2020,70 +2020,70 @@ public partial class nado : ccxt.nado
         }
     }
 
-    public virtual void handleUnsubscriptionCache(object messageHash)
+    public virtual void handleUnsubscriptionCache(string? messageHash)
     {
         if ((messageHash == null))
         {
             return;
         }
-        if ((((string)messageHash).IndexOf("trade:", StringComparison.Ordinal) == 0))
+        if ((messageHash.IndexOf("trade:", StringComparison.Ordinal) == 0))
         {
-            string symbol = ((string)messageHash).Replace("trade:", (string)"");
+            string symbol = messageHash.Replace("trade:", (string)"");
             if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
             {
                 this.trades.Remove(symbol);
             }
-        } else if ((((string)messageHash).IndexOf("orderbook:", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("orderbook:", StringComparison.Ordinal) == 0))
         {
-            string symbol = ((string)messageHash).Replace("orderbook:", (string)"");
+            string symbol = messageHash.Replace("orderbook:", (string)"");
             if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             }
-        } else if ((((string)messageHash).IndexOf("ohlcv:", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("ohlcv:", StringComparison.Ordinal) == 0))
         {
-            List<object> parts = ((string)messageHash).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = messageHash.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             string? timeframe = this.safeString(parts, 1);
             string? symbol = this.safeString(parts, 2);
             if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))) && (inOp(getValue(this.ohlcvs, symbol), timeframe)))
             {
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove(timeframe);
             }
-        } else if ((((string)messageHash).IndexOf("ticker:", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("ticker:", StringComparison.Ordinal) == 0))
         {
-            string symbol = ((string)messageHash).Replace("ticker:", (string)"");
+            string symbol = messageHash.Replace("ticker:", (string)"");
             if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
             {
                 this.tickers.Remove(symbol);
             }
-        } else if (isEqual(messageHash, "ticker"))
+        } else if ((messageHash == "ticker"))
         {
             List<object> symbols = new List<object>(this.tickers.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
                 this.tickers.Remove((string)symbols[i]);
             }
-        } else if ((((string)messageHash).IndexOf("bidask:", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("bidask:", StringComparison.Ordinal) == 0))
         {
-            string symbol = ((string)messageHash).Replace("bidask:", (string)"");
+            string symbol = messageHash.Replace("bidask:", (string)"");
             if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
             {
                 this.bidsasks.Remove(symbol);
             }
-        } else if (isEqual(messageHash, "bidask"))
+        } else if ((messageHash == "bidask"))
         {
             List<object> symbols = new List<object>(this.bidsasks.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
                 this.bidsasks.Remove((string)symbols[i]);
             }
-        } else if ((((string)messageHash).IndexOf("orders", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("orders", StringComparison.Ordinal) == 0))
         {
             this.orders = null;
-        } else if ((((string)messageHash).IndexOf("myTrades", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("myTrades", StringComparison.Ordinal) == 0))
         {
             this.myTrades = null;
-        } else if ((((string)messageHash).IndexOf("positions", StringComparison.Ordinal) == 0))
+        } else if ((messageHash.IndexOf("positions", StringComparison.Ordinal) == 0))
         {
             this.positions = null;
         }

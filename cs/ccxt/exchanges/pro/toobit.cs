@@ -727,7 +727,7 @@ public partial class toobit : ccxt.toobit
         this.setOrderBookSnapshot(client, message, "depth");
     }
 
-    public virtual void setOrderBookSnapshot(WebSocketClient client, object message, object channel)
+    public virtual void setOrderBookSnapshot(WebSocketClient client, object message, string channel)
     {
         List<object> data = this.safeList(message, "data", new List<object>() {});
         int length = data.Count;
@@ -740,7 +740,7 @@ public partial class toobit : ccxt.toobit
             IDictionary<string, object> entry = this.safeDict(data, i);
             string? marketId = this.safeString(entry, "s");
             string? symbol = this.safeSymbol(marketId);
-            string messageHash = ((("orderBook::" + symbol) + "::") + (channel));
+            string messageHash = ((("orderBook::" + symbol) + "::") + channel);
             if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 Int64? limit = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);

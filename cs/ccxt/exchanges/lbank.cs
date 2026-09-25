@@ -2143,7 +2143,7 @@ public partial class lbank : Exchange
         return await this.FetchOrderDefault(id, symbol, parameters);
     }
 
-    public async virtual Task<ccxt.Order> FetchOrderSupplement(string? id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOrderSupplement(string? id, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -2185,7 +2185,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
-    public async virtual Task<ccxt.Order> FetchOrderDefault(string? id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOrderDefault(string? id, string? symbol = null, object parameters = null)
     {
         // Id can be a list of ids delimited by a comma
         parameters ??= new Dictionary<string, object>();
@@ -2518,7 +2518,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
     }
 
-    public virtual string? getNetworkCodeForCurrency(object currencyCode, object parameters)
+    public virtual string? getNetworkCodeForCurrency(string? currencyCode, object parameters)
     {
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         string? defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);

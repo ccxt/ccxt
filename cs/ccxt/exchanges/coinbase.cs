@@ -5804,7 +5804,7 @@ public partial class coinbase : Exchange
      * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
      * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchPortfolioDetails(object portfolioUuid, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchPortfolioDetails(string portfolioUuid, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
