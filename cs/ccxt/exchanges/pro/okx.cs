@@ -1427,7 +1427,7 @@ public partial class okx : ccxt.okx
             if ((limit == 1))
             {
                 depth = "bbo-tbt";
-            } else if ((limit > 1) && isLessThanOrEqual(limit, 5))
+            } else if ((limit > 1) && (limit == null || limit <= 5))
             {
                 depth = "books5";
             } else if ((limit == 50))
@@ -1500,7 +1500,7 @@ public partial class okx : ccxt.okx
             if ((limit == 1))
             {
                 depth = "bbo-tbt";
-            } else if ((limit > 1) && isLessThanOrEqual(limit, 5))
+            } else if ((limit > 1) && (limit == null || limit <= 5))
             {
                 depth = "books5";
             } else if ((limit == 50))

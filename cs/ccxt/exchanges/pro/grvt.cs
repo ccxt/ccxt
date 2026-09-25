@@ -675,7 +675,7 @@ public partial class grvt : ccxt.grvt
         Int64? sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         string? stream = this.safeString(message, "stream");
         bool isSnapshotChannel = stream == "v1.book.s";
-        bool isSnapshotMessage = isLessThanOrEqual(sequenceNumber, 0);
+        bool isSnapshotMessage = (sequenceNumber == null || sequenceNumber <= 0);
         if (isSnapshotChannel || isSnapshotMessage)
         {
             Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");

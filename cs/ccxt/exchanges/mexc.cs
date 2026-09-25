@@ -3325,7 +3325,7 @@ public partial class mexc : Exchange
                     request["end_time"] = this.sum(since, maxTimeTillEnd);
                 } else
                 {
-                    if (isGreaterThan((subtract(end, since)), maxTimeTillEnd))
+                    if (isGreaterThan(((end - since)), maxTimeTillEnd))
                     {
                         throw new BadRequest ((this.id + " end is invalid, i.e. exceeds allowed 90 days.")) ;
                     } else

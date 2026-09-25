@@ -3464,7 +3464,7 @@ public partial class bullish : Exchange
         Int64 now = this.milliseconds();
         object token = this.token;
         Int64? tokenExpires = this.safeInteger(this.options, "tokenExpires");
-        if (((token == null)) || ((tokenExpires == null)) || (isGreaterThan(now, tokenExpires)))
+        if (((token == null)) || ((tokenExpires == null)) || (((tokenExpires == null || now > tokenExpires))))
         {
             return ((string?)((object)(await this.signIn())));
         } else

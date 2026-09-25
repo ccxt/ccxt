@@ -817,7 +817,7 @@ public partial class luno : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((limit != null) && isLessThanOrEqual(limit, 100))
+        if ((limit != null) && (limit == null || limit <= 100))
         {
             response = await this.publicGetOrderbookTop(this.extend(request, parameters));
         } else

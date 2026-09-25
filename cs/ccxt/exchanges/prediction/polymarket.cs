@@ -873,7 +873,7 @@ public partial class polymarket : PredictionExchange
         {
             allRawEvents.Add((firstPage != null && fi < firstPage.Count ? firstPage[fi] : null));
         }
-        if (isGreaterThanOrEqual(firstPageLength, pageSize))
+        if ((pageSize == null || firstPageLength >= pageSize))
         {
             List<object> offsets = new List<object>() {};
             for (int p = 1; isLessThan(p, maxPages); p++)
@@ -901,7 +901,7 @@ public partial class polymarket : PredictionExchange
             }
         }
         int allRawEventsLength = (allRawEvents?.Count ?? 0);
-        if (isGreaterThan(allRawEventsLength, limit))
+        if (((limit == null || allRawEventsLength > limit)))
         {
             return ccxt.BaseExchange.ToDictList(this.arraySlice(allRawEvents, 0, limit));
         }

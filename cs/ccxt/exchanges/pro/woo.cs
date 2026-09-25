@@ -262,7 +262,7 @@ public partial class woo : ccxt.woo
                     {
                         return;
                     }
-                    if (isGreaterThan(ts, timestamp))
+                    if ((ts != null && (timestamp == null || ts > timestamp)))
                     {
                         this.handleOrderBookMessage(client, message, orderbook);
                         client.resolve(orderbook, topic);

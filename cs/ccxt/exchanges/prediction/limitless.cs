@@ -374,7 +374,7 @@ public partial class limitless : PredictionExchange
             List<object> lastPageData = this.safeList(lastPageResponse, "data", new List<object>() {});
             int lastPageLength = lastPageData.Count;
             int allRawLength = (allRaw?.Count ?? 0);
-            if (isGreaterThanOrEqual(lastPageLength, pageSize) && isLessThan(allRawLength, maxMarkets))
+            if ((pageSize == null || lastPageLength >= pageSize) && (allRawLength < maxMarkets))
             {
                 while (true)
                 {
@@ -399,7 +399,7 @@ public partial class limitless : PredictionExchange
                         allRaw.Add(raw);
                     }
                     int allRawCount = (allRaw?.Count ?? 0);
-                    if (isLessThan(pageMarketsLength, pageSize) || isGreaterThanOrEqual(allRawCount, maxMarkets))
+                    if ((pageMarketsLength < pageSize) || (maxMarkets == null || allRawCount >= maxMarkets))
                     {
                         break;
                     }
@@ -452,7 +452,7 @@ public partial class limitless : PredictionExchange
         }
         this.events = eventsDict;
         int marketsLength = (markets?.Count ?? 0);
-        if (isGreaterThan(marketsLength, maxMarkets))
+        if (((maxMarkets == null || marketsLength > maxMarkets)))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(markets, 0, maxMarkets));
         }
@@ -1669,7 +1669,7 @@ public partial class limitless : PredictionExchange
             {
                 string? tsString = this.safeString(point, "timestamp");
                 pointTs = ((tsString != null) && tsString != "") ? this.parse8601(tsString) : null;
-            } else if (isLessThan(pointTs, 1000000000000))
+            } else if (((pointTs == null || pointTs < 1000000000000)))
             {
                 // old responses may return unix seconds
                 pointTs = (pointTs * 1000);
@@ -3506,7 +3506,7 @@ public partial class limitless : PredictionExchange
                 }
             }
             page = this.sum(page, 1);
-            if (isLessThan(dataLength, pageSize) || isGreaterThanOrEqual(collected, maxMarkets))
+            if ((dataLength < pageSize) || isGreaterThanOrEqual(collected, maxMarkets))
             {
                 break;
             }

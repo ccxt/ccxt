@@ -158,7 +158,7 @@ public partial class xt : ccxt.xt
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
-        if (((nonce != null)) && ((firstDeltaNonce != null)) && (isLessThan(nonce, subtract(firstDeltaNonce, 1))))
+        if (((nonce != null)) && ((firstDeltaNonce != null)) && (isLessThan(nonce, (firstDeltaNonce - 1))))
         {
             return -1;
         }
@@ -166,7 +166,7 @@ public partial class xt : ccxt.xt
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaNonce = this.safeInteger2(delta, "i", "u");
-            if (((deltaNonce != null)) && ((nonce != null)) && (isGreaterThanOrEqual(deltaNonce, nonce)))
+            if (((deltaNonce != null)) && ((nonce != null)) && ((nonce == null || deltaNonce >= nonce)))
             {
                 return i;
             }

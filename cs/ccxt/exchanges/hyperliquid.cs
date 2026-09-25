@@ -3679,7 +3679,7 @@ public partial class hyperliquid : Exchange
                 {
                     Int64? existingTimestamp = this.safeInteger(getValue(deduplicatedByOid, oid), "statusTimestamp");
                     Int64? currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
-                    if ((currentTimestamp != null) && ((existingTimestamp == null) || isGreaterThan(currentTimestamp, existingTimestamp)))
+                    if ((currentTimestamp != null) && ((existingTimestamp == null) || (currentTimestamp != null && (existingTimestamp == null || currentTimestamp > existingTimestamp))))
                     {
                         deduplicatedByOid[(string)oid] = rawOrder;
                     }

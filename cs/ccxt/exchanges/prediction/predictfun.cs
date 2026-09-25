@@ -572,7 +572,7 @@ public partial class predictfun : PredictionExchange
             List<object> data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
             rawTopics = this.arrayConcat(rawTopics, data);
             int topicsLength = getArrayLength(rawTopics);
-            while (isLessThan(topicsLength, fetchCap))
+            while ((topicsLength < fetchCap))
             {
                 string? nextPageToken = this.safeString(rawTopicsResponse, "cursor");
                 if ((nextPageToken == null))
@@ -585,7 +585,7 @@ public partial class predictfun : PredictionExchange
                 rawTopics = this.arrayConcat(rawTopics, data);
                 topicsLength = getArrayLength(rawTopics);
             }
-            if (isGreaterThan(topicsLength, fetchCap))
+            if (((fetchCap == null || topicsLength > fetchCap)))
             {
                 rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
             }
@@ -1931,7 +1931,7 @@ public partial class predictfun : PredictionExchange
         Int64? expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
         // a token outlives its window silently: the venue answers 401 on every order action once
         // it lapses, so re-issue before that rather than after the first failure
-        if (((cached != null)) && (isLessThan(now, expiresAt)))
+        if (((cached != null)) && ((now < expiresAt)))
         {
             return cached;
         }
