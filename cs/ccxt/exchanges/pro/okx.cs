@@ -816,7 +816,7 @@ public partial class okx : ccxt.okx
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1955,7 +1955,7 @@ public partial class okx : ccxt.okx
         client.resolve(this.balance, channel);
     }
 
-    public virtual Dictionary<string, object> orderToTrade(object order, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> orderToTrade(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> info = this.safeDict(order, "info", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(info, "fillTime");

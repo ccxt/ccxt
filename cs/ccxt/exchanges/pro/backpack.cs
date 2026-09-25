@@ -335,7 +335,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -467,7 +467,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(parsedBidAsk, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1448,7 +1448,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

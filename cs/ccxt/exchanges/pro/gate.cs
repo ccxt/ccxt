@@ -959,7 +959,7 @@ public partial class gate : ccxt.gate
         this.handleTickerAndBidAsk("bidask", client, message);
     }
 
-    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, object parameters = null)
+    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -441,7 +441,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public async virtual Task<object> loadEventsHelper(object reload = null, object parameters = null)
+    public async virtual Task<object> loadEventsHelper(object reload = null, IDictionary<string, object>? parameters = null)
     {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
@@ -456,7 +456,7 @@ public partial class PredictionExchange : BaseExchange
         return this.setEvents(events);
     }
 
-    public async virtual Task<object> loadEvents(object reload = null, object parameters = null)
+    public async virtual Task<object> loadEvents(object reload = null, IDictionary<string, object>? parameters = null)
     {
         // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
         // promise coalescing: the promise-sharing idiom is not expressible in the transpiled

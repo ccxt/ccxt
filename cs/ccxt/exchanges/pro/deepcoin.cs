@@ -148,7 +148,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> unWatchPublic(IDictionary<string, object> market, object messageHash, object topicID, object parameters = null, object subscription = null, object suffix = null)
+    public async virtual Task<object> unWatchPublic(IDictionary<string, object> market, object messageHash, object topicID, object parameters = null, IDictionary<string, object>? subscription = null, object suffix = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
@@ -181,7 +181,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, messageHash, null, "private", parameters);
     }
 
-    public async virtual Task<string?> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -343,7 +343,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1280,7 +1280,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

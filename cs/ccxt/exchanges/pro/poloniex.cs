@@ -81,7 +81,7 @@ public partial class poloniex : ccxt.poloniex
      * @see https://api-docs.poloniex.com/spot/websocket/authentication
      * @returns {object} response from exchange
      */
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

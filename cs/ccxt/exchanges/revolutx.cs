@@ -1450,7 +1450,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public virtual object parseMyTrade(object trade, IDictionary<string, object> market = null)
+    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(trade, "tid");
         string? orderId = this.safeString(trade, "oid");

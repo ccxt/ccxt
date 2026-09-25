@@ -397,7 +397,7 @@ public partial class upbit : Exchange
         });
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchCurrency(string code, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchCurrency(string code, IDictionary<string, object>? parameters = null)
     {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
@@ -410,7 +410,7 @@ public partial class upbit : Exchange
         return await this.FetchCurrencyById((currency.ContainsKey("id") ? currency["id"] : null), parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchCurrencyById(object id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchCurrencyById(object id, IDictionary<string, object>? parameters = null)
     {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
@@ -494,7 +494,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "id", currencyId },             { "code", code },             { "name", code },             { "active", active },             { "fee", this.safeNumber(currencyInfo, "withdraw_fee") },             { "precision", null },             { "limits", new Dictionary<string, object>() {                 { "withdraw", new Dictionary<string, object>() {                     { "min", this.safeNumber(withdrawLimits, "minimum") },                     { "max", this.parseNumber(maxWithdrawLimit) },                 } },             } },         });
     }
 
-    public async virtual Task<ccxt.MarketInterface> FetchMarket(string symbol, object parameters = null)
+    public async virtual Task<ccxt.MarketInterface> FetchMarket(string symbol, IDictionary<string, object>? parameters = null)
     {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
@@ -507,7 +507,7 @@ public partial class upbit : Exchange
         return await this.FetchMarketById(((string)(market.ContainsKey("id") ? market["id"] : null)), parameters);
     }
 
-    public async virtual Task<ccxt.MarketInterface> FetchMarketById(string id, object parameters = null)
+    public async virtual Task<ccxt.MarketInterface> FetchMarketById(string id, IDictionary<string, object>? parameters = null)
     {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up

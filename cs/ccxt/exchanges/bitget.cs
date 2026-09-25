@@ -13055,7 +13055,7 @@ public partial class bitget : Exchange
         return this.parseMarginLoan(data, currency);
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         // isolated: borrowMargin

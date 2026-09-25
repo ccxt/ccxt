@@ -681,7 +681,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? messageHash = this.safeString(subscription, "messageHash");
         string? symbol = this.safeString(subscription, "symbol");
@@ -1690,7 +1690,7 @@ public partial class htx : ccxt.htx
         }, marketResolved);
     }
 
-    public virtual Dictionary<string, object> parseOrderTrade(object trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseOrderTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         // spot private wrapped trade
         //
@@ -3259,7 +3259,7 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivate(object channel, object messageHash, object type, object subtype, object parameters = null, object subscriptionParams = null)
+    public async virtual Task<object> subscribePrivate(object channel, object messageHash, object type, object subtype, object parameters = null, IDictionary<string, object>? subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
@@ -3298,7 +3298,7 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, parameters), channel, extendedSubsription);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString(parameters, "url");

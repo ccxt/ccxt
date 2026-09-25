@@ -1825,7 +1825,7 @@ public partial class paradex : Exchange
         return account;
     }
 
-    public async virtual Task<Dictionary<string, object>> onboarding(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> onboarding(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object account = await this.retrieveAccount();
@@ -1841,9 +1841,9 @@ public partial class paradex : Exchange
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, getValue(account, "address"));
         string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
-        ((IDictionary<string,object>)parameters)["signature"] = signature;
-        ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
-        ((IDictionary<string,object>)parameters)["public_key"] = getValue(account, "publicKey");
+        parameters["signature"] = signature;
+        parameters["account"] = getValue(account, "address");
+        parameters["public_key"] = getValue(account, "publicKey");
         Dictionary<string, object> response = await this.privatePostOnboarding(parameters);
         return response;
     }

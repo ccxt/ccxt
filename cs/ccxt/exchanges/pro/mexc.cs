@@ -550,7 +550,7 @@ public partial class mexc : ccxt.mexc
         return await this.watch(url, messageHash, this.extend(request, parameters), channel);
     }
 
-    public async virtual Task<object> watchSwapPublic(object channel, object messageHash, object requestParams, object parameters = null)
+    public async virtual Task<object> watchSwapPublic(object channel, object messageHash, IDictionary<string, object> requestParams, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap"));
@@ -2186,7 +2186,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public async virtual Task<string?> authenticate(object subscriptionHash, object parameters = null)
+    public async virtual Task<string?> authenticate(object subscriptionHash, IDictionary<string, object>? parameters = null)
     {
         // we only need one listenKey since ccxt shares connections
         parameters ??= new Dictionary<string, object>();
@@ -2233,7 +2233,7 @@ public partial class mexc : ccxt.mexc
         return listenKey;
     }
 
-    public async virtual Task keepAliveListenKey(object listenKey, object parameters = null)
+    public async virtual Task keepAliveListenKey(object listenKey, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((listenKey == null))

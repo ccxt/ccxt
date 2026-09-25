@@ -672,7 +672,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return true;
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object rawTicker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> rawTicker, object market = null)
     {
         return this.parseTicker(rawTicker, market);
     }
@@ -2011,7 +2011,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return requestId;
     }
 
-    public virtual Dictionary<string, object> wrapAsPostAction(object request)
+    public virtual Dictionary<string, object> wrapAsPostAction(IDictionary<string, object> request)
     {
         Int64 requestId = this.requestId();
         return new Dictionary<string, object>() {

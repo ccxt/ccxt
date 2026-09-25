@@ -840,7 +840,7 @@ public partial class bitrue : ccxt.bitrue
         client.resolve(parsed, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object tick, object market, object timestamp = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> tick, object market, object timestamp = null)
     {
         object symbol = getValue(market, "symbol");
         double? rawVol = this.safeNumber(tick, "vol");
@@ -952,7 +952,7 @@ public partial class bitrue : ccxt.bitrue
         }
     }
 
-    public async virtual Task<string?> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = this.safeString(this.options, "listenKey");
@@ -1027,7 +1027,7 @@ public partial class bitrue : ccxt.bitrue
         return this.safeString(this.options, "listenKeyUrl");
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = this.safeString(this.options, "listenKey");

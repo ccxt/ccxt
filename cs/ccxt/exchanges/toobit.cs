@@ -1705,7 +1705,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseBidsAsksCustom(response, symbolsNormalized));
     }
 
-    public virtual object parseBidsAsksCustom(object tickers, IList<object> symbols = null, object parameters = null)
+    public virtual object parseBidsAsksCustom(object tickers, IList<object> symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};

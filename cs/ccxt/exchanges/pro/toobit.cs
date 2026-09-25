@@ -1342,7 +1342,7 @@ public partial class toobit : ccxt.toobit
         });
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
@@ -1396,7 +1396,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});

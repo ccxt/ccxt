@@ -959,7 +959,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

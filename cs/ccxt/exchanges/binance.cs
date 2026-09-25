@@ -5535,7 +5535,7 @@ public partial class binance : Exchange
         return this.safeMarketStructure(entry);
     }
 
-    public virtual object parseBalanceHelper(object entry)
+    public virtual object parseBalanceHelper(IDictionary<string, object> entry)
     {
         Dictionary<string, object> account = this.account();
         account["used"] = this.safeString(entry, "locked");
@@ -10261,7 +10261,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -11435,7 +11435,7 @@ public partial class binance : Exchange
      * @param {string} [params.type] 'spot' or 'margin', default spot
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async virtual Task<List<ccxt.Trade>> FetchMyDustTrades(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> FetchMyDustTrades(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         //
         // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
@@ -13333,7 +13333,7 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual List<object> parseAccountPositions(Dictionary<string, object> account, object filterClosed = null)
+    public virtual List<object> parseAccountPositions(IDictionary<string, object> account, object filterClosed = null)
     {
         filterClosed ??= false;
         List<object> positions = this.safeList(account, "positions", new List<object>() {});
@@ -13380,7 +13380,7 @@ public partial class binance : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseAccountPosition(Dictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseAccountPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // usdm
@@ -15046,7 +15046,7 @@ public partial class binance : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -15103,7 +15103,7 @@ public partial class binance : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -16186,7 +16186,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -16295,7 +16295,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    public async virtual Task<Dictionary<string, object>> CreateGiftCode(string code, object amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateGiftCode(string code, object amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -16332,7 +16332,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> redeemGiftCode(object giftcardCode, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> redeemGiftCode(object giftcardCode, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -16362,7 +16362,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> verifyGiftCode(string? id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> verifyGiftCode(string? id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -16673,7 +16673,7 @@ public partial class binance : Exchange
         return this.parseMarginLoan(response, currency);
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
     {
         //
         //     {
