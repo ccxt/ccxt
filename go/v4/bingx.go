@@ -2920,7 +2920,7 @@ func (this *Bingx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
 			market = this.Market(firstSymbol)
@@ -3051,7 +3051,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
 			market = this.Market(firstSymbol)
@@ -3500,7 +3500,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		response = MapTyped(PanicOnError((<-this.ContractV1PrivateGetAllPosition(paramsStandard)).Raw))
 	} else {
 		var market map[string]any = nil
-		if !IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized != nil {
 			var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 			if firstSymbol != nil {
 				market = this.Market(firstSymbol)

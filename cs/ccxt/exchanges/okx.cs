@@ -2883,7 +2883,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(type) },
         };
-        if (isEqual(type, "option"))
+        if ((type is "option"))
         {
             List<object> optionsUnderlying = this.safeList(this.options, "defaultUnderlying", new List<object>() {"BTC-USD", "ETH-USD"});
             List<object> promises = new List<object>() {};
@@ -3334,7 +3334,7 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
@@ -3440,7 +3440,7 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
@@ -4067,7 +4067,7 @@ public partial class okx : Exchange
         }
         IList<object> marketTypequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         string? marketType = (string)marketTypequeryVariable[0];
-        var query = marketTypequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marketTypequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if ((marketType == "funding"))
@@ -6372,7 +6372,7 @@ public partial class okx : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil);
         string? type = (string)typequeryVariable[0];
-        var query = typequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
         ((IDictionary<string,object>)requestUntil)["instType"] = this.convertToInstrumentType(type);
         if (((limit != null)) && ((since == null)))
         {
@@ -6477,7 +6477,7 @@ public partial class okx : Exchange
         }
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", null, paramsMarginMode);
         string? type = (string)typequeryVariable[0];
-        var query = typequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
         if ((type != null))
         {
             request["instType"] = this.convertToInstrumentType(type);
@@ -7443,7 +7443,7 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPosition", market, parameters);
         string? type = (string)typequeryVariable[0];
-        var query = typequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -8106,13 +8106,13 @@ public partial class okx : Exchange
         bool hasJsonBody = false;
         string? jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             this.checkRequiredCredentials();
             // inject id in implicit api call
@@ -8175,7 +8175,7 @@ public partial class okx : Exchange
         {
             requestBody = jsonBody;
         }
-        object requestHeaders = (isEqual(api, "private")) ? privateHeaders : headers;
+        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -8423,7 +8423,7 @@ public partial class okx : Exchange
         object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
         string? type = (string)typequeryVariable[0];
-        var query = typequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
         if ((type == "swap"))
         {
             request["instType"] = this.convertToInstrumentType(type);
@@ -9580,7 +9580,7 @@ public partial class okx : Exchange
         Dictionary<string, object> response = null;
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
-        var paramsMarketType = typeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         if ((type == "option"))
         {
             response = await this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, paramsMarketType));
@@ -9861,7 +9861,7 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
-        var paramsMarketType = typeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         if (!(type == "future") && !(type == "option"))
         {
             throw new NotSupported ((this.id + " fetchSettlementHistory() supports futures and options markets only")) ;
@@ -9972,7 +9972,7 @@ public partial class okx : Exchange
         }
         IList<object> marketTypeOptionparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
         string? marketTypeOption = (string)marketTypeOptionparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeOptionparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeOptionparamsMarketTypeVariable[1]);
         bool isSpotOrUndefined = ((marketTypeOption == null)) || ((marketTypeOption == "spot"));
         string? marketType = marketTypeOption;
         if (isSpotOrUndefined)

@@ -3157,7 +3157,7 @@ public partial class kalshi : PredictionExchange
             { "Content-Type", "application/json" },
         }, existingHeaders);
         object bodyValue = body;
-        if (isEqual(access, "private"))
+        if ((access is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

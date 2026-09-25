@@ -1832,7 +1832,7 @@ public partial class bittrade : Exchange
         if ((feeCost != null))
         {
             object feeCurrency = null;
-            if (isEqual(side, "sell"))
+            if ((side is "sell"))
             {
                 feeCurrency = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
             } else
@@ -2463,10 +2463,10 @@ public partial class bittrade : Exchange
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         object url = "/";
-        if (isEqual(api, "market"))
+        if ((api is "market"))
         {
             url = add(url, api);
-        } else if ((isEqual(api, "public")) || (isEqual(api, "private")))
+        } else if (((api is "public")) || ((api is "private")))
         {
             url = add(url, this.version);
         } else if ((isEqual(api, "v2Public")) || (isEqual(api, "v2Private")))
@@ -2475,7 +2475,7 @@ public partial class bittrade : Exchange
         }
         url = add(url, ("/" + this.implodeParams(path, parameters)));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(api, "private") || isEqual(api, "v2Private"))
+        if ((api is "private") || isEqual(api, "v2Private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.ymdhms(this.milliseconds(), "T");

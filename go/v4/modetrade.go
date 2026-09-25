@@ -1717,7 +1717,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var taker *string = this.SafeString(data, "futures_taker_fee_rate")
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
 			result[symbol] = map[string]any{

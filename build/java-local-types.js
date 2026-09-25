@@ -14460,3 +14460,230 @@ export function installJavaBooleanParams (transpiler) {
         return upstreamCondition (node, identation);
     };
 }
+
+// ===== 46. typed Pair returns of the handle*AndParams family =====
+// The hand-written base declares these `Pair<A, B>` (a two-element List): overrides print the same
+// return type, `return [a, b]` in them prints `new Pair<>(a, b)` from proven elements, and
+// destructurings of a call that resolves to them read first()/second() with no cast.
+const PAIR_MAP = 'java.util.Map<String, Object>';
+const PAIR_ELEMENT_TYPES = {
+    'handleOptionStringAndParams': [ 'String', PAIR_MAP ],
+    'handleOptionStringAndParams2': [ 'String', PAIR_MAP ],
+    'handleOptionBoolAndParams': [ 'Boolean', PAIR_MAP ],
+    'handleOptionBoolAndParams2': [ 'Boolean', PAIR_MAP ],
+    'handleMarginModeAndParams': [ 'String', PAIR_MAP ],
+    'handleMarketTypeAndParams': [ 'String', PAIR_MAP ],
+    'handleSubTypeAndParams': [ 'Object', PAIR_MAP ],
+    'handleUntilOption': [ PAIR_MAP, PAIR_MAP ],
+};
+const PAIR_ACCESSORS = [ 'first', 'second' ];
+
+function pairJavaType (types) {
+    return `io.github.ccxt.base.Pair<${types[0]}, ${types[1]}>`;
+}
+
+function pairDeclarationFile (declaration) {
+    return String (declaration?.getSourceFile?.()?.fileName ?? '');
+}
+
+// the declaration is the base one, or a venue override whose ancestor chain reaches it
+function pairMethodTypes (printer, declaration) {
+    if (declaration === undefined || !ts.isMethodDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
+        return undefined;
+    }
+    const types = Object.hasOwn (PAIR_ELEMENT_TYPES, declaration.name.text) ? PAIR_ELEMENT_TYPES[declaration.name.text] : undefined;
+    if (types === undefined) {
+        return undefined;
+    }
+    let current = declaration;
+    try {
+        for (let depth = 0; current !== undefined && depth < 8; depth++) {
+            if (HANDLE_DECLARATION_FILE.test (pairDeclarationFile (current))) {
+                return types;
+            }
+            current = printer.getMethodOverride (current);
+        }
+    } catch (e) {
+        return undefined;
+    }
+    return undefined;
+}
+
+function pairCallTypes (printer, node) {
+    const call = unwrapParens (node);
+    if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
+        || !Object.hasOwn (PAIR_ELEMENT_TYPES, String (call.expression.name.text))) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    return pairMethodTypes (printer, declaration);
+}
+
+const PAIR_BOUND_TYPES = new WeakMap (); // binding element -> Java type its declaration printed
+
+function pairSameType (a, b) {
+    const norm = (t) => String (t).replace (/\s+/g, '').replace (/java\.util\./g, '');
+    return norm (a) === norm (b);
+}
+
+// rewrite the holder and element lines of one printed destructuring block; `targets[i]` is
+// { node, binding } (binding = the BindingElement of a declaration, undefined for an assignment)
+function pairRewriteBlock (printer, printed, holderName, types, targets) {
+    const lines = printed.split ('\n');
+    const holderRe = new RegExp (`^(\\s*)(?:var|java\\.util\\.List<Object>) ${holderName} = (?:\\(java\\.util\\.List<Object>\\) )?((?:this|super|[A-Za-z_$][\\w$]*)\\.\\w+\\(.*)$`);
+    const holderAt = lines.findIndex ((line) => holderRe.test (line));
+    if (holderAt === -1) {
+        return printed;
+    }
+    const holder = holderRe.exec (lines[holderAt]);
+    lines[holderAt] = `${holder[1]}${pairJavaType (types)} ${holderName} = ${holder[2]}`;
+    const readRe = new RegExp (`^(\\s*)(?:([\\w.<>, ]+?) )?([A-Za-z_$][\\w$]*) = (?:\\(([\\w.<>, ]+)\\) )?\\(\\(java\\.util\\.List<Object>\\) ${holderName}\\)\\.get\\(([01])\\)(;.*)?$`);
+    for (let k = holderAt + 1; k < lines.length; k++) {
+        const m = readRe.exec (lines[k]);
+        if (m === null) {
+            continue;
+        }
+        const [ , indent, declared, name, cast, indexText ] = m;
+        const tail = m[6] ?? '';
+        const index = Number (indexText);
+        const element = types[index];
+        const target = targets[index];
+        if (target === undefined) {
+            continue;
+        }
+        const read = `${holderName}.${PAIR_ACCESSORS[index]}()`;
+        if (declared === undefined) {
+            // assignment: a matching checkcast proves the target holds the element type; an uncast
+            // Object read compiles only into a target that accepts Object, so the element fits too
+            if (cast === undefined || pairSameType (cast, element)) {
+                lines[k] = `${indent}${name} = ${read}${tail}`;
+            }
+            continue;
+        }
+        if (declared === 'var') {
+            if (cast !== undefined) {
+                continue;
+            }
+            if (element === 'Object') {
+                lines[k] = `${indent}var ${name} = ${read}${tail}`;
+                continue;
+            }
+            const binding = target.binding;
+            const isProFile = /[\\/]pro[\\/]/.test (binding?.getSourceFile?.()?.fileName ?? '');
+            if (binding === undefined || !ts.isIdentifier (binding.name)
+                || !handleTupleIsSafeToNarrow (printer, enclosingFunction (binding), binding.name, binding.name.text, element, isProFile)) {
+                continue;
+            }
+            lines[k] = `${indent}${element} ${name} = ${read}${tail}`;
+            PAIR_BOUND_TYPES.set (binding, element);
+            continue;
+        }
+        if (!(pairSameType (declared, element) || declared === 'Object') || (cast !== undefined && !pairSameType (cast, element))) {
+            continue; // a narrower/other declared type keeps the list read
+        }
+        lines[k] = `${indent}${declared} ${name} = ${read}${tail}`;
+        if (target.binding !== undefined) {
+            PAIR_BOUND_TYPES.set (target.binding, declared);
+        }
+    }
+    return lines.join ('\n');
+}
+
+// `return [a, b]` in an override: every element must print the pair's own element type
+function pairReturnElementProven (printer, node, element) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
+        return true;
+    }
+    if (ts.isStringLiteralLike (value)) {
+        return element === 'String' || element === 'Object';
+    }
+    if (!ts.isIdentifier (value)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    const bound = declaration === undefined ? undefined : PAIR_BOUND_TYPES.get (declaration);
+    return bound !== undefined && (pairSameType (bound, element) || element === 'Object');
+}
+
+export function installJavaTuplePairReturns (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaTuplePairReturnsPatched) {
+        return;
+    }
+    printer._javaTuplePairReturnsPatched = true;
+    const upstreamFunctionType = printer.printFunctionType.bind (printer);
+    printer.printFunctionType = function (node, ...rest) {
+        const own = upstreamFunctionType (node, ...rest);
+        const types = pairMethodTypes (printer, node);
+        return types === undefined ? own : pairJavaType (types);
+    };
+    const upstreamReturn = printer.printReturnStatement.bind (printer);
+    printer.printReturnStatement = function (node, identation) {
+        const method = enclosingFunction (node);
+        // base bodies are dropped for the hand-written ones; only venue overrides print here
+        const types = (method === undefined || HANDLE_DECLARATION_FILE.test (pairDeclarationFile (method)))
+            ? undefined : pairMethodTypes (printer, method);
+        const value = unwrapParens (node.expression);
+        if (types === undefined || value === undefined || !ts.isArrayLiteralExpression (value)) {
+            return upstreamReturn (node, identation);
+        }
+        if (value.elements.length !== 2 || !value.elements.every ((e, i) => pairReturnElementProven (printer, e, types[i]))) {
+            const where = `${pairDeclarationFile (node)}:${method.name.text}`;
+            throw new Error (`installJavaTuplePairReturns: unproven [a, b] return in ${where}; type the elements in ts/src`);
+        }
+        const printed = upstreamReturn (node, identation);
+        const open = 'new java.util.ArrayList<Object>(java.util.Arrays.asList(';
+        const at = printed.indexOf (open);
+        const close = printed.lastIndexOf ('))');
+        if (at === -1 || close < at) {
+            throw new Error (`installJavaTuplePairReturns: unexpected return print in ${method.name.text}`);
+        }
+        return printed.slice (0, at) + 'new io.github.ccxt.base.Pair<>(' + printed.slice (at + open.length, close) + ')' + printed.slice (close + 2);
+    };
+    const upstreamDeclarations = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclarations (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (node.declarations?.length !== 1 || declaration?.name?.kind !== ts.SyntaxKind.ArrayBindingPattern) {
+            return printed;
+        }
+        const types = pairCallTypes (printer, declaration.initializer);
+        if (types === undefined) {
+            return printed;
+        }
+        const elements = declaration.name.elements;
+        const names = elements.map ((e) => (ts.isOmittedExpression (e) ? '' : printer.printNode (e.name, 0)));
+        const targets = elements.map ((e) => (ts.isOmittedExpression (e) ? undefined : { binding: e }));
+        return pairRewriteBlock (printer, printed, names.join ('') + 'Variable', types, targets);
+    };
+    const upstreamCustom = printer.printCustomBinaryExpressionIfAny.bind (printer);
+    printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = upstreamCustom (node, identation);
+        if (typeof printed !== 'string' || node?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken
+            || node.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
+            return printed;
+        }
+        const types = pairCallTypes (printer, node.right);
+        if (types === undefined) {
+            return printed;
+        }
+        const elements = node.left.elements;
+        const names = elements.map ((e) => printer.printNode (e, 0));
+        const targets = elements.map ((e) => (ts.isIdentifier (e) ? { binding: undefined } : undefined));
+        return pairRewriteBlock (printer, printed, names.join ('') + 'Variable', types, targets);
+    };
+}

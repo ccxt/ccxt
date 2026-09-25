@@ -1700,7 +1700,7 @@ public partial class lighter : ccxt.lighter
 
     public virtual void handleTickerUnSubscription(WebSocketClient client, object marketId)
     {
-        if (isEqual(marketId, "all"))
+        if ((marketId is "all"))
         {
             // a ticker hash is served by the one wire channel that created its subscription
             // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash

@@ -4065,7 +4065,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> requestParams = this.keysort(this.omit(parameters, this.extractParams(path)));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(access, "public"))
+        if ((access is "public"))
         {
             url = url + pathWithParams;
             if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)

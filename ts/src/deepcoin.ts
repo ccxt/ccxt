@@ -382,7 +382,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    override handleMarketTypeAndParams (methodName: string, market: Market = undefined, params: Dict = {}, defaultValue: any = undefined): any {
+    override handleMarketTypeAndParams (methodName: string, market: Market = undefined, params: Dict = {}, defaultValue: Str = undefined): [string, Dict] {
         const instType = this.safeString (params, 'instType');
         const paramsOmitted = this.omit (params, 'instType');
         const type = this.safeString (paramsOmitted, 'type');

@@ -2535,12 +2535,12 @@ public class Kalshi extends KalshiApi
             {
                 defaultTif = "good_till_canceled";
             }
-            List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
-            String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
-            Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceparamsTimeInForceVariable).get(1);
-            List<Object> stpparamsSelfTradePreventionTypeVariable = (List<Object>) this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-            String stp = (String) ((List<Object>) stpparamsSelfTradePreventionTypeVariable).get(0);
-            Map<String, Object> paramsSelfTradePreventionType = (Map<String, Object>) ((List<Object>) stpparamsSelfTradePreventionTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "time_in_force", defaultTif);
+            String timeInForce = timeInForceparamsTimeInForceVariable.first();
+            Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTimeInForce), "createOrder", "self_trade_prevention_type", "taker_at_cross");
+            String stp = stpparamsSelfTradePreventionTypeVariable.first();
+            Map<String, Object> paramsSelfTradePreventionType = stpparamsSelfTradePreventionTypeVariable.second();
             Map<String, Object> request = Helpers.newMap(
                 "ticker", ticker,
                 "side", bookSide,

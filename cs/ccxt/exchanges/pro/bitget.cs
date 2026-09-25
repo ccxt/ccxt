@@ -3136,7 +3136,7 @@ public partial class bitget : ccxt.bitget
         //
         if ((message is string))
         {
-            if (isEqual(message, "pong"))
+            if ((message is "pong"))
             {
                 this.handlePong(client, message);
             }

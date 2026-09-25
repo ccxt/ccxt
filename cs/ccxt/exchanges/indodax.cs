@@ -1660,7 +1660,7 @@ public partial class indodax : Exchange
         object url = apiUrl;
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = null;
-        bool isPublic = (isEqual(api, "public"));
+        bool isPublic = ((api is "public"));
         if (isPublic)
         {
             object query = this.omit(parameters, this.extractParams(path));

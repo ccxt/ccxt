@@ -463,7 +463,7 @@ public partial class testMainClass : BaseTest
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
                 // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
                 List<object> decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
-                if (isEqual(key, "amount") && inOp(skippedProperties, "precisionAmountAbnormal"))
+                if ((key is "amount") && inOp(skippedProperties, "precisionAmountAbnormal"))
                 {
                     return;
                 }
@@ -599,7 +599,7 @@ public partial class testMainClass : BaseTest
             // if non-strict check, then accept & ignore undefined values
             bool nonstrictOpen = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt(filled, amount));
             // check
-            if (isEqual(assertedStatus, "open"))
+            if ((assertedStatus is "open"))
             {
                 condition = isTrue(strictCheck) ? strictOpen : nonstrictOpen;
                 assert(condition, msg);
@@ -613,7 +613,7 @@ public partial class testMainClass : BaseTest
             // if non-strict check, then accept & ignore undefined values
             bool closedNonStrict = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringEq(filled, amount));
             // check
-            if (isEqual(assertedStatus, "closed"))
+            if ((assertedStatus is "closed"))
             {
                 condition = isTrue(strictCheck) ? closedStrict : closedNonStrict;
                 assert(condition, msg);
@@ -627,7 +627,7 @@ public partial class testMainClass : BaseTest
             // if non-strict check, then accept & ignore undefined values
             bool canceledNonStrict = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt(filled, amount));
             // check
-            if (isEqual(assertedStatus, "canceled"))
+            if ((assertedStatus is "canceled"))
             {
                 condition = isTrue(strictCheck) ? canceledStrict : canceledNonStrict;
                 assert(condition, msg);
@@ -636,7 +636,7 @@ public partial class testMainClass : BaseTest
             //
             // ### CLOSED_or_CANCELED STATUS
             //
-            if (isEqual(assertedStatus, "closed_or_canceled"))
+            if ((assertedStatus is "closed_or_canceled"))
             {
                 condition = isTrue(strictCheck) ? (closedStrict || canceledStrict) : (closedNonStrict || canceledNonStrict);
                 assert(condition, msg);

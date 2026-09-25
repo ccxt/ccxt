@@ -4930,13 +4930,13 @@ public partial class aster : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((baseApiUrl + "/") + path);
-        if (isEqual(api, "fapiPublic") || isEqual(api, "sapiPublic"))
+        if ((api is "fapiPublic") || (api is "sapiPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 url = url + ("?" + this.rawencode(parameters));
             }
-        } else if (isEqual(api, "fapiPrivate") || isEqual(api, "sapiPrivate"))
+        } else if ((api is "fapiPrivate") || (api is "sapiPrivate"))
         {
             this.checkRequiredCredentials();
             Int64 nonce = (this.milliseconds() * 1000);

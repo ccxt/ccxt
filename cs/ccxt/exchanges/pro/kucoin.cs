@@ -122,13 +122,13 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> response = null;
         try
         {
-            if (isEqual(connectId, "private"))
+            if ((connectId is "private"))
             {
                 response = await this.privatePostBulletPrivate(parameters);
-            } else if (isEqual(connectId, "public"))
+            } else if ((connectId is "public"))
             {
                 response = await this.publicPostBulletPublic(parameters);
-            } else if (isEqual(connectId, "privateFutures"))
+            } else if ((connectId is "privateFutures"))
             {
                 response = await this.futuresPrivatePostBulletPrivate(parameters);
             } else
@@ -2930,7 +2930,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> paramsOmitted = this.omit(paramsUta, "type");
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object uniformType = this.safeString(accountsByType, type, type);
-        bool isClassicFuturesMethod = (isEqual(uniformType, "contract"));
+        bool isClassicFuturesMethod = ((uniformType is "contract"));
         object subscriptionHash = "/account/balance";
         if (isClassicFuturesMethod)
         {
@@ -3005,7 +3005,7 @@ public partial class kucoin : ccxt.kucoin
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        bool uta = (isEqual(type, "unified"));
+        bool uta = ((type is "unified"));
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
             { "uta", uta },

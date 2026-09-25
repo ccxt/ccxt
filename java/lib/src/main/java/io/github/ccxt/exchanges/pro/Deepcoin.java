@@ -858,9 +858,9 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String symbol = this.safeString(market, "symbol");
         String aggregation = null;
         Map<String, Object> paramsAggregation = null;
-        List<Object> aggregationparamsAggregationVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "aggregation", (String) null);
-        aggregation = (String) ((List<Object>) aggregationparamsAggregationVariable).get(0);
-        paramsAggregation = (Map<String, Object>) ((List<Object>) aggregationparamsAggregationVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> aggregationparamsAggregationVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "aggregation", (String) null);
+        aggregation = aggregationparamsAggregationVariable.first();
+        paramsAggregation = aggregationparamsAggregationVariable.second();
         if (java.util.Objects.equals(aggregation, null))
         {
             Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});

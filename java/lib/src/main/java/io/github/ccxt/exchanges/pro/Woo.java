@@ -189,9 +189,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> market = this.market(symbol);
             String topic = ((market.get("id") + "@") + method);
             String urlUid = "";
@@ -242,8 +242,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
+            String method = methodparamsMethodVariable.first();
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             String subHash = ((market.get("id") + "@") + method);
@@ -484,8 +484,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "method", "ticker");
+            String method = methodparamsMethodVariable.first();
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             String subHash = ((market.get("id") + "@") + method);

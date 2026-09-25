@@ -4534,14 +4534,14 @@ public partial class deribit : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string request = (((((("/" + "api/") + this.version) + "/") + (api)) + "/") + path);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();

@@ -1438,7 +1438,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
 	hip3Option, paramsHip3 := this.HandleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false)
 	var hip3 bool = hip3Option
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		// infer from first symbol
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
@@ -2361,7 +2361,7 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method string, option
 	}()
 	var enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable []any = this.HandleOptionBoolAndParamsNullable(paramsAddress, method, "enableUnifiedMargin")
 	enableUnifiedMarginOption := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 0)
-	paramsEnableUnifiedMargin := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 1)
+	var paramsEnableUnifiedMargin map[string]any = MapTyped(GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 1))
 	var enableUnifiedMargin any = enableUnifiedMarginOption
 	if IsEqual(enableUnifiedMargin, nil) || (shouldRefresh == true) {
 		var request map[string]any = map[string]any{

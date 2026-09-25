@@ -165,7 +165,7 @@ public partial class backpack : ccxt.backpack
                 }
             } else if (getIndexOf(messageHash, "orders") >= 0)
             {
-                if (isEqual(messageHash, "unsubscribe:orders"))
+                if ((messageHash is "unsubscribe:orders"))
                 {
                     ccxt.pro.ArrayCache cache = this.orders;
                     if ((cache != null))
@@ -188,7 +188,7 @@ public partial class backpack : ccxt.backpack
                 }
             } else if (getIndexOf(messageHash, "positions") >= 0)
             {
-                if (isEqual(messageHash, "unsubscribe:positions"))
+                if ((messageHash is "unsubscribe:positions"))
                 {
                     ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
                     List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);

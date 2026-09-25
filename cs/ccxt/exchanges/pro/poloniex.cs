@@ -183,7 +183,7 @@ public partial class poloniex : ccxt.poloniex
         {
             symbolsHash = add(add(messageHash, "::"), symbolsSuffix);
         }
-        if (!isEqual(name, "balances"))
+        if (!(name is "balances"))
         {
             subscribe["symbols"] = marketIds;
         }

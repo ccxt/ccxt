@@ -1123,7 +1123,7 @@ public partial class coinspot : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + fullPath);
-        if (isEqual(accessType, "private"))
+        if ((accessType is "private"))
         {
             this.checkRequiredCredentials();
             // coinspot requires an increasing nonce

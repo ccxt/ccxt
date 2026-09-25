@@ -3753,7 +3753,7 @@ public partial class hashkey : Exchange
             type = "market";
         }
         string? price = ((string)this.omitZero(this.safeString(order, "price")));
-        if (isEqual(type, "STOP"))
+        if ((type is "STOP"))
         {
             if ((price == null))
             {
@@ -3854,13 +3854,13 @@ public partial class hashkey : Exchange
     public virtual List<object> parseOrderTypeTimeInForceAndPostOnly(object type, object timeInForce)
     {
         bool? postOnly = null;
-        bool isMakerTimeInForce = (isEqual(timeInForce, "LIMIT_MAKER")) || (isEqual(timeInForce, "MAKER"));
-        if ((isEqual(type, "LIMIT_MAKER")) || isMakerTimeInForce)
+        bool isMakerTimeInForce = ((timeInForce is "LIMIT_MAKER")) || ((timeInForce is "MAKER"));
+        if (((type is "LIMIT_MAKER")) || isMakerTimeInForce)
         {
             postOnly = true;
         }
         object timeInForceParsed = timeInForce;
-        if ((!isEqual(type, "LIMIT_MAKER")) && isMakerTimeInForce)
+        if ((!(type is "LIMIT_MAKER")) && isMakerTimeInForce)
         {
             timeInForceParsed = "PO";
         }
@@ -4647,7 +4647,7 @@ public partial class hashkey : Exchange
         }
         string url = ((apiUrl + "/") + path);
         string? query = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();

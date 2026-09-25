@@ -6404,10 +6404,9 @@ class mexc extends Exchange {
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
-        list($marginModeValue, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        $marginMode = $marginModeValue;
+        list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
-            $marginMode = 'isolated';
+            return array( 'isolated', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );
     }

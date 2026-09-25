@@ -1177,8 +1177,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("watchBalance", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (String) null);
+            String type = typeparamsMarketTypeVariable.first();
             var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Object isUnifiedEnabled = null;
             Object unifiedResult = (this.isUnifiedEnabled("watchBalance", Helpers.toStringArg(userAddress), false, Helpers.toMapArg(paramsMarketType))).join();
@@ -1242,8 +1242,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("unWatchBalance", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("unWatchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (String) null);
+            String type = typeparamsMarketTypeVariable.first();
             var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Object isUnifiedEnabled = null;
             Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", Helpers.toStringArg(userAddress), false, Helpers.toMapArg(paramsMarketType))).join();

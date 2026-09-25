@@ -1049,9 +1049,9 @@ public class Alpaca extends AlpacaApi
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Boolean paginate = false;
             Object query = null;
-            List<Object> paginatequeryVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginatequeryVariable).get(0);
-            query = ((List<Object>) paginatequeryVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            paginate = paginatequeryVariable.first();
+            query = paginatequeryVariable.second();
             Object paginationCalls = 10;
             List<Object> paginationCallsqueryVariable = (List<Object>) this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10L);
             paginationCalls = ((List<Object>) paginationCallsqueryVariable).get(0);
@@ -1490,9 +1490,9 @@ public class Alpaca extends AlpacaApi
                 request.put("qty", this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> paramsCost = (((!java.util.Objects.equals(cost, null)))) ? this.omit(parameters, "cost") : parameters;
-            List<Object> defaultTIFparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce", (String) null);
-            String defaultTIF = (String) ((List<Object>) defaultTIFparamsTimeInForceVariable).get(0);
-            var paramsTimeInForce = ((List<Object>) defaultTIFparamsTimeInForceVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCost), "createOrder", "timeInForce", (String) null);
+            String defaultTIF = defaultTIFparamsTimeInForceVariable.first();
+            Map<String, Object> paramsTimeInForce = defaultTIFparamsTimeInForceVariable.second();
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request.put("time_in_force", (((!java.util.Objects.equals(defaultTIF, null)))) ? ((String)defaultTIF).toLowerCase() : defaultTIF);
             Object paramsOmitted = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
@@ -1828,9 +1828,9 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("limit_price", this.priceToPrecision(symbol, price));
             }
-            List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
-            String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
-            var paramsTimeInForce = ((List<Object>) timeInForceparamsTimeInForceVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTrigger), "editOrder", "timeInForce", "gtc");
+            String timeInForce = timeInForceparamsTimeInForceVariable.first();
+            Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
@@ -2013,9 +2013,9 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("page_size", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [

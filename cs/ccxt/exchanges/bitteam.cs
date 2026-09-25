@@ -2584,7 +2584,7 @@ public partial class bitteam : Exchange
         string query = this.urlencode(request);
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             if ((method == "POST"))

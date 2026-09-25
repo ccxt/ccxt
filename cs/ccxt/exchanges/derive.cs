@@ -3255,7 +3255,7 @@ public partial class derive : Exchange
             Dictionary<string, object> postHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
             };
-            if (isEqual(api, "private"))
+            if ((api is "private"))
             {
                 string now = this.milliseconds().ToString();
                 string signature = this.signMessage(now, this.privateKey);

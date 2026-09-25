@@ -6338,7 +6338,7 @@ public partial class kucoin : Exchange
                 { "marketType", marketType },
             });
             return await this.FetchUtaOrdersByStatus(status, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
-        } else if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
+        } else if (((marketType is "spot")) || ((marketType is "margin")))
         {
             return await this.FetchSpotOrdersByStatus(status, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsRequest);
         } else
@@ -13240,19 +13240,19 @@ public partial class kucoin : Exchange
         {
             endpoint = ("/api/ua/v2/" + this.implodeParams(path, paramsOmitted));
         }
-        if (isEqual(api, "webExchange"))
+        if ((api is "webExchange"))
         {
             endpoint = ("/" + this.implodeParams(path, paramsOmitted));
         }
-        if (isEqual(api, "earn"))
+        if ((api is "earn"))
         {
             endpoint = ("/api/v1/" + this.implodeParams(path, paramsOmitted));
         }
         bool isUtaPrivate = false;
-        if ((isEqual(api, "uta")) || (isEqual(api, "utaPrivate")))
+        if (((api is "uta")) || ((api is "utaPrivate")))
         {
             endpoint = ("/api/ua/v1/" + this.implodeParams(path, paramsOmitted));
-            if (isEqual(api, "utaPrivate"))
+            if ((api is "utaPrivate"))
             {
                 isUtaPrivate = true;
             }
@@ -13289,10 +13289,10 @@ public partial class kucoin : Exchange
             }
         }
         url = add(url, endpoint);
-        bool isFuturePrivate = (isEqual(api, "futuresPrivate"));
-        bool isPrivate = (isEqual(api, "private"));
-        bool isBroker = (isEqual(api, "broker"));
-        bool isEarn = (isEqual(api, "earn"));
+        bool isFuturePrivate = ((api is "futuresPrivate"));
+        bool isPrivate = ((api is "private"));
+        bool isBroker = ((api is "broker"));
+        bool isEarn = ((api is "earn"));
         if (isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate)
         {
             this.checkRequiredCredentials();

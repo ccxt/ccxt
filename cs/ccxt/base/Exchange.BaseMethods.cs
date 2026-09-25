@@ -1750,7 +1750,7 @@ public partial class BaseExchange
         object methodsContainer = getValue(this.features, marketType);
         if ((subType == null))
         {
-            if (!isEqual(marketType, "spot"))
+            if (!(marketType is "spot"))
             {
                 return defaultValue;  // subType is required for non-spot markets
             }
@@ -2618,7 +2618,7 @@ public partial class BaseExchange
         // support for market orders
         object orderType = this.safeValue(orderDict, "type");
         bool emptyPrice = ((price == null)) || Precise.stringEquals(price, "0");
-        if (emptyPrice && (isEqual(orderType, "market")))
+        if (emptyPrice && ((orderType is "market")))
         {
             price = average;
         }
@@ -2761,7 +2761,7 @@ public partial class BaseExchange
     {
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
-        if ((type == "market") && isEqual(takerOrMaker, "maker"))
+        if ((type == "market") && (takerOrMaker is "maker"))
         {
             throw new ArgumentsRequired ((this.id + " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
@@ -5058,7 +5058,7 @@ public partial class BaseExchange
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = valuenewParamsVariable[0];
-        var newParams = valuenewParamsVariable[1];
+        IDictionary<string, object> newParams = ((IDictionary<string, object>)valuenewParamsVariable[1]);
         return (this.checkOptionString(methodName, optionName, value), newParams);
     }
 
@@ -5068,7 +5068,7 @@ public partial class BaseExchange
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
-        var newParams = valuenewParamsVariable[1];
+        IDictionary<string, object> newParams = ((IDictionary<string, object>)valuenewParamsVariable[1]);
         return (this.checkOptionString(methodName, optionName1, value), newParams);
     }
 
@@ -5079,7 +5079,7 @@ public partial class BaseExchange
         // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = valuenewParamsVariable[0];
-        var newParams = valuenewParamsVariable[1];
+        IDictionary<string, object> newParams = ((IDictionary<string, object>)valuenewParamsVariable[1]);
         return (this.checkOptionBool(methodName, optionName, value), newParams);
     }
 
@@ -5089,7 +5089,7 @@ public partial class BaseExchange
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
-        var newParams = valuenewParamsVariable[1];
+        IDictionary<string, object> newParams = ((IDictionary<string, object>)valuenewParamsVariable[1]);
         return (this.checkOptionBool(methodName, optionName1, value), newParams);
     }
 
@@ -6700,10 +6700,10 @@ public partial class BaseExchange
          * @param {string} methodName name of the method that requires a symbol
          * @param {string} marginMode is either 'isolated' or 'cross'
          */
-        if ((isEqual(marginMode, "isolated")) && ((symbol == null)))
+        if (((marginMode is "isolated")) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbol argument for isolated margin")) ;
-        } else if ((isEqual(marginMode, "cross")) && ((symbol != null)))
+        } else if (((marginMode is "cross")) && ((symbol != null)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() cannot have a symbol argument for cross margin")) ;
         }
@@ -7056,7 +7056,7 @@ public partial class BaseExchange
         {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
-        object key = (isEqual(method, "fetchOHLCV")) ? 0 : "timestamp";
+        object key = ((method is "fetchOHLCV")) ? 0 : "timestamp";
         List<object> sortedRes = this.sortBy(uniqueResults, key);
         return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
@@ -7073,7 +7073,7 @@ public partial class BaseExchange
         {
             try
             {
-                if (((timeframe != null) && (timeframe != "")) && !isEqual(method, "fetchFundingRateHistory"))
+                if (((timeframe != null) && (timeframe != "")) && !(method is "fetchFundingRateHistory"))
                 {
                     return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, paramsMaxRetries }));
                 } else
@@ -7166,7 +7166,7 @@ public partial class BaseExchange
             result = this.arrayConcat(result, results[i]);
         }
         object uniqueResults = ((object)this.removeRepeatedElementsFromArray(result));
-        object key = (isEqual(method, "fetchOHLCV")) ? 0 : "timestamp";
+        object key = ((method is "fetchOHLCV")) ? 0 : "timestamp";
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
 

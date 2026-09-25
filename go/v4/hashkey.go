@@ -3912,7 +3912,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	var isTrigger *bool = defaultValue
 	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
 	isTriggerStop := GetValue(isTriggerStopparamsStopVariable, 0)
-	paramsStop := GetValue(isTriggerStopparamsStopVariable, 1)
+	var paramsStop map[string]any = MapTyped(GetValue(isTriggerStopparamsStopVariable, 1))
 	return []any{isTriggerStop, paramsStop}
 }
 func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {

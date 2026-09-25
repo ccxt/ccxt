@@ -779,7 +779,7 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var response map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var first *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(first)
 		request["quote_currency"] = market["quote"]

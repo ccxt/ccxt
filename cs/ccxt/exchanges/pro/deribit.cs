@@ -1007,7 +1007,7 @@ public partial class deribit : ccxt.deribit
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        bool isOHLCV = (isEqual(channelName, "chart.trades"));
+        bool isOHLCV = ((channelName is "chart.trades"));
         object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, null, false);
         if ((symbolsArray == null))

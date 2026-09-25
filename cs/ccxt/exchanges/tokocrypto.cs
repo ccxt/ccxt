@@ -2850,7 +2850,7 @@ public partial class tokocrypto : Exchange
         }
         string url = baseApiUrl;
         url = url + ("/" + path);
-        if (isEqual(api, "wapi"))
+        if ((api is "wapi"))
         {
             url = url + ".html";
         }
@@ -2875,7 +2875,7 @@ public partial class tokocrypto : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((isEqual(api, "private")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || (isEqual(api, "wapi") && (path != "systemStatus")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
+        } else if (((api is "private")) || ((api is "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || ((api is "wapi") && (path != "systemStatus")) || ((api is "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || ((api is "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
             string? query = null;
@@ -2892,7 +2892,7 @@ public partial class tokocrypto : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if ((isEqual(api, "sapi")) && ((path == "asset/dust")))
+            if (((api is "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0))
@@ -2907,7 +2907,7 @@ public partial class tokocrypto : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || (isEqual(api, "wapi"));
+            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((api is "wapi"));
             object bodySigned = query;
             if (queryInUrl)
             {

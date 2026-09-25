@@ -560,8 +560,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> verboseparamsVerboseVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
-            Boolean verbose = (Boolean) ((List<Object>) verboseparamsVerboseVariable).get(0);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
+            Boolean verbose = verboseparamsVerboseVariable.first();
             var paramsVerbose = ((List<Object>) verboseparamsVerboseVariable).get(1);
             Object name = "open_orders";
             String messageHash = "orders";
@@ -654,8 +654,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             String name = "balances";
             String messageHash = name;
-            List<Object> accountparamsAccountVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchBalance", "account", (String) null);
-            String account = (String) ((List<Object>) accountparamsAccountVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountparamsAccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBalance", "account", (String) null);
+            String account = accountparamsAccountVariable.first();
             var paramsAccount = ((List<Object>) accountparamsAccountVariable).get(1);
             if (!java.util.Objects.equals(account, null))
             {
