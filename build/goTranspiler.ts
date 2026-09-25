@@ -1712,7 +1712,7 @@ function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf
     }
     const n = goAccessEscape (name);
     if (/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc)
-        || new RegExp ('^(?![^\\n]*<-)[^\\n]*\\w+Async\\([^\\n]*\\b' + n + '\\b', 'm').test (maskedFunc)
+        || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
         || new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
         return false;
     }
@@ -1725,7 +1725,7 @@ function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf
         const tuple = /^(?:ccxt\.)?MapTyped\((?:ccxt\.)?GetValue\((\w+), 1\)\)$/.exec (init);
         const holder = (tuple === null) ? undefined : declOf (tuple[1]);
         return GO_INOP_READ_INIT.test (init) || ((holder !== undefined) && (holder.index !== undefined)
-            && /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.Handle\w+\(/.test (holder.line));
+            && /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.(?:HandleWithdrawTagAndParams|HandleParamString2?|HandleParamBool)\(/.test (holder.line));
     });
 }
 
