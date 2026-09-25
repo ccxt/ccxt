@@ -226,8 +226,7 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 	}
 
-	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(newTicker)
+	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
@@ -423,8 +422,7 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 	}
 
-	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(newTicker)
+	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
@@ -538,7 +536,7 @@ func (this *Aster) HandleTicker(client any, message map[string]any) {
 	var ticker map[string]any = message
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, marketType))
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -636,8 +634,7 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("bidask:", market["symbol"]))
 	}
 
-	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(newTicker)
+	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
@@ -728,7 +725,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 	}
-	var messageHash any = ccxt.Add("bidask:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Aster) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
@@ -1073,7 +1070,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var cost *string = this.SafeString(trade, "Y")
 	if cost == nil {
-		if (price != nil) && (!ccxt.IsEqual(amount, nil)) {
+		if (price != nil) && (amount != nil) {
 			cost = ccxt.Precise.StringMul(price, amount)
 		}
 	}
@@ -1086,7 +1083,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	var side *string = this.SafeStringLower(trade, "S")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
 		if side == nil {
@@ -1097,12 +1094,12 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 				return "buy"
 			}()) // this is reversed intentionally
 		}
-		takerOrMaker = func() string {
+		takerOrMaker = ccxt.SafeStringPtr(func() string {
 			if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "n")
@@ -2144,7 +2141,7 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 				return nil
 			}()
 			var symbol any = ccxt.GetValue(position, "symbol")
-			var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+			var symbolMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+"::", symbol))
 			client.(ccxt.ClientInterface).Resolve(position, symbolMessageHash)
 		}
 		client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
@@ -2417,7 +2414,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		var myTrades any = this.MyTrades
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
-		var messageHashSymbol any = ccxt.Add(messageHash+"::", symbol)
+		var messageHashSymbol *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+"::", symbol))
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHashSymbol)
 	}
 }

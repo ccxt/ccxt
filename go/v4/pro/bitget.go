@@ -164,7 +164,7 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchTicker", "uta", false)
@@ -354,7 +354,7 @@ func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) any {
@@ -556,8 +556,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, "bidask:"+*symbol)
 	}
 
-	tickers := (<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))
-	ccxt.PanicOnError(tickers)
+	var tickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(tickers, "symbol"), tickers)
@@ -575,7 +574,7 @@ func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 	}
-	var messageHash any = ccxt.Add("bidask:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
@@ -830,7 +829,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -970,7 +969,7 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), market["symbol"]))
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, methodName, "uta", false)
@@ -2564,7 +2563,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if uta == true {
 		instType = "UTA"
 	}
-	var subscriptionHash any = ccxt.Add("fill:", instType)
+	var subscriptionHash *string = ccxt.SafeStringPtr(ccxt.Add("fill:", instType))
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
@@ -2732,7 +2731,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
-		var symbolSpecificMessageHash any = ccxt.Add("myTrades:", symbol)
+		var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", symbol))
 		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -2973,7 +2972,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	// see https://github.com/ccxt/ccxt/issues/21973
 	ccxt.AddElementToObject(this.Balance, "info", message)
 	this.Balance = this.SafeBalance(this.Balance)
-	var messageHash any = ccxt.Add("balance:", instType)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("balance:", instType))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Bitget) WatchPublicAsync(uta any, messageHash any, args any, optionalArgs ...any) <-chan any {
@@ -3204,7 +3203,7 @@ func (this *Bitget) HandleErrorMessage(client any, message any) any {
 			// try block:
 			if event != nil && *event == "error" {
 				var code *string = this.SafeString(message, "code")
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, feedback)
 				var msg *string = this.SafeString(message, "msg", "")
 				this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "broad"), msg, feedback)

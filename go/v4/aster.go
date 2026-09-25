@@ -1668,14 +1668,14 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(trade, "time", "T")
 	var side *string = this.SafeStringLower(trade, "side")
 	var isMaker *bool = this.SafeBool(trade, "maker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 		if side == nil {
 			var isBuyer *bool = this.SafeBool(trade, "buyer")
 			if isBuyer != nil {
@@ -2385,9 +2385,9 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "nextFundingTime")
 	var timestamp *int64 = this.SafeInteger(contract, "time")
 	var interval *string = this.SafeString(contract, "fundingIntervalHours")
-	var intervalString any = nil
+	var intervalString *string = nil
 	if interval != nil {
-		intervalString = *interval + "h"
+		intervalString = SafeStringPtr(*interval + "h")
 	}
 	return map[string]any{
 		"info":                     contract,
@@ -3397,7 +3397,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol any, typeVar any, side an
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
@@ -3477,7 +3477,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
@@ -4568,11 +4568,11 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 			return "isolated"
 		}())
 	}
-	var side any = nil
+	var side *string = nil
 	if Precise.StringGt(notionalString, "0") {
-		side = "long"
+		side = SafeStringPtr("long")
 	} else if Precise.StringLt(notionalString, "0") {
-		side = "short"
+		side = SafeStringPtr("short")
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
 	var entryPrice *float64 = Float64PtrTyped(this.ParseNumber(entryPriceString))
@@ -4591,7 +4591,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 				// walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
 				var onePlusMaintenanceMarginPercentageString *string = nil
 				var entryPriceSignString *string = entryPriceString
-				if IsEqual(side, "short") {
+				if side != nil && *side == "short" {
 					onePlusMaintenanceMarginPercentageString = Precise.StringAdd("1", maintenanceMarginPercentageString)
 					entryPriceSignString = Precise.StringMul("-1", entryPriceSignString)
 				} else {
@@ -4605,7 +4605,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 				// walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
 				var onePlusMaintenanceMarginPercentageString *string = nil
 				var entryPriceSignString *string = entryPriceString
-				if IsEqual(side, "short") {
+				if side != nil && *side == "short" {
 					onePlusMaintenanceMarginPercentageString = Precise.StringSub("1", maintenanceMarginPercentageString)
 				} else {
 					onePlusMaintenanceMarginPercentageString = Precise.StringSub("-1", maintenanceMarginPercentageString)
@@ -4949,7 +4949,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	}
 	var collateral *float64 = Float64PtrTyped(this.ParseNumber(collateralString))
 	var marginRatio any = nil
-	var side any = nil
+	var side *string = nil
 	var percentage any = nil
 	var liquidationPriceStringRaw *string = nil
 	var liquidationPrice any = nil
@@ -4958,12 +4958,12 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
 	} else {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if Precise.StringLt(notionalString, "0") {
 				return "short"
 			}
 			return "long"
-		}()
+		}())
 		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
 		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))
 		if usdm {
@@ -4976,7 +4976,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 			// TODO: calculate liquidation price for coinm contracts
 			var onePlusMaintenanceMarginPercentageString *string = nil
 			var entryPriceSignString *string = entryPriceString
-			if IsEqual(side, "short") {
+			if side != nil && *side == "short" {
 				onePlusMaintenanceMarginPercentageString = Precise.StringAdd("1", maintenanceMarginPercentageString)
 			} else {
 				onePlusMaintenanceMarginPercentageString = Precise.StringAdd("-1", maintenanceMarginPercentageString)
@@ -4992,7 +4992,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 			//
 			var onePlusMaintenanceMarginPercentageString *string = nil
 			var entryPriceSignString *string = entryPriceString
-			if IsEqual(side, "short") {
+			if side != nil && *side == "short" {
 				onePlusMaintenanceMarginPercentageString = Precise.StringSub("1", maintenanceMarginPercentageString)
 			} else {
 				onePlusMaintenanceMarginPercentageString = Precise.StringSub("-1", maintenanceMarginPercentageString)
@@ -5343,17 +5343,17 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 	var typeVar any = nil
-	var fromId any = nil
+	var fromId *string = nil
 	if !IsEqual(fromAccount, nil) {
-		fromId = ToUpper(this.ConvertTypeToAccount(fromAccount))
+		fromId = SafeStringPtr(ToUpper(this.ConvertTypeToAccount(fromAccount)))
 	}
-	var toId any = nil
+	var toId *string = nil
 	if !IsEqual(toAccount, nil) {
-		toId = ToUpper(this.ConvertTypeToAccount(toAccount))
+		toId = SafeStringPtr(ToUpper(this.ConvertTypeToAccount(toAccount)))
 	}
-	if (IsEqual(fromId, "SPOT")) && (IsEqual(toId, "FUTURE")) {
+	if (fromId != nil && *fromId == "SPOT") && (toId != nil && *toId == "FUTURE") {
 		typeVar = "SPOT_FUTURE"
-	} else if (IsEqual(fromId, "FUTURE")) && (IsEqual(toId, "SPOT")) {
+	} else if (fromId != nil && *fromId == "FUTURE") && (toId != nil && *toId == "SPOT") {
 		typeVar = "FUTURE_SPOT"
 	}
 	if typeVar == nil {
@@ -5694,7 +5694,7 @@ func (this *Aster) HandleErrors(httpCode any, reason any, url any, method any, h
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	if (code != nil) && (code == nil || *code != "200") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

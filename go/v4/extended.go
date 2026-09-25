@@ -725,7 +725,7 @@ func (this *Extended) ParseMarket(market any) any {
 	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
 	var settleId *string = nil
-	var settle any = nil
+	var settle *string = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var isSpot bool = false
 	var typeVar *string = this.SafeStringLower(market, "type")
@@ -1463,7 +1463,7 @@ func (this *Extended) ParseFundingHistory(history any, optionalArgs ...any) any 
 		"rate":      this.SafeNumber(history, "fundingRate"),
 	}
 }
-func (this *Extended) ParseFundingHistories(histories any, optionalArgs ...any) any {
+func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -1471,8 +1471,13 @@ func (this *Extended) ParseFundingHistories(histories any, optionalArgs ...any) 
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(histories); i++ {
-		result = append(result, this.ParseFundingHistory(GetValue(histories, i), market))
+	for i := 0; i < len(histories); i++ {
+		result = append(result, this.ParseFundingHistory(func() any {
+			if i >= 0 && i < len(histories) {
+				return DerefScalar(histories[i])
+			}
+			return nil
+		}(), market))
 	}
 	var symbol any = func() any {
 		if market == nil {
@@ -1544,14 +1549,14 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}()
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isTaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isTaker != nil && *isTaker {
 				return "taker"
 			}
 			return "maker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           this.SafeString2(trade, "i", "id"),
@@ -2059,14 +2064,14 @@ func (this *Extended) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Extended) ParseAccount(account any) any {
 	var accountIndex *int64 = this.SafeInteger(account, "accountIndex")
-	var typeVar any = nil
+	var typeVar *string = nil
 	if accountIndex != nil {
-		typeVar = func() string {
+		typeVar = SafeStringPtr(func() string {
 			if accountIndex != nil && *accountIndex == 0 {
 				return "main"
 			}
 			return "subaccount"
-		}()
+		}())
 	}
 	return map[string]any{
 		"id":   this.SafeString2(account, "accountId", "id"),
@@ -2170,14 +2175,14 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var code any = this.GetExtendedCurrencyCodeById(assetId, currency)
 	var ledgerCurrency map[string]any = this.SafeCurrency(code, currency).(map[string]any)
 	var amountString *string = this.SafeString(item, "amount")
-	var direction any = nil
+	var direction *string = nil
 	if amountString != nil {
-		direction = func() string {
+		direction = SafeStringPtr(func() string {
 			if Precise.StringLt(amountString, "0") {
 				return "out"
 			}
 			return "in"
-		}()
+		}())
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(item, "fee")
@@ -2655,14 +2660,14 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 		toAccount = accountId
 	}
 	var validSignature *bool = this.SafeBool(transfer, "validSignature")
-	var status any = nil
+	var status *string = nil
 	if validSignature != nil {
-		status = func() string {
+		status = SafeStringPtr(func() string {
 			if validSignature != nil && *validSignature {
 				return "ok"
 			}
 			return "failed"
-		}()
+		}())
 	} else {
 		status = this.ParseTransactionStatus(this.SafeString(transfer, "status"))
 	}
@@ -4565,7 +4570,7 @@ func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any
 	if status != nil && *status == "error" {
 		var error map[string]any = SafeMapTyped(response, "error")
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

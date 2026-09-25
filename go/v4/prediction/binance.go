@@ -610,7 +610,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
 		//
 		var responseLength int = len(response)
 		for i := 0; i < responseLength; i++ {
-			var rawTopic any = this.SafeDict(response, i)
+			var rawTopic map[string]any = ccxt.SafeMapTyped(response, i)
 			var topicId *string = this.SafeString(rawTopic, "marketTopicId")
 			if topicId != nil {
 				var already *string = this.SafeString(seen, topicId)
@@ -1391,7 +1391,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var orders any = this.SafeList(response, "orders", []any{})
+	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit)
@@ -1509,7 +1509,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var orders any = this.SafeList(response, "orders", []any{})
+	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit)
@@ -1606,7 +1606,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var data any = this.SafeList(response, "positions", []any{})
+	var data []any = ccxt.SafeListTypedDefault(response, "positions", []any{})
 	var positions any = this.ParsePredictionPositions(data)
 	if outcomes == nil {
 
@@ -1669,7 +1669,7 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
 	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetPositionFilter(this.Extend(request, params))).Raw))
 	//
 	//
-	var positions any = this.SafeList(response, "positions", []any{})
+	var positions []any = ccxt.SafeListTypedDefault(response, "positions", []any{})
 	var parsedPositions any = this.ParsePredictionPositions(positions)
 	var filteredPositions any = this.FilterByOutcomeSinceLimit(parsedPositions, outcome, nil, nil)
 
@@ -1846,7 +1846,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	//
-	var trades any = this.SafeList(response, "orders", []any{})
+	var trades []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
 	var parsedTrades any = this.ParsePredictionTrades(trades, outcomeObj)
 
 	ch <- this.FilterByOutcomeSinceLimit(parsedTrades, outcome, since, limit)
@@ -2392,7 +2392,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 	var errorCode *string = this.SafeString(response, "code")
 	if (errorCode != nil) && ccxt.Precise.StringLt(errorCode, "0") {
 		var message *string = this.SafeString(response, "msg", "")
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))

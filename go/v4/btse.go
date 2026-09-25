@@ -1859,13 +1859,13 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// perpetuals, observed live, the zero means no next funding and is omitted
 	var nextFundingTimestamp any = this.SafeIntegerOmitZero(contract, "nextFundingTime")
 	var fundingIntervalMinutes *int64 = this.SafeInteger(contract, "fundingIntervalMinutes")
-	var interval any = nil
+	var interval *string = nil
 	// a wire value of zero minutes reaches this, and zero hours is not an
 	// interval: a caller annualising a rate divides by it. anything under an
 	// hour rounds to the same string, and the vocabulary has no minutes
 	if (fundingIntervalMinutes != nil) && (*fundingIntervalMinutes >= 60) {
 		var hours int64 = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
-		interval = strconv.FormatInt(hours, 10) + "h"
+		interval = SafeStringPtr(strconv.FormatInt(hours, 10) + "h")
 	}
 	return map[string]any{
 		"info":                     contract,
@@ -4452,9 +4452,9 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     ]
 	//
-	var safeResponse any = []any{}
+	var safeResponse []any = []any{}
 	if IsArray(response) {
-		safeResponse = response
+		safeResponse = ArrayTyped(response)
 	}
 	var result map[string]any = map[string]any{
 		"info":   response,
@@ -4463,7 +4463,7 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	var longLeverage any = nil
 	var shortLeverage any = nil
 	var marginMode any = nil
-	for i := 0; i < GetArrayLength(safeResponse); i++ {
+	for i := 0; i < len(safeResponse); i++ {
 		var entrty map[string]any = SafeMapTyped(safeResponse, i)
 		var leverageValue *int64 = this.SafeInteger(entrty, "leverage")
 		var positionDirection *string = this.SafeString(entrty, "positionDirection")
@@ -4556,7 +4556,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	if success == nil || *success != true {
 		var spotErrorCode *string = this.SafeString(response, "code")
 		var spotMessage *string = this.SafeString(response, "msg")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], spotErrorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], spotMessage, feedback)
 		panic(ExchangeError(feedback))
@@ -4564,7 +4564,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	var errorCode *string = this.SafeString(response, "errorCode")
 	if errorCode != nil {
 		var message *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
@@ -4585,18 +4585,18 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	var legacyEnumCode *string = this.SafeString(response, "code")
 	if (legacyErrorText != nil) && (legacyEnumCode != nil) {
 		var legacyMessage *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], legacyEnumCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], legacyMessage, feedback)
 		panic(ExchangeError(feedback))
 	}
-	var rows any = []any{}
+	var rows []any = []any{}
 	if IsArray(response) {
-		rows = response
+		rows = ArrayTyped(response)
 	} else {
 		rows = []any{response}
 	}
-	for i := 0; i < GetArrayLength(rows); i++ {
+	for i := 0; i < len(rows); i++ {
 		var row map[string]any = SafeMapTyped(rows, i)
 		var status *string = this.SafeString(row, "status")
 		if status != nil {
@@ -4605,7 +4605,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 			if embedded != nil {
 				message = this.SafeString(embedded, "default_msg", message)
 			}
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		}

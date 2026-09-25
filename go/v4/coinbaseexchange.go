@@ -1340,7 +1340,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "product_id")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
 	var feeRate *string = nil
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var cost *string = nil
 	var feeCurrencyId *string = this.SafeStringLower(market, "quoteId")
 	if feeCurrencyId != nil {
@@ -1348,12 +1348,12 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		cost = this.SafeString(trade, costField)
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
-			takerOrMaker = func() string {
+			takerOrMaker = SafeStringPtr(func() string {
 				if liquidity != nil && *liquidity == "T" {
 					return "taker"
 				}
 				return "maker"
-			}()
+			}())
 			feeRate = this.SafeString(market, takerOrMaker)
 		}
 	}
@@ -2831,7 +2831,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var what any = Add(Add(nonce+method, request), payload)
+		var what *string = SafeStringPtr(Add(Add(nonce+method, request), payload))
 		var secret any = nil
 
 		{
@@ -2874,7 +2874,7 @@ func (this *Coinbaseexchange) HandleErrors(code any, reason any, url any, method
 	if (IsEqual(code, 400)) || (IsEqual(code, 404)) {
 		if GetValue(body, 0) == "{" {
 			var message *string = this.SafeString(response, "message")
-			var feedback any = Add(this.Id+" ", message)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ExchangeError(feedback))

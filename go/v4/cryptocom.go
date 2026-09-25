@@ -1122,21 +1122,21 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var symbol any = Add(Add(base, "/"), quote)
-		var typeVar any = nil
+		var typeVar *string = nil
 		var contract any = nil
 		if inst_type != nil && *inst_type == "CCY_PAIR" {
-			typeVar = "spot"
+			typeVar = SafeStringPtr("spot")
 			contract = false
 		} else if inst_type != nil && *inst_type == "PERPETUAL_SWAP" {
-			typeVar = "swap"
+			typeVar = SafeStringPtr("swap")
 			symbol = Add(Add(symbol, ":"), quote)
 			contract = true
 		} else if inst_type != nil && *inst_type == "FUTURE" {
-			typeVar = "future"
+			typeVar = SafeStringPtr("future")
 			symbol = Add(Add(Add(Add(symbol, ":"), quote), "-"), this.Yymmdd(expiry))
 			contract = true
 		} else if inst_type != nil && *inst_type == "WARRANT" {
-			typeVar = "option"
+			typeVar = SafeStringPtr("option")
 			var symbolOptionType string = func() string {
 				if optionType != nil && *optionType == "call" {
 					return "C"
@@ -1992,7 +1992,7 @@ func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 	response := (<-this.V1PrivatePostPrivateCreateOrder(request))
 	PanicOnError(response)
@@ -2737,9 +2737,9 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 	if tag != nil {
 		request["address_tag"] = tag
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
@@ -4656,7 +4656,7 @@ func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
 func (this *Cryptocom) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code")
 	if errorCode == nil || *errorCode != "0" {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(Add(this.Id+" ", body)))
 	}

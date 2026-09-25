@@ -1082,7 +1082,7 @@ func (this *Woo) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId any = nil
-	var settle any = nil
+	var settle *string = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var contractSize any = nil
 	var linear any = nil
@@ -1092,7 +1092,7 @@ func (this *Woo) ParseMarket(market any) any {
 	if contract {
 		margin = false
 		settleId = DerefScalar(this.SafeString(parts, 2))
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 		contractSize = this.ParseNumber("1")
 		linear = true
@@ -1273,15 +1273,15 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString2(trade, "is_maker", "isMaker") != nil && *this.SafeString2(trade, "is_maker", "isMaker") == "1")
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -3451,9 +3451,9 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"token":   currency["id"],
@@ -3537,9 +3537,9 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["token"] = GetValue(currency, "id")
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
@@ -4343,7 +4343,7 @@ func (this *Woo) HandleErrors(httpCode any, reason any, url any, method any, hea
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	}
@@ -4515,9 +4515,9 @@ func (this *Woo) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
 	var estFundingRateTimestamp *int64 = this.SafeInteger(fundingRate, "estFundingRateTimestamp")
 	var lastFundingRateTimestamp *int64 = this.SafeInteger(fundingRate, "lastFundingRateTimestamp")
 	var intervalString *string = this.SafeString(fundingRate, "estFundingIntervalHours")
-	var interval any = nil
+	var interval *string = nil
 	if intervalString != nil {
-		interval = *intervalString + "h"
+		interval = SafeStringPtr(*intervalString + "h")
 	}
 	return map[string]any{
 		"info":                     fundingRate,

@@ -1546,9 +1546,9 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// against an index, and this rate is the amount for a whole period
 	var hours *string = this.SafeString(this.SafeDict(market, "info", map[string]any{}), "funding_period_hours")
 	// zero hours is not an interval, and a caller annualising a rate divides by it
-	var interval any = nil
+	var interval *string = nil
 	if (hours != nil) && Precise.StringGt(hours, "0") {
-		interval = *hours + "h"
+		interval = SafeStringPtr(*hours + "h")
 	}
 	return map[string]any{
 		"info": contract,
@@ -2814,13 +2814,13 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		var marketId *string = this.SafeString(result, "market")
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
 		var status *string = this.SafeString(result, "status")
-		var orderStatus any = nil
+		var orderStatus *string = nil
 		if status != nil && *status == "QUEUED_FOR_CANCELLATION" {
-			orderStatus = "canceled"
+			orderStatus = SafeStringPtr("canceled")
 		} else if status != nil && *status == "ALREADY_CLOSED" {
-			orderStatus = "closed"
+			orderStatus = SafeStringPtr("closed")
 		} else if status != nil && *status == "NOT_FOUND" {
-			orderStatus = "rejected"
+			orderStatus = SafeStringPtr("rejected")
 		}
 		orders = append(orders, this.SafeOrder(map[string]any{
 			"info":          result,
@@ -3841,14 +3841,14 @@ func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transfer, "created_at")
 	var kind *string = this.SafeString(transfer, "kind")
-	var fromAccount any = nil
-	var toAccount any = nil
+	var fromAccount *string = nil
+	var toAccount *string = nil
 	if kind != nil && *kind == "DEPOSIT" {
-		fromAccount = "external"
-		toAccount = "account"
+		fromAccount = SafeStringPtr("external")
+		toAccount = SafeStringPtr("account")
 	} else if kind != nil && *kind == "WITHDRAWAL" {
-		fromAccount = "account"
-		toAccount = "external"
+		fromAccount = SafeStringPtr("account")
+		toAccount = SafeStringPtr("external")
 	}
 	return map[string]any{
 		"info":        transfer,
@@ -4642,7 +4642,7 @@ func (this *Paradex) HandleErrors(httpCode any, reason any, url any, method any,
 	//
 	var errorCode *string = this.SafeString(response, "error")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

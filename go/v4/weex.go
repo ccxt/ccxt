@@ -2212,16 +2212,16 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "maker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	} else if isBuyerMaker != nil {
-		takerOrMaker = "taker"
+		takerOrMaker = SafeStringPtr("taker")
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -3006,7 +3006,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 			panic(BadRequest(this.Id + " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time"))
 		}
 		request["clientAlgoId"] = clientOrderId
-		var orderType any = nil
+		var orderType *string = nil
 		if isStopLoss {
 			var stopLossPriceType *string = this.SafeString2(params, "stopLossPriceType", "triggerPriceType")
 			if stopLossPriceType != nil {
@@ -3014,9 +3014,9 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 			}
 			AddElementToObject(params, "triggerPrice", this.PriceToPrecision(symbol, stopLossPrice))
 			if isMarketOrder {
-				orderType = "STOP_MARKET"
+				orderType = SafeStringPtr("STOP_MARKET")
 			} else {
-				orderType = "STOP"
+				orderType = SafeStringPtr("STOP")
 			}
 		} else if isTakeProfit {
 			var takeProfitPriceType *string = this.SafeString2(params, "takeProfitPriceType", "triggerPriceType")
@@ -3025,9 +3025,9 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 			}
 			AddElementToObject(params, "triggerPrice", this.PriceToPrecision(symbol, takeProfitPrice))
 			if isMarketOrder {
-				orderType = "TAKE_PROFIT_MARKET"
+				orderType = SafeStringPtr("TAKE_PROFIT_MARKET")
 			} else {
-				orderType = "TAKE_PROFIT"
+				orderType = SafeStringPtr("TAKE_PROFIT")
 			}
 		}
 		AddElementToObject(params, "type", orderType)
@@ -4062,7 +4062,7 @@ func (this *Weex) HandleOrderOrPositionError(errorCode any, errorMessage any, or
 		// some endpoints could return an empty string if there is no error
 		return
 	}
-	var feedback any = Add(this.Id+" ", this.Json(order))
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(order)))
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
@@ -5574,7 +5574,7 @@ func (this *Weex) HandleErrors(code any, reason any, url any, method any, header
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
 		var errorCode *string = this.SafeString(response, "code")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

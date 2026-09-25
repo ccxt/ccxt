@@ -115,7 +115,7 @@ func (this *Bithumb) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	}()
 	var market map[string]any = this.Market(symbol)
-	var messageHash any = ccxt.Add("ticker:", market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
 	var tickTypes *string = this.SafeString(params, "tickTypes", "24H")
 	params = ccxt.MapTyped(this.Omit(params, "tickTypes"))
 	var request any = map[string]any{
@@ -225,8 +225,7 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		message = this.Extend(message, params)
 	}
 
-	newTicker := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-	ccxt.PanicOnError(newTicker)
+	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
@@ -314,17 +313,17 @@ func (this *Bithumb) HandleTicker(client any, message map[string]any) {
 	if marketId == nil {
 		return
 	}
-	var symbol any = nil
+	var symbol *string = nil
 	if isGenerationTwo {
-		symbol = ccxt.DerefScalar(this.SafeSymbol(marketId, nil, "-"))
+		symbol = this.SafeSymbol(marketId, nil, "-")
 	} else {
-		symbol = ccxt.DerefScalar(this.SafeSymbol(marketId, nil, "_"))
+		symbol = this.SafeSymbol(marketId, nil, "_")
 	}
 	if symbol == nil {
 		return
 	}
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(tickerMessage))
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash string = "ticker:" + *symbol
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
@@ -504,7 +503,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}()
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook"+":", symbol))
 	var request any = map[string]any{
 		"type":    "orderbookdepth",
 		"symbols": []any{ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"])},
@@ -723,7 +722,7 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}()
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	var request any = map[string]any{
 		"type":    "transaction",
 		"symbols": []any{ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"])},
@@ -1193,7 +1192,7 @@ func (this *Bithumb) HandleOrders(client any, message map[string]any) {
 	var cachedOrders any = this.Orders
 	cachedOrders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, symbolSpecificMessageHash)
 }
 func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1237,24 +1236,24 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 		}())
 	}
 	var typeId *string = this.SafeString(order, "order_type")
-	var typeVar any = nil
+	var typeVar *string = nil
 	if typeId != nil && *typeId == "limit" {
-		typeVar = "limit"
+		typeVar = ccxt.SafeStringPtr("limit")
 	} else if typeId != nil && *typeId == "price" {
-		typeVar = "market"
+		typeVar = ccxt.SafeStringPtr("market")
 	} else if typeId != nil && *typeId == "market" {
-		typeVar = "market"
+		typeVar = ccxt.SafeStringPtr("market")
 	}
 	var stateId *string = this.SafeString(order, "state")
-	var status any = nil
+	var status *string = nil
 	if stateId != nil && *stateId == "wait" {
-		status = "open"
+		status = ccxt.SafeStringPtr("open")
 	} else if stateId != nil && *stateId == "trade" {
-		status = "open"
+		status = ccxt.SafeStringPtr("open")
 	} else if stateId != nil && *stateId == "done" {
-		status = "closed"
+		status = ccxt.SafeStringPtr("closed")
 	} else if stateId != nil && *stateId == "cancel" {
-		status = "canceled"
+		status = ccxt.SafeStringPtr("canceled")
 	}
 	var price *string = this.SafeString2(order, "price", "order_price")
 	var amount *string = this.SafeString2(order, "volume", "order_quantity")

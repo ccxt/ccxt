@@ -759,7 +759,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	var baseId *string = this.SafeString(order, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(order, "SecondaryCurrencyCode")
 	var base any = nil
-	var quote any = nil
+	var quote *string = nil
 	if (baseId != nil) && (quoteId != nil) {
 		base = DerefScalar(this.SafeCurrencyCode(baseId))
 		quote = this.SafeCurrencyCode(quoteId)
@@ -770,7 +770,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 		quote = this.SafeString(market, "quote")
 	}
 	var orderType *string = this.SafeString2(order, "Type", "OrderType")
-	var side any = nil
+	var side *string = nil
 	if orderType != nil {
 		if func() int {
 			if orderType == nil {
@@ -778,14 +778,14 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 			}
 			return strings.Index(*orderType, "Bid")
 		}() >= 0 {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		} else if func() int {
 			if orderType == nil {
 				return -1
 			}
 			return strings.Index(*orderType, "Offer")
 		}() >= 0 {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		}
 		if func() int {
 			if orderType == nil {

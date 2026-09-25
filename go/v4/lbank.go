@@ -726,7 +726,7 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = SafeStringPtr(GetValue(parts, 1))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         symbol,
@@ -841,7 +841,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+		var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
 		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         symbol,
@@ -1301,19 +1301,19 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
 		costString = this.SafeString(trade, "dealVolumePrice")
 	}
 	var side *string = this.SafeString2(trade, "tradeType", "type")
-	var typeVar any = nil
-	var takerOrMaker any = nil
+	var typeVar *string = nil
+	var takerOrMaker *string = nil
 	if side != nil {
 		var parts []string = strings.Split(*side, "_")
 		side = this.SafeString(parts, 0)
 		var typePart *string = this.SafeString(parts, 1)
-		typeVar = "limit"
-		takerOrMaker = "taker"
+		typeVar = SafeStringPtr("limit")
+		takerOrMaker = SafeStringPtr("taker")
 		if typePart != nil {
 			if typePart != nil && *typePart == "market" {
-				typeVar = "market"
+				typeVar = SafeStringPtr("market")
 			} else if typePart != nil && *typePart == "maker" {
-				takerOrMaker = "maker"
+				takerOrMaker = SafeStringPtr("maker")
 			}
 		}
 	}
@@ -1612,7 +1612,7 @@ func (this *Lbank) ParseBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeDict(response, "data")
 	// from spotPrivatePostUserInfo
 	var toBtc any = this.SafeValue(data, "toBtc")
 	if !IsEqual(toBtc, nil) {
@@ -1690,10 +1690,10 @@ func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	var fundingRate *float64 = this.SafeNumber(ticker, "fundingRate")
 	var fundingTime *int64 = this.SafeInteger(ticker, "nextFeeTime")
 	var positionFeeTime *int64 = this.SafeInteger(ticker, "positionFeeTime")
-	var intervalString any = nil
+	var intervalString *string = nil
 	if positionFeeTime != nil {
 		var interval int64 = this.ParseToInt(Divide(Divide(positionFeeTime, 60), 60))
-		intervalString = strconv.FormatInt(interval, 10) + "h"
+		intervalString = SafeStringPtr(strconv.FormatInt(interval, 10) + "h")
 	}
 	return map[string]any{
 		"info":                     ticker,
@@ -2249,7 +2249,7 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) any {
 	var rawStatus *string = this.SafeString(order, "status")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	var postOnly bool = false
 	var typeVar string = "limit"
 	var rawType *string = this.SafeString2(order, "type", "tradeType") // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
@@ -2261,13 +2261,13 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	if typePart != nil && *typePart == "maker" {
 		postOnly = true
-		timeInForce = "PO"
+		timeInForce = SafeStringPtr("PO")
 	}
 	if typePart != nil && *typePart == "ioc" {
-		timeInForce = "IOC"
+		timeInForce = SafeStringPtr("IOC")
 	}
 	if typePart != nil && *typePart == "fok" {
-		timeInForce = "FOK"
+		timeInForce = SafeStringPtr("FOK")
 	}
 	var price *string = this.SafeString(order, "price")
 	var costString *string = this.SafeString(order, "cummulativeQuoteQty")
@@ -3665,7 +3665,7 @@ func (this *Lbank) fetchPublicDepositWithdrawFeesBody(ch chan any, optionalArgs 
 	ch <- this.ParsePublicDepositWithdrawFees(data, codes)
 	return nil
 }
-func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs ...any) any {
+func (this *Lbank) ParsePublicDepositWithdrawFees(response any, optionalArgs ...any) any {
 	//
 	//    [
 	//        {
@@ -3685,13 +3685,8 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs .
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var result map[string]any = map[string]any{}
-	for i := 0; i < len(response); i++ {
-		var fee any = func() any {
-			if i >= 0 && i < len(response) {
-				return DerefScalar(response[i])
-			}
-			return nil
-		}()
+	for i := 0; i < GetArrayLength(response); i++ {
+		var fee any = GetValue(response, i)
 		var canWithdraw *bool = this.SafeBool(fee, "canWithDraw")
 		if canWithdraw != nil && *canWithdraw == true {
 			var currencyId *string = this.SafeString(fee, "assetCode")
@@ -3840,7 +3835,7 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 		var encoded string = this.Encode(auth)
 		var hash any = this.Hash(encoded, md5)
 		var uppercaseHash string = ToUpper(hash)
-		var sign any = nil
+		var sign *string = nil
 		if signatureMethod == "RSA" {
 			var cacheSecretAsPem *bool = this.SafeBool(this.Options, "cacheSecretAsPem", true)
 			var pem any = nil
@@ -3853,9 +3848,9 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 			} else {
 				pem = this.ConvertSecretToPem(this.Encode(this.Secret))
 			}
-			sign = Rsa(uppercaseHash, pem, sha256)
+			sign = SafeStringPtr(Rsa(uppercaseHash, pem, sha256))
 		} else if signatureMethod == "HmacSHA256" {
-			sign = this.Hmac(this.Encode(uppercaseHash), this.Encode(this.Secret), sha256)
+			sign = SafeStringPtr(this.Hmac(this.Encode(uppercaseHash), this.Encode(this.Secret), sha256))
 		}
 		AddElementToObject(query, "sign", sign)
 		body = this.Urlencode(this.Keysort(query))

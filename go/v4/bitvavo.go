@@ -1085,14 +1085,14 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "market")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var taker *bool = this.SafeBool(trade, "taker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if taker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if taker != nil && *taker == true {
 				return "taker"
 			}
 			return "maker"
-		}()
+		}())
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
@@ -1739,14 +1739,14 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var subaccountId *string = this.SafeString(transfer, "subaccountId")
 	var direction *string = this.SafeString(transfer, "direction")
-	var fromAccount any = nil
-	var toAccount any = nil
+	var fromAccount *string = nil
+	var toAccount *string = nil
 	if direction != nil && *direction == "masterToSub" {
-		fromAccount = "master"
+		fromAccount = SafeStringPtr("master")
 		toAccount = subaccountId
 	} else if direction != nil && *direction == "subToMaster" {
 		fromAccount = subaccountId
-		toAccount = "master"
+		toAccount = SafeStringPtr("master")
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createdAt")
 	if timestamp == nil {
@@ -1958,7 +1958,7 @@ func (this *Bitvavo) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrder(request)).Raw))
 
@@ -3342,7 +3342,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var auth any = Add(Add(timestamp+method, url), payload)
+		var auth *string = SafeStringPtr(Add(Add(timestamp+method, url), payload))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow *string = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
 		headers = map[string]any{
@@ -3375,7 +3375,7 @@ func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any,
 	var errorCode *string = this.SafeString(response, "errorCode")
 	var error *string = this.SafeString(response, "error")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

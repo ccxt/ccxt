@@ -2116,11 +2116,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	} else {
 		operationType = "create_order"
 		sigPayload["reduce_only"] = reduceOnly
-		if timeInForce == nil {
-			sigPayload["tif"] = "GTC"
-		} else {
-			sigPayload["tif"] = timeInForce
-		}
+		sigPayload["tif"] = timeInForce
 	}
 	if isTakeProfitOrder {
 		var tpPayload map[string]any = map[string]any{
@@ -2218,10 +2214,15 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		if typeVar == nil || *typeVar != "limit" {
 			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
-		var requestList map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amountNumber, priceNumber, orderParams))
+		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amountNumber, priceNumber, orderParams))
 		var action map[string]any = map[string]any{
 			"type": "Create",
-			"data": GetValue(requestList, 0),
+			"data": func() any {
+				if 0 >= 0 && 0 < len(requestList) {
+					return DerefScalar(requestList[0])
+				}
+				return nil
+			}(),
 		}
 		actions = append(actions, action)
 	}
@@ -2724,8 +2725,8 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes212919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes212919)
+		var retRes212519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes212519)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3113,8 +3114,8 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // max default 100
 	if paginate {
 
-		var retRes239519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes239519)
+		var retRes239119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes239119)
 		return nil
 	}
 	var userAddress any = nil
@@ -3300,11 +3301,11 @@ func (this *Pacifica) MapTimeInForce(tifRaw any) any {
 		"TOB":       "TOB",
 		"ALO":       "ALO",
 	}
-	var tif any = nil
+	var tif *string = nil
 	if !IsEqual(tifRaw, nil) {
-		tif = ToUpper(tifRaw)
+		tif = SafeStringPtr(ToUpper(tifRaw))
 	}
-	return this.SafeString(tifMap, tif)
+	return this.SafeString(tifMap, tif, "GTC")
 }
 func (this *Pacifica) MapSide(sideRaw any) any {
 	var sideMap map[string]any = map[string]any{
@@ -4017,8 +4018,8 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes310919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes310919)
+		var retRes310519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes310519)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -4159,8 +4160,8 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var defaultLimit int = 100
 	if paginate {
 
-		var retRes322519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes322519)
+		var retRes322119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes322119)
 		return nil
 	}
 
@@ -4293,14 +4294,14 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var success *bool = this.SafeBool(transfer, "success")
-	var status any = nil
+	var status *string = nil
 	if success != nil {
-		status = func() string {
+		status = SafeStringPtr(func() string {
 			if success != nil && *success == true {
 				return "ok"
 			}
 			return "failed"
-		}()
+		}())
 	}
 	return map[string]any{
 		"info":        transfer,
@@ -4579,7 +4580,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	}
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
 	if (error == true) || nonEmptyMessage {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorId, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback) // documented message prefixes are more specific than the http-status echo
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
@@ -5693,10 +5694,10 @@ func (this *Pacifica) FetchApiKeys(params ...any) (map[string]any, error) {
 	}
 	return res.Value, nil
 }
-func (this *Pacifica) FetchBuilderApprovals(address string) ([]map[string]any, error) {
-	var res AsyncResult[[]map[string]any] = AwaitResult(NewMapArray, this.FetchBuilderApprovalsAsync(address))
+func (this *Pacifica) FetchBuilderApprovals(address string) (map[string]any, error) {
+	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.FetchBuilderApprovalsAsync(address))
 	if res.Err != nil {
-		return nil, res.Err
+		return map[string]any{}, res.Err
 	}
 	return res.Value, nil
 }

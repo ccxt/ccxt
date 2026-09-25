@@ -403,7 +403,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var future bool = (marketType != nil && *marketType == "Futures")
 		var spot bool = !swap && !future
 		var typeVar string = "spot"
-		var settle any = nil
+		var settle *string = nil
 		var baseId any = nil
 		var quoteId any = nil
 		var expiry any = nil
@@ -475,7 +475,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if contract {
 			maker = 0
 			taker = 0
-			settle = "JPY"
+			settle = SafeStringPtr("JPY")
 			symbol = Add(Add(symbol, ":"), settle)
 			if future {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
@@ -1706,7 +1706,7 @@ func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(response, nil) {
 		return nil // fallback to the default error handler
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	// i.e. {"status":-2,"error_message":"Under maintenance","data":null}
 	var errorMessage *string = this.SafeString(response, "error_message")
 	var statusCode *int64 = this.SafeInteger(response, "status")

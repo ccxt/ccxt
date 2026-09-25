@@ -732,7 +732,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var baseId *string = SafeStringPtr(market["baseId"])
 	var quoteId *string = SafeStringPtr(market["quoteId"])
 	var symbol *string = SafeStringPtr(market["symbol"])
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var amountString *string = nil
 	var costString *string = nil
 	var side *string = nil
@@ -740,9 +740,9 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = nil
 	if InOp(trade, "liquidity") {
 		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
-			takerOrMaker = "taker"
+			takerOrMaker = SafeStringPtr("taker")
 		} else if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "M" {
-			takerOrMaker = "maker"
+			takerOrMaker = SafeStringPtr("maker")
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")
 		amountString = this.SafeString(funds, baseId)
@@ -1318,7 +1318,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 				queryString = body
 			}
 		}
-		var auth any = Add(Add(nonce, url), queryString)
+		var auth *string = SafeStringPtr(Add(Add(nonce, url), queryString))
 		headers = map[string]any{
 			"Content-Type":     "application/x-www-form-urlencoded",
 			"ACCESS-KEY":       this.ApiKey,
@@ -1344,7 +1344,7 @@ func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method an
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
 		var error *string = this.SafeString(response, "error")
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))

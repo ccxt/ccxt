@@ -102,7 +102,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("ORDER_BOOK"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ORDER_BOOK"+":", symbol))
 	var endPart any = nil
 	if limit == nil {
 		endPart = market["id"]
@@ -141,7 +141,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
@@ -183,7 +183,7 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("TRADE"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("TRADE"+":", symbol))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync("trades", messageHash, market["id"]))))
 	if this.NewUpdates {
@@ -217,7 +217,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var trades any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
@@ -373,12 +373,12 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
 		if isMaker != nil && *isMaker == true {
-			takerOrMaker = "maker"
+			takerOrMaker = ccxt.SafeStringPtr("maker")
 		} else {
-			takerOrMaker = "taker"
+			takerOrMaker = ccxt.SafeStringPtr("taker")
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -423,7 +423,7 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("TICKER"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("TICKER"+":", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync("tickers", messageHash, market["id"])))
 	return nil
@@ -455,7 +455,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))
 	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")

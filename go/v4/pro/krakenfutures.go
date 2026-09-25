@@ -293,8 +293,7 @@ func (this *Krakenfutures) watchTickersBody(ch chan any, optionalArgs ...any) an
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 
-	ticker := (<-this.WatchMultiHelperAsync("ticker", "ticker", symbols, nil, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("ticker", "ticker", symbols, nil, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -329,8 +328,7 @@ func (this *Krakenfutures) watchBidsAsksBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	ticker := (<-this.WatchMultiHelperAsync("bidask", "ticker_lite", symbols, nil, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("bidask", "ticker_lite", symbols, nil, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -584,11 +582,11 @@ func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) an
 	var marketId *string = this.SafeString(position, "instrument")
 	var hedged string = "both"
 	var balanceString *string = this.SafeString(position, "balance")
-	var side any = nil
+	var side *string = nil
 	if ccxt.Precise.StringGt(balanceString, "0") {
-		side = "long"
+		side = ccxt.SafeStringPtr("long")
 	} else if ccxt.Precise.StringLt(balanceString, "0") {
-		side = "short"
+		side = ccxt.SafeStringPtr("short")
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -1239,11 +1237,11 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var isCancelled *bool = this.SafeBool(order, "is_cancel")
 	var unparsedOrder any = order
-	var status any = nil
+	var status *string = nil
 	if isCancelled != nil {
 		unparsedOrder = this.SafeValue(order, "order")
 		if isCancelled != nil && *isCancelled == true {
-			status = "cancelled"
+			status = ccxt.SafeStringPtr("cancelled")
 		}
 	}
 	var marketId *string = this.SafeString(unparsedOrder, "instrument")

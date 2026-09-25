@@ -2279,18 +2279,18 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString any = nil
 	var timestamp *int64 = nil
 	var id *string = nil
-	var side any = nil
+	var side *string = nil
 	var costString any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var fee map[string]any = nil
 	var feeCostString any = nil
 	var feeRateString any = nil
-	var feeCurrencyCode any = nil
+	var feeCurrencyCode *string = nil
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var orderId *string = nil
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if IsArray(trade) {
 		var tradeLength int = GetArrayLength(trade)
 		timestamp = this.SafeIntegerProduct(trade, 0, 0.000001)
@@ -2316,18 +2316,18 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {
 				side = sideId
 			} else if sideId != nil {
-				side = func() string {
+				side = SafeStringPtr(func() string {
 					if sideId != nil && *sideId == "1" {
 						return "buy"
 					}
 					return "sell"
-				}()
+				}())
 			}
 			var ordType *string = this.SafeString(trade, "ordType")
 			if ordType != nil && *ordType == "1" {
-				typeVar = "market"
+				typeVar = SafeStringPtr("market")
 			} else if ordType != nil && *ordType == "2" {
-				typeVar = "limit"
+				typeVar = SafeStringPtr("limit")
 			}
 			priceString = DerefScalar(this.SafeString(trade, "execPriceRp"))
 			amountString = DerefScalar(this.SafeString(trade, "execQtyRq"))
@@ -2336,12 +2336,12 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			feeRateString = DerefScalar(this.SafeString(trade, "feeRateRr"))
 			if !IsEqual(feeCostString, nil) {
 				var currencyId *string = this.SafeString(trade, "currency")
-				feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(currencyId))
+				feeCurrencyCode = this.SafeCurrencyCode(currencyId)
 			} else {
 				var ptFeeRv any = this.OmitZero(this.SafeString(trade, "ptFeeRv"))
 				if ptFeeRv != nil {
 					feeCostString = ptFeeRv
-					feeCurrencyCode = "PT"
+					feeCurrencyCode = SafeStringPtr("PT")
 				}
 			}
 		} else {
@@ -2349,7 +2349,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			typeVar = this.ParseOrderType(this.SafeString(trade, "ordType"))
 			var execStatus *string = this.SafeString(trade, "execStatus")
 			if execStatus != nil && *execStatus == "MakerFill" {
-				takerOrMaker = "maker"
+				takerOrMaker = SafeStringPtr("maker")
 			}
 			priceString = this.FromEp(this.SafeString(trade, "execPriceEp"), market)
 			amountString = this.FromEv(this.SafeString(trade, "execBaseQtyEv"), market)
@@ -2359,18 +2359,18 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			if !IsEqual(feeCostString, nil) {
 				feeRateString = this.FromEr(this.SafeString(trade, "feeRateEr"), market)
 				if GetValue(market, "spot") == true {
-					feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")))
+					feeCurrencyCode = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 				} else {
 					var info map[string]any = SafeMapTyped(market, "info")
 					if info != nil {
 						var settlementCurrencyId *string = this.SafeString(info, "settlementCurrency")
-						feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(settlementCurrencyId))
+						feeCurrencyCode = this.SafeCurrencyCode(settlementCurrencyId)
 					}
 				}
 			} else {
 				feeCostString = DerefScalar(this.SafeString(trade, "ptFeeRv"))
 				if !IsEqual(feeCostString, nil) {
-					feeCurrencyCode = "PT"
+					feeCurrencyCode = SafeStringPtr("PT")
 				}
 			}
 		}
@@ -4868,15 +4868,15 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 	var leverage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs((this.SafeString2(position, "leverage", "leverageRr")))))
 	var entryPriceString *string = this.SafeStringN(position, []any{"avgEntryPrice", "avgEntryPriceRp", "openPrice"})
 	var rawSide *string = this.SafeString(position, "side")
-	var side any = nil
+	var side *string = nil
 	if rawSide != nil {
 		var isLong bool = ((rawSide != nil && *rawSide == "Buy") || (rawSide != nil && *rawSide == "1"))
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isLong {
 				return "long"
 			}
 			return "short"
-		}()
+		}())
 	}
 	// Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
 	// Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4884,14 +4884,14 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 	// Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
 	var priceDiff *string = nil
 	if GetValue(market, "linear") == true {
-		if IsEqual(side, "long") {
+		if side != nil && *side == "long" {
 			priceDiff = Precise.StringSub(markPriceString, entryPriceString)
 		} else {
 			priceDiff = Precise.StringSub(entryPriceString, markPriceString)
 		}
 	} else {
 		// inverse
-		if IsEqual(side, "long") {
+		if side != nil && *side == "long" {
 			priceDiff = Precise.StringSub(Precise.StringDiv("1", entryPriceString), Precise.StringDiv("1", markPriceString))
 		} else {
 			priceDiff = Precise.StringSub(Precise.StringDiv("1", markPriceString), Precise.StringDiv("1", entryPriceString))
@@ -5897,14 +5897,14 @@ func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var side *int64 = this.SafeInteger(transfer, "side")
-	var fromId any = nil
-	var toId any = nil
+	var fromId *string = nil
+	var toId *string = nil
 	if side != nil && *side == 1 {
-		fromId = "swap"
-		toId = "spot"
+		fromId = SafeStringPtr("swap")
+		toId = SafeStringPtr("spot")
 	} else if side != nil && *side == 2 {
-		fromId = "spot"
-		toId = "swap"
+		fromId = SafeStringPtr("spot")
+		toId = SafeStringPtr("swap")
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
 	return map[string]any{
@@ -6076,9 +6076,9 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 	}
 	this.CheckAddress(address)
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var networkId any = nil
 	if networkCode != nil {
@@ -6752,7 +6752,7 @@ func (this *Phemex) HandleErrors(httpCode any, reason any, url any, method any, 
 	var errorCode *string = this.SafeString(error, "code")
 	var message *string = this.SafeString(error, "msg")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

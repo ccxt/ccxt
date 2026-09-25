@@ -1639,7 +1639,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var orders any = []any{}
+	var orders []any = []any{}
 	if GetValue(market, "spot") == true {
 		request["currentPage"] = 1
 		if limit != nil {
@@ -1648,7 +1648,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2ExOrders(this.Extend(request, params))).Raw))
 		var responseData map[string]any = SafeMapTyped(response, "data")
-		orders = this.SafeList(responseData, "items", []any{})
+		orders = ArrayTyped(this.SafeList(responseData, "items", []any{}))
 	} else {
 		if since != nil {
 			request["since"] = since
@@ -1659,7 +1659,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateSwapGetV1TradeOrderOpenOrders(this.Extend(request, params))).Raw))
 		var responseData map[string]any = SafeMapTyped(response, "data")
-		orders = this.SafeList(responseData, "data", []any{})
+		orders = ArrayTyped(this.SafeList(responseData, "data", []any{}))
 	}
 
 	//
@@ -2201,7 +2201,7 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 		result = append(result, map[string]any{
 			"id":         id,
 			"symbol":     symbol,
@@ -2593,7 +2593,7 @@ func (this *Zebpay) HandleErrors(code any, reason any, url any, method any, head
 	//
 	var errorCode *string = this.SafeString2(response, "code", "statusCode")
 	var message *string = this.SafeString2(response, "msg", "statusDescription")
-	var feedback any = Add(this.Id+" ", message)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

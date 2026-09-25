@@ -907,21 +907,21 @@ func (this *Backpack) ParseMarket(market any) any {
 	var maxQuantity *float64 = this.SafeNumber(quantityFilter, "maxQuantity")
 	var minQuantity *float64 = this.SafeNumber(quantityFilter, "minQuantity")
 	var amountPrecision *float64 = this.SafeNumber(quantityFilter, "stepSize")
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeOfMarket *string = this.ParseMarketType(this.SafeString(market, "marketType"))
 	var linear any = nil
 	var inverse any = nil
-	var settle any = nil
+	var settle *string = nil
 	var settleId any = nil
 	var contractSize any = nil
 	if typeOfMarket != nil && *typeOfMarket == "spot" {
-		typeVar = "spot"
+		typeVar = SafeStringPtr("spot")
 	} else if typeOfMarket != nil && *typeOfMarket == "swap" {
-		typeVar = "swap"
+		typeVar = SafeStringPtr("swap")
 		linear = true
 		inverse = false
 		settleId = DerefScalar(this.SafeString(market, "quoteSymbol"))
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(symbol, Add(":", settle))
 		contractSize = 1
 	}
@@ -936,13 +936,13 @@ func (this *Backpack) ParseMarket(market any) any {
 		"quoteId":        quoteId,
 		"settleId":       settleId,
 		"type":           typeVar,
-		"spot":           (IsEqual(typeVar, "spot")),
-		"margin":         (IsEqual(typeVar, "spot")),
-		"swap":           (IsEqual(typeVar, "swap")),
+		"spot":           (typeVar != nil && *typeVar == "spot"),
+		"margin":         (typeVar != nil && *typeVar == "spot"),
+		"swap":           (typeVar != nil && *typeVar == "swap"),
 		"future":         false,
 		"option":         false,
 		"active":         (orderBookState != nil && *orderBookState == "Open"),
-		"contract":       (!IsEqual(typeVar, "spot")),
+		"contract":       (typeVar == nil || *typeVar != "spot"),
 		"linear":         linear,
 		"inverse":        inverse,
 		"taker":          nil,
@@ -1634,16 +1634,16 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
 	var side *string = this.ParseOrderSide(this.SafeString(trade, "side"))
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	} else if isBuyerMaker != nil {
-		takerOrMaker = "taker"
+		takerOrMaker = SafeStringPtr("taker")
 		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
@@ -1965,8 +1965,8 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 		request["clientId"] = tag // memo or tag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
@@ -2135,9 +2135,9 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes"))
@@ -2219,7 +2219,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1Order(orderRequest)).Raw))
 
@@ -2260,7 +2260,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -3038,7 +3038,7 @@ func (this *Backpack) HandleErrors(code any, reason any, url any, method any, he
 	var errorCode *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

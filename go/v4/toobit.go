@@ -1503,14 +1503,14 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	market = MapTyped(this.SafeMarket(nil, market))
 	var symbol *string = SafeStringPtr(market["symbol"])
@@ -1600,9 +1600,9 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		response = (<-this.CommonGetQuoteV1Klines(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
-	var candles any = []any{}
+	var candles []any = []any{}
 	if IsArray(response) {
-		candles = response
+		candles = ArrayTyped(response)
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
@@ -2052,9 +2052,9 @@ func (this *Toobit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var response any = nil
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if this.InArray(marketType, []any{"swap", "future"}) {
 
@@ -2885,13 +2885,18 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	}
 	var ordersList []any = []any{}
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsArray(response) {
-		responseList = response
+		responseList = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(responseList); i++ {
+	for i := 0; i < len(responseList); i++ {
 		ordersList = append(ordersList, map[string]any{
-			"result": GetValue(responseList, i),
+			"result": func() any {
+				if i >= 0 && i < len(responseList) {
+					return DerefScalar(responseList[i])
+				}
+				return nil
+			}(),
 		})
 	}
 
@@ -3180,13 +3185,13 @@ func (this *Toobit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var response any = nil
-	var marketType any = nil
+	var marketType *string = nil
 	var market any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
-	if IsEqual(marketType, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchTradingFees(): does not support ", marketType), " markets")))
+	if marketType != nil && *marketType == "spot" {
+		panic(NotSupported(this.Id + " fetchTradingFees(): does not support " + *marketType + " markets"))
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
 		var symbol any = nil
 		var symbolparamsVariable []any = this.HandleParamString(params, "symbol")
@@ -3473,9 +3478,9 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"coin": currency["id"],
 	}
 	var networkCodeparamsOmittedVariable []any = this.HandleNetworkCodeAndParams(this.Extend(request, params))
-	networkCode := GetValue(networkCodeparamsOmittedVariable, 0)
-	paramsOmitted := GetValue(networkCodeparamsOmittedVariable, 1)
-	if IsEqual(networkCode, nil) {
+	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsOmittedVariable, 0))
+	var paramsOmitted map[string]any = MapTyped(GetValue(networkCodeparamsOmittedVariable, 1))
+	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : param[\"network\"] is required"))
 	}
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
@@ -3536,9 +3541,9 @@ func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckAddress(address)
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() : param[\"network\"] is required"))
@@ -3909,7 +3914,7 @@ func (this *Toobit) HandleErrors(code any, reason any, url any, method any, head
 	var errorCode *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "200") && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

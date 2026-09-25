@@ -355,7 +355,7 @@ func (this *Zaif) ParseMarket(market any) any {
 	quoteId := GetValue(baseIdquoteIdVariable, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -1123,7 +1123,7 @@ func (this *Zaif) HandleErrors(httpCode any, reason any, url any, method any, he
 	//
 	//     {"error": "unsupported currency_pair"}
 	//
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)

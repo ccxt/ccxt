@@ -132,7 +132,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
 	var timestamp string = ccxt.ToString(this.Nonce())
-	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password))
 	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe map[string]any = map[string]any{
 		"type":       "SUBSCRIBE",
@@ -200,7 +200,7 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
 	var timestamp *string = this.NumberToString(this.Seconds())
-	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password))
 	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe map[string]any = map[string]any{
 		"type":        "SUBSCRIBE",
@@ -360,8 +360,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 
-	ticker := (<-this.SubscribeAsync(channel, symbols, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribeAsync(channel, symbols, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -930,7 +929,7 @@ func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message 
 	//
 	return message
 }
-func (this *Coinbaseinternational) HandleFundingRate(client any, message any) {
+func (this *Coinbaseinternational) HandleFundingRate(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {
@@ -989,7 +988,7 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) a
 				}
 			}()
 			// try block:
-			var feedback any = ccxt.Add(ccxt.Add(this.Id+" ", errMsg), reason)
+			var feedback *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.Id+" ", errMsg), reason))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], reason, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], reason, feedback)
 			panic(ccxt.ExchangeError(feedback))

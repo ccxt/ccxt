@@ -533,7 +533,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "secondCurrency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1683,7 +1683,7 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		// coinmate requires each nonce to be greater than the previous one for the key
 		var nonce string = ToString(this.IncrementingNonce())
-		var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
+		var auth *string = SafeStringPtr(Add(Add(nonce, this.Uid), this.ApiKey))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		body = this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
@@ -1712,7 +1712,7 @@ func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, he
 	//
 	var errorMessage *string = this.SafeString(response, "errorMessage")
 	if errorMessage != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		panic(ExchangeError(feedback))

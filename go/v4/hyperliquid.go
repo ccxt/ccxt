@@ -590,17 +590,17 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	var types []any = SafeListTyped(options, "types")
 	var rawPromises []any = []any{}
 	for i := 0; i < len(types); i++ {
-		var marketType any = func() any {
+		var marketType *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(types) {
 				return DerefScalar(types[i])
 			}
 			return nil
-		}()
-		if IsEqual(marketType, "swap") {
+		}())
+		if marketType != nil && *marketType == "swap" {
 			rawPromises = append(rawPromises, this.FetchSwapMarketsAsync(params))
-		} else if IsEqual(marketType, "spot") {
+		} else if marketType != nil && *marketType == "spot" {
 			rawPromises = append(rawPromises, this.FetchSpotMarketsAsync(params))
-		} else if IsEqual(marketType, "hip3") {
+		} else if marketType != nil && *marketType == "hip3" {
 			rawPromises = append(rawPromises, this.FetchHip3MarketsAsync(params))
 		}
 	}
@@ -1004,7 +1004,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 		var mappedQuoteId *string = this.SafeString(spotCurrencyMapping, quoteId, quoteId)
 		var mappedBase *string = this.SafeCurrencyCode(mappedBaseName)
 		var mappedQuote *string = this.SafeCurrencyCode(mappedQuoteId)
-		var mappedSymbol any = Add(Add(mappedBase, "/"), mappedQuote)
+		var mappedSymbol *string = SafeStringPtr(Add(Add(mappedBase, "/"), mappedQuote))
 		var innerBaseTokenInfo any = this.SafeDict(baseTokenInfo, "spec", baseTokenInfo)
 		// const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
 		var amountPrecisionStr *string = this.SafeString(innerBaseTokenInfo, "szDecimals")
@@ -1766,9 +1766,9 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     ]
 	//
-	var candles any = []any{}
+	var candles []any = []any{}
 	if IsArray(response) {
-		candles = response
+		candles = ArrayTyped(response)
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, originalSince, limit, useTail)
@@ -1873,9 +1873,9 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	//         }
 	//     ]
 	//
-	var fills any = []any{}
+	var fills []any = []any{}
 	if IsArray(response) {
-		fills = response
+		fills = ArrayTyped(response)
 	}
 
 	ch <- this.ParseTrades(fills, market, since, limit)
@@ -2938,7 +2938,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		var hasStopLoss bool = ((stopLoss != nil))
 		var hasTakeProfit bool = ((takeProfit != nil))
 		orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit"})
-		var mainOrderObj any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
+		var mainOrderObj map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
 		if hasStopLoss || hasTakeProfit {
 			// grouping opposed orders for sl/tp
 			var stopLossOrderTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
@@ -3843,11 +3843,11 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	//     ]
 	//
 	var result []any = []any{}
-	var fundings any = []any{}
+	var fundings []any = []any{}
 	if IsArray(response) {
-		fundings = response
+		fundings = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(fundings); i++ {
+	for i := 0; i < len(fundings); i++ {
 		var entry map[string]any = SafeMapTyped(fundings, i)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
 		result = append(result, map[string]any{
@@ -3946,11 +3946,11 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	//     ]
 	//
 	var orderWithStatus []any = []any{}
-	var rawOrders any = []any{}
+	var rawOrders []any = []any{}
 	if IsArray(response) {
-		rawOrders = response
+		rawOrders = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(rawOrders); i++ {
+	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = SafeMapTyped(rawOrders, i)
 		var extendOrder map[string]any = map[string]any{}
 		if this.SafeString(order, "status") == nil {
@@ -4154,12 +4154,17 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// so a canceled order appears twice: once as 'open' and once as 'canceled'.
 	// Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
 	var deduplicatedByOid map[string]any = map[string]any{}
-	var historicalOrders any = []any{}
+	var historicalOrders []any = []any{}
 	if IsArray(response) {
-		historicalOrders = response
+		historicalOrders = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(historicalOrders); i++ {
-		var rawOrder any = GetValue(historicalOrders, i)
+	for i := 0; i < len(historicalOrders); i++ {
+		var rawOrder any = func() any {
+			if i >= 0 && i < len(historicalOrders) {
+				return DerefScalar(historicalOrders[i])
+			}
+			return nil
+		}()
 		var entry any = this.SafeDict(rawOrder, "order")
 		if IsEqual(entry, nil) {
 			entry = rawOrder
@@ -4589,9 +4594,9 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	//         }
 	//     ]
 	//
-	var myFills any = []any{}
+	var myFills []any = []any{}
 	if IsArray(response) {
-		myFills = response
+		myFills = ArrayTyped(response)
 	}
 
 	ch <- this.ParseTrades(myFills, market, since, limit)
@@ -4636,15 +4641,15 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 		}())
 	}
 	var fee *string = this.SafeString(trade, "fee")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var crossed *bool = this.SafeBool(trade, "crossed")
 	if crossed != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if crossed != nil && *crossed {
 				return "taker"
 			}
 			return "maker"
-		}()
+		}())
 	}
 	var builderFee *string = this.SafeString(trade, "builderFee")
 	if builderFee != nil {
@@ -4865,14 +4870,14 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated")
 	var rawSize *string = this.SafeString(entry, "szi")
 	var size *string = rawSize
-	var side any = nil
+	var side *string = nil
 	if size != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if Precise.StringGt(rawSize, "0") {
 				return "long"
 			}
 			return "short"
-		}()
+		}())
 		size = Precise.StringAbs(size)
 	}
 	var rawUnrealizedPnl *string = this.SafeString(entry, "unrealizedPnl")
@@ -5329,7 +5334,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 		var currencyInfo map[string]any = SafeMapTyped(currency, "info")
 		var tokenName *string = this.SafeString(currencyInfo, "name")
 		var tokenId *string = this.SafeString(currencyInfo, "tokenId")
-		var token any = Add(Add(tokenName, ":"), tokenId)
+		var token *string = SafeStringPtr(Add(Add(tokenName, ":"), tokenId))
 		var action map[string]any = map[string]any{
 			"type":           "subAccountSpotTransfer",
 			"subAccountUser": subAccountAddress,
@@ -5831,9 +5836,9 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	//     }
 	// ]
 	//
-	var depositLedger any = []any{}
+	var depositLedger []any = []any{}
 	if IsArray(response) {
-		depositLedger = response
+		depositLedger = ArrayTyped(response)
 	}
 	var records any = this.ExtractTypeFromDelta(depositLedger)
 	var vaultAddress any = nil
@@ -5925,9 +5930,9 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	//     }
 	// ]
 	//
-	var withdrawalLedger any = []any{}
+	var withdrawalLedger []any = []any{}
 	if IsArray(response) {
-		withdrawalLedger = response
+		withdrawalLedger = ArrayTyped(response)
 	}
 	var records any = this.ExtractTypeFromDelta(withdrawalLedger)
 	var vaultAddress any = nil
@@ -6353,7 +6358,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 			}
 		}
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

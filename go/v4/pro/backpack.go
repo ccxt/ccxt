@@ -273,8 +273,8 @@ func (this *Backpack) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var topic any = ccxt.Add("ticker"+".", market["id"])
-	var messageHash any = ccxt.Add("ticker"+":", symbol)
+	var topic *string = ccxt.SafeStringPtr(ccxt.Add("ticker"+".", market["id"]))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker"+":", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync([]any{topic}, []any{messageHash}, params)))
 	return nil
@@ -1028,20 +1028,20 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var isBuyerMaker *bool = this.SafeBool(trade, "m")
-	var side any = nil
-	var takerOrMaker any = nil
+	var side *string = nil
+	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
-		takerOrMaker = "taker"
+		takerOrMaker = ccxt.SafeStringPtr("taker")
 		if isBuyerMaker != nil && *isBuyerMaker {
-			side = "sell"
+			side = ccxt.SafeStringPtr("sell")
 		} else {
-			side = "buy"
+			side = ccxt.SafeStringPtr("buy")
 		}
 	}
 	var price *string = this.SafeString(trade, "p")
 	var amount *string = this.SafeString(trade, "q")
 	var orderId *string = nil
-	if ccxt.IsEqual(side, "buy") {
+	if side != nil && *side == "buy" {
 		orderId = this.SafeString(trade, "b")
 	} else {
 		orderId = this.SafeString(trade, "a")
@@ -1664,7 +1664,7 @@ func (this *Backpack) HandlePositions(client any, message any) {
 	ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
 	ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
 	cache.(ccxt.Appender).Append(parsedPosition)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", ccxt.GetValue(parsedPosition, "symbol"))
+	var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", ccxt.GetValue(parsedPosition, "symbol")))
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolSpecificMessageHash)
 }

@@ -2565,7 +2565,7 @@ func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, hea
 		//
 		//  { "message":"Error 1001 - POST ONLY order can not be of type market" }
 		//
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var message *string = this.SafeString(response, "message")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		var status string = ToString(code)

@@ -2345,7 +2345,7 @@ func (this *Latoken) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		var auth any = Add(Add(method, request), urlencodedQuery)
+		var auth *string = SafeStringPtr(Add(Add(method, request), urlencodedQuery))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 		headers = map[string]any{
 			"X-LA-APIKEY":    this.ApiKey,
@@ -2376,7 +2376,7 @@ func (this *Latoken) HandleErrors(code any, reason any, url any, method any, hea
 	// {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
 	//
 	var message *string = this.SafeString(response, "message")
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

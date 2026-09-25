@@ -642,8 +642,8 @@ func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "server_time")
-	var baseVolume any = Add("vol_", this.SafeStringLower(market, "baseId"))
-	var quoteVolume any = Add("vol_", this.SafeStringLower(market, "quoteId"))
+	var baseVolume *string = SafeStringPtr(Add("vol_", this.SafeStringLower(market, "baseId")))
+	var quoteVolume *string = SafeStringPtr(Add("vol_", this.SafeStringLower(market, "quoteId")))
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1917,7 +1917,7 @@ func (this *Indodax) HandleErrors(code any, reason any, url any, method any, hea
 			return nil
 		}
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 	panic(ExchangeError(feedback))

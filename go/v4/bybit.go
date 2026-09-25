@@ -2417,7 +2417,7 @@ func (this *Bybit) upgradeUnifiedTradeAccountBody(ch chan any, optionalArgs ...a
 }
 func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
-	var quote any = nil
+	var quote *string = nil
 	var settle any = nil
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
@@ -2438,10 +2438,10 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		base = DerefScalar(this.SafeString(optionParts, 0))
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 		if EndsWith(symbol, "-USDT") {
-			quote = "USDT"
+			quote = SafeStringPtr("USDT")
 			settle = "USDT"
 		} else {
-			quote = "USDC"
+			quote = SafeStringPtr("USDC")
 			settle = "USDC"
 		}
 	}
@@ -2979,7 +2979,7 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 		var quoteId *string = this.SafeString(market, "quoteCoin")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 		var status *string = this.SafeString(market, "status")
 		var active bool = (status != nil && *status == "Trading")
 		var lotSizeFilter map[string]any = SafeMapTyped(market, "lotSizeFilter")
@@ -3165,11 +3165,11 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		var settleId *string = this.SafeString(market, "settleCoin", defaultSettledId)
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var settle any = nil
+		var settle *string = nil
 		if linearPerpetual && (settleId != nil && *settleId == "USD") {
-			settle = "USDC"
+			settle = SafeStringPtr("USDC")
 		} else {
-			settle = DerefScalar(this.SafeCurrencyCode(settleId))
+			settle = this.SafeCurrencyCode(settleId)
 		}
 		var symbol any = Add(Add(base, "/"), quote)
 		var lotSizeFilter map[string]any = SafeMapTyped(market, "lotSizeFilter")
@@ -3178,11 +3178,11 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		var status *string = this.SafeString(market, "status")
 		var swap bool = linearPerpetual || inversePerpetual
 		var future bool = inverseFutures || linearFutures
-		var typeVar any = nil
+		var typeVar *string = nil
 		if swap {
-			typeVar = "swap"
+			typeVar = SafeStringPtr("swap")
 		} else if future {
-			typeVar = "future"
+			typeVar = SafeStringPtr("future")
 		}
 		var expiry any = nil
 		// some swaps have deliveryTime meaning delisting time
@@ -3850,7 +3850,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -3888,13 +3888,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		// start up to the interval boundary so that the exchange returns
 		// candles from the first bucket at or after `since`
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var rounded int64 = this.ParseToInt(Divide(since, duration)) * duration
-		request["start"] = func() any {
-			if rounded == since {
-				return since
-			}
-			return this.Sum(rounded, duration)
-		}()
+		request["start"] = this.ParseToInt(MathCeil(Divide(since, duration))) * duration
 	}
 	if limit != nil {
 		request["limit"] = limit // max 1000, default 1000
@@ -4017,10 +4011,10 @@ func (this *Bybit) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	var indexPrice *float64 = this.SafeNumber(ticker, "indexPrice")
 	var info map[string]any = SafeMapTyped(this.SafeMarket(marketId, market, nil, "swap"), "info")
 	var fundingInterval *int64 = this.SafeInteger(info, "fundingInterval")
-	var intervalString any = nil
+	var intervalString *string = nil
 	if fundingInterval != nil {
 		var interval int64 = this.ParseToInt(Divide(fundingInterval, 60))
-		intervalString = strconv.FormatInt(interval, 10) + "h"
+		intervalString = SafeStringPtr(strconv.FormatInt(interval, 10) + "h")
 	}
 	return map[string]any{
 		"info":                     ticker,
@@ -4183,8 +4177,8 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes309319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, params, 200))))
-		ch <- BoxAbsent(retRes309319)
+		var retRes309219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, params, 200))))
+		ch <- BoxAbsent(retRes309219)
 		return nil
 	}
 	if limit == nil {
@@ -4454,14 +4448,14 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	} else {
 		var lastLiquidityInd *string = this.SafeString(trade, "lastLiquidityInd")
 		if lastLiquidityInd != nil && *lastLiquidityInd == "UNKNOWN" {
@@ -4469,14 +4463,14 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		if lastLiquidityInd != nil {
 			if (lastLiquidityInd != nil && *lastLiquidityInd == "TAKER") || (lastLiquidityInd != nil && *lastLiquidityInd == "MAKER") {
-				takerOrMaker = ToLower(lastLiquidityInd)
+				takerOrMaker = SafeStringPtr(ToLower(lastLiquidityInd))
 			} else {
-				takerOrMaker = func() string {
+				takerOrMaker = SafeStringPtr(func() string {
 					if lastLiquidityInd != nil && *lastLiquidityInd == "AddedLiquidity" {
 						return "maker"
 					}
 					return "taker"
-				}()
+				}())
 			}
 		}
 	}
@@ -5370,8 +5364,8 @@ func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
 		"cost": cost,
 	}
 
-	var retRes417015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", OpNeg(1), nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes417015)
+	var retRes416915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", OpNeg(1), nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes416915)
 	return nil
 }
 
@@ -5413,8 +5407,8 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan any, symbol any, co
 		"cost": cost,
 	}
 
-	var retRes419915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", OpNeg(1), nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes419915)
+	var retRes419815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", OpNeg(1), nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes419815)
 	return nil
 }
 
@@ -5477,7 +5471,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var isTrailingOrder bool = (this.SafeString2(params, "trailingAmount", "trailingStop") != nil)
 	var isStopLossOrder bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitOrder bool = (this.SafeString(params, "takeProfitPrice") != nil)
-	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount)
+	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount))
 	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (this.SafeBool(params, "tradingStopEndpoint", false) != nil && *this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
 	if (isTrailingOrder || (switchToOco == true)) && (GetValue(market, "spot") != true) {
@@ -5878,7 +5872,7 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams, isUta)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams, isUta))
 		Remove(orderRequest, "category")
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -6793,8 +6787,8 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
 	if !isUnifiedAccount {
 
-		var retRes531819 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderClassicAsync(id, symbol, params))))
-		ch <- BoxAbsent(retRes531819)
+		var retRes531719 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderClassicAsync(id, symbol, params))))
+		ch <- BoxAbsent(retRes531719)
 		return nil
 	}
 	var acknowledge any = false
@@ -6934,8 +6928,8 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes542919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrdersClassic", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes542919)
+		var retRes542819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrdersClassic", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes542819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -7183,8 +7177,8 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes561219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes561219)
+		var retRes561119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes561119)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -7329,8 +7323,8 @@ func (this *Bybit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"orderStatus": "Filled",
 	}
 
-	var retRes573415 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes573415)
+	var retRes573315 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes573315)
 	return nil
 }
 
@@ -7376,8 +7370,8 @@ func (this *Bybit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 		"orderStatus": "Cancelled",
 	}
 
-	var retRes576215 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes576215)
+	var retRes576115 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes576115)
 	return nil
 }
 
@@ -7426,8 +7420,8 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes579119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes579119)
+		var retRes579019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes579019)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -7566,8 +7560,8 @@ func (this *Bybit) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "orderLinkId"}))
 
-	var retRes590815 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes590815)
+	var retRes590715 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes590715)
 	return nil
 }
 
@@ -7611,8 +7605,8 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes593219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes593219)
+		var retRes593119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes593119)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -7735,9 +7729,9 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 	var request map[string]any = map[string]any{
 		"coin": currency["id"],
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["chainType"] = this.NetworkCodeToId(networkCode, code)
@@ -7801,7 +7795,7 @@ func (this *Bybit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
+	var paramsOmited map[string]any = MapTyped(GetValue(networkCodeparamsOmitedVariable, 1))
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
@@ -7852,8 +7846,8 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes611319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes611319)
+		var retRes611219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes611219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -7945,8 +7939,8 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes618419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes618419)
+		var retRes618319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes618319)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -8154,8 +8148,8 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes637319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes637319)
+		var retRes637219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes637219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -8450,20 +8444,20 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = MapTyped(GetValue(tagparamsVariable, 1))
-	var accountType any = nil
+	var accountType *string = nil
 
 	var accounts []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	var isUta any = GetValue(accounts, 1)
 	var accountTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "withdraw", "accountType")
-	accountType = GetValue(accountTypeparamsVariable, 0)
+	accountType = SafeStringPtr(GetValue(accountTypeparamsVariable, 0))
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	if accountType == nil {
-		accountType = func() string {
+		accountType = SafeStringPtr(func() string {
 			if isUta == true {
 				return "UTA"
 			}
 			return "SPOT"
-		}()
+		}())
 	}
 	if this.Markets == nil {
 
@@ -8482,8 +8476,8 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 		request["tag"] = tag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["chain"] = ToUpper(networkId)
@@ -8633,8 +8627,8 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes680019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))))
-		ch <- BoxAbsent(retRes680019)
+		var retRes679919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))))
+		ch <- BoxAbsent(retRes679919)
 		return nil
 	}
 	var symbol any = nil
@@ -9509,8 +9503,8 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan any, symbol any, optiona
 		params = MapTyped(this.Omit(params, "paginate"))
 		AddElementToObject(params, "timeframe", timeframe)
 
-		var retRes752519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 200))))
-		ch <- BoxAbsent(retRes752519)
+		var retRes752419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 200))))
+		ch <- BoxAbsent(retRes752419)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -9524,8 +9518,8 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan any, symbol any, optiona
 		request["limit"] = limit
 	}
 
-	var retRes753715 []any = ListTyped(PanicOnError((<-this.FetchDerivativesOpenInterestHistoryAsync(symbol, timeframe, since, limit, params))))
-	ch <- BoxAbsent(retRes753715)
+	var retRes753615 []any = ListTyped(PanicOnError((<-this.FetchDerivativesOpenInterestHistoryAsync(symbol, timeframe, since, limit, params))))
+	ch <- BoxAbsent(retRes753615)
 	return nil
 }
 func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) any {
@@ -9949,8 +9943,8 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes785919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes785919)
+		var retRes785819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes785819)
 		return nil
 	}
 	var currency map[string]any = nil
@@ -10260,8 +10254,8 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan any, symbol any, optiona
 	}
 	request["symbol"] = GetValue(market, "id")
 
-	var retRes811315 []any = ListTyped(PanicOnError((<-this.FetchDerivativesMarketLeverageTiersAsync(symbol, params))))
-	ch <- BoxAbsent(retRes811315)
+	var retRes811215 []any = ListTyped(PanicOnError((<-this.FetchDerivativesMarketLeverageTiersAsync(symbol, params))))
+	ch <- BoxAbsent(retRes811215)
 	return nil
 }
 func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) any {
@@ -11121,8 +11115,8 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes880919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes880919)
+		var retRes880819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes880819)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -11270,8 +11264,8 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes893419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes893419)
+		var retRes893319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes893319)
 		return nil
 	}
 	var subType *string = nil
@@ -11464,8 +11458,8 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes907419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes907419)
+		var retRes907319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes907319)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -11868,9 +11862,9 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawPositions any = this.SafeList(result, "list")
-	var rawPositionsList any = []any{}
+	var rawPositionsList []any = []any{}
 	if !IsEqual(rawPositions, nil) {
-		rawPositionsList = rawPositions
+		rawPositionsList = ArrayTyped(rawPositions)
 	}
 	var positions any = this.ParsePositions(rawPositionsList, symbols, params)
 
@@ -12713,7 +12707,7 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 				// '[]' on empty arrays even when forced to use objects
 				body = "{}"
 			}
-			var payload any = Add(Add(timestamp, this.ApiKey), body)
+			var payload *string = SafeStringPtr(Add(Add(timestamp, this.ApiKey), body))
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"Content-Type":     "application/json",

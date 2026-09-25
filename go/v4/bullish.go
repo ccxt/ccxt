@@ -1271,8 +1271,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -1921,8 +1920,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 		params = this.HandlePaginationParams("fetchOrders", since, params)
@@ -2233,8 +2231,7 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2311,8 +2308,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
@@ -2396,8 +2392,7 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"commandType":      "V1AmendOrder",
@@ -2456,8 +2451,7 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
@@ -2508,8 +2502,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -2784,9 +2777,9 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
 			"quantity":      this.CurrencyToPrecision(code, amount),
 		},
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, code)
@@ -3161,8 +3154,7 @@ func (this *Bullish) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -3254,8 +3246,7 @@ func (this *Bullish) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -3385,8 +3376,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var maxLimit int = 100
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
@@ -3578,8 +3568,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
-	tradingAccountId := (<-this.LoadAccountAsync(params))
-	PanicOnError(tradingAccountId)
+	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"assetSymbol":      currency["id"],
@@ -3789,7 +3778,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 		var nonce string = strconv.FormatInt(this.Microseconds(), 10)
 		var timestamp string = ToString(this.GetTimestamp())
 		if method == "GET" {
-			var payload any = Add(timestamp+nonce+method+"/trading-api/", path)
+			var payload *string = SafeStringPtr(Add(timestamp+nonce+method+"/trading-api/", path))
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
@@ -3798,7 +3787,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 			}
 		} else if method == "POST" {
 			body = this.Json(params)
-			var payload any = Add(Add(timestamp+nonce+method+"/trading-api/", path), body)
+			var payload *string = SafeStringPtr(Add(Add(timestamp+nonce+method+"/trading-api/", path), body))
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
 			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
@@ -3935,7 +3924,7 @@ func (this *Bullish) HandleErrors(httpCode any, reason any, url any, method any,
 		} else {
 			message = typeVar
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

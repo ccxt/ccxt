@@ -1262,7 +1262,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar any = nil
+	var typeVar *string = nil
 	var id *string = nil
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
@@ -1270,14 +1270,14 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var state *string = this.SafeString(transaction, "state")
 	if InOp(transaction, "depositId") {
-		typeVar = "deposit"
+		typeVar = SafeStringPtr("deposit")
 		id = this.SafeString(transaction, "depositId")
 	} else if InOp(transaction, "withdrawalId") {
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 		id = this.SafeString(transaction, "withdrawalId")
 	}
 	var feeCost *float64 = func() *float64 {
-		if IsEqual(typeVar, "withdrawal") {
+		if typeVar != nil && *typeVar == "withdrawal" {
 			return this.SafeNumber(transaction, "fee")
 		}
 		return nil
@@ -1707,7 +1707,7 @@ func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method an
 	var errorCode *string = this.SafeString(response, "status")
 	var errorMessage *string = this.SafeString(response, "error")
 	if !IsEqual(code, nil) {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	}

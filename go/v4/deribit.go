@@ -1365,7 +1365,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}() >= 0)
 			var expiry *int64 = this.SafeInteger(market, "expiration_timestamp")
 			var strike *float64 = nil
-			var optionType any = nil
+			var optionType *string = nil
 			var symbol any = id
 			var typeVar string = "swap"
 			if future {
@@ -1385,9 +1385,9 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry, ""))
 					if option {
 						strike = this.SafeNumber(market, "strike")
-						optionType = DerefScalar(this.SafeString(market, "option_type"))
+						optionType = this.SafeString(market, "option_type")
 						var letter string = func() string {
-							if IsEqual(optionType, "call") {
+							if optionType != nil && *optionType == "call" {
 								return "C"
 							}
 							return "P"
@@ -1468,13 +1468,13 @@ func (this *Deribit) ParseBalance(balance any) any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
-	var summaries any = []any{}
+	var summaries []any = []any{}
 	if InOp(balance, "summaries") {
-		summaries = this.SafeList(balance, "summaries", []any{})
+		summaries = ArrayTyped(this.SafeList(balance, "summaries", []any{}))
 	} else {
 		summaries = []any{balance}
 	}
-	for i := 0; i < GetArrayLength(summaries); i++ {
+	for i := 0; i < len(summaries); i++ {
 		var data map[string]any = SafeMapTyped(summaries, i)
 		var currencyId *string = this.SafeString(data, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
@@ -1862,7 +1862,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var code *string = this.SafeString2(params, "code", "currency")
-	var typeVar any = nil
+	var typeVar *string = nil
 	params = MapTyped(this.Omit(params, []any{"code"}))
 	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
@@ -1883,13 +1883,13 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(typeVar, nil) {
+	if typeVar != nil {
 		var requestType any = nil
-		if IsEqual(typeVar, "spot") {
+		if typeVar != nil && *typeVar == "spot" {
 			requestType = "spot"
-		} else if IsEqual(typeVar, "future") || (IsEqual(typeVar, "contract")) {
+		} else if (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "contract") {
 			requestType = "future"
-		} else if IsEqual(typeVar, "option") {
+		} else if typeVar != nil && *typeVar == "option" {
 			requestType = "option"
 		}
 		if requestType != nil {
@@ -2105,15 +2105,15 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 		cost = Precise.StringDiv(amount, priceString)
 	}
 	var liquidity *string = this.SafeString(trade, "liquidity")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if liquidity != nil {
 		// M = maker, T = taker, MT = both
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if liquidity != nil && *liquidity == "M" {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
@@ -2565,7 +2565,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 		"postOnly":           postOnly,
 		"side":               side,
 		"price":              priceString,
-		"triggerPrice":       this.SafeValue(order, "stop_price"),
+		"triggerPrice":       this.SafeNumber(order, "stop_price"),
 		"amount":             amount,
 		"cost":               cost,
 		"average":            averageString,
@@ -5023,7 +5023,7 @@ func (this *Deribit) Sign(path any, optionalArgs ...any) any {
 			request = Add(request, "?"+this.Urlencode(params))
 		}
 		var requestData any = Add(Add(Add(Add(method+"\n", request), "\n"), requestBody), "\n") // eslint-disable-line quotes
-		var auth any = Add(timestamp+"\n"+nonce+"\n", requestData)                              // eslint-disable-line quotes
+		var auth *string = SafeStringPtr(Add(timestamp+"\n"+nonce+"\n", requestData))           // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		headers = map[string]any{
 			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
@@ -5058,7 +5058,7 @@ func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any,
 	var error map[string]any = SafeMapTyped(response, "error")
 	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

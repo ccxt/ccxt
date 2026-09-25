@@ -2070,7 +2070,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome any, optional
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//
-	var first any = this.SafeDict(response, 0, map[string]any{})
+	var first map[string]any = ccxt.MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParsePredictionOpenInterest(first, outcomeObj)
 	return nil
@@ -2490,7 +2490,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	}
 
 	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.DataPublicGetPositions(this.Extend(request, params))).Raw))
-	var positions any = this.SafeList(response, "data", []any{})
+	var positions []any = ccxt.SafeListTypedDefault(response, "data", []any{})
 	// parse without the base outcome filter (it resolves standard markets, not outcome tokens),
 	// then filter by the requested outcomes' token ids ourselves
 	var parsed any = this.ParsePredictionPositions(positions)
@@ -2646,7 +2646,7 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 
 	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetDataOrders(this.Extend(request, params))).Raw))
-	var orders any = this.SafeList(response, "data", []any{})
+	var orders []any = ccxt.SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePredictionOrders(orders, outcomeObj, since, limit)
 	return nil
@@ -3242,12 +3242,12 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 	// raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
 	var orderTypeHash any = this.Hash(this.Encode(orderTypeString), ccxt.Keccak, "binary")
 	var contentsData any = this.EthAbiEncode([]any{"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, []any{orderTypeHash, this.ConvertToBigInt(ccxt.GetValue(message, "salt")), ccxt.GetValue(message, "maker"), ccxt.GetValue(message, "signer"), this.ConvertToBigInt(ccxt.GetValue(message, "tokenId")), this.ConvertToBigInt(ccxt.GetValue(message, "makerAmount")), this.ConvertToBigInt(ccxt.GetValue(message, "takerAmount")), ccxt.GetValue(message, "side"), ccxt.GetValue(message, "signatureType"), this.ConvertToBigInt(ccxt.GetValue(message, "timestamp")), this.Base16ToBinary(this.Remove0xPrefix(ccxt.GetValue(message, "metadata"))), this.Base16ToBinary(this.Remove0xPrefix(ccxt.GetValue(message, "builder")))})
-	var contentsHash any = ccxt.Add("0x", this.Hash(contentsData, ccxt.Keccak, "hex"))
+	var contentsHash *string = ccxt.SafeStringPtr(ccxt.Add("0x", this.Hash(contentsData, ccxt.Keccak, "hex")))
 	var domainTypeHash any = this.Hash(this.Encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), ccxt.Keccak, "binary")
 	var nameHash any = this.Hash(this.Encode(domainName), ccxt.Keccak, "binary")
 	var versionHash any = this.Hash(this.Encode(domainVersion), ccxt.Keccak, "binary")
 	var appDomainData any = this.EthAbiEncode([]any{"bytes32", "bytes32", "bytes32", "uint256", "address"}, []any{domainTypeHash, nameHash, versionHash, this.ConvertToBigInt(this.NumberToString(chainIdValue)), exchangeAddress})
-	var appDomainSep any = ccxt.Add("0x", this.Hash(appDomainData, ccxt.Keccak, "hex"))
+	var appDomainSep *string = ccxt.SafeStringPtr(ccxt.Add("0x", this.Hash(appDomainData, ccxt.Keccak, "hex")))
 	var typedDataSignStruct []any = []any{map[string]any{
 		"name": "contents",
 		"type": "Order",
@@ -3762,7 +3762,7 @@ func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, 
 	}
 	var errorMessage *string = this.SafeString2(response, "error", "errorMsg")
 	if errorMessage != nil {
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	}
@@ -4358,8 +4358,8 @@ func (this *Polymarket) watchOrderBookBody(ch chan any, outcome any, optionalArg
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
-	var messageHash any = ccxt.Add("orderbook::", outcome)
-	var subscribeHash any = ccxt.Add("subscribe::", tokenId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", outcome))
+	var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("subscribe::", tokenId))
 	var subscribeMsg map[string]any = map[string]any{
 		"assets_ids": []any{tokenId},
 		"type":       "market",
@@ -4401,8 +4401,8 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
-	var messageHash any = ccxt.Add("trades::", outcome)
-	var subscribeHash any = ccxt.Add("subscribe::", tokenId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", outcome))
+	var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("subscribe::", tokenId))
 	var subscribeMsg map[string]any = map[string]any{
 		"assets_ids": []any{tokenId},
 		"type":       "market",
@@ -4437,8 +4437,8 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome any, optionalArgs .
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
-	var messageHash any = ccxt.Add("ticker::", outcome)
-	var subscribeHash any = ccxt.Add("subscribe::", tokenId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", outcome))
+	var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("subscribe::", tokenId))
 	var subscribeMsg map[string]any = map[string]any{
 		"assets_ids": []any{tokenId},
 		"type":       "market",

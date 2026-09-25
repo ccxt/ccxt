@@ -1767,8 +1767,8 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = nil
 	var datetime *string = nil
-	var side any = nil
-	var typeVar any = nil
+	var side *string = nil
+	var typeVar *string = nil
 	var price *string = nil
 	var amount *string = nil
 	var id any = nil
@@ -1777,18 +1777,18 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = nil
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if IsEqual(GetValue(trade, 3), "s") {
 				return "sell"
 			}
 			return "buy"
-		}()
-		typeVar = func() string {
+		}())
+		typeVar = SafeStringPtr(func() string {
 			if IsEqual(GetValue(trade, 4), "l") {
 				return "limit"
 			}
 			return "market"
-		}()
+		}())
 		price = this.SafeString(trade, 0)
 		amount = this.SafeString(trade, 1)
 		var tradeLength int = GetArrayLength(trade)
@@ -1809,8 +1809,8 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		orderId = this.SafeString(trade, "ordertxid")
 		id = DerefScalar(this.SafeString2(trade, "id", "postxid"))
 		timestamp = this.SafeTimestamp(trade, "time")
-		side = DerefScalar(this.SafeString(trade, "type"))
-		typeVar = DerefScalar(this.SafeString(trade, "ordertype"))
+		side = this.SafeString(trade, "type")
+		typeVar = this.SafeString(trade, "ordertype")
 		price = this.SafeString(trade, "price")
 		amount = this.SafeString(trade, "vol")
 		if InOp(trade, "fee") {
@@ -1827,8 +1827,8 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		symbol = this.SafeString(trade, "symbol")
 		datetime = this.SafeString(trade, "timestamp")
 		id = DerefScalar(this.SafeString(trade, "trade_id"))
-		side = DerefScalar(this.SafeString(trade, "side"))
-		typeVar = DerefScalar(this.SafeString(trade, "ord_type"))
+		side = this.SafeString(trade, "side")
+		typeVar = this.SafeString(trade, "ord_type")
 		price = this.SafeString(trade, "price")
 		amount = this.SafeString(trade, "qty")
 	}
@@ -1837,14 +1837,14 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var cost *string = this.SafeString(trade, "cost")
 	var maker *bool = this.SafeBool(trade, "maker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
@@ -2247,7 +2247,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	if IsEqual(id, nil) {
 		return id
 	}
-	var market any = this.SafeValue(GetValue(this.Options, "delistedMarketsById"), id)
+	var market any = this.SafeDict(GetValue(this.Options, "delistedMarketsById"), id)
 	if !IsEqual(market, nil) {
 		return market
 	}
@@ -2268,7 +2268,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	var quoteId string = Slice(id, quoteIdStart, quoteIdEnd)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	market = map[string]any{
 		"symbol":  symbol,
 		"base":    base,
@@ -4438,7 +4438,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		"asset":  currency["id"],
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
-		panic(BadRequest(this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."))
+		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw))
@@ -4569,7 +4569,7 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 	}
 	if GetValue(body, 0) == "{" {
 		if !IsString(response) {
-			var message any = Add(this.Id+" ", body)
+			var message *string = SafeStringPtr(Add(this.Id+" ", body))
 			if InOp(response, "error") {
 				var numErrors int = GetArrayLength(GetValue(response, "error"))
 				if numErrors > 0 {

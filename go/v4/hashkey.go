@@ -1183,19 +1183,19 @@ func (this *Hashkey) ParseMarket(market any) any {
 		suffix = Add(suffix, Add(":", settleId))
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
-	var symbol any = Add(Add(Add(base, "/"), quote), suffix)
+	var symbol *string = SafeStringPtr(Add(Add(Add(base, "/"), quote), suffix))
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "TRADING")
 	var isLinear any = nil
-	var subType any = nil
+	var subType *string = nil
 	var isInverse *bool = this.SafeBool(market, "inverse")
 	if isInverse != nil {
 		if isInverse != nil && *isInverse {
 			isLinear = false
-			subType = "inverse"
+			subType = SafeStringPtr("inverse")
 		} else {
 			isLinear = true
-			subType = "linear"
+			subType = SafeStringPtr("linear")
 		}
 	}
 	var filtersList []any = SafeListTyped(market, "filters")
@@ -1589,7 +1589,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = MapTyped(GetValue(accountIdparamsVariable, 1))
-	var response any = nil
+	var response []any = nil
 	if IsEqual(marketType, "spot") {
 		if market != nil {
 			request["symbol"] = GetValue(market, "id")
@@ -1598,8 +1598,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["accountId"] = accountId
 		}
 
-		response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params))).Raw))
 	} else if IsEqual(marketType, "swap") {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
@@ -1608,12 +1607,10 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			response = (<-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, params))).Raw))
 		}
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
@@ -1694,20 +1691,20 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}())
 	}
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool2(trade, "isMaker", "isMarker")
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var isBuyerMaker *bool = this.SafeBool(trade, "ibm")
 	// if public trade
 	if isBuyerMaker != nil {
-		takerOrMaker = "taker"
+		takerOrMaker = SafeStringPtr("taker")
 		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
@@ -2470,9 +2467,9 @@ func (this *Hashkey) withdrawBody(ch chan any, code any, amount any, address any
 	if tag != nil {
 		request["addressExt"] = tag
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["chainType"] = this.NetworkCodeToId(networkCode, currency["code"])
@@ -2656,10 +2653,10 @@ func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) any {
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	var currencyId *string = this.SafeString(currency, "id")
-	var status any = nil
+	var status *string = nil
 	var success *bool = this.SafeBool(transfer, "success", false)
 	if success != nil && *success == true {
-		status = "ok"
+		status = SafeStringPtr("ok")
 	}
 	return map[string]any{
 		"id":          this.SafeString(transfer, "orderId"),
@@ -2722,7 +2719,7 @@ func (this *Hashkey) ParseAccount(account any) any {
 		label = "sub"
 	}
 	var accountType *string = this.ParseAccountType(this.SafeString(account, "accountType"))
-	var typeVar string = label + " " + *accountType
+	var typeVar *string = SafeStringPtr(Add(label+" ", accountType))
 	return map[string]any{
 		"id":   this.SafeString(account, "accountId"),
 		"type": typeVar,
@@ -2730,7 +2727,7 @@ func (this *Hashkey) ParseAccount(account any) any {
 		"info": account,
 	}
 }
-func (this *Hashkey) ParseAccountType(typeVar any) *string {
+func (this *Hashkey) ParseAccountType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1": "spot account",
 		"3": "swap account",
@@ -3322,10 +3319,10 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
 		var clientOrderId *string = this.SafeString(orderRequest, "clientOrderId")
 		if clientOrderId == nil {
-			AddElementToObject(orderRequest, "clientOrderId", this.Uuid()) // both spot and swap endpoints require clientOrderId
+			orderRequest["clientOrderId"] = this.Uuid() // both spot and swap endpoints require clientOrderId
 		}
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -3349,7 +3346,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var responseOrders []any = []any{}
 	for i := 0; i < len(result); i++ {
 		var responseEntry map[string]any = SafeMapTyped(result, i)
-		var responseOrder any = this.SafeDict(responseEntry, "order", map[string]any{})
+		var responseOrder map[string]any = MapTyped(this.SafeDict(responseEntry, "order", map[string]any{}))
 		responseOrders = append(responseOrders, responseOrder)
 	}
 
@@ -3403,11 +3400,10 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(marketType, "spot") {
 
-		response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params))).Raw))
 	} else if IsEqual(marketType, "swap") {
 		var isTrigger any = false
 		isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
@@ -3422,8 +3418,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			request["symbol"] = GetValue(market, "id")
 		}
 
-		response = (<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, params))).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
 	}
@@ -3531,15 +3526,13 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(marketType, "spot") {
 
-		response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1SpotCancelOrderByIds(request)).Raw))
 	} else if IsEqual(marketType, "swap") {
 
-		response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(request)).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
 	}
@@ -3600,14 +3593,13 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(marketType, "spot") {
 		if clientOrderId != nil {
 			request["origClientOrderId"] = clientOrderId
 		}
 
-		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params))).Raw))
 	} else if IsEqual(marketType, "swap") {
 		var isTrigger any = false
 		isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
@@ -3617,8 +3609,7 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			request["type"] = "STOP"
 		}
 
-		response = (<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params))).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
 	}
@@ -3906,7 +3897,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var response any = nil
+	var response []any = nil
 	if IsEqual(marketType, "spot") {
 		if market != nil {
 			request["symbol"] = GetValue(market, "id")
@@ -3915,8 +3906,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 			request["accountId"] = accountId
 		}
 
-		response = (<-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, params))).Raw))
 	} else if IsEqual(marketType, "swap") {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
@@ -3934,12 +3924,10 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			response = (<-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, params))).Raw))
 		}
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
@@ -5194,7 +5182,7 @@ func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, hea
 		}
 	}
 	if (!IsEqual(code, 200)) || errorInArray {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], responseCodeString, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCodeString, feedback)
 		panic(ExchangeError(feedback))

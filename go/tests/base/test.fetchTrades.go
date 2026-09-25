@@ -36,7 +36,7 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 		//  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
 		//
 		var grouped map[string]any = exchange.GroupBy(trades, "side")
-		var msg any = Add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", LogTemplate(exchange, method, trades))
+		var msg *string = SafeStringPtr(Add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", LogTemplate(exchange, method, trades)))
 		Assert((func() bool { _, ok := grouped["buy"]; return ok }()), msg)
 		Assert((func() bool { _, ok := grouped["sell"]; return ok }()), msg)
 	}
@@ -79,7 +79,7 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 	for i := 0; i < GetArrayLength(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var ts any = GetValue(trade, "timestamp")
-		var price any = exchange.SafeString(trade, "price")
+		var price any = ccxt.DerefScalar(exchange.SafeString(trade, "price"))
 		var side any = GetValue(trade, "side")
 		//
 		var isSameTs bool = IsEqual(ts, lastTs)

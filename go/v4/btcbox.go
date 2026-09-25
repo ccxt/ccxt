@@ -364,7 +364,7 @@ func (this *Btcbox) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
 		"uppercaseId":    nil,
@@ -1086,7 +1086,7 @@ func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, 
 		return nil // either public API (no error codes expected) or success
 	}
 	var code *string = this.SafeString(response, "code")
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
 	panic(ExchangeError(feedback))
 }

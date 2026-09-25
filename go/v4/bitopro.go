@@ -510,7 +510,7 @@ func (this *Bitopro) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	var limits map[string]any = map[string]any{
 		"amount": map[string]any{
 			"min": this.SafeNumber(market, "minLimitBaseAmount"),
@@ -823,12 +823,12 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isTaker != nil {
 		if isTaker != nil && *isTaker {
-			takerOrMaker = "taker"
+			takerOrMaker = SafeStringPtr("taker")
 		} else {
-			takerOrMaker = "maker"
+			takerOrMaker = SafeStringPtr("maker")
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -2387,7 +2387,7 @@ func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, hea
 	if IsGreaterThanOrEqual(code, 200) && IsLessThan(code, 300) {
 		return nil
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	var error *string = this.SafeString(response, "error")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)

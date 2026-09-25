@@ -19,7 +19,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	PanicOnError(currencies)
 	// todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
 	var numInactiveCurrencies any = 0
-	var maxInactiveCurrenciesPercentage any = exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50) // no more than X% currencies should be inactive
+	var maxInactiveCurrenciesPercentage any = ccxt.DerefScalar(exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50)) // no more than X% currencies should be inactive
 	var requiredActiveCurrencies []any = []any{"BTC", "ETH", "USDT", "USDC"}
 	var features any = exchange.GetFeatures()
 	var featuresSpot any = exchange.SafeDict(features, "spot", map[string]any{})
@@ -50,7 +50,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 				numInactiveCurrencies = Add(numInactiveCurrencies, 1)
 			}
 			// ensure that major currencies are active and enabled for deposit and withdrawal
-			var code any = exchange.SafeString(currency, "code")
+			var code any = ccxt.DerefScalar(exchange.SafeString(currency, "code"))
 			var withdraw any = ccxt.DerefScalar(exchange.SafeBool(currency, "withdraw"))
 			var deposit any = ccxt.DerefScalar(exchange.SafeBool(currency, "deposit"))
 			var isMicaCompliant any = ccxt.DerefScalar(exchange.SafeBool(exchange.GetOptions(), "mica", false))

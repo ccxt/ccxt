@@ -88,7 +88,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("orderbook"+":", market["id"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook"+":", market["id"]))
 
 	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))).(ccxt.OrderBookInterface)
 
@@ -139,7 +139,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		}
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -174,7 +174,7 @@ func (this *Hollaex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trade"+":", market["id"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade"+":", market["id"]))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))))
 	if this.NewUpdates {
@@ -215,7 +215,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
@@ -322,7 +322,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = ccxt.GetValue(keys, i).(string)
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 	}
 }
@@ -469,7 +469,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = ccxt.GetValue(keys, i).(string)
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	}
 }
@@ -589,7 +589,7 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 		this.Options.Store("ws-expires", expires)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var auth any = ccxt.Add("CONNECT"+"/stream", expires)
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add("CONNECT"+"/stream", expires))
 	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	var authParams map[string]any = map[string]any{
 		"api-key":       this.ApiKey,
@@ -631,7 +631,7 @@ func (this *Hollaex) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if error != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), error, feedback)
 			}
 			return nil

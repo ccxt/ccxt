@@ -1705,9 +1705,9 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"currency_symbol": currency["id"],
 	}
 	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
-	if !IsEqual(networkCode, nil) {
+	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsOmitedVariable, 0))
+	var paramsOmited map[string]any = MapTyped(GetValue(networkCodeparamsOmitedVariable, 1))
+	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
 
@@ -2098,9 +2098,9 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	if tag != nil {
 		request["destination_tag"] = tag
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
@@ -2180,7 +2180,7 @@ func (this *Foxbit) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(quoteAssets, "symbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	var fees map[string]any = SafeMapTyped(market, "default_fees")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -2604,7 +2604,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(urlPath, "private") {
 		this.CheckRequiredCredentials()
-		var preHash any = Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature)
+		var preHash *string = SafeStringPtr(Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature))
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
 		AddElementToObject(headers, "X-FB-ACCESS-KEY", this.ApiKey)
 		AddElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.NumberToString(timestamp))
@@ -2637,7 +2637,7 @@ func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, 
 		}
 	}
 	if error != nil {
-		var feedback any = Add(Add(Add(this.Id+" ", message), " details: "), detailsString)
+		var feedback *string = SafeStringPtr(Add(Add(Add(this.Id+" ", message), " details: "), detailsString))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], detailsString, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

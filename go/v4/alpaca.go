@@ -771,7 +771,7 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	if (quote == nil) && (assetClass != nil && *assetClass == "us_equity") {
 		quote = SafeStringPtr("USD")
 	}
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	var status *string = this.SafeString(asset, "status")
 	var active bool = (status != nil && *status == "active")
 	var minAmount *float64 = this.SafeNumber(asset, "min_order_size")
@@ -927,9 +927,9 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
 	}
-	var symbolTradesList any = []any{}
+	var symbolTradesList []any = []any{}
 	if !IsEqual(symbolTrades, nil) {
-		symbolTradesList = symbolTrades
+		symbolTradesList = ArrayTyped(symbolTrades)
 	}
 
 	ch <- this.ParseTrades(symbolTradesList, market, since, limit)
@@ -2387,12 +2387,17 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 		//     ]
 		//
 		var filtered []any = []any{}
-		var ledger any = []any{}
+		var ledger []any = []any{}
 		if IsArray(activities) {
-			ledger = activities
+			ledger = ArrayTyped(activities)
 		}
-		for i := 0; i < GetArrayLength(ledger); i++ {
-			var entry any = GetValue(ledger, i)
+		for i := 0; i < len(ledger); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(ledger) {
+					return DerefScalar(ledger[i])
+				}
+				return nil
+			}()
 			var activityType *string = this.SafeString(entry, "activity_type")
 			var amount *string = this.SafeString(entry, "net_amount")
 			var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(amount, "0"))
@@ -2429,12 +2434,17 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 	//     }
 	//
 	var results []any = []any{}
-	var transfers any = []any{}
+	var transfers []any = []any{}
 	if IsArray(response) {
-		transfers = response
+		transfers = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(transfers); i++ {
-		var entry any = GetValue(transfers, i)
+	for i := 0; i < len(transfers); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(transfers) {
+				return DerefScalar(transfers[i])
+			}
+			return nil
+		}()
 		var direction *string = this.SafeString(entry, "direction")
 		if IsEqual(direction, typeVar) {
 			results = append(results, entry)
@@ -2582,9 +2592,9 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var address *string = nil
 	var addressTo *string = nil
 	var addressFrom *string = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var amount any = nil
-	var code any = nil
+	var code *string = nil
 	var status *string = nil
 	var comment *string = nil
 	var internal any = nil
@@ -2594,23 +2604,23 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(netAmount, "0"))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
 		datetime = this.Iso8601(timestamp)
-		typeVar = func() string {
+		typeVar = SafeStringPtr(func() string {
 			if isIncoming {
 				return "deposit"
 			}
 			return "withdrawal"
-		}()
+		}())
 		amount = this.ParseNumber(Precise.StringAbs(netAmount))
 		// cash ledger rows carry no per-entry asset field and are USD, while crypto
 		// TRANS entries may carry symbol/asset - never blindly adopt the caller's
 		// currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
 		var activityCurrencyId *string = this.SafeString2(transaction, "symbol", "asset")
 		if activityCurrencyId != nil {
-			code = DerefScalar(this.SafeCurrencyCode(activityCurrencyId))
+			code = this.SafeCurrencyCode(activityCurrencyId)
 		} else if (activityType != nil && *activityType == "CSD") || (activityType != nil && *activityType == "CSW") {
-			code = "USD"
+			code = SafeStringPtr("USD")
 		} else {
-			code = DerefScalar(this.SafeCurrencyCode(nil, currency))
+			code = this.SafeCurrencyCode(nil, currency)
 		}
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		comment = activityType
@@ -2626,7 +2636,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
 		amount = DerefScalar(this.SafeNumber(transaction, "amount"))
 		var currencyId *string = this.SafeString(transaction, "asset")
-		code = DerefScalar(this.SafeCurrencyCode(currencyId, currency))
+		code = this.SafeCurrencyCode(currencyId, currency)
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		var fees *string = this.SafeString(transaction, "fees")
 		var networkFee *string = this.SafeString(transaction, "network_fee")
@@ -2895,7 +2905,7 @@ func (this *Alpaca) HandleErrors(code any, reason any, url any, method any, head
 	//     "code": 40110000,
 	//     "message": "request is not authorized"
 	// }
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	var errorCode *string = this.SafeString(response, "code")
 	if !IsEqual(code, nil) {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

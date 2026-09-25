@@ -434,15 +434,15 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var quote string = "USDT"
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
-	var base any = nil
+	var base *string = nil
 	var expiry any = nil
-	var optionType any = nil
+	var optionType *string = nil
 	if GetIndexOf(symbol, "/") > -1 {
-		base = DerefScalar(this.SafeString(symbolBase, 0))
+		base = this.SafeString(symbolBase, 0)
 		expiry = DerefScalar(this.SafeString(optionParts, 1))
 		optionType = this.SafeString(optionParts, 3)
 	} else {
-		base = DerefScalar(this.SafeString(optionParts, 1))
+		base = this.SafeString(optionParts, 1)
 		expiry = DerefScalar(this.SafeString(optionParts, 3))
 		optionType = this.SafeString(optionParts, 0)
 	}
@@ -454,7 +454,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
-	if IsEqual(optionType, "C") {
+	if optionType != nil && *optionType == "C" {
 		optionTypeUnified = "call"
 	}
 	return this.SafeMarketStructure(map[string]any{
@@ -1060,7 +1060,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			amountPrecision = this.ParseNumber("1")
 		}
 		var linear bool = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
-		var optionType any = nil
+		var optionType *string = nil
 		var symbol any = Add(Add(base, "/"), quote)
 		if swap || future || option {
 			symbol = Add(Add(symbol, ":"), settle)
@@ -1069,13 +1069,13 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				if option {
 					typeVar = SafeStringPtr("option")
 					var letter string = "C"
-					optionType = "call"
+					optionType = SafeStringPtr("call")
 					if putOptions {
 						letter = "P"
-						optionType = "put"
+						optionType = SafeStringPtr("put")
 					} else if moveOptions {
 						letter = "M"
-						optionType = "move"
+						optionType = SafeStringPtr("move")
 					}
 					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
 				} else {
@@ -2179,12 +2179,12 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(position, "timestamp", 0.001)
 	var sizeString *string = this.SafeString(position, "size")
-	var side any = nil
+	var side *string = nil
 	if sizeString != nil {
 		if Precise.StringGt(sizeString, "0") {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		} else if Precise.StringLt(sizeString, "0") {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		}
 	}
 	return this.SafePosition(map[string]any{
@@ -3034,16 +3034,16 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(item, "uuid")
-	var direction any = nil
+	var direction *string = nil
 	var account any = nil
 	var metaData map[string]any = SafeMapTyped(item, "meta_data")
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
 	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")
 	if (typeVar != nil && *typeVar == "deposit") || (typeVar != nil && *typeVar == "commission_rebate") || (typeVar != nil && *typeVar == "referral_bonus") || (typeVar != nil && *typeVar == "pnl") || (typeVar != nil && *typeVar == "withdrawal_cancellation") || (typeVar != nil && *typeVar == "promo_credit") {
-		direction = "in"
+		direction = SafeStringPtr("in")
 	} else if (typeVar != nil && *typeVar == "withdrawal") || (typeVar != nil && *typeVar == "commission") || (typeVar != nil && *typeVar == "conversion") || (typeVar != nil && *typeVar == "perpetual_futures_funding") {
-		direction = "out"
+		direction = SafeStringPtr("out")
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
 	var currencyId *string = this.SafeString(item, "asset_id")
@@ -4926,7 +4926,7 @@ func (this *Delta) HandleErrors(code any, reason any, url any, method any, heade
 	var error map[string]any = SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCode, feedback)
 		panic(ExchangeError(feedback))

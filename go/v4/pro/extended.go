@@ -85,7 +85,7 @@ func (this *Extended) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbooks/"), market["id"])
 	if len(query) > 0 {
@@ -445,7 +445,7 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var messageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
@@ -628,7 +628,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var messageHash any = ccxt.Add("orders:", ccxt.GetValue(keys, i))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", ccxt.GetValue(keys, i)))
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
@@ -666,7 +666,7 @@ func (this *Extended) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("fundingRate:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", symbol))
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/funding/"), market["id"])
 	if len(query) > 0 {
@@ -697,7 +697,7 @@ func (this *Extended) HandleFundingRate(client any, message any) {
 	var fundingRate any = this.ParseWsFundingRate(data, nil, message)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
-	var messageHash any = ccxt.Add("fundingRate:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", symbol))
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
 func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) any {
@@ -756,7 +756,7 @@ func (this *Extended) watchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("markPrice:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("markPrice:", symbol))
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/prices/mark/"), market["id"])
 	if len(query) > 0 {
@@ -836,7 +836,7 @@ func (this *Extended) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/publicTrades/"), market["id"])
 	if len(query) > 0 {
@@ -956,7 +956,7 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"candleType", "price"}))
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe), ":"), candleType)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe), ":"), candleType))
 	var query string = this.Urlencode(this.Extend(map[string]any{
 		"interval": interval,
 	}, params))
@@ -1054,7 +1054,7 @@ func (this *Extended) HandleErrorMessage(client any, message any) any {
 	if ccxt.IsEqual(error, nil) {
 		return false
 	}
-	var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 	var errorCode *string = this.SafeString(error, "code")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	var errorMessage *string = this.SafeString(error, "message")

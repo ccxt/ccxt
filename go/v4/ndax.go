@@ -1353,9 +1353,9 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
 	//     ]
 	//
-	var candles any = []any{}
+	var candles []any = []any{}
 	if IsArray(response) {
-		candles = response
+		candles = ArrayTyped(response)
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
@@ -1478,7 +1478,7 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = nil
 	var id *string = nil
 	var marketId any = nil
-	var side any = nil
+	var side *string = nil
 	var orderId *string = nil
 	var takerOrMaker *string = nil
 	var fee map[string]any = map[string]any{}
@@ -1491,9 +1491,9 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 		marketId = DerefScalar(this.SafeString(trade, 1))
 		var takerSide *int64 = this.SafeInteger(trade, 8)
 		if takerSide != nil && *takerSide == 0 {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		} else if takerSide != nil && *takerSide == 1 {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		}
 		orderId = this.SafeString(trade, 4)
 	} else {
@@ -1769,19 +1769,19 @@ func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var credit *string = this.SafeString(item, "CR")
 	var debit *string = this.SafeString(item, "DR")
 	var amount *string = nil
-	var direction any = nil
+	var direction *string = nil
 	if Precise.StringLt(credit, "0") {
 		amount = credit
-		direction = "in"
+		direction = SafeStringPtr("in")
 	} else if Precise.StringLt(debit, "0") {
 		amount = debit
-		direction = "out"
+		direction = SafeStringPtr("out")
 	}
 	var before *string = nil
 	var after *string = this.SafeString(item, "Balance")
-	if IsEqual(direction, "out") {
+	if direction != nil && *direction == "out" {
 		before = Precise.StringAdd(after, amount)
-	} else if IsEqual(direction, "in") {
+	} else if direction != nil && *direction == "in" {
 		before = Precise.StringMax("0", Precise.StringSub(after, amount))
 	}
 	var timestamp *int64 = this.SafeInteger(item, "TimeStamp")
@@ -3401,7 +3401,7 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 		var sessionToken *string = this.SafeString(this.Options, "sessionToken")
 		if sessionToken == nil {
 			var nonce string = ToString(this.Nonce())
-			var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
+			var auth *string = SafeStringPtr(Add(Add(nonce, this.Uid), this.ApiKey))
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			headers = map[string]any{
 				"Nonce":     nonce,
@@ -3443,7 +3443,7 @@ func (this *Ndax) HandleErrors(code any, reason any, url any, method any, header
 	//
 	var message *string = this.SafeString(response, "errormsg")
 	if (message != nil) && (message == nil || *message != "") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		panic(ExchangeError(feedback))

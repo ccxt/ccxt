@@ -1155,12 +1155,12 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var side *string = this.SafeString(trade, "side")
 	var makerSide *string = this.SafeString(trade, "maker_side")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if side != nil {
 		if side == makerSide || (side != nil && makerSide != nil && *side == *makerSide) {
-			takerOrMaker = "maker"
+			takerOrMaker = SafeStringPtr("maker")
 		} else {
-			takerOrMaker = "taker"
+			takerOrMaker = SafeStringPtr("taker")
 		}
 	} else {
 		if makerSide != nil && *makerSide == "buy" {
@@ -2517,7 +2517,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 			}
 		}
 		if !IsEqual(success, true) {
-			var feedback any = Add(this.Id+" ", this.Json(response))
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 			var error map[string]any = SafeMapTyped(response, "error")
 			if error == nil {
 				panic(ExchangeError(feedback))

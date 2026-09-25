@@ -277,7 +277,7 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 		if body != nil {
 			bodyString = body
 		}
-		var message any = Add(Add(Add(timestamp+strings.ToUpper(method), requestPath), queryString), bodyString)
+		var message *string = SafeStringPtr(Add(Add(Add(timestamp+strings.ToUpper(method), requestPath), queryString), bodyString))
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		headers = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
@@ -432,7 +432,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var market map[string]any = MapTyped(this.SafeDict(markets, key, map[string]any{}))
 		var base *string = this.SafeString(market, "base")
 		var quote *string = this.SafeString(market, "quote")
-		var marketId any = Add(Add(base, "-"), quote)
+		var marketId *string = SafeStringPtr(Add(Add(base, "-"), quote))
 		var marketData map[string]any = this.Extend(market, map[string]any{
 			"id": marketId,
 		})
@@ -1836,7 +1836,7 @@ func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, he
 		if IsEqual(response, nil) {
 			return nil
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var errorMessage any = nil
 		if IsObject(response) {
 			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))

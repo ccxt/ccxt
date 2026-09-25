@@ -2831,8 +2831,8 @@ func (this *Okx) ParseMarket(market any) any {
 		symbol = id
 	}
 	var expiry any = nil
-	var strikePrice any = nil
-	var optionType any = nil
+	var strikePrice *string = nil
+	var optionType *string = nil
 	if contract {
 		if settle != nil {
 			symbol = Add(Add(symbol, ":"), settle)
@@ -2845,17 +2845,17 @@ func (this *Okx) ParseMarket(market any) any {
 			}
 		} else if option {
 			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
-			strikePrice = DerefScalar(this.SafeString(market, "stk"))
-			optionType = DerefScalar(this.SafeString(market, "optType"))
+			strikePrice = this.SafeString(market, "stk")
+			optionType = this.SafeString(market, "optType")
 			if !IsEqual(expiry, nil) {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(Add(Add(Add(Add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType)
-				optionType = func() string {
-					if IsEqual(optionType, "P") {
+				optionType = SafeStringPtr(func() string {
+					if optionType != nil && *optionType == "P" {
 						return "put"
 					}
 					return "call"
-				}()
+				}())
 			}
 		}
 	}
@@ -4292,7 +4292,7 @@ func (this *Okx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
-	query := GetValue(marketTypequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsEqual(marketType, "funding") {
@@ -4941,7 +4941,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -5782,15 +5782,15 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "ordType")
 	var postOnly any = nil
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	if typeVar != nil && *typeVar == "post_only" {
 		postOnly = true
 		typeVar = SafeStringPtr("limit")
 	} else if typeVar != nil && *typeVar == "fok" {
-		timeInForce = "FOK"
+		timeInForce = SafeStringPtr("FOK")
 		typeVar = SafeStringPtr("limit")
 	} else if typeVar != nil && *typeVar == "ioc" {
-		timeInForce = "IOC"
+		timeInForce = SafeStringPtr("IOC")
 		typeVar = SafeStringPtr("limit")
 	} else if typeVar != nil && *typeVar == "rpi" {
 		// retail price improvement orders are maker-only limit orders
@@ -6710,7 +6710,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	query := GetValue(typeVarqueryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if (limit != nil) && (since == nil) {
 		request["limit"] = limit // default 100, max 100
@@ -6850,7 +6850,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	query := GetValue(typeVarqueryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	if typeVar != nil {
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
@@ -7915,7 +7915,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	query := GetValue(typeVarqueryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -8956,7 +8956,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
 	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	query := GetValue(typeVarqueryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	if typeVar != nil && *typeVar == "swap" {
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
@@ -11743,7 +11743,7 @@ func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, hea
 	//
 	var code *string = this.SafeString(response, "code")
 	if (code == nil || *code != "0") && (code == nil || *code != "2") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var data []any = SafeListTyped(response, "data")
 		for i := 0; i < len(data); i++ {
 			var error map[string]any = SafeMapTyped(data, i)

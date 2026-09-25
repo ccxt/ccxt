@@ -222,7 +222,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	}
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
@@ -290,8 +290,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
-	ccxt.PanicOnError(newTickers)
+	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, channels, request, channels, request))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
@@ -385,8 +384,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
-	ccxt.PanicOnError(newTickers)
+	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, channels, request, channels, request))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
@@ -565,7 +563,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
-	var messageHash any = ccxt.Add("trades|"+*symbol+"|", interval)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades|"+*symbol+"|", interval))
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
 
@@ -836,7 +834,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(storedOrderBook, "symbol", symbol)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, storedOrderBook)
-	var messageHash any = ccxt.Add("book|"+*symbol+"|", descriptor)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Deribit) CleanOrderBook(data any) any {
@@ -1127,7 +1125,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, stored)
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash any = ccxt.Add("chart.trades|"+*symbol+"|", rawTimeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("chart.trades|"+*symbol+"|", rawTimeframe))
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {

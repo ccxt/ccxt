@@ -1176,7 +1176,7 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 	}
 	var status *string = this.SafeString(response, "status")
 	if status != nil && *status == "error" {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		panic(ExchangeError(feedback))
 	}
 	return nil

@@ -1634,24 +1634,24 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isBuyer *bool = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
-	var side any = nil
+	var side *string = nil
 	if isBuyer != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyer != nil && *isBuyer == true {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var isMaker *string = this.SafeString(trade, "isMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker == "true" {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var costString *string = nil
 	if orderId != nil {
@@ -2679,13 +2679,13 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = nil
 	timestamp = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var updated any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var withdrawOrderId *string = this.SafeString(transaction, "withdrawOrderId")
 	var depositOrderId *string = this.SafeString(transaction, "depositOrderId")
 	if withdrawOrderId != nil {
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 	} else if depositOrderId != nil {
-		typeVar = "deposit"
+		typeVar = SafeStringPtr("deposit")
 	}
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")
@@ -2889,7 +2889,7 @@ func (this *Coinsph) HandleErrors(code any, reason any, url any, method any, hea
 	}
 	var responseCode *string = this.SafeString(response, "code")
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") && (responseCode == nil || *responseCode != "0") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		panic(ExchangeError(feedback))

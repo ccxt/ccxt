@@ -1246,9 +1246,9 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			if (firstMarketId != nil) && (this.SafeString(marketIdsChunk, 1) == nil) {
 				expectedMarketId = firstMarketId
 			}
-			var tickers any = []any{}
+			var tickers []any = []any{}
 			if IsArray(response) {
-				tickers = response
+				tickers = ArrayTyped(response)
 			} else if this.IsDictionary(response) {
 				if (InOp(response, "market")) || (InOp(response, "trade_date")) || (InOp(response, "trade_timestamp")) {
 					tickers = []any{response}
@@ -1259,13 +1259,18 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 						var ticker any = this.SafeDict(response, id)
 						if !IsEqual(ticker, nil) {
 							AddElementToObject(ticker, "market", this.SafeString(ticker, "market", id))
-							AppendToArray(&tickers, ticker)
+							tickers = append(tickers, ticker)
 						}
 					}
 				}
 			}
-			for j := 0; j < GetArrayLength(tickers); j++ {
-				var entry any = GetValue(tickers, j)
+			for j := 0; j < len(tickers); j++ {
+				var entry any = func() any {
+					if j >= 0 && j < len(tickers) {
+						return DerefScalar(tickers[j])
+					}
+					return nil
+				}()
 				var marketId *string = this.SafeString(entry, "market", expectedMarketId)
 				if marketId == nil {
 					continue
@@ -1889,7 +1894,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
@@ -2525,11 +2530,11 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 		datetime = this.Iso8601(timestamp)
 	}
 	var sideProperty *string = this.SafeString2(order, "type", "side")
-	var side any = nil
+	var side *string = nil
 	if sideProperty != nil && *sideProperty == "bid" {
-		side = "buy"
+		side = SafeStringPtr("buy")
 	} else if sideProperty != nil && *sideProperty == "ask" {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString2(order, "order_status", "state"))
 	var price *string = this.SafeString2(order, "order_price", "price")
@@ -3985,7 +3990,7 @@ func (this *Bithumb) HandleErrors(httpCode any, reason any, url any, method any,
 	if error != nil {
 		var errorName *string = this.SafeString(error, "name")
 		var message *string = this.SafeString(error, "message")
-		var feedback any = Add(this.Id+" ", message)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
 		if errorName != nil {
 			this.ThrowExactlyMatchedException(this.Exceptions, errorName, feedback)
 		}
@@ -4008,7 +4013,7 @@ func (this *Bithumb) HandleErrors(httpCode any, reason any, url any, method any,
 				// https://github.com/ccxt/ccxt/issues/9017
 				return nil // no error
 			}
-			var feedback any = Add(this.Id+" ", message)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
 			this.ThrowExactlyMatchedException(this.Exceptions, status, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions, message, feedback)
 			panic(ExchangeError(feedback))

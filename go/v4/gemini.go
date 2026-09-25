@@ -737,9 +737,9 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5))))
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, 9)
-	var networkCode any = nil
+	var networkCode *string = nil
 	if networkId != nil {
-		networkCode = DerefScalar(this.NetworkIdToCode(networkId, code))
+		networkCode = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawCurrency,
@@ -965,12 +965,12 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 	var fetchUsdtMarkets []any = SafeListTyped(this.Options, "fetchUsdtMarkets")
 	var result []any = []any{}
 	for i := 0; i < len(fetchUsdtMarkets); i++ {
-		var marketId any = func() any {
+		var marketId *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(fetchUsdtMarkets) {
 				return DerefScalar(fetchUsdtMarkets[i])
 			}
 			return nil
-		}()
+		}())
 		var request map[string]any = map[string]any{
 			"symbol": marketId,
 		}
@@ -1007,13 +1007,23 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarketsFromAPI")
 	var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 	var marketIds []any = []any{}
-	var allMarketIds any = []any{}
+	var allMarketIds []any = []any{}
 	if IsArray(marketIdsRaw) {
-		allMarketIds = marketIdsRaw
+		allMarketIds = ArrayTyped(marketIdsRaw)
 	}
-	for i := 0; i < GetArrayLength(allMarketIds); i++ {
-		if !this.InArray(GetValue(allMarketIds, i), brokenPairs) {
-			marketIds = append(marketIds, GetValue(allMarketIds, i))
+	for i := 0; i < len(allMarketIds); i++ {
+		if !this.InArray(func() any {
+			if i >= 0 && i < len(allMarketIds) {
+				return DerefScalar(allMarketIds[i])
+			}
+			return nil
+		}(), brokenPairs) {
+			marketIds = append(marketIds, func() any {
+				if i >= 0 && i < len(allMarketIds) {
+					return DerefScalar(allMarketIds[i])
+				}
+				return nil
+			}())
 		}
 	}
 	if this.SafeBool(options, "fetchDetailsForAllSymbols", false) != nil && *this.SafeBool(options, "fetchDetailsForAllSymbols", false) {
@@ -1461,8 +1471,8 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var baseId any = nil
 	var quoteId any = nil
-	var base any = nil
-	var quote any = nil
+	var base *string = nil
+	var quote *string = nil
 	if (marketId != nil) && (market == nil) {
 		var idLength int64 = Subtract(GetLength(marketId), 0).(int64)
 		if idLength == 7 {
@@ -2617,9 +2627,9 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	code = currency["code"]
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
@@ -2694,7 +2704,7 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 func (this *Gemini) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {
 		if IsString(body) {
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		}
 		return nil // fallback to default error handler
@@ -2710,7 +2720,7 @@ func (this *Gemini) HandleErrors(httpCode any, reason any, url any, method any, 
 	if result != nil && *result == "error" {
 		var reasonInner *string = this.SafeString(response, "reason")
 		var message *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id+" ", message)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], reasonInner, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
@@ -2810,9 +2820,9 @@ func (this *Gemini) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
 	//     ]
 	//
-	var candles any = []any{}
+	var candles []any = []any{}
 	if IsArray(response) {
-		candles = response
+		candles = ArrayTyped(response)
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)

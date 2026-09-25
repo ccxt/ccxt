@@ -191,7 +191,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
 		stored.(ccxt.Appender).Append(trade)
-		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -297,7 +297,7 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
@@ -374,8 +374,7 @@ func (this *Blofin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.NotSupported(this.Id + " watchTickers() requires a list of symbols"))
 	}
 
-	ticker := (<-this.WatchMultipleWrapperAsync(true, "tickers", "watchTickers", symbols, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync(true, "tickers", "watchTickers", symbols, params))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -413,7 +412,7 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 			return nil
 		}()))
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
-		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 	}
@@ -470,8 +469,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request any = this.GetSubscriptionRequest(args)
 
-	ticker := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -493,7 +491,7 @@ func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
 			return nil
 		}())
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
-		var messageHash any = ccxt.Add("bidask:", symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask:", symbol))
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -820,7 +818,7 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 			return nil
 		}()))
 		var symbol *string = ccxt.SafeStringPtr(order["symbol"])
-		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		client.(ccxt.ClientInterface).Resolve(orders, channelName)
@@ -903,7 +901,7 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 		}())
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), ccxt.GetValue(position, "symbol"))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), ccxt.GetValue(position, "symbol")))
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 }
@@ -941,7 +939,7 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchFundingRate", market, params)
 	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
-	var messageHash any = ccxt.Add("fundingRate:", market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", market["symbol"]))
 	var requestParams map[string]any = map[string]any{
 		"channel": "funding-rate",
 		"instId":  market["id"],
@@ -973,7 +971,7 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var fundingRate any = this.ParseFundingRate(first)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
-	var messageHash any = ccxt.Add("fundingRate:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", symbol))
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
 func (this *Blofin) WatchMultipleWrapperAsync(isPublic any, channelName any, callerMethodName any, optionalArgs ...any) <-chan any {

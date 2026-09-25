@@ -808,7 +808,7 @@ func (this *Whitebit) ParseMarket(market any) any {
 	var isCollateral *bool = this.SafeBool(market, "isCollateral")
 	var typeId *string = this.SafeString(market, "type")
 	var typeVar string
-	var settle any = nil
+	var settle *string = nil
 	var settleId any = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
@@ -819,7 +819,7 @@ func (this *Whitebit) ParseMarket(market any) any {
 	var inverse any = nil
 	if swap {
 		settleId = quoteId
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(Add(symbol, ":"), settle)
 		typeVar = "swap"
 		contract = true
@@ -2408,14 +2408,14 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeString2(trade, "type", "side")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var role *int64 = this.SafeInteger(trade, "role")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if role != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if role != nil && *role == 1 {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "fee")
@@ -2739,7 +2739,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("createOrder", params)
 	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-	query := GetValue(marginModequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
 	if postOnly {
 		request["postOnly"] = true
 	}
@@ -3455,11 +3455,11 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "ftime")
 	var postOnly *bool = this.SafeBool(order, "postOnly")
 	var ioc *bool = this.SafeBool(order, "ioc")
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	if ioc != nil && *ioc == true {
-		timeInForce = "IOC"
+		timeInForce = SafeStringPtr("IOC")
 	} else if postOnly != nil && *postOnly == true {
-		timeInForce = "PO"
+		timeInForce = SafeStringPtr("PO")
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -4385,9 +4385,9 @@ func (this *Whitebit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var records any = this.SafeList(response, "records", []any{})
-	var recordsList any = []any{}
+	var recordsList []any = []any{}
 	if !IsEqual(records, nil) {
-		recordsList = records
+		recordsList = ArrayTyped(records)
 	}
 
 	ch <- this.ParseTransactions(recordsList, currency, since, limit)
@@ -4874,9 +4874,9 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	//    }
 	//
 	var records any = this.SafeList(response, "records")
-	var recordsList any = []any{}
+	var recordsList []any = []any{}
 	if !IsEqual(records, nil) {
-		recordsList = records
+		recordsList = ArrayTyped(records)
 	}
 
 	ch <- this.ParseTransactions(recordsList, currency, since, limit)
@@ -5518,10 +5518,10 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 		// whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
 		var nonce string = ToString(this.IncrementingNonce())
 		var secret string = this.Encode(this.Secret)
-		var request any = Add(Add("/"+"api"+"/", version), pathWithParams)
+		var request *string = SafeStringPtr(Add(Add("/"+"api"+"/", version), pathWithParams))
 		var nonceWindowrequestParamsVariable []any = this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
 		nonceWindow := GetValue(nonceWindowrequestParamsVariable, 0)
-		requestParams := GetValue(nonceWindowrequestParamsVariable, 1)
+		var requestParams map[string]any = MapTyped(GetValue(nonceWindowrequestParamsVariable, 1))
 		body = this.Json(this.Extend(map[string]any{
 			"request":     request,
 			"nonce":       nonce,
@@ -5562,7 +5562,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		var codeNew *int64 = this.SafeInteger(response, "code")
 		var hasErrorStatus bool = (status != nil) && (status == nil || *status != "200") && (errors != nil)
 		if hasErrorStatus || (codeNew != nil) {
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			var errorInfo any = message
 			if hasErrorStatus {
 				errorInfo = status
@@ -5614,7 +5614,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 					return body
 				}()
 			}
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			panic(ExchangeError(feedback))

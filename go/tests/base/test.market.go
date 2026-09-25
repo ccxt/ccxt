@@ -174,7 +174,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// if not spot, any of the below should be true
 		Assert((contract != nil && *contract == true) && ((future != nil && *future == true) || (swap != nil && *swap == true) || (option != nil && *option == true) || (isIndex == true)), Add("for non-spot markets, any of (future/swap/option/index) should be set", logText))
 	}
-	var contractSize any = exchange.SafeString(market, "contractSize")
+	var contractSize any = ccxt.DerefScalar(exchange.SafeString(market, "contractSize"))
 	// contract fields
 	if (contract != nil && *contract == true) && !isInactiveMarket {
 		if isQuanto {
@@ -267,7 +267,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// max >= 0
 			AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0")
 			// max >= min
-			var minString any = exchange.SafeString(limitEntry, "min")
+			var minString any = ccxt.DerefScalar(exchange.SafeString(limitEntry, "min"))
 			if minString != nil {
 				AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString)
 			}

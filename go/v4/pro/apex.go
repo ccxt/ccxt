@@ -136,7 +136,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
-		var topic any = ccxt.Add("recentlyTrade.H.", market["id2"])
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("recentlyTrade.H.", market["id2"]))
 		topics = append(topics, topic)
 		var messageHash string = "trade:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -303,7 +303,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		if limit == nil {
 			limit = 25
 		}
-		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", market["id2"])
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", market["id2"]))
 		topics = append(topics, topic)
 		var messageHash string = "orderbook:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -468,8 +468,8 @@ func (this *Apex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var url any = this.GetWsPublicUrl()
-	var messageHash any = ccxt.Add("ticker:", symbol)
-	var topic any = ccxt.Add("instrumentInfo"+".H.", market["id2"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+	var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", market["id2"]))
 	var topics []any = []any{topic}
 
 	ch <- ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)))
@@ -508,14 +508,13 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
-		var topic any = ccxt.Add("instrumentInfo"+".H.", market["id2"])
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", market["id2"]))
 		topics = append(topics, topic)
 		var messageHash string = "ticker:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
 
-	ticker := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, messageHashes, topics, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -572,7 +571,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	ccxt.AddElementToObject(parsed, "timestamp", timestamp)
 	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(this.Tickers, symbol, parsed)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
 
@@ -720,7 +719,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 		}())
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -946,7 +945,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -1002,7 +1001,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 	}
 	var symbolsArray []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(symbolsArray); i++ {
-		var currentMessageHash any = ccxt.Add("orders:", ccxt.GetValue(symbolsArray, i))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", ccxt.GetValue(symbolsArray, i)))
 		client.(ccxt.ClientInterface).Resolve(orders, currentMessageHash)
 	}
 	var messageHash string = "orders"
@@ -1239,7 +1238,7 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if (code != nil) && (code == nil || *code != "0") {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				var msg *string = this.SafeString2(message, "retMsg", "ret_msg")
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)

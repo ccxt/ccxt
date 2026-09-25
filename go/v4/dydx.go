@@ -645,7 +645,7 @@ func (this *Dydx) ParseMarket(market any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId string = "USDC"
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
 	var contract bool = true
 	var swap bool = true
 	var amountPrecisionStr *string = this.SafeString(market, "stepSize")
@@ -1527,7 +1527,7 @@ func (this *Dydx) SignOnboardingAction() any {
 	var message map[string]any = map[string]any{
 		"action": "dYdX Chain Onboarding",
 	}
-	var chainId any = GetValue(this.Options, "chainId")
+	var chainId *int64 = this.SafeInteger(this.Options, "chainId")
 	var domain map[string]any = map[string]any{
 		"chainId": chainId,
 		"name":    "dYdX Chain",
@@ -1550,7 +1550,7 @@ func (this *Dydx) SignDydxTx(privateKey any, message any, memo any, chainId any,
 	_ = fee
 	encodedTxsignDocVariable := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
 	encodedTx := GetValue(encodedTxsignDocVariable, 0)
-	signDoc := GetValue(encodedTxsignDocVariable, 1)
+	var signDoc map[string]any = MapTyped(GetValue(encodedTxsignDocVariable, 1))
 	var signature any = this.SignHash(encodedTx, privateKey)
 	return this.EncodeDydxTxRaw(signDoc, Add(GetValue(signature, "r"), GetValue(signature, "s")))
 }
@@ -1804,7 +1804,7 @@ func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clie
 	var nameSp *string = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var prefixAddress any = Add(Add(address, "-"), ToString(subAccountNumber))
 	var prefix string = this.Uuid5(nameSp, prefixAddress)
-	var orderInfo any = Add(Add(Add(Add(Add(prefix+"-", this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
+	var orderInfo *string = SafeStringPtr(Add(Add(Add(Add(Add(prefix+"-", this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags)))
 	return this.Uuid5(nameSp, orderInfo)
 }
 func (this *Dydx) FetchLatestBlockHeightAsync(optionalArgs ...any) <-chan any {
@@ -1887,16 +1887,25 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	account := (<-this.FetchDydxAccountAsync())
 	PanicOnError(account)
 
-	lastBlockHeight := (<-this.FetchLatestBlockHeightAsync())
-	PanicOnError(lastBlockHeight)
+	var lastBlockHeight *int64 = Int64PtrTyped(PanicOnError((<-this.FetchLatestBlockHeightAsync())))
 	// params['latestBlockHeight'] = lastBlockHeight;
 	var newParams map[string]any = this.Extend(params, map[string]any{
 		"latestBlockHeight": lastBlockHeight,
 	})
-	var orderRequestRes map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams))
-	var orderId any = GetValue(orderRequestRes, 0)
-	var orderRequest any = GetValue(orderRequestRes, 1)
-	var chainName any = GetValue(this.Options, "chainName")
+	var orderRequestRes []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams))
+	var orderId any = func() any {
+		if 0 >= 0 && 0 < len(orderRequestRes) {
+			return DerefScalar(orderRequestRes[0])
+		}
+		return nil
+	}()
+	var orderRequest any = func() any {
+		if 1 >= 0 && 1 < len(orderRequestRes) {
+			return DerefScalar(orderRequestRes[1])
+		}
+		return nil
+	}()
+	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), orderRequest, "", chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
@@ -2031,7 +2040,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"typeUrl": "/dydxprotocol.clob.MsgCancelOrder",
 		"value":   cancelPayload,
 	}
-	var chainName any = GetValue(this.Options, "chainName")
+	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
@@ -2124,7 +2133,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		"typeUrl": "/dydxprotocol.clob.MsgBatchCancel",
 		"value":   cancelPayload,
 	}
-	var chainName any = GetValue(this.Options, "chainName")
+	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
@@ -2231,12 +2240,12 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var typeVar *string = this.SafeStringUpper(item, "type")
-	var direction any = nil
+	var direction *string = nil
 	if typeVar != nil {
 		if (typeVar != nil && *typeVar == "TRANSFER_IN") || (typeVar != nil && *typeVar == "DEPOSIT") {
-			direction = "in"
+			direction = SafeStringPtr("in")
 		} else if (typeVar != nil && *typeVar == "TRANSFER_OUT") || (typeVar != nil && *typeVar == "WITHDRAWAL") {
-			direction = "out"
+			direction = SafeStringPtr("out")
 		}
 	}
 	var amount *string = this.SafeString(item, "size")
@@ -2473,7 +2482,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
 
 	txFee := (<-this.EstimateTxFeeAsync(signingPayload, "", account))
 	PanicOnError(txFee)
-	var chainName any = GetValue(this.Options, "chainName")
+	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
@@ -2705,7 +2714,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
 
 	txFee := (<-this.EstimateTxFeeAsync(signingPayload, tag, account))
 	PanicOnError(txFee)
-	var chainName any = GetValue(this.Options, "chainName")
+	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, tag, chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
@@ -3211,7 +3220,7 @@ func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, he
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "") {
 		var errorCodeNum any = this.ParseToNumeric(errorCode)
 		if IsGreaterThan(errorCodeNum, 0) {
-			var feedback any = Add(this.Id+" ", this.Json(response))
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			panic(ExchangeError(feedback))

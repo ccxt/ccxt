@@ -146,8 +146,7 @@ func (this *Upbit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	newTickers := (<-this.WatchPublicMultipleAsync(symbols, "ticker"))
-	ccxt.PanicOnError(newTickers)
+	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(symbols, "ticker"))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
@@ -335,7 +334,7 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
@@ -797,7 +796,7 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		if !ccxt.IsEqual(fee, nil) {
 			parsed["fee"] = fee
 		}
-		var fees any = this.SafeValue(order, "fees")
+		var fees any = this.SafeList(order, "fees")
 		if !ccxt.IsEqual(fees, nil) {
 			ccxt.AddElementToObject(parsed, "fees", fees)
 		}

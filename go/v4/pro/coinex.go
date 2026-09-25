@@ -557,7 +557,7 @@ func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "myTrades:" + *symbol
-	var messageWithType any = ccxt.Add("myTrades:", market["type"])
+	var messageWithType *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", market["type"]))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1555,7 +1555,7 @@ func (this *Coinex) HandleBidAsk(client any, message map[string]any) {
 	var parsedTicker any = this.ParseWsBidAsk(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
-	var messageHash any = ccxt.Add("bidsasks:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidsasks:", symbol))
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Coinex) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
@@ -1623,7 +1623,7 @@ func (this *Coinex) HandleErrors(code any, reason any, url any, method any, head
 	var errorCode *string = this.SafeString(response, "code")
 	var isErrorCode bool = (errorCode != nil) && (errorCode == nil || *errorCode != "0")
 	if isErrorCode || isErrorMessage {
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))

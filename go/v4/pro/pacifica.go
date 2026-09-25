@@ -130,7 +130,7 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	request := ccxt.GetValue(requestoperationTypeVariable, 0)
+	var request map[string]any = ccxt.MapTyped(ccxt.GetValue(requestoperationTypeVariable, 0))
 	operationType := ccxt.GetValue(requestoperationTypeVariable, 1)
 	params = ccxt.MapTyped(this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "agentAddress", "originAddress"}))
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -568,7 +568,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var aggLevelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(aggLevelparamsVariable, 1))
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -621,7 +621,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(aggLevelparamsVariable, 1))
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -852,9 +852,9 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchMyTrades", params)
-	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
+	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	if this.Markets == nil {
 
@@ -918,9 +918,9 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only"))
 	}
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("unWatchMyTrades", params)
-	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
+	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -1039,7 +1039,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -1078,7 +1078,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -1129,7 +1129,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var subMessageHash any = ccxt.Add("trade:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -1324,7 +1324,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			"interval": parsedTf,
 		},
 	}
-	var messageHash any = ccxt.Add("candles:"+*parsedTf+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+*parsedTf+":", symbol))
 	var message map[string]any = this.Extend(request, params)
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
@@ -1379,7 +1379,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		},
 	}
 	var subMessageHash any = ccxt.Add("candles:"+timeframe+":", symbol)
-	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messagehash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var message map[string]any = this.Extend(request, params)
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messagehash, message, messagehash)))
@@ -1459,9 +1459,9 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
-	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
+	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var market map[string]any = nil
 	var messageHash any = "order"
@@ -1530,9 +1530,9 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		urlKey = "test"
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("unWatchOrders", params)
-	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
+	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
