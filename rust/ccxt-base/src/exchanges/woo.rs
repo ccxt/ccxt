@@ -3207,7 +3207,6 @@ impl WooCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]); // This is base amount
-        let mut cost: Value = self.safe_string_k(order.clone(), "amount", &[]); // This is quote amount
         let mut orderType: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
         let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
@@ -3253,7 +3252,7 @@ impl WooCore {
         m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
