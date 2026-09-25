@@ -8699,17 +8699,22 @@ function stringListLocal (csharp, scope, declaration, depth = 0) {
             return producer (node.whenTrue) && producer (node.whenFalse);
         }
         if (node?.kind === ts.SyntaxKind.Identifier) {
-            const list = index.declarations.get (node.escapedText) ?? [];
             const name = node.escapedText;
-            return list.length === 1 && !index.parameterNames.has (name) && !index.blockedNames.has (name)
+            if (index.parameterNames.has (name)) {
+                // a narrowed string-list parameter (stringListParameterElementType)
+                const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.escapedText === name);
+                return parameter !== undefined && (index.declarations.get (name) ?? []).length === 0 && stringListParameterElementType (csharp, scope, parameter);
+            }
+            const list = index.declarations.get (name) ?? [];
+            return list.length === 1 && !index.blockedNames.has (name)
                 && list[0].getStart () < node.getStart () && stringListLocal (csharp, scope, list[0], depth + 1);
         }
-        return node?.kind !== ts.SyntaxKind.PropertyAccessExpression && stringListParameterWriteProducer (node);
+        return stringListParameterWriteProducer (node);
     };
-    return producer (declaration.initializer) && stringListUsesKeepList (csharp, scope, declaration, 0);
+    return producer (declaration.initializer) && stringListUsesKeepList (csharp, scope, declaration, 0, producer);
 }
 
-function stringListUsesKeepList (csharp, scope, declaration, depth) {
+function stringListUsesKeepList (csharp, scope, declaration, depth, producer) {
     if (depth > 4) {
         return false;
     }
@@ -8718,8 +8723,14 @@ function stringListUsesKeepList (csharp, scope, declaration, depth) {
             continue;
         }
         const parent = use.parent;
-        if ((parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
-                || parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            // a plain rewrite with another proven string list keeps the invariant
+            if (depth === 0 && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && producer !== undefined && producer (parent.right)) {
+                continue;
+            }
+            return false;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
             return false;
         }
         // copied into another local (directly or as a conditional arm): that local holds the same list
@@ -8731,7 +8742,7 @@ function stringListUsesKeepList (csharp, scope, declaration, depth) {
             holder = holder.parent;
         }
         if (holder?.kind === ts.SyntaxKind.VariableDeclaration && holder.initializer === child
-                && !(holder.name?.kind === ts.SyntaxKind.Identifier && stringListUsesKeepList (csharp, scope, holder, depth + 1))) {
+                && !(holder.name?.kind === ts.SyntaxKind.Identifier && stringListUsesKeepList (csharp, scope, holder, depth + 1, undefined))) {
             return false;
         }
     }
