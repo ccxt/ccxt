@@ -746,9 +746,9 @@ public partial class polymarket : PredictionExchange
      * @param {string} tag the tag label or slug
      * @returns {string} the gamma tag slug
      */
-    public virtual string? tagToSlug(object tag)
+    public virtual string? tagToSlug(string? tag)
     {
-        string lower = ((string)tag).ToLower();
+        string lower = tag.ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         List<object> chars = this.stringToCharsArray(lower);
         string slug = "";
@@ -2497,7 +2497,7 @@ public partial class polymarket : PredictionExchange
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    public virtual Dictionary<string, object> buildClobOrderBody(object outcome, string? type, string? side, double? amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> buildClobOrderBody(string? outcome, string? type, string? side, double? amount, object price = null, object parameters = null)
     {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
@@ -2696,7 +2696,7 @@ public partial class polymarket : PredictionExchange
         return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), request);
     }
 
-    public virtual Dictionary<string, object> polymarketOrderRawAmounts(string? side, object size, object price, object tickSize, object cost = null)
+    public virtual Dictionary<string, object> polymarketOrderRawAmounts(string? side, object size, object price, string? tickSize, object cost = null)
     {
         Dictionary<string, object> configs = new Dictionary<string, object>() {
             { "0.1", new Dictionary<string, object>() {
@@ -3465,7 +3465,7 @@ public partial class polymarket : PredictionExchange
         return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
-    public virtual string ethChecksumAddress(object address)
+    public virtual string ethChecksumAddress(string? address)
     {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
@@ -3509,7 +3509,7 @@ public partial class polymarket : PredictionExchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual string signClobAuth(object address, object timestamp, object nonce)
+    public virtual string signClobAuth(string? address, string? timestamp, object nonce)
     {
         // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
         Dictionary<string, object> domain = new Dictionary<string, object>() {
@@ -4019,7 +4019,7 @@ public partial class polymarket : PredictionExchange
         return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true));
     }
 
-    public async virtual Task<object> subscribeUserChannel(object messageHash, object parameters = null)
+    public async virtual Task<object> subscribeUserChannel(string? messageHash, object parameters = null)
     {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         parameters ??= new Dictionary<string, object>();
@@ -4085,9 +4085,9 @@ public partial class polymarket : PredictionExchange
         }
     }
 
-    public virtual string? tokenIdToSymbol(object tokenId)
+    public virtual string? tokenIdToSymbol(string? tokenId)
     {
-        if (((tokenId == null)) || (isEqual(tokenId, "")))
+        if (((tokenId == null)) || ((tokenId == "")))
         {
             return null;
         }
@@ -4104,7 +4104,7 @@ public partial class polymarket : PredictionExchange
         return this.safeString2(market, "market", "symbol");
     }
 
-    public virtual object parsePolyTimestamp(object raw)
+    public virtual object parsePolyTimestamp(string? raw)
     {
         if ((raw == null))
         {

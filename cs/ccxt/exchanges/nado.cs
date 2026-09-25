@@ -3111,7 +3111,7 @@ public partial class nado : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public virtual string? convertToX18(object value)
+    public virtual string? convertToX18(string? value)
     {
         if ((value == null))
         {
@@ -3187,7 +3187,7 @@ public partial class nado : Exchange
         return appendix;
     }
 
-    public virtual string createSubaccount(object walletAddress, object subaccount = null)
+    public virtual string createSubaccount(object walletAddress, string? subaccount = null)
     {
         subaccount ??= "default";
         if ((walletAddress == null))
@@ -3288,7 +3288,7 @@ public partial class nado : Exchange
         return ((string?)((object)(this.signHash(hash, this.privateKey))));
     }
 
-    public virtual object signCancellation(IDictionary<string, object> cancellation, object chainId, object endpointAddress)
+    public virtual object signCancellation(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3316,7 +3316,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signCancellationProducts(IDictionary<string, object> cancellation, object chainId, object endpointAddress)
+    public virtual object signCancellationProducts(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3341,7 +3341,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signFetchTriggerOrders(IDictionary<string, object> tx, object chainId, object endpointAddress)
+    public virtual object signFetchTriggerOrders(IDictionary<string, object> tx, string? chainId, string? endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3376,15 +3376,15 @@ public partial class nado : Exchange
         return ((("0x" + this.padHex(r, 64)) + this.padHex(s, 64)) + v);
     }
 
-    public virtual string? removeMarketSuffix(object marketId)
+    public virtual string? removeMarketSuffix(string? marketId)
     {
         if ((marketId == null))
         {
             return null;
         }
-        if (((string)marketId).EndsWith("-PERP"))
+        if (marketId.EndsWith("-PERP"))
         {
-            return ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Max(((string)marketId).Length - 5, 0)));
+            return ((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0)));
         }
         return ((string?)((object)(marketId)));
     }

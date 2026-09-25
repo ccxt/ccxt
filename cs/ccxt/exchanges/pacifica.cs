@@ -1099,7 +1099,7 @@ public partial class pacifica : Exchange
         }
     }
 
-    public virtual object parseLeverageFromSetting(object symbol, IDictionary<string, object> setting)
+    public virtual object parseLeverageFromSetting(string? symbol, IDictionary<string, object> setting)
     {
         // {
         //   "WLFI/USDC:USDC": {
@@ -1256,7 +1256,7 @@ public partial class pacifica : Exchange
         }
     }
 
-    public virtual object parseMarginModeFromSetting(object symbol, IDictionary<string, object> setting)
+    public virtual object parseMarginModeFromSetting(string? symbol, IDictionary<string, object> setting)
     {
         // {
         //       "symbol": "WLFI",
@@ -2912,7 +2912,7 @@ public partial class pacifica : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? mapTimeInForce(object tifRaw)
+    public virtual string? mapTimeInForce(string? tifRaw)
     {
         Dictionary<string, object> tifMap = new Dictionary<string, object>() {
             { "GTC", "GTC" },
@@ -2926,12 +2926,12 @@ public partial class pacifica : Exchange
         string? tif = null;
         if ((tifRaw != null))
         {
-            tif = ((string)tifRaw).ToUpper();
+            tif = tifRaw.ToUpper();
         }
         return this.safeString(tifMap, tif, "GTC");
     }
 
-    public virtual string? mapSide(object sideRaw)
+    public virtual string? mapSide(string? sideRaw)
     {
         Dictionary<string, object> sideMap = new Dictionary<string, object>() {
             { "sell", "ask" },
@@ -3791,7 +3791,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(string name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
@@ -3866,7 +3866,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToDict(response);
     }
 
-    public async virtual Task<Dictionary<string, object>> bindAgentWallet(object agentAddress, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> bindAgentWallet(string agentAddress, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "bind_agent_wallet";
@@ -3886,7 +3886,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeysCreate(this.extend(request, parameters)));
     }
 
-    public async virtual Task<Dictionary<string, object>> revokeApiKey(object apiKey, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> revokeApiKey(string apiKey, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "revoke_api_key";
@@ -3906,7 +3906,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeys(this.extend(request, parameters)));
     }
 
-    public async virtual Task<Dictionary<string, object>> approveBuilderCode(object builderCode, object maxFeeRate, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> approveBuilderCode(string? builderCode, string? maxFeeRate, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "approve_builder_code";
@@ -3918,7 +3918,7 @@ public partial class pacifica : Exchange
         return ((Dictionary<string, object>)((object)(await this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters)))));
     }
 
-    public async virtual Task<List<Dictionary<string, object>>> FetchBuilderApprovals(object address)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBuilderApprovals(string address)
     {
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", address },
@@ -3926,7 +3926,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToDictList(await this.publicGetAccountBuilderCodesApprovals(this.extend(request)));
     }
 
-    public async virtual Task<Dictionary<string, object>> revokeBuilderCode(object builderCode, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> revokeBuilderCode(string builderCode, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "revoke_builder_code";
@@ -3937,7 +3937,7 @@ public partial class pacifica : Exchange
         return ((Dictionary<string, object>)((object)(await this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters)))));
     }
 
-    public virtual List<object> handleOriginAndSingleAddress(object methodName, object parameters)
+    public virtual List<object> handleOriginAndSingleAddress(string methodName, object parameters)
     {
         IList<object> addressparamsAccountVariable = (IList<object>)this.handleParamString2(parameters, "account", "address", null);
         string? address = (string)addressparamsAccountVariable[0];
@@ -3951,7 +3951,7 @@ public partial class pacifica : Exchange
         {
             return new List<object>() {address1, paramsAccount};
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -4111,12 +4111,12 @@ public partial class pacifica : Exchange
         return signatureBase58;
     }
 
-    public virtual Dictionary<string, object> postActionRequest(object operationType, IDictionary<string, object> sigPayload, object parameters)
+    public virtual Dictionary<string, object> postActionRequest(string? operationType, IDictionary<string, object> sigPayload, object parameters)
     {
         this.checkRequiredCredentials(); // check credentials every post action
-        if (isEqual(operationType, "undefined"))
+        if ((operationType == "undefined"))
         {
-            throw new ArgumentsRequired ((((this.id + " action: ") + (operationType)) + " postActionRequest() requires \"operationType\"")) ;
+            throw new ArgumentsRequired ((((this.id + " action: ") + operationType) + " postActionRequest() requires \"operationType\"")) ;
         }
         if (!this.isSandboxModeEnabled)
         {
@@ -4152,7 +4152,7 @@ public partial class pacifica : Exchange
         string? originAddress = ((string)getValue(this.handleOriginAndSingleAddress("postActionRequest", paramsAgentAddress), 0));
         if ((originAddress == null))
         {
-            throw new ArgumentsRequired ((((this.id + " action: ") + (operationType)) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired ((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         finalHeaders["account"] = originAddress;
         if ((agentAddress != null))

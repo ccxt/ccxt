@@ -305,14 +305,14 @@ public partial class sxbet : PredictionExchange
      * @param {string} sportXeventId the fixture id to keep
      * @returns {object[]} the raw markets of that fixture only
      */
-    public virtual object filterRawMarketsByFixture(object rawMarkets, object sportXeventId)
+    public virtual object filterRawMarketsByFixture(object rawMarkets, string? sportXeventId)
     {
         List<object> result = new List<object>() {};
         int rawMarketsLength = getArrayLength(rawMarkets);
         for (int i = 0; i < rawMarketsLength; i++)
         {
             object raw = getValue(rawMarkets, i);
-            if (isEqual(this.safeString(raw, "sportXeventId"), sportXeventId))
+            if ((this.safeString(raw, "sportXeventId") == sportXeventId))
             {
                 result.Add(raw);
             }
@@ -750,7 +750,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata/obv3 (e.g. '125')
      * @returns {string} the probability rounded to the nearest ladder step, in decimal-string form
      */
-    public virtual object roundOddsToLadder(object probability, object oddsLadderStepSize)
+    public virtual object roundOddsToLadder(string? probability, string? oddsLadderStepSize)
     {
         string? tickSize = Precise.stringDiv(oddsLadderStepSize, "100000", 10);
         return this.decimalToPrecision(probability, ROUND, tickSize, TICK_SIZE);
@@ -778,9 +778,9 @@ public partial class sxbet : PredictionExchange
      * @param {string} privateKey the signer's private key
      * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
      */
-    public virtual object signDigest(object digest, object privateKey)
+    public virtual object signDigest(string? digest, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((digest == null) ? null : ((string)digest).Substring(Math.Max(((string)digest).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
         string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
@@ -800,7 +800,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} tokenAddress the token contract address
      * @returns {string} the token's on-chain name
      */
-    public async virtual Task<string?> fetchErc20Name(object rpcUrl, object tokenAddress)
+    public async virtual Task<string?> fetchErc20Name(string? rpcUrl, string? tokenAddress)
     {
         string nameCallData = "0x06fdde03"; // name()
         object result = await this.ethRpc(rpcUrl, "eth_call", new List<object>() {new Dictionary<string, object>() {
@@ -824,10 +824,10 @@ public partial class sxbet : PredictionExchange
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    public virtual object hexToInt(object hex)
+    public virtual object hexToInt(string? hex)
     {
         string digits = "0123456789abcdef";
-        string lowerHex = ((string)hex).ToLower();
+        string lowerHex = hex.ToLower();
         int hexLength = lowerHex.Length;
         object result = 0;
         for (int i = 0; i < hexLength; i++)
@@ -2426,7 +2426,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} messageHash the future hash the caller awaits
      * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
      */
-    public virtual void registerSxbetWsRequest(object requestId, object messageHash, object subscription)
+    public virtual void registerSxbetWsRequest(object requestId, string? messageHash, string? subscription)
     {
         IDictionary<string, object> existing = this.safeDict(this.options, "wsPendingRequests");
         if ((existing == null))
@@ -2459,7 +2459,7 @@ public partial class sxbet : PredictionExchange
         return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
     }
 
-    public async virtual Task<object> connectSxbetCentrifugo(object url)
+    public async virtual Task<object> connectSxbetCentrifugo(string? url)
     {
         // Centrifugo requires a token-carrying connect command before any subscribe. This sends it once
         // per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
@@ -2496,7 +2496,7 @@ public partial class sxbet : PredictionExchange
         await client.send("{}");
     }
 
-    public async virtual Task<object> subscribeSxbetChannel(object messageHash, object channel)
+    public async virtual Task<object> subscribeSxbetChannel(string? messageHash, string? channel)
     {
         string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         // finish the connect handshake first so the subscribe frame follows the connect reply

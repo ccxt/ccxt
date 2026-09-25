@@ -860,13 +860,13 @@ public partial class phemex : Exchange
         });
     }
 
-    public virtual object parseSafeNumber(object value = null)
+    public virtual object parseSafeNumber(string? value = null)
     {
         if ((value == null))
         {
             return value;
         }
-        List<object> parts = ((string)value).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = value.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
         string valueOption = String.Join("", parts.ToArray());
         parts = valueOption.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         return this.safeNumber(parts, 0);
@@ -1467,7 +1467,7 @@ public partial class phemex : Exchange
         return new List<object> {this.parseNumber(this.fromEp(this.safeString(bidask, priceKey), market)), this.parseNumber(amount)};
     }
 
-    public virtual Dictionary<string, object> customParseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> customParseOrderBook(object orderbook, object symbol, object timestamp = null, string? bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, IDictionary<string, object> market = null)
     {
         bidsKey ??= "bids";
         asksKey ??= "asks";
@@ -4851,7 +4851,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(result);
     }
 
-    public virtual object parseFundingFeeToPrecision(object value, IDictionary<string, object> market = null, object currencyCode = null)
+    public virtual object parseFundingFeeToPrecision(object value, IDictionary<string, object> market = null, string? currencyCode = null)
     {
         if ((value == null) || (currencyCode == null) || (market == null))
         {

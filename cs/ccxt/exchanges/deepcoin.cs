@@ -1122,13 +1122,13 @@ public partial class deepcoin : Exchange
         }, marketResolved);
     }
 
-    public virtual string? parseTakerOrMaker(object execType)
+    public virtual string? parseTakerOrMaker(string? execType)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "T", "taker" },
             { "M", "maker" },
         };
-        return this.safeString(types, ((string)execType), execType);
+        return this.safeString(types, execType, execType);
     }
 
     /**
@@ -1841,7 +1841,7 @@ public partial class deepcoin : Exchange
         }
     }
 
-    public virtual Dictionary<string, object> createRegularOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createRegularOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -1975,7 +1975,7 @@ public partial class deepcoin : Exchange
         return this.extend(request, paramsRequest);
     }
 
-    public virtual Dictionary<string, object> createTriggerOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createTriggerOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -2071,12 +2071,12 @@ public partial class deepcoin : Exchange
         return this.extend(request, paramsMrgPosition);
     }
 
-    public virtual List<object> handleTypePostOnlyAndTimeInForce(object type, object parameters)
+    public virtual List<object> handleTypePostOnlyAndTimeInForce(string? type, object parameters)
     {
-        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, "post_only"), parameters);
+        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        object typePostOnly = type;
+        string? typePostOnly = type;
         if (postOnly)
         {
             typePostOnly = "post_only";

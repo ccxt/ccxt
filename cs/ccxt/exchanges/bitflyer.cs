@@ -289,11 +289,11 @@ public partial class bitflyer : Exchange
         });
     }
 
-    public virtual Int64? parseExpiryDate(object expiry)
+    public virtual Int64? parseExpiryDate(string? expiry)
     {
-        string? day = ((expiry == null) ? null : ((string)expiry).Substring(0, Math.Min(2, ((string)expiry).Length)));
-        string? monthName = ((expiry == null) ? null : ((string)expiry).Substring(Math.Min(2, ((string)expiry).Length), Math.Min(5, ((string)expiry).Length) - Math.Min(2, ((string)expiry).Length)));
-        object year = ((expiry == null) ? null : ((string)expiry).Substring(Math.Min(5, ((string)expiry).Length), Math.Min(9, ((string)expiry).Length) - Math.Min(5, ((string)expiry).Length)));
+        string? day = ((expiry == null) ? null : expiry.Substring(0, Math.Min(2, expiry.Length)));
+        string? monthName = ((expiry == null) ? null : expiry.Substring(Math.Min(2, expiry.Length), Math.Min(5, expiry.Length) - Math.Min(2, expiry.Length)));
+        object year = ((expiry == null) ? null : expiry.Substring(Math.Min(5, expiry.Length), Math.Min(9, expiry.Length) - Math.Min(5, expiry.Length)));
         Dictionary<string, object> months = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
@@ -316,7 +316,7 @@ public partial class bitflyer : Exchange
         return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.

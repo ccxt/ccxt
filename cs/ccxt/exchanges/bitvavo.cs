@@ -2109,7 +2109,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual Dictionary<string, object> fetchOrdersRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public virtual Dictionary<string, object> fetchOrdersRequest(string? symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -2394,7 +2394,7 @@ public partial class bitvavo : Exchange
         }, marketResolved);
     }
 
-    public virtual Dictionary<string, object> fetchMyTradesRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public virtual Dictionary<string, object> fetchMyTradesRequest(string? symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);

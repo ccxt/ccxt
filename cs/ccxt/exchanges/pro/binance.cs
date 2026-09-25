@@ -221,7 +221,7 @@ public partial class binance : ccxt.binance
         return (((string)client.url).IndexOf("/stream", StringComparison.Ordinal) > -1) || (((string)client.url).IndexOf("demo-stream", StringComparison.Ordinal) > -1);
     }
 
-    public virtual string? stream(object type, object subscriptionHash, object numSubscriptions = null)
+    public virtual string? stream(string? type, object subscriptionHash, object numSubscriptions = null)
     {
         numSubscriptions ??= 1;
         IDictionary<string, object> streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
@@ -256,7 +256,7 @@ public partial class binance : ccxt.binance
         return stream;
     }
 
-    public virtual object getWsUrl(object type, object category)
+    public virtual object getWsUrl(object type, string? category)
     {
         if ((isEqual(type, "option")) || (isEqual(type, "optionMarket")) || (isEqual(type, "optionPrivate")))
         {
@@ -317,11 +317,11 @@ public partial class binance : ccxt.binance
         return ((wsUrl + "/") + (listenKey));
     }
 
-    public virtual object getStockWsUrl(object streamType = null)
+    public virtual object getStockWsUrl(string? streamType = null)
     {
         streamType ??= "market";
         string? baseUrl = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "stock"));
-        if (isEqual(streamType, "combined"))
+        if ((streamType == "combined"))
         {
             return baseUrl.Replace("/ws", (string)"/stream");
         }
@@ -335,13 +335,13 @@ public partial class binance : ccxt.binance
         return ((bs == null)) ? null : bs.ToLower();
     }
 
-    public virtual string? getStockUnifiedSymbol(object stockSymbol, object quote = null)
+    public virtual string? getStockUnifiedSymbol(object stockSymbol, string? quote = null)
     {
         if ((stockSymbol == null))
         {
             return null;
         }
-        object safeQuote = quote;
+        string? safeQuote = quote;
         if ((quote == null))
         {
             safeQuote = "USDC";
@@ -2561,7 +2561,7 @@ public partial class binance : ccxt.binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -3078,10 +3078,10 @@ public partial class binance : ccxt.binance
         this.handleTickersAndBidsAsks(client, message, "markPrices");
     }
 
-    public virtual void handleTickersAndBidsAsks(WebSocketClient client, object message, object methodType)
+    public virtual void handleTickersAndBidsAsks(WebSocketClient client, object message, string methodType)
     {
-        bool isBidAsk = (isEqual(methodType, "bidasks"));
-        bool isMarkPrice = (isEqual(methodType, "markPrices"));
+        bool isBidAsk = ((methodType == "bidasks"));
+        bool isMarkPrice = ((methodType == "markPrices"));
         object unifiedPrefix = null;
         if (isBidAsk)
         {
@@ -4202,7 +4202,7 @@ public partial class binance : ccxt.binance
         return ((string?)((object)(accountType)));
     }
 
-    public virtual List<object> resolveAuthType(object methodName, IDictionary<string, object> market = null, object parameters = null)
+    public virtual List<object> resolveAuthType(string methodName, IDictionary<string, object> market = null, object parameters = null)
     {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep

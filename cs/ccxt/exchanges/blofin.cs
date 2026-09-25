@@ -2337,7 +2337,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit, paramsUntil));
     }
 
-    public virtual string? networkCodeToChainId(object networkCode)
+    public virtual string? networkCodeToChainId(string? networkCode)
     {
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
@@ -2359,7 +2359,7 @@ public partial class blofin : Exchange
         return ((string?)((object)(networkCode)));
     }
 
-    public virtual object chainIdToNetworkCode(object chainId)
+    public virtual object chainIdToNetworkCode(string? chainId)
     {
         // live history rows and the currencies registry carry display-name
         // chain ids like Tron with a parenthesized TRC20 suffix (verified
@@ -2369,12 +2369,12 @@ public partial class blofin : Exchange
         {
             return null;
         }
-        if (((string)chainId).IndexOf("(", StringComparison.Ordinal) > -1)
+        if (chainId.IndexOf("(", StringComparison.Ordinal) > -1)
         {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
             // survive the php conversion (false-vs-int compare; length arg)
-            List<object> parts = ((string)chainId).Split(new [] {"("}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = chainId.Split(new [] {"("}, StringSplitOptions.None).ToList<object>();
             string? tail = this.safeString(parts, 1, "");
             List<object> tailParts = tail.Split(new [] {")"}, StringSplitOptions.None).ToList<object>();
             string? suffix = this.safeString(tailParts, 0);

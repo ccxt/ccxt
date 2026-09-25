@@ -1397,7 +1397,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public async virtual Task<object> watchMany(object messageHash, IDictionary<string, object> request, object subscriptionHash, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMany(string? messageHash, IDictionary<string, object> request, string? subscriptionHash, object symbols = null, object parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();

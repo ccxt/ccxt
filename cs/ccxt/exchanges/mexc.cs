@@ -4182,7 +4182,7 @@ public partial class mexc : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? getTifFromRawOrderType(object orderType = null)
+    public virtual string? getTifFromRawOrderType(string? orderType = null)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "LIMIT", "GTC" },
@@ -4191,7 +4191,7 @@ public partial class mexc : Exchange
             { "FILL_OR_KILL", "FOK" },
             { "MARKET", "IOC" },
         };
-        return this.safeString(statuses, ((string)orderType), orderType);
+        return this.safeString(statuses, orderType, orderType);
     }
 
     public async virtual Task<Dictionary<string, object>> FetchAccountHelper(string? type, object parameters)
@@ -4305,7 +4305,7 @@ public partial class mexc : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", data },             { "symbol", symbol },             { "maker", this.safeNumber(data, "makerCommission") },             { "taker", this.safeNumber(data, "takerCommission") },             { "percentage", null },             { "tierBased", null },         });
     }
 
-    public virtual object customParseBalance(IDictionary<string, object> response, object marketType)
+    public virtual object customParseBalance(IDictionary<string, object> response, string? marketType)
     {
         //
         // spot
@@ -4368,10 +4368,10 @@ public partial class mexc : Exchange
         //     }
         //
         List<object> wallet = null;
-        if (isEqual(marketType, "margin"))
+        if ((marketType == "margin"))
         {
             wallet = this.safeList(response, "assets", new List<object>() {});
-        } else if (isEqual(marketType, "swap"))
+        } else if ((marketType == "swap"))
         {
             wallet = this.safeList(response, "data", new List<object>() {});
         } else
@@ -4381,7 +4381,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        if (isEqual(marketType, "margin"))
+        if ((marketType == "margin"))
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
@@ -4400,7 +4400,7 @@ public partial class mexc : Exchange
                 }
             }
             return this.safeBalance(result);
-        } else if (isEqual(marketType, "swap"))
+        } else if ((marketType == "swap"))
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
@@ -6245,7 +6245,7 @@ public partial class mexc : Exchange
         };
     }
 
-    public virtual string? parseAccountId(object status)
+    public virtual string? parseAccountId(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "SPOT", "spot" },

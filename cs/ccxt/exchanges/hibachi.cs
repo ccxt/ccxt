@@ -1360,7 +1360,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
-    public virtual object encodeWithdrawMessage(double? amount, object maxFees, object address)
+    public virtual object encodeWithdrawMessage(double? amount, object maxFees, string? address)
     {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)

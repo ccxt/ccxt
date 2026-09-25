@@ -959,7 +959,7 @@ public partial class gate : ccxt.gate
         this.handleTickerAndBidAsk("bidask", client, message);
     }
 
-    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, string? callerMethodName = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1005,7 +1005,7 @@ public partial class gate : ccxt.gate
         return this.filterByArray(result, "symbol", symbolsNormalized, true);
     }
 
-    public virtual void handleTickerAndBidAsk(object objectName, WebSocketClient client, object message)
+    public virtual void handleTickerAndBidAsk(string objectName, WebSocketClient client, object message)
     {
         string channel = this.safeString(message, "channel");
         List<object> parts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
@@ -1025,7 +1025,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> rawTicker = this.safeDict(message, "result", new Dictionary<string, object>() {});
             results = new List<object>() {rawTicker};
         }
-        bool isTicker = (isEqual(objectName, "ticker")); // whether ticker or bid-ask
+        bool isTicker = ((objectName == "ticker")); // whether ticker or bid-ask
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
             object rawTicker = results[i];
@@ -1046,7 +1046,7 @@ public partial class gate : ccxt.gate
                     this.bidsasks[(string)symbol] = parsedItem;
                 }
             }
-            object messageHash = add(add(objectName, ":"), symbol);
+            string messageHash = ((objectName + ":") + symbol);
             client.resolve(parsedItem, messageHash);
         }
     }
@@ -2682,7 +2682,7 @@ public partial class gate : ccxt.gate
         (future as Future).resolve(true);
     }
 
-    public async virtual Task<object> requestPrivate(object url, object reqParams, object channel, object requestId = null)
+    public async virtual Task<object> requestPrivate(string? url, object reqParams, object channel, object requestId = null)
     {
         this.checkRequiredCredentials();
         // uid is required for some subscriptions only so it's not a part of required credentials

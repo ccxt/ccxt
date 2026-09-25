@@ -586,7 +586,7 @@ public partial class gemini : ccxt.gemini
         client.resolve(bidsAsksDict, messageHash);
     }
 
-    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols = null, object parameters = null)
+    public async virtual Task<object> helperForWatchMultipleConstruct(string itemHashName, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -608,7 +608,7 @@ public partial class gemini : ccxt.gemini
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            object messageHash = add(add(itemHashName, ":"), symbol);
+            string messageHash = ((itemHashName + ":") + symbol);
             messageHashes.Add(messageHash);
             Dictionary<string, object> market = this.market(symbol);
             marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
@@ -620,13 +620,13 @@ public partial class gemini : ccxt.gemini
             throw new ExchangeError ((this.id + " helperForWatchMultipleConstruct() has no websocket url")) ;
         }
         string url = (((wsUrl + "/v1/multimarketdata?symbols=") + queryStr) + "&heartbeat=true&");
-        if (isEqual(itemHashName, "orderbook"))
+        if ((itemHashName == "orderbook"))
         {
             url = url + "trades=false&bids=true&offers=true";
-        } else if (isEqual(itemHashName, "bidsasks"))
+        } else if ((itemHashName == "bidsasks"))
         {
             url = url + "trades=false&bids=true&offers=true&top_of_book=true";
-        } else if (isEqual(itemHashName, "trades"))
+        } else if ((itemHashName == "trades"))
         {
             url = url + "trades=true&bids=false&offers=false";
         }

@@ -886,7 +886,7 @@ public partial class myriad : PredictionExchange
         return ("0x02" + this.rlpEncodeList(signedFields));
     }
 
-    public async override Task<object> ethRpc(object rpcUrl, object method, IList<object> rpcParams)
+    public async override Task<object> ethRpc(string? rpcUrl, string method, IList<object> rpcParams)
     {
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -901,14 +901,14 @@ public partial class myriad : PredictionExchange
         object rpcError = this.safeValue(response, "error");
         if ((rpcError != null))
         {
-            throw new ExchangeError (((((this.id + " rpc ") + (method)) + " error: ") + this.json(rpcError))) ;
+            throw new ExchangeError (((((this.id + " rpc ") + method) + " error: ") + this.json(rpcError))) ;
         }
         // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
         // safeString would coerce a receipt object to "[object Object]"
         return this.safeValue(response, "result");
     }
 
-    public async virtual Task<Dictionary<string, object>> ensureErc20Allowance(object rpcUrl, object networkId, object token, object owner, object spender)
+    public async virtual Task<Dictionary<string, object>> ensureErc20Allowance(string? rpcUrl, string? networkId, string? token, string? owner, string? spender)
     {
         // allowance(owner, spender)
         string allowanceData = (("0xdd62ed3e" + this.padHexAddress(owner)) + this.padHexAddress(spender));
@@ -1052,7 +1052,7 @@ public partial class myriad : PredictionExchange
      * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
      * @returns {object} a dict with the signed order, signature, timeInForce and networkId
      */
-    public virtual Dictionary<string, object> buildOrderbookOrder(object outcome, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> buildOrderbookOrder(string? outcome, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.privateKey == null))
@@ -1379,7 +1379,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs the order-book CancelAll struct
      * @returns {string} the hex signature
      */
-    public virtual string signCancelAll(IDictionary<string, object> message, object networkId)
+    public virtual string signCancelAll(IDictionary<string, object> message, string? networkId)
     {
         List<object> cancelStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "trader" },
@@ -1433,7 +1433,7 @@ public partial class myriad : PredictionExchange
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    public virtual object getOrderResponseFromParams(object id, object parameters = null)
+    public virtual object getOrderResponseFromParams(string? id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> orderResponse = this.safeDict(parameters, "orderResponse");
@@ -1467,7 +1467,7 @@ public partial class myriad : PredictionExchange
             {
                 IDictionary<string, object> current = this.safeDict(orderResponses, i, new Dictionary<string, object>() {});
                 string? currentId = this.safeStringN(current, new List<object>() {"orderHash", "hash", "id"});
-                if (((currentId != null)) && (isEqual(currentId, id)))
+                if (((currentId != null)) && ((currentId == id)))
                 {
                     return current;
                 }
@@ -2414,7 +2414,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual Dictionary<string, object> parseMyriadMarket(object raw, object eventSlug = null)
+    public virtual Dictionary<string, object> parseMyriadMarket(object raw, string? eventSlug = null)
     {
         object networkId = this.safeString(raw, "networkId");
         string? marketId = this.safeString(raw, "id");
@@ -3587,7 +3587,7 @@ public partial class myriad : PredictionExchange
         return newValue;
     }
 
-    public virtual double? fromWei(object wei)
+    public virtual double? fromWei(string? wei)
     {
         if ((wei == null))
         {
@@ -3596,7 +3596,7 @@ public partial class myriad : PredictionExchange
         return ((double?)((object)(this.parseNumber(Precise.stringDiv(wei, "1000000000000000000")))));
     }
 
-    public virtual string? marketOutcomeToSymbol(object networkId, object marketId, object outcomeId)
+    public virtual string? marketOutcomeToSymbol(object networkId, string? marketId, string? outcomeId)
     {
         // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
         if (((networkId == null)) || ((marketId == null)) || ((outcomeId == null)))
@@ -3608,7 +3608,7 @@ public partial class myriad : PredictionExchange
         return this.safeString(outcomeObj, "outcome");
     }
 
-    public async virtual Task<object> connectCentrifugo(object url)
+    public async virtual Task<object> connectCentrifugo(string? url)
     {
         // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
@@ -3644,7 +3644,7 @@ public partial class myriad : PredictionExchange
         await client.send("{}");
     }
 
-    public async virtual Task<object> subscribeMyriadChannel(object messageHash, object channel, object parameters = null)
+    public async virtual Task<object> subscribeMyriadChannel(string? messageHash, string? channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
@@ -3779,13 +3779,13 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public async virtual Task seedOrderBook(object outcome, object sym, Int64? limit = null)
+    public async virtual Task seedOrderBook(string? outcome, string? sym, Int64? limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
-        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));
+        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome,ccxt.BaseExchange.ToInt64Arg(limit)));
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
-        ((IDictionary<string,object>)this.orderbooks)[(string)((string)sym)] = orderbook;
+        ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;
     }
 
     public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> data)
@@ -4294,7 +4294,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true));
     }
 
-    public async virtual Task seedPositionBalances(object trader)
+    public async virtual Task seedPositionBalances(string? trader)
     {
         List<object> positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "address", trader }, }));
         Dictionary<string, object> balances = new Dictionary<string, object>() {};

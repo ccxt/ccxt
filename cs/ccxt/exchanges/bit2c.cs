@@ -1001,10 +1001,10 @@ public partial class bit2c : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
     }
 
-    public virtual string? removeCommaFromValue(object str)
+    public virtual string? removeCommaFromValue(string? str)
     {
         object newString = "";
-        List<object> strParts = ((string)str).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
+        List<object> strParts = str.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
         for (int i = 0; i < strParts.Count; i++)
         {
             newString = add(newString, strParts[i]);

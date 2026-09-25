@@ -2922,7 +2922,7 @@ public partial class hashkey : Exchange
         return this.extend(request, paramsClientOrderId);
     }
 
-    public virtual Dictionary<string, object> createSwapOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSwapOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -3610,7 +3610,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
-    public virtual void checkTypeParam(object methodName, object parameters)
+    public virtual void checkTypeParam(string? methodName, object parameters)
     {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
@@ -3618,7 +3618,7 @@ public partial class hashkey : Exchange
         string? paramsType = this.safeString(parameters, "type");
         if (((paramsType != null)) && (paramsType != "spot") && (paramsType != "swap"))
         {
-            throw new BadRequest ((((((this.id + " ") + (methodName)) + " () type parameter can not be \"") + paramsType) + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
+            throw new BadRequest ((((((this.id + " ") + methodName) + " () type parameter can not be \"") + paramsType) + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
         }
     }
 

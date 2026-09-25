@@ -2705,7 +2705,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
      * @returns {object} the raw redemption response
      */
-    public async virtual Task<Dictionary<string, object>> redeem(object outcome = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> redeem(string? outcome = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? conditionId = this.safeString2(parameters, "conditionId", "condition_id");
@@ -3082,7 +3082,7 @@ public partial class limitless : PredictionExchange
         });
     }
 
-    public virtual IDictionary<string, object> getOutcomeBySlugAndLabel(object slug, object label, object market = null)
+    public virtual IDictionary<string, object> getOutcomeBySlugAndLabel(string? slug, string? label, object market = null)
     {
         Dictionary<string, object> mkt = this.safeMarket(slug, market);
         List<object> outcomes = this.safeList(mkt, "outcomes", new List<object>() {});
@@ -3090,7 +3090,7 @@ public partial class limitless : PredictionExchange
         {
             IDictionary<string, object> outcome = this.safeDict(outcomes, i);
             string? outcomeLabel = this.safeString(outcome, "label");
-            if (isEqual(outcomeLabel, label))
+            if ((outcomeLabel == label))
             {
                 return outcome;
             }
@@ -3221,7 +3221,7 @@ public partial class limitless : PredictionExchange
         return ccxt.BaseExchange.ToPredictionPositionList(result);
     }
 
-    public virtual Dictionary<string, object> getPositionFromClobEntry(object label, object entry = null)
+    public virtual Dictionary<string, object> getPositionFromClobEntry(string? label, object entry = null)
     {
         if ((entry == null))
         {
@@ -3242,7 +3242,7 @@ public partial class limitless : PredictionExchange
         parsed["contracts"] = this.parseNumber(this.applyScale(contracts));
         IDictionary<string, object> latestTrade = this.safeDict(entry, "latestTrade");
         string key = "latestYesPrice";
-        if (isEqual(label, "no"))
+        if ((label == "no"))
         {
             key = "latestNoPrice";
         }

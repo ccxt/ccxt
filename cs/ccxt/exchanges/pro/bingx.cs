@@ -97,7 +97,7 @@ public partial class bingx : ccxt.bingx
         });
     }
 
-    public async virtual Task<object> unWatch(object messageHash, object subMessageHash, object subscribeHash, object dataType, object topic, IDictionary<string, object> market, object methodName, object parameters = null)
+    public async virtual Task<object> unWatch(string? messageHash, string? subMessageHash, string? subscribeHash, string? dataType, string? topic, IDictionary<string, object> market, string? methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? marketType = null;
@@ -207,7 +207,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

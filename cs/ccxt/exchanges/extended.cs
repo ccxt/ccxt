@@ -2268,7 +2268,7 @@ public partial class extended : Exchange
         };
     }
 
-    public virtual object getExtendedCurrencyCodeById(object assetId, object currency = null)
+    public virtual object getExtendedCurrencyCodeById(string? assetId, object currency = null)
     {
         if ((assetId == null))
         {
@@ -3801,7 +3801,7 @@ public partial class extended : Exchange
         }, marketResolved);
     }
 
-    public virtual object getExtendedStringToFelt(object value)
+    public virtual object getExtendedStringToFelt(string? value)
     {
         return this.convertToBigInt(this.stringToBase16(value));
     }
@@ -3895,7 +3895,7 @@ public partial class extended : Exchange
         return ((string?)((object)(this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash}))));
     }
 
-    public virtual string? getExtendedWithdrawalMsgHash(IDictionary<string, object> settlement, object starkKey)
+    public virtual string? getExtendedWithdrawalMsgHash(IDictionary<string, object> settlement, string? starkKey)
     {
         object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();

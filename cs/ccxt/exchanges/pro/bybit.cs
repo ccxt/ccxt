@@ -511,7 +511,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -1422,12 +1422,12 @@ public partial class bybit : ccxt.bybit
         }, marketResolved);
     }
 
-    public virtual string getPrivateType(object url)
+    public virtual string getPrivateType(string? url)
     {
-        if (((string)url).IndexOf("spot", StringComparison.Ordinal) >= 0)
+        if (url.IndexOf("spot", StringComparison.Ordinal) >= 0)
         {
             return "spot";
-        } else if (((string)url).IndexOf("v5/private", StringComparison.Ordinal) >= 0)
+        } else if (url.IndexOf("v5/private", StringComparison.Ordinal) >= 0)
         {
             return "unified";
         } else

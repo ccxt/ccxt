@@ -2031,7 +2031,7 @@ public partial class coinsph : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? encodeOrderType(object status)
+    public virtual string? encodeOrderType(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "market", "MARKET" },

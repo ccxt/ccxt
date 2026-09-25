@@ -929,7 +929,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} subscription the subscription entry for that type
      * @returns {object[]} the SUBSCRIBE frame to send
      */
-    public virtual List<object> buildGen2SubscriptionRequest(object subscriptionType, IDictionary<string, object> subscription)
+    public virtual List<object> buildGen2SubscriptionRequest(string? subscriptionType, IDictionary<string, object> subscription)
     {
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new Dictionary<string, object>() {});

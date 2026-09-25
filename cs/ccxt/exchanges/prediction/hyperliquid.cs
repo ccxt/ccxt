@@ -213,13 +213,13 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} description the raw outcome description string
      * @returns {object} a dict of the parsed key/value pairs
      */
-    public virtual Dictionary<string, object> parseOutcomeDescription(object description)
+    public virtual Dictionary<string, object> parseOutcomeDescription(string? description)
     {
-        if (((description == null)) || (isEqual(description, "")))
+        if (((description == null)) || ((description == "")))
         {
             return new Dictionary<string, object>() {};
         }
-        List<object> parts = ((string)description).Split(new [] {"|"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = description.Split(new [] {"|"}, StringSplitOptions.None).ToList<object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < parts.Count; i++)
         {
@@ -1248,10 +1248,10 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public virtual IDictionary<string, object> findOutcomeInMarket(IDictionary<string, object> market, object sideHint = null)
+    public virtual IDictionary<string, object> findOutcomeInMarket(IDictionary<string, object> market, string? sideHint = null)
     {
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-        string? normalizedHint = ((sideHint != null) && !isEqual(sideHint, "")) ? ((string)sideHint).ToUpper() : null;
+        string? normalizedHint = ((sideHint != null) && (sideHint != "")) ? sideHint.ToUpper() : null;
         if ((normalizedHint != null))
         {
             for (int i = 0; i < outcomesList.Count; i++)
@@ -1277,14 +1277,14 @@ public partial class hyperliquid : PredictionExchange
         return this.safeDict(outcomesList, 0, new Dictionary<string, object>() {});
     }
 
-    public virtual string? parseOutcomeInputSideHint(object outcomeInput)
+    public virtual string? parseOutcomeInputSideHint(string? outcomeInput)
     {
-        if (((outcomeInput == null)) || (isEqual(outcomeInput, "")))
+        if (((outcomeInput == null)) || ((outcomeInput == "")))
         {
             return null;
         }
-        int colonIndex = ((string)outcomeInput).IndexOf(":", StringComparison.Ordinal);
-        if (colonIndex > -1 && isLessThan(colonIndex, (((string)outcomeInput).Length - 1)))
+        int colonIndex = outcomeInput.IndexOf(":", StringComparison.Ordinal);
+        if (colonIndex > -1 && isLessThan(colonIndex, (outcomeInput.Length - 1)))
         {
             string side = ((string)slice(outcomeInput, add(colonIndex, 1), null)).ToUpper();
             if (side == "YES" || side == "NO")
@@ -1292,7 +1292,7 @@ public partial class hyperliquid : PredictionExchange
                 return side;
             }
         }
-        string lower = ((string)outcomeInput).ToLower();
+        string lower = outcomeInput.ToLower();
         if (lower.EndsWith("-yes"))
         {
             return "YES";
@@ -1304,7 +1304,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public virtual IDictionary<string, object> resolveOutcomeInput(object outcomeInput)
+    public virtual IDictionary<string, object> resolveOutcomeInput(string outcomeInput)
     {
         if ((outcomeInput == null))
         {
@@ -1316,9 +1316,9 @@ public partial class hyperliquid : PredictionExchange
         }
         string? sideHint = this.parseOutcomeInputSideHint(outcomeInput);
         List<object> candidates = new List<object>() {outcomeInput};
-        if (((string)outcomeInput).StartsWith("+"))
+        if (outcomeInput.StartsWith("+"))
         {
-            candidates.Add(("#" + ((outcomeInput == null) ? null : ((string)outcomeInput).Substring(Math.Min(1, ((string)outcomeInput).Length)))));
+            candidates.Add(("#" + ((outcomeInput == null) ? null : outcomeInput.Substring(Math.Min(1, outcomeInput.Length)))));
         }
         string digitChars = "0123456789";
         List<object> inputChars = this.stringToCharsArray(outcomeInput);
@@ -1334,7 +1334,7 @@ public partial class hyperliquid : PredictionExchange
         }
         if (isNumericInput)
         {
-            candidates.Add(("#" + (outcomeInput))); // encoding id without #
+            candidates.Add(("#" + outcomeInput)); // encoding id without #
             Int64? numeric = this.parseToInt(outcomeInput);
             candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
             candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
@@ -1351,7 +1351,7 @@ public partial class hyperliquid : PredictionExchange
                 return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
         }
-        if ((((this.markets != null)) && (inOp(this.markets, outcomeInput))) || (((this.markets_by_id != null)) && (inOp(this.markets_by_id, outcomeInput))))
+        if ((((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(outcomeInput)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(outcomeInput)))))
         {
             Dictionary<string, object> market = this.safeMarket(outcomeInput);
             string? sideHintOrDefault = "YES";
@@ -1365,7 +1365,7 @@ public partial class hyperliquid : PredictionExchange
                 return found;
             }
         }
-        throw new ArgumentsRequired ((((this.id + " cannot resolve outcome from input: ") + (outcomeInput)) + ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
+        throw new ArgumentsRequired ((((this.id + " cannot resolve outcome from input: ") + outcomeInput) + ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
     }
 
     /**
@@ -2553,7 +2553,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public virtual List<object> handlePublicAddress(object methodName, object parameters)
+    public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
         IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = (string)userAuxparamsUserVariable[0];
@@ -2569,10 +2569,10 @@ public partial class hyperliquid : PredictionExchange
         {
             return new List<object>() {this.walletAddress, paramsAddress};
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a user parameter or walletAddress to be set")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a user parameter or walletAddress to be set")) ;
     }
 
-    public virtual string? formatVaultAddress(object address = null)
+    public virtual string? formatVaultAddress(string? address = null)
     {
         if ((address == null))
         {

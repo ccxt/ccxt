@@ -112,7 +112,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(object method, string? symbol, string? type, IDictionary<string, object> request, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -188,7 +188,7 @@ public partial class kraken : ccxt.kraken
         {
             priceType = "pct";
         }
-        if (isEqual(method, "createOrderWs"))
+        if ((method == "createOrderWs"))
         {
             bool? reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly");
             if ((reduceOnly == true))
@@ -275,7 +275,7 @@ public partial class kraken : ccxt.kraken
                     }
                 }
             }
-        } else if (isEqual(method, "editOrderWs"))
+        } else if ((method == "editOrderWs"))
         {
             if (isPresetStopLoss || isPresetTakeProfit)
             {
@@ -315,7 +315,7 @@ public partial class kraken : ccxt.kraken
                 }
             }
         }
-        bool isCreateOrder = (isEqual(method, "createOrderWs"));
+        bool isCreateOrder = ((method == "createOrderWs"));
         object paramsCreate = paramsPostOnly;
         if (isCreateOrder)
         {
@@ -1628,7 +1628,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public async virtual Task<object> watchMultiHelper(object unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

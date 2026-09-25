@@ -3920,7 +3920,7 @@ public partial class digifinex : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseBorrowRates(object info, object codeKey)
+    public virtual Dictionary<string, object> parseBorrowRates(object info, string? codeKey)
     {
         //
         //     {
@@ -4040,7 +4040,7 @@ public partial class digifinex : Exchange
         };
     }
 
-    public virtual string? parseFundingInterval(object interval)
+    public virtual string? parseFundingInterval(string? interval)
     {
         Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },
@@ -4892,7 +4892,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes));
     }
 
-    public override Dictionary<string, object> parseDepositWithdrawFees(object response, object codes = null, object currencyIdKey = null)
+    public override Dictionary<string, object> parseDepositWithdrawFees(object response, object codes = null, string? currencyIdKey = null)
     {
         //
         //     [

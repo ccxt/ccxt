@@ -1730,7 +1730,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
-    public async virtual Task<object> watchMultiHelper(object unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1765,10 +1765,10 @@ public partial class krakenfutures : ccxt.krakenfutures
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs);
     }
 
-    public virtual bool subscriptionExistsForHash(object url, object hash)
+    public virtual bool subscriptionExistsForHash(string? url, string? hash)
     {
         var client = this.client(url);
-        return (inOp(client.subscriptions, hash));
+        return ((client.subscriptions != null && hash != null && client.subscriptions.ContainsKey(hash)));
     }
 
     public virtual string? getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)

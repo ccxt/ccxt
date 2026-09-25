@@ -1034,7 +1034,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    public virtual object stripPriceFormatting(object text)
+    public virtual object stripPriceFormatting(string? text)
     {
         if ((text == null))
         {
@@ -1078,7 +1078,7 @@ public partial class predictfun : PredictionExchange
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    public virtual object titleForMarketSymbol(object topicSlug, object title, object marketCount = null)
+    public virtual object titleForMarketSymbol(string? topicSlug, string? title, object marketCount = null)
     {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
@@ -2662,7 +2662,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOrdersHelper(object outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> fetchOrdersHelper(string? outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
@@ -3255,7 +3255,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [marketId] the venue market id
      * @returns {string[]} the message hashes
      */
-    public virtual object orderBookMessageHashes(object marketId)
+    public virtual object orderBookMessageHashes(string? marketId)
     {
         object outcomes = this.outcomesByMarketId(marketId);
         int outcomesLength = getArrayLength(outcomes);
@@ -3497,7 +3497,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} whatever the channel resolves with
      */
-    public async virtual Task<object> watchWalletEvents(object messageHash, object parameters = null)
+    public async virtual Task<object> watchWalletEvents(string? messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string topic = await this.walletEventsTopic();
@@ -3527,7 +3527,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [messageHash] the hash this call is about to park on, not registered yet
      * @returns {string[]} the message hashes
      */
-    public virtual object walletEventMessageHashes(WebSocketClient client, object messageHash = null)
+    public virtual object walletEventMessageHashes(WebSocketClient client, string? messageHash = null)
     {
         // handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
         // caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
@@ -3560,7 +3560,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async virtual Task<object> unWatchWalletEvents(object channel, object parameters = null)
+    public async virtual Task<object> unWatchWalletEvents(string channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string topic = await this.walletEventsTopic();
@@ -3579,7 +3579,7 @@ public partial class predictfun : PredictionExchange
             { "messageHashes", new List<object>() {"unsubscribe::orders", "unsubscribe::myTrades"} },
             { "subscribeHash", "walletEvents" },
         };
-        string messageHash = ("unsubscribe::" + (channel));
+        string messageHash = ("unsubscribe::" + channel);
         string? url = ((string)this.socketUrl());
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
@@ -3634,14 +3634,14 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    public virtual object outcomeForToken(object tokenId, object market = null)
+    public virtual object outcomeForToken(string? tokenId, object market = null)
     {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
         // back to it on any cache miss, which stamped the requested outcome onto rows from other
         // markets - and the outcome filter afterwards then kept them, as they now matched
         string? hintId = this.safeString(market, "outcomeId");
-        if (((tokenId == null)) || (isEqual(hintId, tokenId)))
+        if (((tokenId == null)) || ((hintId == tokenId)))
         {
             return this.safeOutcome(tokenId, market);
         }
@@ -3656,7 +3656,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [marketId] the venue market id
      * @returns {object[]} the outcome objects
      */
-    public virtual object outcomesByMarketId(object marketId)
+    public virtual object outcomesByMarketId(string? marketId)
     {
         List<object> result = new List<object>() {};
         object cached = this.outcomes;
@@ -3670,7 +3670,7 @@ public partial class predictfun : PredictionExchange
         {
             object outcomeObj = getValue(cached, (handles != null && i < handles.Count ? handles[i] : null));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-            if (isEqual(this.safeString(info, "marketId"), marketId))
+            if ((this.safeString(info, "marketId") == marketId))
             {
                 result.Add(outcomeObj);
             }

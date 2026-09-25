@@ -1389,7 +1389,7 @@ public partial class apex : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         object marketResolved = null;
         if ((market == null) && (marketId != null))

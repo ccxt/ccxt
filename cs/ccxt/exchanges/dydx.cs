@@ -985,7 +985,7 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual List<object> handlePublicAddress(object methodName, object parameters)
+    public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
         IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "user");
         string? userAux = (string)userAuxparamsUserVariable[0];
@@ -1001,7 +1001,7 @@ public partial class dydx : Exchange
         {
             return new List<object>() {this.walletAddress, paramsAddress};
         }
-        throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
     public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
@@ -1415,7 +1415,7 @@ public partial class dydx : Exchange
         return signature;
     }
 
-    public virtual string? signDydxTx(object privateKey, object message, object memo, object chainId, object account, object authenticators, object fee = null)
+    public virtual string? signDydxTx(object privateKey, object message, string? memo, string? chainId, object account, object authenticators, object fee = null)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((IList<object>) encodedTxsignDocVariable)[0];
@@ -2096,7 +2096,7 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public async virtual Task<Dictionary<string, object>> estimateTxFee(object message, object memo, object account)
+    public async virtual Task<Dictionary<string, object>> estimateTxFee(object message, string? memo, object account)
     {
         string? txBytes = ((string)this.encodeDydxTxForSimulation(message, memo, getValue(account, "sequence"), getValue(account, "pub_key")));
         Dictionary<string, object> request = new Dictionary<string, object>() {

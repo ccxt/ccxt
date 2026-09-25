@@ -519,7 +519,7 @@ public partial class bithumb : Exchange
         });
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
@@ -3612,7 +3612,7 @@ public partial class bithumb : Exchange
         };
     }
 
-    public virtual object fixCommaNumber(object numberStr)
+    public virtual object fixCommaNumber(string? numberStr)
     {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if ((numberStr == null))
