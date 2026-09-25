@@ -2840,7 +2840,7 @@ func (this *Bigone) withdrawBody(ch chan any, code string, amount any, address a
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["gateway_name"] = this.NetworkCodeToId(networkCode, currency["code"])
+		request["gateway_name"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 	// requires write permission on the wallet
 

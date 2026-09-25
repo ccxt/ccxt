@@ -2461,7 +2461,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["chainType"] = this.NetworkCodeToId(networkCode, currency["code"])
+		request["chainType"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, paramsNetworkCode))).Raw))

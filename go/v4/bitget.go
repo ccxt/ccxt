@@ -7519,7 +7519,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 		marketType = "contract"
 	}
 	if market != nil {
-		marketType = GetValue(market, "type")
+		marketType = DerefScalar(this.SafeString(market, "type"))
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
@@ -11943,7 +11943,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -12397,7 +12397,7 @@ func (this *Bitget) ParseFundingHistories(contracts any, optionalArgs ...any) an
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = nil
 	if market != nil {
-		symbol = GetValue(market, "symbol")
+		symbol = DerefScalar(this.SafeString(market, "symbol"))
 	}
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }

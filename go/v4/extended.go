@@ -1476,11 +1476,11 @@ func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any
 			return nil
 		}(), market))
 	}
-	var symbol any = func() any {
+	var symbol *string = func() *string {
 		if market == nil {
 			return nil
 		}
-		return GetValue(market, "symbol")
+		return this.SafeString(market, "symbol")
 	}()
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }

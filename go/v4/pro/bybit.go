@@ -1633,7 +1633,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		marketType = "contract"
 	}
 	if market != nil {
-		marketType = ccxt.GetValue(market, "type")
+		marketType = ccxt.DerefScalar(this.SafeString(market, "type"))
 	}
 	var marketId *string = this.SafeString(trade, "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)

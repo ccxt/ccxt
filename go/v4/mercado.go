@@ -1290,7 +1290,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 
-	ch <- this.FilterBySymbolSinceLimit(trades, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(trades, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Mercado) OrdersToTrades(orders any) any {
