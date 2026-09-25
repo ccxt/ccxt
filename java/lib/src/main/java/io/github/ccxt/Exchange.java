@@ -158,7 +158,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @param {object} params extra parameters specific to the exchange api endpoint
              * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
              */
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsHistory"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsHistory"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchPositionsHistory"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsHistory"), false))
             {
                 Object positions = (this.fetchPositionsHistory(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), since, limit, parameters)).join();
                 return positions;
@@ -255,7 +255,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarkPrices"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarkPrices"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchMarkPrices"), null) && !java.util.Objects.equals(this.has.get("fetchMarkPrices"), false))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
@@ -432,7 +432,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
-            if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCostWs"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCostWs"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCostWs"), false))))
+            if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCostWs"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCostWs"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCostWs"), false))))
             {
                 return (this.createOrderWs(symbol, "market", (String) (side), cost, 1, parameters)).join();
             }
@@ -489,7 +489,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
             Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLossWs"), false))
+            if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsValue))).join();
             }
@@ -523,7 +523,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrderWs"), false))
+            if (java.util.Objects.equals(this.has.get("createPostOnlyOrderWs"), null) || java.util.Objects.equals(this.has.get("createPostOnlyOrderWs"), false))
             {
                 throw new NotSupported((this.id + " createPostOnlyOrderWs() is not supported yet")) ;
             }
@@ -540,7 +540,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrderWs"), false))
+            if (java.util.Objects.equals(this.has.get("createReduceOnlyOrderWs"), null) || java.util.Objects.equals(this.has.get("createReduceOnlyOrderWs"), false))
             {
                 throw new NotSupported((this.id + " createReduceOnlyOrderWs() is not supported yet")) ;
             }
@@ -557,7 +557,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrderWs"), false))
+            if (java.util.Objects.equals(this.has.get("createStopLimitOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopLimitOrderWs"), false))
             {
                 throw new NotSupported((this.id + " createStopLimitOrderWs() is not supported yet")) ;
             }
@@ -594,7 +594,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
                 "stopLossPrice", stopLossPrice
             ));
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrderWs"), false))
+            if (!java.util.Objects.equals(this.has.get("createStopLossOrderWs"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
             }
@@ -608,7 +608,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrderWs"), false))
+            if (java.util.Objects.equals(this.has.get("createStopMarketOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopMarketOrderWs"), false))
             {
                 throw new NotSupported((this.id + " createStopMarketOrderWs() is not supported yet")) ;
             }
@@ -625,7 +625,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrderWs"), false))
+            if (java.util.Objects.equals(this.has.get("createStopOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopOrderWs"), false))
             {
                 throw new NotSupported((this.id + " createStopOrderWs() is not supported yet")) ;
             }
@@ -666,7 +666,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
                 "takeProfitPrice", takeProfitPrice
             ));
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrderWs"), false))
+            if (!java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
             }
@@ -703,7 +703,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrderWs"), false))
+            if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             }
@@ -740,7 +740,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrderWs"), false))
+            if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             }
@@ -774,7 +774,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
                 "triggerPrice", triggerPrice
             ));
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrderWs"), false))
+            if (!java.util.Objects.equals(this.has.get("createTriggerOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
             }
@@ -799,7 +799,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchOrdersWs"), null) && !java.util.Objects.equals(this.has.get("fetchOrdersWs"), false))
             {
                 List<Order> orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "closed");
@@ -824,7 +824,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchOrdersWs"), null) && !java.util.Objects.equals(this.has.get("fetchOrdersWs"), false))
             {
                 List<Order> orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "open");
@@ -889,7 +889,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickersWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickersWs"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchTickersWs"), null) && !java.util.Objects.equals(this.has.get("fetchTickersWs"), false))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
@@ -1002,7 +1002,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenInterests"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenInterests"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchOpenInterests"), null) && !java.util.Objects.equals(this.has.get("fetchOpenInterests"), false))
             {
                 OpenInterests openInterests = (this.fetchOpenInterests(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
                 return this.safeDict(openInterests, symbol, (Object) null);
@@ -1127,7 +1127,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickers"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickers"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchTickers"), null) && !java.util.Objects.equals(this.has.get("fetchTickers"), false))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
@@ -1272,7 +1272,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrder"), false))
+            if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             }
@@ -1309,7 +1309,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrder"), false))
+            if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
             }
@@ -1333,7 +1333,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
-            if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false))))
+            if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false))))
             {
                 return (this.createOrder(symbol, "market", (String) (side), cost, 1, parameters)).join();
             }
@@ -1356,7 +1356,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
-            if ((java.util.Objects.equals(((Map<String, Object>)this.options).get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)))
+            if ((java.util.Objects.equals(this.options.get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)))
             {
                 return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
             }
@@ -1379,7 +1379,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
-            if ((java.util.Objects.equals(((Map<String, Object>)this.options).get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false)))
+            if ((java.util.Objects.equals(this.options.get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false)))
             {
                 return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
             }
@@ -1413,7 +1413,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
                 "triggerPrice", triggerPrice
             ));
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrder"), false))
+            if (!java.util.Objects.equals(this.has.get("createTriggerOrder"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
             }
@@ -1447,7 +1447,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
                 "stopLossPrice", stopLossPrice
             ));
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrder"), false))
+            if (!java.util.Objects.equals(this.has.get("createStopLossOrder"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
             }
@@ -1481,7 +1481,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
                 "takeProfitPrice", takeProfitPrice
             ));
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrder"), false))
+            if (!java.util.Objects.equals(this.has.get("createTakeProfitOrder"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
             }
@@ -1518,7 +1518,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
             Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLoss"), false))
+            if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsValue))).join();
             }
@@ -1626,7 +1626,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenOrders"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchClosedOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchClosedOrders"), false)))
+            if ((!java.util.Objects.equals(this.has.get("fetchOpenOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOpenOrders"), false)) && (!java.util.Objects.equals(this.has.get("fetchClosedOrders"), null) && !java.util.Objects.equals(this.has.get("fetchClosedOrders"), false)))
             {
                 throw new NotSupported((this.id + " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
             }
@@ -1660,7 +1660,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOrders"), false))
             {
                 List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "open");
@@ -1675,7 +1675,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOrders"), false))
             {
                 List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "closed");
@@ -1780,7 +1780,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrder"), false))
+            if (java.util.Objects.equals(this.has.get("createPostOnlyOrder"), null) || java.util.Objects.equals(this.has.get("createPostOnlyOrder"), false))
             {
                 throw new NotSupported((this.id + " createPostOnlyOrder() is not supported yet")) ;
             }
@@ -1797,7 +1797,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrder"), false))
+            if (java.util.Objects.equals(this.has.get("createReduceOnlyOrder"), null) || java.util.Objects.equals(this.has.get("createReduceOnlyOrder"), false))
             {
                 throw new NotSupported((this.id + " createReduceOnlyOrder() is not supported yet")) ;
             }
@@ -1814,7 +1814,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrder"), false))
+            if (java.util.Objects.equals(this.has.get("createStopOrder"), null) || java.util.Objects.equals(this.has.get("createStopOrder"), false))
             {
                 throw new NotSupported((this.id + " createStopOrder() is not supported yet")) ;
             }
@@ -1835,7 +1835,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrder"), false))
+            if (java.util.Objects.equals(this.has.get("createStopLimitOrder"), null) || java.util.Objects.equals(this.has.get("createStopLimitOrder"), false))
             {
                 throw new NotSupported((this.id + " createStopLimitOrder() is not supported yet")) ;
             }
@@ -1852,7 +1852,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrder"), false))
+            if (java.util.Objects.equals(this.has.get("createStopMarketOrder"), null) || java.util.Objects.equals(this.has.get("createStopMarketOrder"), false))
             {
                 throw new NotSupported((this.id + " createStopMarketOrder() is not supported yet")) ;
             }
@@ -1869,7 +1869,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradingFees"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradingFees"), false))
+            if (java.util.Objects.equals(this.has.get("fetchTradingFees"), null) || java.util.Objects.equals(this.has.get("fetchTradingFees"), false))
             {
                 throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
             }

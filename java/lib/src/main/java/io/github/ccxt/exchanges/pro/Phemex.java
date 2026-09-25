@@ -603,7 +603,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             String subscriptionHash = (name + ".subscribe");
             String messageHash = ("ticker:" + symbolValue);
@@ -649,7 +649,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             String subscriptionHash = (name + ".subscribe");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -699,7 +699,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Boolean isSwap = (Boolean) market.get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(market.get("settle"), "USDT");
@@ -752,7 +752,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Boolean isSwap = (Boolean) market.get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(market.get("settle"), "USDT");
@@ -801,7 +801,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Boolean isSwap = (Boolean) market.get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(market.get("settle"), "USDT");
@@ -1765,7 +1765,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.seconds();
             Boolean settleIsUSDT = (java.util.Objects.equals(this.safeString(parameters, "settle", ""), "USDT"));
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "settle");
@@ -1795,7 +1795,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             Long requestId = this.requestId();
             String messageHash = "authenticated";

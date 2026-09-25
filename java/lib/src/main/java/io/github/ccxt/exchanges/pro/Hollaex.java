@@ -546,7 +546,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );
@@ -577,7 +577,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 // that would trigger a new connection on each received message
                 Helpers.addElementToObject(this.options, "ws-expires", expires);
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
             String auth = (("CONNECT" + "/stream") + expires);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Map<String, Object> authParams = Helpers.newMap(
@@ -608,7 +608,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             if (!java.util.Objects.equals(error, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), error, feedback);
+                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), error, feedback);
             }
         } catch(Exception e)
         {

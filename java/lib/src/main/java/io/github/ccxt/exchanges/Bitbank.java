@@ -1282,7 +1282,7 @@ public class Bitbank extends BitbankApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1430,7 +1430,7 @@ public class Bitbank extends BitbankApi
             }};
             String code = this.safeString(data, "code");
             String message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, message);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, message);
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;
         }
         return null;

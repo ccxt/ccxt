@@ -155,7 +155,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 apiPart = "publicMarket";
             }
-            return (this.watchMultiple((String) (Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), apiPart)), messageHashes, payload, rawHashes, null)).join();
+            return (this.watchMultiple((String) (Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), apiPart)), messageHashes, payload, rawHashes, null)).join();
         });
 
     }
@@ -794,7 +794,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                     )
                 );
                 this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
-                this.client(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateTrading"));
+                this.client(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateTrading"));
             }
             return null;
         });
@@ -1161,9 +1161,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             String body = this.json(response);
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(error, "message");
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return false;

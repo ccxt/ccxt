@@ -109,7 +109,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ((name + "@") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "action", "subscribe",
                 "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
@@ -140,7 +140,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 args.add(((String)market.get("id")));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -394,7 +394,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 marketIds.add(((String)market.get("id")));
                 ((List<Object>)messageHashes).add(((name + "@") + market.get("id")));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "action", "subscribe",
                 "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
@@ -501,7 +501,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String marketId = (String) market.get("id");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((((name + "@") + marketId) + "_") + interval);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -634,7 +634,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                     "markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval))
                 ));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", channels );
@@ -753,7 +753,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String symbolValue = (String) market.get("symbol");
             String name = "book";
             String messageHash = ((name + "@") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "action", "subscribe",
                 "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
@@ -806,7 +806,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 marketIds.add(((String)market.get("id")));
                 ((List<Object>)messageHashes).add(((name + "@") + market.get("id")));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "action", "subscribe",
                 "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
@@ -995,7 +995,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             String name = "getBook";
             String messageHash = ((name + "@") + marketId);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "action", name,
                 "market", marketId
@@ -1106,7 +1106,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "unsubscribe" );
                 put( "channels", channels );
@@ -1192,7 +1192,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String marketId = (String) market.get("id");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String name = "account";
             String messageHash = ("order:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1240,7 +1240,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String marketId = (String) market.get("id");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String name = "account";
             String messageHash = ("myTrades:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1503,7 +1503,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String messageHashStr = String.valueOf(messageHash);
             request.put("action", action);
             request.put("requestId", messageHash);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             return (this.watch(url, messageHashStr, request, messageHashStr, null)).join();
         });
 
@@ -2152,7 +2152,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);

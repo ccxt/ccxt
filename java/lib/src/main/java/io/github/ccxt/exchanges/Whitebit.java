@@ -5144,7 +5144,7 @@ public class Whitebit extends WhitebitApi
         Object publicHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
         ((Map<String, Object>)publicHeaders).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), version), accessibility);
+        String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), version), accessibility);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5244,8 +5244,8 @@ public class Whitebit extends WhitebitApi
                         errorInfo = ((((errorMessageLength != null && errorMessageLength > 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                     }
                 }
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorInfo, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
                 throw new ExchangeError(feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
@@ -5264,8 +5264,8 @@ public class Whitebit extends WhitebitApi
                     errorInfo = ((((errorMessageLength != null && errorMessageLength > 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                 }
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorInfo, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

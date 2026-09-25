@@ -838,15 +838,15 @@ public class Bitfinex extends BitfinexApi
 
     public Boolean isFiat(Object code)
     {
-        return (Helpers.inOp(((Map<String, Object>)this.options).get("fiat"), code));
+        return (Helpers.inOp(this.options.get("fiat"), code));
     }
 
     public Object getCurrencyName(Object code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (Helpers.inOp(((Map<String, Object>)this.options).get("currencyNames"), code))
+        if (Helpers.inOp(this.options.get("currencyNames"), code))
         {
-            return Helpers.GetValue(((Map<String, Object>)this.options).get("currencyNames"), code);
+            return Helpers.GetValue(this.options.get("currencyNames"), code);
         }
         throw new NotSupported((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
@@ -1411,7 +1411,7 @@ public class Bitfinex extends BitfinexApi
             {
                 String message = this.safeString(response, 2, "");
                 // same message as in v1
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + message));
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
                 throw new ExchangeError(((this.id + " ") + message)) ;
             }
             return this.parseTransfer(new HashMap<String, Object>() {{
@@ -1863,7 +1863,7 @@ public class Bitfinex extends BitfinexApi
                 "currency", feeCurrency
             );
             Object orderType = (tradeList == null || 6 >= ((List<?>)tradeList).size() ? null : ((List<?>)tradeList).get(6));
-            type = this.safeString(((Map<String, Object>)this.options).get("exchangeTypes"), orderType);
+            type = this.safeString(this.options.get("exchangeTypes"), orderType);
         }
         return this.safeTrade(Helpers.newMap(
             "id", id,
@@ -3529,14 +3529,14 @@ public class Bitfinex extends BitfinexApi
                 String feedback = ((this.id + " ") + response);
                 String message = this.safeString(response, 2, "");
                 // same message as in v1
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
             String text = this.safeString(response, 7);
             if (!java.util.Objects.equals(text, "success"))
             {
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), text, text);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), text, text);
             }
             return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
@@ -3698,7 +3698,7 @@ public class Bitfinex extends BitfinexApi
         {
             request = Helpers.add(this.version, request);
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3747,8 +3747,8 @@ public class Bitfinex extends BitfinexApi
             {
                 String message = this.safeString2(response, "message", "error");
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
                 throw new ExchangeError(((this.id + " ") + body)) ;
             }
         } else if (java.util.Objects.equals(response, ""))
@@ -3765,9 +3765,9 @@ public class Bitfinex extends BitfinexApi
             String errorCode = this.safeString(response, 1, "");
             String errorText = this.safeString(response, 2, "");
             String feedback = ((this.id + " ") + errorText);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorText, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorText, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorText, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorText, feedback);
             throw new ExchangeError((((((this.id + " ") + errorText) + " (#") + errorCode) + ")")) ;
         }
         return response;

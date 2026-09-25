@@ -130,7 +130,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             throw new ArgumentsRequired((this.id + " getUrl() requires a channel argument")) ;
         }
-        Object isSandbox = ((Map<String, Object>)this.options).get("sandboxMode");
+        Object isSandbox = this.options.get("sandboxMode");
         String sandboxSuffix = "";
         if (java.util.Objects.equals(isSandbox, true))
         {
@@ -138,7 +138,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         Boolean isBusiness = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(access, "public"), "business"));
         Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(access, "public"), "public"));
-        Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+        Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
         if (Boolean.TRUE.equals(isBusiness) || (((String)channel).indexOf("candle") > -1) || (java.util.Objects.equals(channel, "orders-algo")))
         {
             return (String) (((url + "/business") + sandboxSuffix));
@@ -3006,12 +3006,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String feedback = ((this.id + " ") + this.json(message));
                 if (!java.util.Objects.equals(errorCode, "1"))
                 {
-                    this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
                 }
                 String messageString = this.safeString(message, "msg");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
                 } else
                 {
                     List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -3021,12 +3021,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                         errorCode = this.safeString(d, "sCode");
                         if (!java.util.Objects.equals(errorCode, null))
                         {
-                            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+                            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
                         }
                         messageString = this.safeString(d, "sMsg");
                         if (!java.util.Objects.equals(messageString, null))
                         {
-                            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);
+                            this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
                         }
                     }
                 }

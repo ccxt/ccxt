@@ -4668,12 +4668,12 @@ public class Binance extends BinanceApi
         }
         if (Helpers.isTrue(enable))
         {
-            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", ((Map<String, Object>)this.urls).get("api"));
-            Helpers.addElementToObject(this.urls, "api", ((Map<String, Object>)this.urls).get("demo"));
+            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            Helpers.addElementToObject(this.urls, "api", ((Map<String, Object>)this.urls).get("apiBackupDemoTrading"));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("apiBackupDemoTrading"));
+            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -5089,7 +5089,7 @@ public class Binance extends BinanceApi
                 if ((java.util.Objects.equals(fetchMargins, true)) && (res instanceof List))
                 {
                     List<Object> keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
-                    Integer length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
+                    Integer length = Helpers.getArrayLength(this.options.get("crossMarginPairsData"));
                     // first one is the cross-margin promise
                     if ((length != null && length == 0))
                     {
@@ -5462,8 +5462,8 @@ public class Binance extends BinanceApi
         Map<String, Object> marginModes = null;
         if (Boolean.TRUE.equals(spot))
         {
-            boolean hasCrossMargin = this.inArray(id, ((Map<String, Object>)this.options).get("crossMarginPairsData"));
-            boolean hasIsolatedMargin = this.inArray(id, ((Map<String, Object>)this.options).get("isolatedMarginPairsData"));
+            boolean hasCrossMargin = this.inArray(id, this.options.get("crossMarginPairsData"));
+            boolean hasIsolatedMargin = this.inArray(id, this.options.get("isolatedMarginPairsData"));
             marginModes = new HashMap<String, Object>() {{
                 put( "cross", hasCrossMargin );
                 put( "isolated", hasIsolatedMargin );
@@ -7750,7 +7750,7 @@ public class Binance extends BinanceApi
         {
             request.put("newClientOrderId", clientOrderId);
         }
-        request.put("newOrderRespType", this.safeString(((Map<String, Object>)this.options).get("newOrderRespType"), type, "RESULT")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        request.put("newOrderRespType", this.safeString(this.options.get("newOrderRespType"), type, "RESULT")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         Boolean timeInForceIsRequired = false;
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
@@ -9340,7 +9340,7 @@ public class Binance extends BinanceApi
         // handle newOrderRespType response type
         if (((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin"))) && !Boolean.TRUE.equals(isPortfolioMargin) && (!java.util.Objects.equals(stock, true)))
         {
-            request.put("newOrderRespType", this.safeString(((Map<String, Object>)this.options).get("newOrderRespType"), type, "FULL")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            request.put("newOrderRespType", this.safeString(this.options.get("newOrderRespType"), type, "FULL")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else if (!java.util.Objects.equals(stock, true))
         {
             // swap, futures and options
@@ -10309,7 +10309,7 @@ public class Binance extends BinanceApi
                 }
             } else if (!Helpers.isTrue(stock))
             {
-                Boolean warnWithoutSymbol = (Boolean) this.safeBool(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnWithoutSymbol", (Object) null);
+                Boolean warnWithoutSymbol = (Boolean) this.safeBool(this.options.get("fetchOpenOrders"), "warnWithoutSymbol", (Object) null);
                 Boolean optValue = (Boolean) this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol", (Object) null); // for backward compatibility
                 if ((java.util.Objects.equals(optValue, true)) || (java.util.Objects.equals(optValue, null) && (java.util.Objects.equals(warnWithoutSymbol, true))))
                 {
@@ -14244,7 +14244,7 @@ public class Binance extends BinanceApi
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("leverageBrackets")), symbol, result);
                 }
             }
-            return ((Map<String, Object>)this.options).get("leverageBrackets");
+            return this.options.get("leverageBrackets");
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -15886,7 +15886,7 @@ public class Binance extends BinanceApi
         {
             throw new NotSupported((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -16160,9 +16160,9 @@ public class Binance extends BinanceApi
         if (!java.util.Objects.equals(message, null))
         {
             this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), message, ((this.id + " ") + message));
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException(this.getExceptionsByUrl((String) (url), "broad"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(responseParsed, "code");
@@ -16187,7 +16187,7 @@ public class Binance extends BinanceApi
                 throw new MarginModeAlreadySet(feedback) ;
             }
             this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), error, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         if (!java.util.Objects.equals(success, true))
@@ -16205,7 +16205,7 @@ public class Binance extends BinanceApi
                 if (!java.util.Objects.equals(errorCode, null))
                 {
                     this.throwExactlyMatchedException(this.getExceptionsByUrl((String) (url), "exact"), errorCode, ((this.id + " ") + body));
-                    this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, ((this.id + " ") + body));
+                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, ((this.id + " ") + body));
                 }
             }
         }

@@ -3451,8 +3451,8 @@ public class Polymarket extends PolymarketApi
         if (!java.util.Objects.equals(errorMessage, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
         }
         return null;
     }
@@ -3482,7 +3482,7 @@ public class Polymarket extends PolymarketApi
         // api is either a string ('gamma') or array (['gamma', 'public'])
         Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "gamma") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "gamma") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "gamma"), 0);
         Object access = (((java.util.Objects.requireNonNullElse(api, "gamma") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "gamma"), 1);
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
+        Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("gamma"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
@@ -4033,7 +4033,7 @@ public class Polymarket extends PolymarketApi
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return orderbook.limit();
         }).thenApply(PredictionOrderBook::new);
@@ -4064,7 +4064,7 @@ public class Polymarket extends PolymarketApi
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object trades = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
@@ -4105,7 +4105,7 @@ public class Polymarket extends PolymarketApi
                     Helpers.addElementToObject(this.orderbooks, outcomeValue, seededBook);
                 }
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             Object bids = ((Object)Helpers.GetValue(orderbook, "bids"));
             Object asks = ((Object)Helpers.GetValue(orderbook, "asks"));
@@ -4274,7 +4274,7 @@ public class Polymarket extends PolymarketApi
                 put( "markets", new ArrayList<Object>(Arrays.asList()) );
                 put( "type", "user" );
             }};
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("wsUser");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("wsUser");
             String subscribeHash = "user";
             return (this.watch(url, messageHash, this.extend(subscribeMsg, parameters), subscribeHash, null)).join();
         });

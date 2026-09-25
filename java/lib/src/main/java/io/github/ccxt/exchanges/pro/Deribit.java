@@ -113,7 +113,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
             (this.authenticate(parameters)).join();
             String messageHash = "balance";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<Object> currencies = (List<Object>) this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
             List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
@@ -214,7 +214,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval");
             if (java.util.Objects.equals(this.markets, null))
@@ -260,7 +260,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval");
             if (java.util.Objects.equals(this.markets, null))
@@ -358,7 +358,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
@@ -562,7 +562,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "raw");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval");
             String channel = ("user.trades.any.any." + interval);
@@ -855,7 +855,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }
             (this.authenticate(parameters)).join();
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String currency = this.safeString(parameters, "currency", "any");
             String interval = this.safeString(parameters, "interval", "raw");
             String kind = this.safeString(parameters, "kind", "any");
@@ -1078,7 +1078,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "chart.trades"));
@@ -1261,7 +1261,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             Long time = this.milliseconds();
             String timeString = this.numberToString(time);

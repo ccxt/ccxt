@@ -101,7 +101,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             if (!java.util.Objects.equals(this.handleOption("setupApiKeyHeaders", "apiKey", (Object) null), null))
             {
-                headers.put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
+                headers.put("PF-API-KEY", this.options.get("apiKey"));
             }
         }
         Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
@@ -1539,7 +1539,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         try
         {
-            this.handleErrors(0, error, "", postType, Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options"), "headers"), this.json(data), message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+            this.handleErrors(0, error, "", postType, Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers"), this.json(data), message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
         } catch(Exception e)
         {
             client.reject(e, id);

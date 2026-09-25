@@ -247,7 +247,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)subParams).add(rawHash);
             }
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common") + "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", "trade" );
@@ -363,9 +363,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common") + "/quote/ws/v1");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("ws"), "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options.get("ws"), "timeframes", new HashMap<String, Object>() {{}});
             Object marketIds = new ArrayList<Object>(Arrays.asList());
             String selectedTimeframe = null;
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
@@ -446,7 +446,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
-            Long limit = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options.get("ws"), "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(timeframe, null))
             {
@@ -540,7 +540,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)subParams).add(rawHash);
             }
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common") + "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", "realtimes" );
@@ -685,7 +685,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)subParams).add(rawHash);
             }
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common") + "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", channel );
@@ -736,7 +736,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
-                Long limit = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "orderBookLimit", 1000);
+                Long limit = this.safeInteger(this.options.get("ws"), "orderBookLimit", 1000);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -800,7 +800,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String messageHash = ((("orderBook::" + symbol) + "::") + channel);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
-                Long limit = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "orderBookLimit", 1000);
+                Long limit = this.safeInteger(this.options.get("ws"), "orderBookLimit", 1000);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -1434,8 +1434,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return BaseExchange.supplyAsync(() -> {
 
             Long time = this.milliseconds();
-            Long lastAuthenticatedTime = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "lastAuthenticatedTime", 0);
-            Long listenKeyRefreshRate = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "listenKeyRefreshRate", 1200000);
+            Long lastAuthenticatedTime = this.safeInteger(this.options.get("ws"), "lastAuthenticatedTime", 0);
+            Long listenKeyRefreshRate = this.safeInteger(this.options.get("ws"), "listenKeyRefreshRate", 1200000);
             Object delay = (listenKeyRefreshRate + 10000L);
             if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
             {
@@ -1519,7 +1519,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
-            Long listenKeyRefreshRate = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "listenKeyRefreshRate", 1200000);
+            Long listenKeyRefreshRate = this.safeInteger(this.options.get("ws"), "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
         });
@@ -1528,7 +1528,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public Object getUserStreamUrl()
     {
-        return ((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/api/v1/ws/") + this.safeString(((Map<String, Object>)this.options).get("ws"), "listenKey"));
+        return ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common") + "/api/v1/ws/") + this.safeString(this.options.get("ws"), "listenKey"));
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

@@ -140,10 +140,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             query = ((List<Object>) subTypequeryVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType);
             }
             String id = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -205,10 +205,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType);
             }
             String dataType = (market.get("id") + "@ticker");
             String messageHash = this.getMessageHash("ticker", Helpers.toStringArg(market.get("symbol")), (String) null);
@@ -330,7 +330,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String symbol = (String) market.get("symbol");
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
-        String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
+        String inverseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "inverse");
         Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && ((((String)client.url).indexOf(((String)inverseUrl)) == 0));
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -471,10 +471,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType);
             }
             String rawHash = (market.get("id") + "@trade");
             String messageHash = ("trade::" + symbolValue);
@@ -689,10 +689,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType);
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
@@ -1077,10 +1077,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
+                url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType);
             }
             if (java.util.Objects.equals(url, null))
             {
@@ -1215,10 +1215,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 {
                     throw new NotSupported((this.id + " watchOrders is not supported for inverse swap markets yet")) ;
                 }
-                baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+                baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
                 request = new HashMap<String, Object>() {{
                     put( "id", uuid );
                     put( "reqType", "sub" );
@@ -1307,10 +1307,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 {
                     throw new NotSupported((this.id + " watchMyTrades is not supported for inverse swap markets yet")) ;
                 }
-                baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+                baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
                 request = new HashMap<String, Object>() {{
                     put( "id", uuid );
                     put( "reqType", "sub" );
@@ -1390,10 +1390,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 }
                 // swap balance updates are pushed automatically over the listenKey connection,
                 // so we must not send a subscription message (an empty one is rejected with 80014)
-                baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+                baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             } else
             {
-                baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+                baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
                 request = new HashMap<String, Object>() {{
                     put( "id", uuid );
                     put( "dataType", "ACCOUNT_UPDATE" );
@@ -1512,7 +1512,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             String subscriptionHash = "swap:private";
             messageHash = ("swap:positions" + messageHash);
-            String baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
+            String baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), subType);
             String userStreamKey = this.safeString(this.options, "listenKey");
             if (java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
             {
@@ -1742,7 +1742,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!java.util.Objects.equals(code, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
             }
         } catch(Exception e)
         {
@@ -1773,7 +1773,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 for (var i = 0; i < ((List<?>)types).size(); i++)
                 {
                     String type = (String) Helpers.GetValue(types, i);
-                    String baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+                    String baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
                     if (java.util.Objects.equals(baseUrl, null))
                     {
                         continue;
@@ -2150,7 +2150,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Map<String, Object> a = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeList(a, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
-        String spotUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+        String spotUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
         Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && ((((String)client.url).indexOf(((String)spotUrl)) == 0));
         String type = "swap";
         if (Boolean.TRUE.equals(isSpot))

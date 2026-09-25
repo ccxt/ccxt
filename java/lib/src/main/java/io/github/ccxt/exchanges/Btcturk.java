@@ -1253,7 +1253,7 @@ public class Btcturk extends BtcturkApi
         {
             throw new ExchangeError((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1307,7 +1307,7 @@ public class Btcturk extends BtcturkApi
         {
             output = body;
         }
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + output));
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + output));
         if ((!java.util.Objects.equals(errorCode, "0")) && (!java.util.Objects.equals(errorCode, "SUCCESS")))
         {
             throw new ExchangeError(((this.id + " ") + output)) ;

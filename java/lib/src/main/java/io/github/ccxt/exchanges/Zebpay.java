@@ -2343,7 +2343,7 @@ public class Zebpay extends ZebpayApi
         {
             marketType = "swap";
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), marketType);
+        String baseApiUrl = this.safeString(this.urls.get("api"), marketType);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2418,7 +2418,7 @@ public class Zebpay extends ZebpayApi
     {
         if (java.util.Objects.equals(response, null))
         {
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, body);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, body);
             return null;
         }
         //
@@ -2431,9 +2431,9 @@ public class Zebpay extends ZebpayApi
         String errorCode = this.safeString2(response, "code", "statusCode");
         String message = this.safeString2(response, "msg", "statusDescription");
         String feedback = ((this.id + " ") + message);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
         return null;
     }
 }

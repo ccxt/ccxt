@@ -1220,7 +1220,7 @@ public class Sxbet extends SxbetApi
             {
                 String reason = this.safeString(first, "reason", "FAILED");
                 String feedback = ((this.id + " createOrder() rejected: ") + reason);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), reason, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), reason, feedback);
                 throw new InvalidOrder(feedback) ;
             }
             // with waitForOutcome the venue reports the matching result inline:
@@ -2569,7 +2569,7 @@ public class Sxbet extends SxbetApi
         {
             Helpers.addElementToObject(this.options, "requestId", this.createSafeDictionary());
         }
-        Object options = ((Map<String, Object>)this.options).get("requestId");
+        Object options = this.options.get("requestId");
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         if (!java.util.Objects.equals(url, null))
@@ -2679,7 +2679,7 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             // finish the connect handshake first so the subscribe frame follows the connect reply
             (this.connectSxbetCentrifugo((String) (url))).join();
             Long requestId = this.requestId((String) (url));
@@ -2841,7 +2841,7 @@ public class Sxbet extends SxbetApi
             String marketHash = this.safeString(outcomeObj.get("info"), "marketHash");
             String channel = ("orderbook_v3:" + marketHash);
             String messageHash = ("orderbook::" + sym);
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             (this.connectSxbetCentrifugo((String) (url))).join();
             Client client = this.client(url);
             Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, channel), null);
@@ -2904,7 +2904,7 @@ public class Sxbet extends SxbetApi
         {
             Helpers.addElementToObject(this.options, "wsBookVersions", this.createSafeDictionary());
         }
-        String held = this.safeString(((Map<String, Object>)this.options).get("wsBookVersions"), marketHash, "");
+        String held = this.safeString(this.options.get("wsBookVersions"), marketHash, "");
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if ((!java.util.Objects.equals(held, "")) && (Helpers.isLessThanOrEqual(version, held)))
         {
@@ -2993,7 +2993,7 @@ public class Sxbet extends SxbetApi
                 Helpers.addElementToObject(this.options, "wsWatchedTickers", this.createSafeDictionary());
             }
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("wsWatchedTickers")), sym, marketHash);
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             (this.connectSxbetCentrifugo((String) (url))).join();
             Client client = this.client(url);
             String channel = "best_odds_v3:global";
@@ -3331,8 +3331,8 @@ public class Sxbet extends SxbetApi
             messageString = message;
         }
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), messageString, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), messageString, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (Helpers.isEqual(code, 400))
@@ -3363,7 +3363,7 @@ public class Sxbet extends SxbetApi
         {
             throw new AuthenticationError((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
+        Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("sxbet")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));

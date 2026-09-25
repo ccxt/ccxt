@@ -79,7 +79,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
@@ -152,7 +152,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 messageHash = (messageHash + "ALL");
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "subscribe",
@@ -228,7 +228,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("order_book." + market.get("id")) + ".snapshot@15@100ms");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -330,7 +330,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             String symbolValue = this.symbol(symbol);
             String channel = "markets_summary";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "subscribe",
@@ -364,7 +364,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "markets_summary";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "subscribe",
@@ -429,7 +429,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 channel = (channel + "ALL");
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "subscribe",
@@ -556,7 +556,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             String symbolValue = this.symbol(symbol);
             String channel = "funding_data";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "subscribe",
@@ -590,7 +590,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "funding_data";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "subscribe",
@@ -729,11 +729,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + this.json(error));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), "-32600", feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), "-32600", feedback);
                 String messageString = this.safeString(error, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
                 }
             }
             return false;

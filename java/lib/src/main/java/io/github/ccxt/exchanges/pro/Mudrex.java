@@ -101,7 +101,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("ticker:" + symbolValue);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
             Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
             Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
@@ -141,7 +141,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                     ((List<Object>)assets).add(Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase()));
                 }
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", Mudrex.this.requestId() );
@@ -189,7 +189,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             Object streamQuoteId = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
             String stream = (((((prefix + "@") + interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
             String messageHash = stream;
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", Mudrex.this.requestId() );

@@ -264,7 +264,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object url = ((Boolean.TRUE.equals(isSpot))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            Object url = ((Boolean.TRUE.equals(isSpot))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -491,7 +491,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
                 messageHashes.add(("bidask:" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIPTION" );
                 put( "params", topics );
@@ -560,7 +560,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
             Boolean unsubscribed = (Boolean) this.safeBool(parameters, "unsubscribed", false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("unsubscribed")));
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             String method = "SUBSCRIPTION";
             if (java.util.Objects.equals(unsubscribed, true))
             {
@@ -582,7 +582,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
             this.checkRequiredCredentials(true);
             Object listenKey = (this.authenticate((String) (channel), new HashMap<String, Object>() {{}})).join();
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchSpotPrivate() has no spot websocket url")) ;
@@ -602,7 +602,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", requestParams );
@@ -620,7 +620,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
             this.checkRequiredCredentials(true);
             String channel = "login";
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             String timestamp = String.valueOf(this.milliseconds());
             String payload = (this.apiKey + timestamp);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
@@ -764,7 +764,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             symbol = this.symbol(this.safeString(message, "symbol"));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(data, "interval");
-            timeframe = this.findTimeframe(timeframeId, ((Map<String, Object>)this.options).get("timeframes"));
+            timeframe = this.findTimeframe(timeframeId, this.options.get("timeframes"));
             parsed = this.parseWsOHLCV(data, Helpers.toMapArg(this.safeMarket(Helpers.toStringArg(symbol), (Map<String, Object>) null, (String) null, (String) null)));
         } else
         {
@@ -1907,7 +1907,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, (Map<String, Object>) (requestParams), parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
@@ -1965,7 +1965,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + market.get("id"));
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 ((Map<String, Object>)parameters).put("unsubscribed", true);
                 this.spawn(Helpers.task(this::watchSpotPublic, channel, messageHash, parameters));
             } else
@@ -1974,7 +1974,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
                 }};
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
                 this.spawn(Helpers.task(this::watchSwapPublic, channel, messageHash, (Map<String, Object>) (requestParams), parameters));
             }
             Client client = this.client(url);
@@ -2013,7 +2013,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object url = ((Boolean.TRUE.equals(isSpot))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            Object url = ((Boolean.TRUE.equals(isSpot))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -2074,7 +2074,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
                 messageHashes.add(("unsubscribe:bidask:" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIPTION" );
                 put( "params", topics );
@@ -2114,13 +2114,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object url = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 Object channel = ((("spot@public.kline.v3.api.pb@" + market.get("id")) + "@") + timeframeId);
                 ((Map<String, Object>)parameters).put("unsubscribed", true);
                 this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
                 String channel = "unsub.kline";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -2159,7 +2159,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object url = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 List<Object> frequencyparamsFrequencyVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
                 String frequency = (String) ((List<Object>) frequencyparamsFrequencyVariable).get(0);
                 Map<String, Object> paramsFrequency = (Map<String, Object>) ((List<Object>) frequencyparamsFrequencyVariable).get(1);
@@ -2168,7 +2168,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, paramsFrequency); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
                 String channel = "unsub.depth";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -2206,13 +2206,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object url = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 Object channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + market.get("id"));
                 ((Map<String, Object>)parameters).put("unsubscribed", true);
                 this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
                 String channel = "unsub.deal";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -2308,7 +2308,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             // spot ws client - the first caller fetches the listenKey, concurrent
             // callers wait on the future and resume when the listenKey is ready,
             // otherwise the user-data subscriptions would be split across two connections
-            Client client = this.client(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot"));
+            Client client = this.client(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot"));
             String messageHash = "authenticate:listenKey";
             Boolean isFetching = (Boolean) this.safeBool(this.options, "listenKeyFetching", false);
             if (java.util.Objects.equals(isFetching, true))
@@ -2363,7 +2363,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
             } catch(Exception error)
             {
-                String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+                String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 if (java.util.Objects.equals(wsUrl, null))
                 {
                     throw new ExchangeError((this.id + " keepAliveListenKey() has no spot websocket url")) ;

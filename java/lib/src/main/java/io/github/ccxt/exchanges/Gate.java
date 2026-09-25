@@ -2025,7 +2025,7 @@ public class Gate extends GateApi
                     Helpers.addElementToObject(this.options, "unifiedAccount", false);
                 }
             }
-            return ((Map<String, Object>)this.options).get("unifiedAccount");
+            return this.options.get("unifiedAccount");
         }).thenApply(res -> (Boolean) res);
 
     }
@@ -5963,7 +5963,7 @@ public class Gate extends GateApi
                 if (java.util.Objects.equals(timeInForce, null))
                 {
                     String defaultTif = this.safeString(this.options, "defaultTimeInForce", "IOC");
-                    String exchangeSpecificTif = this.safeString(((Map<String, Object>)this.options).get("timeInForce"), defaultTif, "ioc");
+                    String exchangeSpecificTif = this.safeString(this.options.get("timeInForce"), defaultTif, "ioc");
                     timeInForce = exchangeSpecificTif;
                 }
             }
@@ -7678,7 +7678,7 @@ public class Gate extends GateApi
                 put( "currency", currency.get("id") );
                 put( "amount", truncated );
             }};
-            if (!(Helpers.inOp(((Map<String, Object>)this.options).get("accountsByType"), fromId)))
+            if (!(Helpers.inOp(this.options.get("accountsByType"), fromId)))
             {
                 request.put("from", "margin");
                 request.put("currency_pair", fromId);
@@ -7686,7 +7686,7 @@ public class Gate extends GateApi
             {
                 request.put("from", fromId);
             }
-            if (!(Helpers.inOp(((Map<String, Object>)this.options).get("accountsByType"), toId)))
+            if (!(Helpers.inOp(this.options.get("accountsByType"), toId)))
             {
                 request.put("to", "margin");
                 request.put("currency_pair", toId);
@@ -8901,7 +8901,7 @@ public class Gate extends GateApi
         {
             entirePath = endPart;
         }
-        Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), authentication), type);
+        Object url = Helpers.GetValue(Helpers.GetValue(this.urls.get("api"), authentication), type);
         if (java.util.Objects.equals(url, null))
         {
             throw new NotSupported((Helpers.add((this.id + " does not have a testnet for the "), type) + " market type.")) ;
@@ -10642,7 +10642,7 @@ public class Gate extends GateApi
         if (!java.util.Objects.equals(label, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), label, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), label, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

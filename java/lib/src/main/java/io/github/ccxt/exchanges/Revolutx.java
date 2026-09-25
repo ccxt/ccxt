@@ -264,7 +264,7 @@ public class Revolutx extends RevolutxApi
         Object query = this.omit(parameters, this.extractParams(path));
         List<Object> queryKeys = Helpers.objectKeys(query);
         Integer queryLength = ((List<?>)queryKeys).size();
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -430,7 +430,7 @@ public class Revolutx extends RevolutxApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
+            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
             if (!java.util.Objects.equals(region, null))
             {
                 request.put("region", region);
@@ -529,7 +529,7 @@ public class Revolutx extends RevolutxApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
+            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
             if (!java.util.Objects.equals(region, null))
             {
                 request.put("region", region);
@@ -651,7 +651,7 @@ public class Revolutx extends RevolutxApi
                 }
                 request.put("symbols", String.join(",", (List<String>)marketIds));
             }
-            String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
+            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
             if (!java.util.Objects.equals(region, null))
             {
                 request.put("region", region);
@@ -759,7 +759,7 @@ public class Revolutx extends RevolutxApi
             {
                 request.put("limit", limit);
             }
-            String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
+            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
             if (!java.util.Objects.equals(region, null))
             {
                 request.put("region", region);
@@ -842,7 +842,7 @@ public class Revolutx extends RevolutxApi
             {
                 request.put("until", this.milliseconds());
             }
-            String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
+            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
             if (!java.util.Objects.equals(region, null))
             {
                 request.put("region", region);
@@ -1742,7 +1742,7 @@ public class Revolutx extends RevolutxApi
             }
             if (!java.util.Objects.equals(errorMessage, null))
             {
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
             }
             return null;
         }

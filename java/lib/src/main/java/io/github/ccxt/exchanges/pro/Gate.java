@@ -2380,10 +2380,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageHash = this.safeString(client.subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), code, this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, this.json(errs));
+                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), code, this.json(message));
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, this.json(errs));
                 String errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "broad"), errorMessage, this.json(message));
                 throw new ExchangeError((String)this.json(message)) ;
             } catch(Exception e)
             {
@@ -2666,7 +2666,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public Object getUrlByMarket(Object market)
     {
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), Helpers.GetValue(market, "type"));
+        Object baseUrl = Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type"));
         if (java.util.Objects.equals(this.safeBool(market, "contract", (Object) null), true))
         {
             return (((java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true)))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc");
@@ -2696,7 +2696,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public Object getUrlByMarketType(String type, Object isInverse)
     {
-        Object api = ((Map<String, Object>)this.urls).get("api");
+        Object api = this.urls.get("api");
         Object url = this.safeValue(api, type);
         if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
         {

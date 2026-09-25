@@ -98,7 +98,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", request );
@@ -178,7 +178,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)market.get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
-            Object tickerSubs = ((Map<String, Object>)this.options).get("tickerSubs");
+            Object tickerSubs = this.options.get("tickerSubs");
             Object request = Helpers.objectKeys(tickerSubs);
             String messageHash = ((nameOption + "::") + market.get("symbol"));
             return (this.subscribe((nameOption + ".subscribe"), messageHash, request, Helpers.toMapArg(paramsName))).join();
@@ -220,7 +220,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 ((List<Object>)messageHashes).add(((nameOption + "::") + market.get("symbol")));
                 ((List<Object>)args).add(market.get("id"));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = Helpers.newMap(
                 "method", (nameOption + ".subscribe"),
                 "params", args,
@@ -283,7 +283,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 }
             }
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
                 put( "params", marketIds );

@@ -2622,7 +2622,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 Helpers.addElementToObject(this.options, "coinbaseAccountsByCurrencyId", this.indexBy(accounts, "currency"));
             }
             String currencyId = (String) currency.get("id");
-            Map<String, Object> account = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("coinbaseAccountsByCurrencyId"), currencyId, (Object) null);
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(this.options.get("coinbaseAccountsByCurrencyId"), currencyId, (Object) null);
             if (java.util.Objects.equals(account, null))
             {
                 throw new InvalidAddress((((((this.id + " createDepositAddress() could not find currency code ") + code) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
@@ -2657,7 +2657,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2710,8 +2710,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 String message = this.safeString(response, "message");
                 String feedback = ((this.id + " ") + message);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
             throw new ExchangeError(((this.id + " ") + body)) ;

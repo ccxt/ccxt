@@ -3648,7 +3648,7 @@ public class Bitrue extends BitrueApi
         String url = null;
         if ((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && ((String)path).indexOf("listenKey") >= 0))
         {
-            String apiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+            String apiUrl2 = this.safeString(this.urls.get("api"), type);
             if (java.util.Objects.equals(apiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3656,7 +3656,7 @@ public class Bitrue extends BitrueApi
             url = apiUrl2;
         } else
         {
-            String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+            String apiUrl = this.safeString(this.urls.get("api"), type);
             if (java.util.Objects.equals(apiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3800,8 +3800,8 @@ public class Bitrue extends BitrueApi
         String message = this.safeString(errorResponse, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(errorResponse, "code");
@@ -3821,7 +3821,7 @@ public class Bitrue extends BitrueApi
                 throw new DDoSProtection(((this.id + " temporary banned: ") + body)) ;
             }
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         if (!java.util.Objects.equals(success, true))

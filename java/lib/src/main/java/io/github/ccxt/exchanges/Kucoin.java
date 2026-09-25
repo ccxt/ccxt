@@ -2804,7 +2804,7 @@ public class Kucoin extends KucoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(((Map<String, Object>)this.options).get("hf"), null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(force, false)))
+            if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.options.get("hf"), null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(force, false)))
             {
                 Map<String, Object> result = (this.privateGetHfAccountsOpened()).join();
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data", (Object) null));
@@ -4356,7 +4356,7 @@ public class Kucoin extends KucoinApi
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
                 }
             }
-            Object version = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("versions"), "private"), "GET"), "deposit-addresses");
+            Object version = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options.get("versions"), "private"), "GET"), "deposit-addresses");
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", "v1");
             Map<String, Object> response = (this.privateGetDepositAddresses(this.extend(request, paramsRequest))).join();
             // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -4516,7 +4516,7 @@ public class Kucoin extends KucoinApi
                 response = (this.utaPrivateGetAssetDepositAddress(this.extend(request, paramsRequest))).join();
             } else
             {
-                Object version = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("versions"), "private"), "GET"), "deposit-addresses");
+                Object version = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options.get("versions"), "private"), "GET"), "deposit-addresses");
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", "v2");
                 response = (this.privateGetDepositAddresses(this.extend(request, paramsRequest))).join();
                 //
@@ -4992,7 +4992,7 @@ public class Kucoin extends KucoinApi
                 throw new BadRequest((this.id + " createOrder does not support isolated margin for stop orders")) ;
             } else if (java.util.Objects.equals(marginMode, "cross"))
             {
-                request.put("tradeType", Helpers.GetValue(((Map<String, Object>)this.options).get("marginModes"), marginMode));
+                request.put("tradeType", Helpers.GetValue(this.options.get("marginModes"), marginMode));
             }
         } else if (Boolean.TRUE.equals(isMarginOrder))
         {
@@ -6354,7 +6354,7 @@ public class Kucoin extends KucoinApi
             }
             if (Boolean.TRUE.equals(isMarginOrders))
             {
-                request.put("tradeType", Helpers.GetValue(((Map<String, Object>)this.options).get("marginModes"), marginMode));
+                request.put("tradeType", Helpers.GetValue(this.options.get("marginModes"), marginMode));
                 if (java.util.Objects.equals(marginMode, "isolated") && (java.util.Objects.equals(trigger, true)))
                 {
                     throw new BadRequest((this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;
@@ -6661,7 +6661,7 @@ public class Kucoin extends KucoinApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            request.put("tradeType", this.safeString(((Map<String, Object>)this.options).get("marginModes"), marginMode, "TRADE"));
+            request.put("tradeType", this.safeString(this.options.get("marginModes"), marginMode, "TRADE"));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isMarginOrder) && java.util.Objects.equals(lowercaseStatus, "active") && (!java.util.Objects.equals(trigger, true)))
             {
@@ -8130,7 +8130,7 @@ public class Kucoin extends KucoinApi
             if (Boolean.TRUE.equals(isMargin))
             {
                 hf = true;
-                request.put("tradeType", (((java.util.Objects.equals(marginMode, null)))) ? null : this.safeString(((Map<String, Object>)this.options).get("marginModes"), marginMode, marginMode));
+                request.put("tradeType", (((java.util.Objects.equals(marginMode, null)))) ? null : this.safeString(this.options.get("marginModes"), marginMode, marginMode));
             }
             if ((java.util.Objects.equals(hf, true)) && java.util.Objects.equals(symbol, null))
             {
@@ -10888,7 +10888,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> versions = (Map<String, Object>) this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}});
         Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, api, new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, method, new HashMap<String, Object>() {{}});
-        String defaultVersion = this.safeString(methodVersions, path, ((Map<String, Object>)this.options).get("version"));
+        String defaultVersion = this.safeString(methodVersions, path, this.options.get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
         if (java.util.Objects.equals(version, "v3") && (Helpers.inOp(config, "v3")))
         {
@@ -13739,7 +13739,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> versions = (Map<String, Object>) this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}});
         Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
-        String defaultVersion = this.safeString(methodVersions, path, ((Map<String, Object>)this.options).get("version"));
+        String defaultVersion = this.safeString(methodVersions, path, this.options.get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
         Object paramsOmitted = this.omit(parameters, "version");
         String endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, paramsOmitted));
@@ -13772,7 +13772,7 @@ public class Kucoin extends KucoinApi
             headersBase = headers;
         }
         String bodyJson = body;
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -13862,7 +13862,7 @@ public class Kucoin extends KucoinApi
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, body);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, body);
             return null;
         }
         //
@@ -13874,9 +13874,9 @@ public class Kucoin extends KucoinApi
         String errorCode = this.safeString(response, "code");
         String message = this.safeString2(response, "msg", "data", "");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
         if (!java.util.Objects.equals(errorCode, "200000") && !java.util.Objects.equals(errorCode, "200"))
         {
             throw new ExchangeError(feedback) ;

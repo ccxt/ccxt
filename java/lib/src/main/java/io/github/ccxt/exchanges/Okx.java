@@ -8328,7 +8328,7 @@ public class Okx extends OkxApi
         Boolean isArray = (parameters instanceof List);
         String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -11227,10 +11227,10 @@ public class Okx extends OkxApi
                 Map<String, Object> error = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String errorCode = this.safeString(error, "sCode");
                 String message = this.safeString(error, "sMsg");
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             }
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

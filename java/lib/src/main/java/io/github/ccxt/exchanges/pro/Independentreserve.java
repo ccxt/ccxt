@@ -79,7 +79,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
@@ -184,7 +184,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             String symbolValue = (String) market.get("symbol");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             String limitString = this.numberToString(limitResolved);
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;

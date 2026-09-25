@@ -73,7 +73,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
         return BaseExchange.supplyAsync(() -> {
 
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "public");
+            String wsUrl = this.safeString(this.urls.get("ws"), "public");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
@@ -269,7 +269,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 Map<String, Object> market = this.market(symbol);
                 messageHash = ((messageHash + ":") + market.get("symbol"));
             }
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "private");
+            String wsUrl = this.safeString(this.urls.get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchMyTrades() has no private websocket url")) ;
@@ -510,7 +510,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }};
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
-        Object originalHeaders = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options"), "headers");
+        Object originalHeaders = Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers");
         Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
             put( "X-BITOPRO-APIKEY", Bitopro.this.apiKey );
@@ -542,7 +542,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "ACCOUNT_BALANCE";
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "private");
+            String wsUrl = this.safeString(this.urls.get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchBalance() has no private websocket url")) ;

@@ -94,7 +94,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orderbook:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/orderbooks/"), market.get("id"));
+            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/orderbooks/"), market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -188,7 +188,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/account");
+            String url = (this.safeString(this.urls.get("api"), "ws") + "/account");
             if ((java.util.Objects.equals(this.clients, null)) || !(((Map<?, ?>)this.clients).containsKey(url)))
             {
                 Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
@@ -199,7 +199,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                     }} );
                 }};
                 this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
-                Object originalOptions = Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options");
+                Object originalOptions = Helpers.GetValue(this.options.get("ws"), "options");
                 Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
         put( "headers", Extended.this.extend(Extended.this.extend(new HashMap<String, Object>() {{
@@ -659,7 +659,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("fundingRate:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/funding/"), market.get("id"));
+            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/funding/"), market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -743,7 +743,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("markPrice:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/prices/mark/"), market.get("id"));
+            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/prices/mark/"), market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -816,7 +816,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("trades:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/publicTrades/"), market.get("id"));
+            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/publicTrades/"), market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -934,7 +934,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, paramsOmitted));
-            String url = ((((Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/candles/"), market.get("id")) + "/") + candleType) + "?") + query);
+            String url = ((((Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/candles/"), market.get("id")) + "/") + candleType) + "?") + query);
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, null, messageHash, Helpers.newMap(
                 "name", "ohlcv",
                 "symbol", symbolValue,
@@ -1041,9 +1041,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         String feedback = ((this.id + " ") + this.json(message));
         String errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
         String errorMessage = this.safeString(error, "message");
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
         throw new ExchangeError(feedback) ;
     }
 

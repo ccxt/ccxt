@@ -2054,7 +2054,7 @@ public class Opinion extends OpinionApi
         {
             throw new AuthenticationError((this.id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
         }
-        String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws", "");
+        String wsUrl = this.safeString(this.urls.get("api"), "ws", "");
         return ((wsUrl + "?apikey=") + apiKey);
     }
 
@@ -2627,8 +2627,8 @@ public class Opinion extends OpinionApi
         {
             String errmsg = this.safeString(response, "errmsg", "");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), this.numberToString(errno), feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errmsg, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), this.numberToString(errno), feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errmsg, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;
@@ -2651,7 +2651,7 @@ public class Opinion extends OpinionApi
     {
         Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "opinion") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "opinion") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "opinion"), 0);
         Object access = (((java.util.Objects.requireNonNullElse(api, "opinion") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "opinion"), 1);
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
+        Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("opinion")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));

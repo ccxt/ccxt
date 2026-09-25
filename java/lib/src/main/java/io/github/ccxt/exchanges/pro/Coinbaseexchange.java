@@ -103,7 +103,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 messageHash = (messageHash + (":" + market.get("id")));
                 ((List<Object>)productIds).add(market.get("id"));
             }
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " urls.api.ws is not set")) ;
@@ -148,7 +148,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 ((List<Object>)productIds).add(market.get("id"));
                 ((List<Object>)messageHashes).add(((messageHashStart + ":") + market.get("symbol")));
             }
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
                 throw new ExchangeError((this.id + " urls.api.ws is not set")) ;
@@ -480,7 +480,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = Helpers.newMap(
                 "type", "subscribe",
                 "product_ids", marketIds,
@@ -522,7 +522,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ((name + ":") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = Helpers.newMap(
                 "type", "subscribe",
                 "product_ids", new ArrayList<Object>(Arrays.asList(market.get("id"))),

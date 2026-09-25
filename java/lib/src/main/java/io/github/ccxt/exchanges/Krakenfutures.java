@@ -686,7 +686,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     "info", market
                 ));
             }
-            Object settlementCurrencies = Helpers.GetValue(((Map<String, Object>)this.options).get("settlementCurrencies"), "flex");
+            Object settlementCurrencies = Helpers.GetValue(this.options.get("settlementCurrencies"), "flex");
             List<Object> currencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < Helpers.getArrayLength(settlementCurrencies); i++)
             {
@@ -4395,8 +4395,8 @@ public class Krakenfutures extends KrakenfuturesApi
             return null;
         }
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
         if (Helpers.isEqual(code, 400))
         {
             throw new BadRequest(feedback) ;
@@ -4406,12 +4406,12 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("versions"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.version);
         String version = this.safeString(parameters, "version", defaultVersion);
         Object paramsOmitted = this.omit(parameters, "version");
-        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("access"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
+        Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(this.options.get("access"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
         Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
         String endpoint = Helpers.add((version + "/"), this.implodeParams(path, paramsOmitted));
@@ -4432,7 +4432,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             query = (query + ("?" + postData));
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
