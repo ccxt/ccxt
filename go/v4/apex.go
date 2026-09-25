@@ -789,7 +789,10 @@ func (this *Apex) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var settleId *string = this.SafeString(market, "settleAssetId")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(Add(baseId, "/"), quote), ":"), settle))
+	if (baseId == nil) || (quote == nil) || (settle == nil) {
+		return nil
+	}
+	var symbol string = *baseId + "/" + *quote + ":" + *settle
 	var expiry int = 0
 	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0002"))
 	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0005"))

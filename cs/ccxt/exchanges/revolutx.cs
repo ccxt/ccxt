@@ -427,9 +427,13 @@ public partial class revolutx : Exchange
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> market = this.safeDict(markets, key, new Dictionary<string, object>() {});
-            object bs = this.safeString(market, "base");
+            string? bs = this.safeString(market, "base");
             string? quote = this.safeString(market, "quote");
-            string? marketId = ((string)add(add(bs, "-"), quote));
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string marketId = ((bs + "-") + quote);
             Dictionary<string, object> marketData = this.extend(market, new Dictionary<string, object>() {
                 { "id", marketId },
             });

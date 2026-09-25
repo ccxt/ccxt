@@ -1072,7 +1072,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String orderMessageHash = this.safeString(channelAndMessageHash, 1);
                 // we will take advantage of the order messageHash because already handles stuff
                 // like symbol/margin/subtype/type variations
-                messageHash = ((orderMessageHash + ":") + "trade");
+                if (!java.util.Objects.equals(orderMessageHash, null))
+                {
+                    messageHash = ((orderMessageHash + ":") + "trade");
+                }
             }
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
@@ -1499,10 +1502,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         cachedOrders.append(parsedOrder);
         client.resolve(this.orders, messageHash);
-        if ((java.util.Objects.equals(messageHash, "orders")) && (!java.util.Objects.equals(marketId, null)))
+        if ((!java.util.Objects.equals(messageHash, null)) && (!java.util.Objects.equals(marketId, null)))
         {
-            String specificMessageHash = ((messageHash + ".") + marketId.toLowerCase());
-            client.resolve(this.orders, specificMessageHash);
+            if (java.util.Objects.equals(messageHash, "orders"))
+            {
+                String specificMessageHash = ((messageHash + ".") + marketId.toLowerCase());
+                client.resolve(this.orders, specificMessageHash);
+            }
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here

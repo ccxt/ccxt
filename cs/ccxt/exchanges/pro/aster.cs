@@ -720,8 +720,12 @@ public partial class aster : ccxt.aster
         {
             string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = this.safeStringLower(market, "id");
-            subscriptionArgs.Add(add(marketId, "@aggTrade"));
+            string? marketId = this.safeStringLower(market, "id");
+            if ((marketId == null))
+            {
+                continue;
+            }
+            subscriptionArgs.Add((marketId + "@aggTrade"));
             messageHashes.Add(("trade::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes));

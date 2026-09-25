@@ -293,7 +293,6 @@ export default class p2b extends p2bRest {
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (channel, timeframes);
         const symbol = this.safeString (market, 'symbol');
-        const messageHash = channel + '::' + symbol;
         const parsed = this.parseOHLCV (data, market);
         this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol as string], timeframe);
@@ -304,7 +303,10 @@ export default class p2b extends p2bRest {
                 this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
-            client.resolve (stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + '::' + symbol;
+                client.resolve (stored, messageHash);
+            }
         }
         return message;
     }
@@ -403,8 +405,10 @@ export default class p2b extends p2bRest {
         }
         const symbol = ticker['symbol'];
         this.tickers[symbol as string] = ticker;
-        const messageHash = messageHashStart + '::' + symbol;
-        client.resolve (ticker, messageHash);
+        if (messageHashStart !== undefined) {
+            const messageHash = messageHashStart + '::' + symbol;
+            client.resolve (ticker, messageHash);
+        }
         return message;
     }
 

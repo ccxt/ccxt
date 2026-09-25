@@ -775,8 +775,10 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 				parsed["datetime"] = this.SafeString(order, "datetime")
 			}
 			cachedOrders.(ccxt.Appender).Append(parsed)
-			var messageHashSymbol *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(topic, ":"), symbol))
-			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHashSymbol)
+			if topic != nil {
+				var messageHashSymbol string = *topic + ":" + *symbol
+				client.(ccxt.ClientInterface).Resolve(this.Orders, messageHashSymbol)
+			}
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
@@ -864,8 +866,10 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(topic, this.SafeString(trade, "symbol", "")))
-		client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+		if topic != nil {
+			var messageHash string = *topic + *this.SafeString(trade, "symbol", "")
+			client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+		}
 	}
 }
 func (this *Derive) HandleErrorMessage(client any, message any) any {

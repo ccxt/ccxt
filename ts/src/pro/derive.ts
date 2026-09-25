@@ -634,8 +634,10 @@ export default class derive extends deriveRest {
                     parsed['datetime'] = this.safeString (order, 'datetime');
                 }
                 cachedOrders.append (parsed);
-                const messageHashSymbol = topic + ':' + symbol;
-                client.resolve (this.orders, messageHashSymbol);
+                if (topic !== undefined) {
+                    const messageHashSymbol = topic + ':' + symbol;
+                    client.resolve (this.orders, messageHashSymbol);
+                }
             }
         }
         client.resolve (this.orders, topic);
@@ -700,8 +702,10 @@ export default class derive extends deriveRest {
             const trade = this.parseTrade (message);
             myTrades.append (trade);
             client.resolve (myTrades, topic);
-            const messageHash = topic + this.safeString (trade, 'symbol', '');
-            client.resolve (myTrades, messageHash);
+            if (topic !== undefined) {
+                const messageHash = topic + this.safeString (trade, 'symbol', '');
+                client.resolve (myTrades, messageHash);
+            }
         }
     }
 

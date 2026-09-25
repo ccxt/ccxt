@@ -2102,7 +2102,7 @@ public partial class backpack : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, this.omit(parameters, omitKeys));
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)paramsPostOnly)["postOnly"] = true;
         }

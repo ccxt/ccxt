@@ -946,8 +946,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object symbol = fundingRate.get("symbol");
             Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
-            String messageHash = (eventVar + "::contract");
-            client.resolve(fundingRate, messageHash);
+            if (!java.util.Objects.equals(eventVar, null))
+            {
+                String messageHash = (eventVar + "::contract");
+                client.resolve(fundingRate, messageHash);
+            }
         }
         return message;
     }
@@ -1135,8 +1138,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 messageHashTail = "spot";
             }
-            String messageHash = ((eventVar + "::") + messageHashTail);
-            client.resolve(ticker, messageHash);
+            if (!java.util.Objects.equals(eventVar, null))
+            {
+                String messageHash = ((eventVar + "::") + messageHashTail);
+                client.resolve(ticker, messageHash);
+            }
         }
         return message;
     }
@@ -1312,8 +1318,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             stored.append(parsed);
             String eventVar = this.safeString(message, "event");
-            String messageHash = ((eventVar + "::") + tradeType);
-            client.resolve(stored, messageHash);
+            if (!java.util.Objects.equals(eventVar, null))
+            {
+                String messageHash = ((eventVar + "::") + tradeType);
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }
@@ -1372,8 +1381,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
             tradesArray.append(trade);
-            String messageHash = ((eventVar + "::") + tradeType);
-            client.resolve(tradesArray, messageHash);
+            if (!java.util.Objects.equals(eventVar, null))
+            {
+                String messageHash = ((eventVar + "::") + tradeType);
+                client.resolve(tradesArray, messageHash);
+            }
         }
         return message;
     }

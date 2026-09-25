@@ -173,8 +173,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> firstInstanceServer = (Map<String, Object>) this.safeDict(instanceServers, 0, (Object) null);
                 Long pingInterval = this.safeInteger(firstInstanceServer, "pingInterval");
                 String endpoint = this.safeString(firstInstanceServer, "endpoint");
+                if (java.util.Objects.equals(endpoint, null))
+                {
+                    throw new ExchangeError((this.id + " negotiate() response has no websocket endpoint")) ;
+                }
                 String token = this.safeString(data, "token");
-                String result = Helpers.add((endpoint + "?"), this.urlencode(Helpers.newMap(
+                String result = ((endpoint + "?") + this.urlencode(Helpers.newMap(
         "token", token,
         "privateChannel", privateChannel,
         "connectId", connectId

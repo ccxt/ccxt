@@ -1037,7 +1037,6 @@ impl PoloniexCore {
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(channel.clone(), &[timeframes]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
         let mut parsed: Value = self.parse_ws_ohlcv(data, &[market]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1053,7 +1052,10 @@ impl PoloniexCore {
                 }
             }
             stored.append(parsed);
-            client.resolve(&[stored, messageHash]);
+            if (channel != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
+                client.resolve(&[stored, messageHash]);
+            }
         }
         return message;
 

@@ -281,7 +281,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         ticker = self.parse_ws_instrument(message)
         channel = self.safe_string(message, 'channel')
         client.resolve(ticker, channel)
-        client.resolve(ticker, channel + '::' + ticker['symbol'])
+        if channel is not None:
+            client.resolve(ticker, channel + '::' + ticker['symbol'])
 
     def parse_ws_instrument(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -390,7 +391,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         ticker = self.parse_ws_ticker(message)
         channel = self.safe_string(message, 'channel')
         client.resolve(ticker, channel)
-        client.resolve(ticker, channel + '::' + ticker['symbol'])
+        if channel is not None:
+            client.resolve(ticker, channel + '::' + ticker['symbol'])
 
     def parse_ws_ticker(self, ticker: object, market: Market = None) -> Ticker:
         #
@@ -490,7 +492,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             tick = self.safe_dict(data, i)
             parsed = self.parse_ohlcv(tick, market)
             stored.append(parsed)
-        client.resolve(stored, messageHash + '::' + symbol)
+        if messageHash is not None:
+            client.resolve(stored, messageHash + '::' + symbol)
 
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -551,7 +554,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, channel)
-        client.resolve(tradesArray, channel + '::' + trade['symbol'])
+        if channel is not None:
+            client.resolve(tradesArray, channel + '::' + trade['symbol'])
         return message
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -667,7 +671,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         orderbook['datetime'] = datetime
         orderbook['timestamp'] = self.parse8601(datetime)
         self.orderbooks[symbol] = orderbook
-        client.resolve(orderbook, channel + '::' + symbol)
+        if channel is not None:
+            client.resolve(orderbook, channel + '::' + symbol)
 
     def handle_delta(self, orderbook: object, delta: object):
         rawSide = self.safe_string_lower(delta, 0)
@@ -736,7 +741,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channel = self.safe_string(message, 'channel')
         fundingRate = self.parse_funding_rate(message)
         self.fundingRates[fundingRate['symbol']] = fundingRate
-        client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
+        if channel is not None:
+            client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #

@@ -912,7 +912,9 @@ export default class htx extends htxRest {
             const orderMessageHash = this.safeString (channelAndMessageHash, 1);
             // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
-            messageHash = orderMessageHash + ':' + 'trade';
+            if (orderMessageHash !== undefined) {
+                messageHash = orderMessageHash + ':' + 'trade';
+            }
         }
         const subscriptionParams = {
             'isV5': isV5Linear,
@@ -1297,9 +1299,11 @@ export default class htx extends htxRest {
         const cachedOrders = this.orders;
         cachedOrders.append (parsedOrder);
         client.resolve (this.orders, messageHash);
-        if ((messageHash === 'orders') && (marketId !== undefined)) {
-            const specificMessageHash = messageHash + '.' + marketId.toLowerCase ();
-            client.resolve (this.orders, specificMessageHash);
+        if ((messageHash !== undefined) && (marketId !== undefined)) {
+            if (messageHash === 'orders') {
+                const specificMessageHash = messageHash + '.' + marketId.toLowerCase ();
+                client.resolve (this.orders, specificMessageHash);
+            }
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here

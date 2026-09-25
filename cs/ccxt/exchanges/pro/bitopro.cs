@@ -121,8 +121,7 @@ public partial class bitopro : ccxt.bitopro
         string? marketId = this.safeString(message, "pair");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object eventVar = this.safeString(message, "event");
-        string? messageHash = ((string)add(add(eventVar, ":"), symbol));
+        string? eventVar = this.safeString(message, "event");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
@@ -131,7 +130,11 @@ public partial class bitopro : ccxt.bitopro
         Int64? timestamp = this.safeInteger(message, "timestamp");
         Dictionary<string, object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
         (orderbook as IOrderBook).reset(snapshot);
-        client.resolve(orderbook, messageHash);
+        if ((eventVar != null))
+        {
+            string messageHash = ((eventVar + ":") + symbol);
+            client.resolve(orderbook, messageHash);
+        }
     }
 
     /**
@@ -188,8 +191,7 @@ public partial class bitopro : ccxt.bitopro
         string? marketId = this.safeString(message, "pair");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object eventVar = this.safeString(message, "event");
-        string? messageHash = ((string)add(add(eventVar, ":"), symbol));
+        string? eventVar = this.safeString(message, "event");
         List<object> rawData = this.safeList(message, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(rawData, market);
         ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -203,7 +205,11 @@ public partial class bitopro : ccxt.bitopro
             tradesCache.append(trades[i]);
         }
         this.trades[(string)symbol] = tradesCache;
-        client.resolve(tradesCache, messageHash);
+        if ((eventVar != null))
+        {
+            string messageHash = ((eventVar + ":") + symbol);
+            client.resolve(tradesCache, messageHash);
+        }
     }
 
     /**
@@ -282,7 +288,7 @@ public partial class bitopro : ccxt.bitopro
             return;
         }
         string? symbol = this.symbol(((bs + "/") + quote));
-        object messageHash = this.safeString(message, "event");
+        string? messageHash = this.safeString(message, "event");
         if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -292,7 +298,10 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> parsed = this.parseWsTrade(data);
         trades.append(parsed);
         client.resolve(trades, messageHash);
-        client.resolve(trades, add(add(messageHash, ":"), symbol));
+        if ((messageHash != null))
+        {
+            client.resolve(trades, ((messageHash + ":") + symbol));
+        }
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
@@ -432,15 +441,18 @@ public partial class bitopro : ccxt.bitopro
         // market-ids are lowercase in REST API and uppercase in WS API
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object eventVar = this.safeString(message, "event");
-        string? messageHash = ((string)add(add(eventVar, ":"), symbol));
+        string? eventVar = this.safeString(message, "event");
         Dictionary<string, object> result = this.parseTicker(message, market);
         result["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Int64? timestamp = this.safeInteger(message, "timestamp");
         result["timestamp"] = timestamp;
         result["datetime"] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[(string)symbol] = result;
-        client.resolve(result, messageHash);
+        if ((eventVar != null))
+        {
+            string messageHash = ((eventVar + ":") + symbol);
+            client.resolve(result, messageHash);
+        }
     }
 
     public virtual void authenticate(object url)

@@ -1123,7 +1123,6 @@ export default class hyperliquid extends hyperliquidRest {
             this.balance = {};
         }
         const topic = this.safeString (message, 'channel');
-        const messageHash = topic + '::balance';
         let info: NullableDict = undefined;
         let rawBalances: any[] = [];
         let account: Str = undefined;
@@ -1153,7 +1152,10 @@ export default class hyperliquid extends hyperliquidRest {
         this.balance[(account as string)]['timestamp'] = timestamp;
         this.balance[(account as string)]['datetime'] = this.iso8601 (timestamp);
         this.balance[(account as string)] = this.safeBalance (this.balance[(account as string)]);
-        client.resolve (this.balance[(account as string)], messageHash);
+        if (topic !== undefined) {
+            const messageHash = topic + '::balance';
+            client.resolve (this.balance[(account as string)], messageHash);
+        }
     }
 
     parseWsBalance (balance: Dict, accountType: Str = undefined) {

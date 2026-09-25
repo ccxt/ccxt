@@ -2219,6 +2219,9 @@ impl GateCore {
             let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
             // Control when position is closed no side is returned
             if (side.is_none()) {
+                if (symbol == Value::Null) {
+                    continue;
+                }
                 let mut prevLongPosition: Value = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol, Value::Str("long".into())).into()), &[]);
                 if (prevLongPosition != Value::Null) {
                     add_element_to_object(&mut position, &Value::Str("side".into()), prevLongPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null));

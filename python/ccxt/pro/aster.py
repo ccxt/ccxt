@@ -603,6 +603,8 @@ class aster(ccxt.async_support.aster):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
             marketId = self.safe_string_lower(market, 'id')
+            if marketId is None:
+                continue
             subscriptionArgs.append(marketId + '@aggTrade')
             messageHashes.append('trade::' + market['symbol'])
         trades = await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), messageHashes)

@@ -177,12 +177,13 @@ class bitvavo(ccxt.async_support.bitvavo):
             data = tickers[i]
             marketId = self.safe_string(data, 'market')
             market = self.safe_market(marketId, None, '-')
-            messageHash = event + '@' + marketId
             ticker = self.parse_ticker(data, market)
             symbol = ticker['symbol']
             self.tickers[symbol] = ticker
             result.append(ticker)
-            client.resolve(ticker, messageHash)
+            if event is not None:
+                messageHash = event + '@' + marketId
+                client.resolve(ticker, messageHash)
         client.resolve(result, event)
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:

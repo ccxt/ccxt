@@ -528,11 +528,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         String channel = this.safeString(parameters, "channel");
-        String messageHash = ((channel + ".") + symbol);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
-        client.resolve(ticker, messageHash);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + ".") + symbol);
+            client.resolve(ticker, messageHash);
+        }
         return message;
     }
 
@@ -655,8 +658,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Object symbol = fundingRate.get("symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         String channel = this.safeString(parameters, "channel");
-        String messageHash = Helpers.add((channel + "."), symbol);
-        client.resolve(fundingRate, messageHash);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + ".") + symbol);
+            client.resolve(fundingRate, messageHash);
+        }
     }
 
     public Map<String, Object> parseFundingRateWs(Map<String, Object> contract, Map<String, Object> market)

@@ -440,14 +440,16 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()))
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), symbol))
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
 		stored.(ccxt.Appender).Append(trade)
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		if channel != nil {
+			var messageHash string = *channel + ":" + *symbol
+			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		}
 	}
 }
 
@@ -840,8 +842,10 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
-	client.(ccxt.ClientInterface).Resolve(newTickers, messageHash)
+	if channel != nil {
+		var messageHash string = *channel + "::" + *symbol
+		client.(ccxt.ClientInterface).Resolve(newTickers, messageHash)
+	}
 }
 
 /**
@@ -2678,13 +2682,15 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, channel)
 		for i := 0; i < len(marketIds); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), func() any {
-				if i >= 0 && i < len(marketIds) {
-					return ccxt.DerefScalar(marketIds[i])
-				}
-				return nil
-			}()))
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			if channel != nil {
+				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+":", func() any {
+					if i >= 0 && i < len(marketIds) {
+						return ccxt.DerefScalar(marketIds[i])
+					}
+					return nil
+				}()))
+				client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			}
 		}
 	}
 }
@@ -2785,12 +2791,14 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 			symbols[*symbol] = true
 		}
 	}
-	var messageHash any = ccxt.Add(channel, "::myTrades")
-	client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
-	var tradeSymbols []string = ccxt.ObjectKeys(symbols)
-	for i := 0; i < len(tradeSymbols); i++ {
-		var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.GetValue(tradeSymbols, i))
-		client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
+	if channel != nil {
+		var messageHash string = *channel + "::myTrades"
+		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
+		var tradeSymbols []string = ccxt.ObjectKeys(symbols)
+		for i := 0; i < len(tradeSymbols); i++ {
+			var symbolMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+"::", ccxt.GetValue(tradeSymbols, i)))
+			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
+		}
 	}
 }
 func (this *Okx) RequestId() string {

@@ -659,6 +659,9 @@ class apex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $settleId = $this->safe_string($market, 'settleAssetId');
         $settle = $this->safe_currency_code($settleId);
+        if (($baseId === null) || ($quote === null) || ($settle === null)) {
+            return null;
+        }
         $symbol = $baseId . '/' . $quote . ':' . $settle;
         $expiry = 0;
         $takerFee = $this->parse_number('0.0002');

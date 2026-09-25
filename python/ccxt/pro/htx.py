@@ -847,7 +847,8 @@ class htx(ccxt.async_support.htx):
             orderMessageHash = self.safe_string(channelAndMessageHash, 1)
             # we will take advantage of the order messageHash because already handles stuff
             # like symbol/margin/subtype/type variations
-            messageHash = orderMessageHash + ':' + 'trade'
+            if orderMessageHash is not None:
+                messageHash = orderMessageHash + ':' + 'trade'
         subscriptionParams = {
             'isV5': isV5Linear,
         }
@@ -1207,9 +1208,10 @@ class htx(ccxt.async_support.htx):
         cachedOrders = self.orders
         cachedOrders.append(parsedOrder)
         client.resolve(self.orders, messageHash)
-        if (messageHash == 'orders') and (marketId is not None):
-            specificMessageHash = messageHash + '.' + marketId.lower()
-            client.resolve(self.orders, specificMessageHash)
+        if (messageHash is not None) and (marketId is not None):
+            if messageHash == 'orders':
+                specificMessageHash = messageHash + '.' + marketId.lower()
+                client.resolve(self.orders, specificMessageHash)
         # when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         # so we're removing it here
         if messageHash is None:

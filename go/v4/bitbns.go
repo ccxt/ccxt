@@ -407,7 +407,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quote")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		if (base == nil) || (quote == nil) {
+		if (baseId == nil) || (base == nil) || (quote == nil) {
 			continue
 		}
 		var marketPrecision map[string]any = SafeMapTyped(market, "precision")
@@ -417,9 +417,9 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var costLimits map[string]any = SafeMapTyped(marketLimits, "cost")
 		var usdt bool = (quoteId != nil && *quoteId == "USDT")
 		// INR markets don't need a _INR prefix
-		var uppercaseId any = baseId
+		var uppercaseId *string = baseId
 		if usdt {
-			uppercaseId = (Add(Add(baseId, "_"), quoteId))
+			uppercaseId = SafeStringPtr((*baseId + "_" + *quoteId))
 		}
 		result = append(result, map[string]any{
 			"id":             id,

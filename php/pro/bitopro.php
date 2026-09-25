@@ -126,7 +126,6 @@ class bitopro extends \ccxt\async\bitopro {
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
-        $messageHash = $event . ':' . $symbol;
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book(array());
@@ -134,7 +133,10 @@ class bitopro extends \ccxt\async\bitopro {
         $timestamp = $this->safe_integer($message, 'timestamp');
         $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
         $orderbook->reset($snapshot);
-        $client->resolve($orderbook, $messageHash);
+        if ($event !== null) {
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve($orderbook, $messageHash);
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -191,7 +193,6 @@ class bitopro extends \ccxt\async\bitopro {
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
-        $messageHash = $event . ':' . $symbol;
         $rawData = $this->safe_list($message, 'data', array());
         $trades = $this->parse_trades($rawData, $market);
         $tradesCache = $this->safe_value($this->trades, $symbol);
@@ -203,7 +204,10 @@ class bitopro extends \ccxt\async\bitopro {
             $tradesCache->append($trades[$i]);
         }
         $this->trades[$symbol] = $tradesCache;
-        $client->resolve($tradesCache, $messageHash);
+        if ($event !== null) {
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve($tradesCache, $messageHash);
+        }
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -287,7 +291,9 @@ class bitopro extends \ccxt\async\bitopro {
         $parsed = $this->parse_ws_trade($data);
         $trades->append($parsed);
         $client->resolve($trades, $messageHash);
-        $client->resolve($trades, $messageHash . ':' . $symbol);
+        if ($messageHash !== null) {
+            $client->resolve($trades, $messageHash . ':' . $symbol);
+        }
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -418,14 +424,16 @@ class bitopro extends \ccxt\async\bitopro {
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
-        $messageHash = $event . ':' . $symbol;
         $result = $this->parse_ticker($message, $market);
         $result['symbol'] = $this->safe_string($market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         $timestamp = $this->safe_integer($message, 'timestamp');
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         $this->tickers[$symbol] = $result;
-        $client->resolve($result, $messageHash);
+        if ($event !== null) {
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve($result, $messageHash);
+        }
     }
 
     public function authenticate(string $url) {

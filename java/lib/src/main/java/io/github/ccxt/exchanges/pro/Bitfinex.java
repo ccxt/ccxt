@@ -541,7 +541,6 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String channel = this.safeString(subscription, "channel");
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String messageHash = Helpers.add((channel + ":"), marketId);
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         String symbol = (String) market.get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -577,7 +576,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             stored.append(parsed);
         }
-        client.resolve(stored, messageHash);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + ":") + marketId);
+            client.resolve(stored, messageHash);
+        }
     }
 
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)

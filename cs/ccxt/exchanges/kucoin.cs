@@ -2085,7 +2085,7 @@ public partial class kucoin : Exchange
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             string? defaultType = this.safeString(this.options, "defaultType", "spot");
             string defaultTradeType = "FUTURES";
@@ -2773,7 +2773,7 @@ public partial class kucoin : Exchange
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             response = await this.utaGetAssetCurrencies(paramsUta);
         } else
@@ -2899,7 +2899,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
         Dictionary<string, object> response = null;
         List<object> data = new List<object>() {};
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             response = await this.utaPrivateGetAccountModeAccountOverview(this.extend(paramsUta, new Dictionary<string, object>() {
                 { "accountMode", "unified" },
@@ -3498,7 +3498,7 @@ public partial class kucoin : Exchange
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         Dictionary<string, object> response = null;
-        if (((tradeType != null)) || isTrue(utaOption))
+        if (((tradeType != null)) || (utaOption == true))
         {
             if ((tradeType == null))
             {
@@ -3664,7 +3664,7 @@ public partial class kucoin : Exchange
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTicker", market, paramsUta);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             request["tradeType"] = this.typeToTradeType(type);
             response = await this.utaGetMarketTicker(this.extend(request, paramsMarketType));
@@ -3888,7 +3888,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
@@ -3992,7 +3992,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
@@ -4063,7 +4063,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
@@ -4426,7 +4426,7 @@ public partial class kucoin : Exchange
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrderBook", market, paramsUta);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             string limitString = "20";
             if (((limit == null)) || ((limit >= 100)))
@@ -4605,7 +4605,7 @@ public partial class kucoin : Exchange
         IList<object> utaOptionparamsUtaVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "uta", uta);
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             return await this.CreateUtaOrder(symbol, type, side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsUta);
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -4728,7 +4728,7 @@ public partial class kucoin : Exchange
             {
                 response = await this.privatePostMarginOrder(orderRequest);
             }
-        } else if (isTrue(useSync))
+        } else if ((useSync == true))
         {
             response = await this.privatePostHfOrdersSync(orderRequest);
         } else if ((hf == true))
@@ -5543,7 +5543,7 @@ public partial class kucoin : Exchange
         bool? useSync = (bool?)useSyncparamsSyncVariable[0];
         IDictionary<string, object> paramsSync = ((IDictionary<string, object>)useSyncparamsSyncVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(useSync))
+        if ((useSync == true))
         {
             response = await this.privatePostHfOrdersMultiSync(this.extend(request, paramsSync));
         } else if ((hf == true))
@@ -5739,7 +5739,7 @@ public partial class kucoin : Exchange
         IList<object> utaOptionparamsUtaVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelOrder", "uta", uta);
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             return await this.CancelUtaOrder(id, symbol, paramsUta);
         }
@@ -5804,7 +5804,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         string? tradeType = this.safeString(paramsMarginMode, "tradeType"); // keep it for backward compatibility
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
-        if (((hf == true)) || isTrue(useSync) || isMarginOrder)
+        if (((hf == true)) || (useSync == true) || isMarginOrder)
         {
             if ((trigger != true))
             {
@@ -5846,7 +5846,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateDeleteHfMarginOrdersClientOrderClientOid(this.extend(request, paramsOmitted));
-            } else if (isTrue(useSync))
+            } else if ((useSync == true))
             {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, paramsOmitted));
             } else if ((hf == true))
@@ -5879,7 +5879,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateDeleteHfMarginOrdersOrderId(this.extend(request, paramsOmitted));
-            } else if (isTrue(useSync))
+            } else if ((useSync == true))
             {
                 response = await this.privateDeleteHfOrdersSyncOrderId(this.extend(request, paramsOmitted));
             } else if ((hf == true))
@@ -6061,7 +6061,7 @@ public partial class kucoin : Exchange
         IList<object> utaOptionparamsUtaVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "uta", uta);
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             return await this.CancelAllUtaOrders(symbol, paramsUta);
         }
@@ -6498,7 +6498,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrdersByStatus", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate));
         }
@@ -6625,7 +6625,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrdersByStatus", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, maxLimit));
         }
@@ -6773,7 +6773,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate));
         }
@@ -6817,7 +6817,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate));
         }
@@ -7977,7 +7977,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
         }
@@ -8069,7 +8069,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsRequestVariable[0];
         IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)paginateparamsRequestVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsRequest));
         }
@@ -8192,7 +8192,7 @@ public partial class kucoin : Exchange
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTrades", market, paramsUta);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             if (((type == "spot")) || ((type == "margin")))
             {
@@ -8650,7 +8650,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         IDictionary<string, object> entry = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
@@ -8770,7 +8770,7 @@ public partial class kucoin : Exchange
         IList<object> includeFeeparamsIncludeFeeVariable = (IList<object>)this.handleOptionBoolAndParams(paramsNetworkCode, "withdraw", "includeFee", false);
         bool? includeFee = (bool?)includeFeeparamsIncludeFeeVariable[0];
         var paramsIncludeFee = includeFeeparamsIncludeFeeVariable[1];
-        if (isTrue(includeFee))
+        if ((includeFee == true))
         {
             request["feeDeductType"] = "INTERNAL";
         }
@@ -9329,7 +9329,7 @@ public partial class kucoin : Exchange
         IList<object> utaOptionparamsUtaVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalance", "uta", uta);
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             return await this.FetchUtaBalance(paramsUta);
         }
@@ -9765,7 +9765,7 @@ public partial class kucoin : Exchange
         IList<object> utaOptionparamsUtaVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "transfer", "uta", uta);
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             return await this.TransferUta(code, amount,fromAccount,toAccount, paramsUta);
         }
@@ -11397,7 +11397,7 @@ public partial class kucoin : Exchange
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             request["accountMode"] = "unified";
             response = await this.utaPrivatePostAccountModeAccountModifyLeverage(this.extend(request, paramsUta));
@@ -11465,7 +11465,7 @@ public partial class kucoin : Exchange
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             //
             //     {
@@ -11673,7 +11673,7 @@ public partial class kucoin : Exchange
         }
         IDictionary<string, object> response = null;
         string resultKey = "data";
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             request["startAt"] = start;
             request["endAt"] = end;
@@ -11900,7 +11900,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
         Dictionary<string, object> response = null;
         IDictionary<string, object> position = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             request["accountMode"] = "unified";
             response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(request, paramsUta));
@@ -12007,7 +12007,7 @@ public partial class kucoin : Exchange
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(new Dictionary<string, object>() {
                 { "accountMode", "unified" },
@@ -12892,7 +12892,7 @@ public partial class kucoin : Exchange
         IList<object> utaOptionparamsUtaVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMarketLeverageTiers", "uta", uta);
         bool? utaOption = (bool?)utaOptionparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaOptionparamsUtaVariable[1]);
-        if (isTrue(utaOption))
+        if ((utaOption == true))
         {
             Dictionary<string, object> result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, paramsUta));
             return ccxt.BaseExchange.ToLeverageTierList(this.safeList(result, symbol, new List<object>() {}));
@@ -13175,7 +13175,7 @@ public partial class kucoin : Exchange
         IList<object> paginateOptionparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", paginate);
         bool? paginateOption = (bool?)paginateOptionparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateOptionparamsPaginateVariable[1]);
-        if (isTrue(paginateOption))
+        if ((paginateOption == true))
         {
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
@@ -13403,7 +13403,7 @@ public partial class kucoin : Exchange
         IList<object> paginateparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = (bool?)paginateparamsRequestVariable[0];
         IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)paginateparamsRequestVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsRequest));
         }

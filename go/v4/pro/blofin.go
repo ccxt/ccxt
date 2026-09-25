@@ -192,8 +192,10 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
 		stored.(ccxt.Appender).Append(trade)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		if channelName != nil {
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channelName+":", symbol))
+			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		}
 	}
 }
 func (this *Blofin) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -294,7 +296,6 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
@@ -314,7 +315,10 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	if channelName != nil {
+		var messageHash string = *channelName + ":" + *symbol
+		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	}
 }
 
 /**
@@ -409,9 +413,11 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 			return nil
 		}()))
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
+		if channelName != nil {
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channelName+":", symbol))
+			client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
+		}
 	}
 }
 func (this *Blofin) ParseWsTicker(ticker any, optionalArgs ...any) any {
@@ -811,9 +817,11 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 			return nil
 		}()))
 		var symbol *string = ccxt.SafeStringPtr(order["symbol"])
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), symbol))
 		orders.(ccxt.Appender).Append(order)
-		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+		if channelName != nil {
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channelName+":", symbol))
+			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+		}
 		client.(ccxt.ClientInterface).Resolve(orders, channelName)
 	}
 }
@@ -894,8 +902,10 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 		}())
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channelName, ":"), ccxt.GetValue(position, "symbol")))
-		client.(ccxt.ClientInterface).Resolve(position, messageHash)
+		if channelName != nil {
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channelName+":", ccxt.GetValue(position, "symbol")))
+			client.(ccxt.ClientInterface).Resolve(position, messageHash)
+		}
 	}
 }
 func (this *Blofin) ParseWsPosition(position any, optionalArgs ...any) any {

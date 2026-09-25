@@ -1392,6 +1392,8 @@ class gate(ccxt.async_support.gate):
             side = self.safe_string(position, 'side')
             # Control when position is closed no side is returned
             if side is None:
+                if symbol is None:
+                    continue
                 prevLongPosition = self.safe_dict(cache, symbol + 'long')
                 if prevLongPosition is not None:
                     position['side'] = prevLongPosition['side']

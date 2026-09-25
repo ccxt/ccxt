@@ -902,7 +902,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         parsed = self.parse_order(order)
         orders.append(parsed)
         client.resolve(orders, messageHash)
-        client.resolve(orders, messageHash + '::' + symbol)
+        if messageHash is not None:
+            client.resolve(orders, messageHash + '::' + symbol)
 
     def parse_ws_order_trade(self, trade: dict, market: Market = None) -> Trade:
         #

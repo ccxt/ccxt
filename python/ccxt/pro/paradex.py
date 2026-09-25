@@ -405,11 +405,12 @@ class paradex(ccxt.async_support.paradex):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         channel = self.safe_string(params, 'channel')
-        messageHash = channel + '.' + symbol
         ticker = self.parse_ticker(data, market)
         self.tickers[symbol] = ticker
         client.resolve(ticker, channel)
-        client.resolve(ticker, messageHash)
+        if channel is not None:
+            messageHash = channel + '.' + symbol
+            client.resolve(ticker, messageHash)
         return message
 
     async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
@@ -502,8 +503,9 @@ class paradex(ccxt.async_support.paradex):
         symbol = fundingRate['symbol']
         self.fundingRates[symbol] = fundingRate
         channel = self.safe_string(params, 'channel')
-        messageHash = channel + '.' + symbol
-        client.resolve(fundingRate, messageHash)
+        if channel is not None:
+            messageHash = channel + '.' + symbol
+            client.resolve(fundingRate, messageHash)
 
     def parse_funding_rate_ws(self, contract: dict, market: Market = None) -> FundingRate:
         #

@@ -708,6 +708,9 @@ class aster extends \ccxt\async\aster {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $marketId = $this->safe_string_lower($market, 'id');
+            if ($marketId === null) {
+                continue;
+            }
             $subscriptionArgs[] = $marketId . '@aggTrade';
             $messageHashes[] = 'trade::' . $market['symbol'];
         }

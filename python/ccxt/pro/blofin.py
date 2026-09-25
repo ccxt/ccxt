@@ -146,8 +146,9 @@ class blofin(ccxt.async_support.blofin):
                 stored = ArrayCache(limit)
                 self.trades[symbol] = stored
             stored.append(trade)
-            messageHash = channelName + ':' + symbol
-            client.resolve(stored, messageHash)
+            if channelName is not None:
+                messageHash = channelName + ':' + symbol
+                client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         return self.parse_trade(trade, market)
@@ -211,7 +212,6 @@ class blofin(ccxt.async_support.blofin):
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        messageHash = channelName + ':' + symbol
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
@@ -229,7 +229,9 @@ class blofin(ccxt.async_support.blofin):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
         self.orderbooks[symbol] = orderbook
-        client.resolve(orderbook, messageHash)
+        if channelName is not None:
+            messageHash = channelName + ':' + symbol
+            client.resolve(orderbook, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -287,9 +289,10 @@ class blofin(ccxt.async_support.blofin):
         for i in range(0, len(data)):
             ticker = self.parse_ws_ticker(data[i])
             symbol = ticker['symbol']
-            messageHash = channelName + ':' + symbol
             self.tickers[symbol] = ticker
-            client.resolve(self.tickers[symbol], messageHash)
+            if channelName is not None:
+                messageHash = channelName + ':' + symbol
+                client.resolve(self.tickers[symbol], messageHash)
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         return self.parse_ticker(ticker, market)
@@ -538,9 +541,10 @@ class blofin(ccxt.async_support.blofin):
         for i in range(0, len(data)):
             order = self.parse_ws_order(data[i])
             symbol = order['symbol']
-            messageHash = channelName + ':' + symbol
             orders.append(order)
-            client.resolve(orders, messageHash)
+            if channelName is not None:
+                messageHash = channelName + ':' + symbol
+                client.resolve(orders, messageHash)
             client.resolve(orders, channelName)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
@@ -586,8 +590,9 @@ class blofin(ccxt.async_support.blofin):
             position = self.parse_ws_position(data[i])
             newPositions.append(position)
             cache.append(position)
-            messageHash = channelName + ':' + position['symbol']
-            client.resolve(position, messageHash)
+            if channelName is not None:
+                messageHash = channelName + ':' + position['symbol']
+                client.resolve(position, messageHash)
 
     def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         return self.parse_position(position, market)

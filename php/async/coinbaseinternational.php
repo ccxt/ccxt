@@ -1517,6 +1517,9 @@ class coinbaseinternational extends Exchange {
         $typeId = $this->safe_string($market, 'type'); // 'SPOT', 'PERP'
         $isSpot = ($typeId === 'SPOT');
         $fees = $this->fees;
+        if (($baseId === null) || ($quoteId === null)) {
+            return null;
+        }
         $symbol = $baseId . '/' . $quoteId;
         $settleId = null;
         if (!$isSpot) {

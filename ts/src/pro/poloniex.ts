@@ -634,7 +634,6 @@ export default class poloniex extends poloniexRest {
         const market = this.safeMarket (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (channel, timeframes);
-        const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = (timeframe === undefined) ? undefined : this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
@@ -647,7 +646,10 @@ export default class poloniex extends poloniexRest {
                 }
             }
             stored.append (parsed);
-            client.resolve (stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + '::' + symbol;
+                client.resolve (stored, messageHash);
+            }
         }
         return message;
     }

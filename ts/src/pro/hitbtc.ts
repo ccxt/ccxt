@@ -976,7 +976,9 @@ export default class hitbtc extends hitbtcRest {
         const parsed = this.parseOrder (order);
         orders.append (parsed);
         client.resolve (orders, messageHash);
-        client.resolve (orders, messageHash + '::' + symbol);
+        if (messageHash !== undefined) {
+            client.resolve (orders, messageHash + '::' + symbol);
+        }
     }
 
     override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {

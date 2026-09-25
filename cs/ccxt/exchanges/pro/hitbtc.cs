@@ -1038,12 +1038,15 @@ public partial class hitbtc : ccxt.hitbtc
         string? marketId = this.safeStringLower2(order, "instrument", "symbol");
         string? method = this.safeString(message, "method", "");
         List<object> splitMethod = method.Split(new [] {"_order"}, StringSplitOptions.None).ToList<object>();
-        object messageHash = this.safeString(splitMethod, 0);
+        string? messageHash = this.safeString(splitMethod, 0);
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> parsed = this.parseOrder(order);
         orders.append(parsed);
         client.resolve(orders, messageHash);
-        client.resolve(orders, add(add(messageHash, "::"), symbol));
+        if ((messageHash != null))
+        {
+            client.resolve(orders, ((messageHash + "::") + symbol));
+        }
     }
 
     public override Dictionary<string, object> parseWsOrderTrade(object trade, IDictionary<string, object> market = null)

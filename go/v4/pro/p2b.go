@@ -402,7 +402,6 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var symbol *string = this.SafeString(market, "symbol")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
 	var parsed any = this.ParseOHLCV(data, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -413,7 +412,10 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		if channel != nil {
+			var messageHash string = *channel + "::" + *symbol
+			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		}
 	}
 	return message
 }
@@ -510,8 +512,10 @@ func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	}
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(messageHashStart, "::"), symbol))
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	if messageHashStart != nil {
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*messageHashStart+"::", symbol))
+		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	}
 	return message
 }
 func (this *P2b) HandleOrderBook(client any, message map[string]any) {

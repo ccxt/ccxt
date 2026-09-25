@@ -643,7 +643,7 @@ public partial class derive : ccxt.derive
         // }
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params");
-        object topic = this.safeString(parameters, "channel");
+        string? topic = this.safeString(parameters, "channel");
         List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawOrders.Count; i++)
         {
@@ -678,8 +678,11 @@ public partial class derive : ccxt.derive
                     parsed["datetime"] = this.safeString(order, "datetime");
                 }
                 cachedOrders.append(parsed);
-                string? messageHashSymbol = ((string)add(add(topic, ":"), symbol));
-                client.resolve(this.orders, messageHashSymbol);
+                if ((topic != null))
+                {
+                    string messageHashSymbol = ((topic + ":") + symbol);
+                    client.resolve(this.orders, messageHashSymbol);
+                }
             }
         }
         client.resolve(this.orders, topic);
@@ -745,15 +748,18 @@ public partial class derive : ccxt.derive
             myTrades = new ArrayCacheBySymbolById(limit);
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params");
-        object topic = this.safeString(parameters, "channel");
+        string? topic = this.safeString(parameters, "channel");
         List<object> rawTrades = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawTrades.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(message);
             myTrades.append(trade);
             client.resolve(myTrades, topic);
-            string? messageHash = ((string)add(topic, this.safeString(trade, "symbol", "")));
-            client.resolve(myTrades, messageHash);
+            if ((topic != null))
+            {
+                string messageHash = (topic + this.safeString(trade, "symbol", ""));
+                client.resolve(myTrades, messageHash);
+            }
         }
     }
 

@@ -1388,7 +1388,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut orderMessageHash: Value = self.safe_string(channelAndMessageHash, Value::Int(1), &[]);
             // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", orderMessageHash, Value::Str(":".into())).into()), Value::Str("trade".into())).into());
+            if (orderMessageHash != Value::Null) {
+                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", orderMessageHash, Value::Str(":".into())).into()), Value::Str("trade".into())).into());
+            }
         }
         let mut subscriptionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1815,9 +1817,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut cachedOrders: Value = self.orders.clone();
         cachedOrders.append(parsedOrder);
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
-        if (messageHash.as_str() == Some("orders")) && (marketId != Value::Null) {
-            let mut specificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(".".into())).into()), to_lower(&marketId)).into());
-            client.resolve(&[self.orders.clone(), specificMessageHash]);
+        if (messageHash != Value::Null) && (marketId != Value::Null) {
+            if (messageHash.as_str() == Some("orders")) {
+                let mut specificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(".".into())).into()), to_lower(&marketId)).into());
+                client.resolve(&[self.orders.clone(), specificMessageHash]);
+            }
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here

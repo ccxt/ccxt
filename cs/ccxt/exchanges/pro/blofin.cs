@@ -138,7 +138,7 @@ public partial class blofin : ccxt.blofin
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg");
-        object channelName = this.safeString(arg, "channel");
+        string? channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
         if ((data == null))
         {
@@ -157,8 +157,11 @@ public partial class blofin : ccxt.blofin
                 this.trades[(string)symbol] = stored;
             }
             stored.append(trade);
-            string? messageHash = ((string)add(add(channelName, ":"), symbol));
-            client.resolve(stored, messageHash);
+            if ((channelName != null))
+            {
+                string messageHash = ((channelName + ":") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
     }
 
@@ -236,12 +239,11 @@ public partial class blofin : ccxt.blofin
         // }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg");
-        object channelName = this.safeString(arg, "channel");
+        string? channelName = this.safeString(arg, "channel");
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? messageHash = ((string)add(add(channelName, ":"), symbol));
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -264,7 +266,11 @@ public partial class blofin : ccxt.blofin
             orderbook["datetime"] = this.iso8601(timestamp);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        client.resolve(orderbook, messageHash);
+        if ((channelName != null))
+        {
+            string messageHash = ((channelName + ":") + symbol);
+            client.resolve(orderbook, messageHash);
+        }
     }
 
     /**
@@ -329,15 +335,18 @@ public partial class blofin : ccxt.blofin
         //
         this.handleBidAsk(client, message);
         IDictionary<string, object> arg = this.safeDict(message, "arg");
-        object channelName = this.safeString(arg, "channel");
+        string? channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = this.parseWsTicker(data[i]);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-            string? messageHash = ((string)add(add(channelName, ":"), symbol));
             this.tickers[(string)symbol] = ticker;
-            client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
+            if ((channelName != null))
+            {
+                string messageHash = ((channelName + ":") + symbol);
+                client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
+            }
         }
     }
 
@@ -657,15 +666,18 @@ public partial class blofin : ccxt.blofin
         }
         ccxt.pro.ArrayCache orders = this.orders;
         IDictionary<string, object> arg = this.safeDict(message, "arg");
-        object channelName = this.safeString(arg, "channel");
+        string? channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> order = this.parseWsOrder(data[i]);
             string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
-            string? messageHash = ((string)add(add(channelName, ":"), symbol));
             orders.append(order);
-            client.resolve(orders, messageHash);
+            if ((channelName != null))
+            {
+                string messageHash = ((channelName + ":") + symbol);
+                client.resolve(orders, messageHash);
+            }
             client.resolve(orders, channelName);
         }
     }
@@ -718,7 +730,7 @@ public partial class blofin : ccxt.blofin
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         IDictionary<string, object> arg = this.safeDict(message, "arg");
-        object channelName = this.safeString(arg, "channel");
+        string? channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
@@ -726,8 +738,11 @@ public partial class blofin : ccxt.blofin
             Dictionary<string, object> position = this.parseWsPosition(data[i]);
             newPositions.Add(position);
             cache.append(position);
-            string? messageHash = ((string)add(add(channelName, ":"), (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null)));
-            client.resolve(position, messageHash);
+            if ((channelName != null))
+            {
+                string messageHash = ((channelName + ":") + ((position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null)));
+                client.resolve(position, messageHash);
+            }
         }
     }
 

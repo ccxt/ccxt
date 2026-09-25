@@ -798,6 +798,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String marketId = this.safeStringLower(market, "id");
+                if (java.util.Objects.equals(marketId, null))
+                {
+                    continue;
+                }
                 ((List<Object>)subscriptionArgs).add((marketId + "@aggTrade"));
                 messageHashes.add(("trade::" + market.get("symbol")));
             }

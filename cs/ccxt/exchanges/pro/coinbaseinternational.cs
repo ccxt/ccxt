@@ -331,9 +331,12 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //        "type":"SNAPSHOT"
         //    }
         Dictionary<string, object> ticker = this.parseWsInstrument(message);
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, add(add(channel, "::"), (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null)));
+        if ((channel != null))
+        {
+            client.resolve(ticker, ((channel + "::") + ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null))));
+        }
     }
 
     public virtual Dictionary<string, object> parseWsInstrument(object ticker, IDictionary<string, object> market = null)
@@ -444,9 +447,12 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //    }
         //
         Dictionary<string, object> ticker = this.parseWsTicker(message);
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, add(add(channel, "::"), (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null)));
+        if ((channel != null))
+        {
+            client.resolve(ticker, ((channel + "::") + ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null))));
+        }
     }
 
     public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
@@ -544,7 +550,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //     ]
         //  }
         //
-        object messageHash = this.safeString(message, "channel");
+        string? messageHash = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -563,7 +569,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             IList<object> parsed = this.parseOHLCV(tick, market);
             stored.append(parsed);
         }
-        client.resolve(stored, add(add(messageHash, "::"), symbol));
+        if ((messageHash != null))
+        {
+            client.resolve(stored, ((messageHash + "::") + symbol));
+        }
     }
 
     /**
@@ -629,7 +638,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //
         Dictionary<string, object> trade = this.parseWsTrade(message);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -640,7 +649,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         tradesArray.append(trade);
         this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, channel);
-        client.resolve(tradesArray, add(add(channel, "::"), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
+        if ((channel != null))
+        {
+            client.resolve(tradesArray, ((channel + "::") + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null))));
+        }
         return message;
     }
 
@@ -750,7 +762,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? marketId = this.safeString(message, "product_id");
         string? symbol = this.safeSymbol(marketId);
         string? datetime = this.safeString(message, "time");
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
@@ -771,7 +783,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         orderbook["datetime"] = datetime;
         orderbook["timestamp"] = this.parse8601(datetime);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        client.resolve(orderbook, add(add(channel, "::"), symbol));
+        if ((channel != null))
+        {
+            client.resolve(orderbook, ((channel + "::") + symbol));
+        }
     }
 
     public override void handleDelta(object orderbook, object delta)
@@ -849,10 +864,13 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //       "type": "UPDATE"
         //    }
         //
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         Dictionary<string, object> fundingRate = this.parseFundingRate(message);
         this.fundingRates[(string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null)] = fundingRate;
-        client.resolve(fundingRate, add(add(channel, "::"), (fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null)));
+        if ((channel != null))
+        {
+            client.resolve(fundingRate, ((channel + "::") + ((fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null))));
+        }
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)

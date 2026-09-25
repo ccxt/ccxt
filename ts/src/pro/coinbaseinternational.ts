@@ -299,7 +299,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = this.parseWsInstrument (message);
         const channel = this.safeString (message, 'channel');
         client.resolve (ticker, channel);
-        client.resolve (ticker, channel + '::' + ticker['symbol']);
+        if (channel !== undefined) {
+            client.resolve (ticker, channel + '::' + ticker['symbol']);
+        }
     }
 
     parseWsInstrument (ticker: Dict, market: Market = undefined): Ticker {
@@ -410,7 +412,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = this.parseWsTicker (message);
         const channel = this.safeString (message, 'channel');
         client.resolve (ticker, channel);
-        client.resolve (ticker, channel + '::' + ticker['symbol']);
+        if (channel !== undefined) {
+            client.resolve (ticker, channel + '::' + ticker['symbol']);
+        }
     }
 
     parseWsTicker (ticker: object, market: Market = undefined): Ticker {
@@ -517,7 +521,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }
-        client.resolve (stored, messageHash + '::' + symbol);
+        if (messageHash !== undefined) {
+            client.resolve (stored, messageHash + '::' + symbol);
+        }
     }
 
     /**
@@ -586,7 +592,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         tradesArray.append (trade);
         this.trades[(symbol as string)] = tradesArray;
         client.resolve (tradesArray, channel);
-        client.resolve (tradesArray, channel + '::' + trade['symbol']);
+        if (channel !== undefined) {
+            client.resolve (tradesArray, channel + '::' + trade['symbol']);
+        }
         return message;
     }
 
@@ -708,7 +716,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['datetime'] = datetime;
         orderbook['timestamp'] = this.parse8601 (datetime);
         this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, channel + '::' + symbol);
+        if (channel !== undefined) {
+            client.resolve (orderbook, channel + '::' + symbol);
+        }
     }
 
     override handleDelta (orderbook: any, delta: any) {
@@ -783,7 +793,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channel = this.safeString (message, 'channel');
         const fundingRate = this.parseFundingRate (message);
         this.fundingRates[fundingRate['symbol']] = fundingRate;
-        client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
+        if (channel !== undefined) {
+            client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
+        }
     }
 
     handleErrorMessage (client: Client, message: Dict): Bool {

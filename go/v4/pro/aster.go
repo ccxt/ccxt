@@ -876,7 +876,10 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = this.SafeStringLower(market, "id")
-		subscriptionArgs = append(subscriptionArgs, ccxt.Add(marketId, "@aggTrade"))
+		if marketId == nil {
+			continue
+		}
+		subscriptionArgs = append(subscriptionArgs, *marketId+"@aggTrade")
 		messageHashes = append(messageHashes, ccxt.Add("trade::", market["symbol"]))
 	}
 
@@ -2398,8 +2401,8 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes185532 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes185532, tradeFee)
+							retRes185832 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes185832, tradeFee)
 						}
 					} else if !ccxt.IsEqual(fee, nil) {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

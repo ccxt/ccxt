@@ -276,7 +276,6 @@ class p2b(ccxt.async_support.p2b):
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframe = self.find_timeframe(channel, timeframes)
         symbol = self.safe_string(market, 'symbol')
-        messageHash = channel + '::' + symbol
         parsed = self.parse_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -286,7 +285,9 @@ class p2b(ccxt.async_support.p2b):
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
-            client.resolve(stored, messageHash)
+            if channel is not None:
+                messageHash = channel + '::' + symbol
+                client.resolve(stored, messageHash)
         return message
 
     def handle_trade(self, client: Client, message: dict) -> dict:
@@ -379,8 +380,9 @@ class p2b(ccxt.async_support.p2b):
             ticker = self.parse_ticker(tickerData, market)
         symbol = ticker['symbol']
         self.tickers[symbol] = ticker
-        messageHash = messageHashStart + '::' + symbol
-        client.resolve(ticker, messageHash)
+        if messageHashStart is not None:
+            messageHash = messageHashStart + '::' + symbol
+            client.resolve(ticker, messageHash)
         return message
 
     def handle_order_book(self, client: Client, message: dict):

@@ -1873,6 +1873,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             // Control when position is closed no side is returned
             if (java.util.Objects.equals(side, null))
             {
+                if (java.util.Objects.equals(symbol, null))
+                {
+                    continue;
+                }
                 Map<String, Object> prevLongPosition = (Map<String, Object>) this.safeDict(cache, (symbol + "long"), (Object) null);
                 if (!java.util.Objects.equals(prevLongPosition, null))
                 {

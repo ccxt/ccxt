@@ -1343,7 +1343,7 @@ public partial class bingx : ccxt.bingx
         bool? fetchBalanceSnapshot = (bool?)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[0];
         IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[1]);
         bool? awaitBalanceSnapshot = ((bool?)getValue(this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false), 0));
-        if (isTrue(fetchBalanceSnapshot) && (awaitBalanceSnapshot == true))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -1449,7 +1449,7 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        if (isTrue(fetchPositionsSnapshot) && (awaitPositionsSnapshot == true) && (this.positions == null))
+        if ((fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.positions == null))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add(type, ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));

@@ -744,8 +744,11 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
                 }
                 cachedOrders.append(parsed);
-                String messageHashSymbol = Helpers.add((topic + ":"), symbol);
-                client.resolve(this.orders, messageHashSymbol);
+                if (!java.util.Objects.equals(topic, null))
+                {
+                    String messageHashSymbol = ((topic + ":") + symbol);
+                    client.resolve(this.orders, messageHashSymbol);
+                }
             }
         }
         client.resolve(this.orders, topic);
@@ -822,8 +825,11 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
             myTrades.append(trade);
             client.resolve(myTrades, topic);
-            Object messageHash = (topic + this.safeString(trade, "symbol", ""));
-            client.resolve(myTrades, messageHash);
+            if (!java.util.Objects.equals(topic, null))
+            {
+                String messageHash = (topic + this.safeString(trade, "symbol", ""));
+                client.resolve(myTrades, messageHash);
+            }
         }
     }
 

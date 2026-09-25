@@ -1041,6 +1041,9 @@ impl ApexCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settleAssetId", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
+        if (baseId == Value::Null) || (quote == Value::Null) || (settle == Value::Null) {
+            return Value::Null;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
         let mut expiry: Value = Value::Int(0);
         let mut takerFee: Value = self.parse_number(Value::Str("0.0002".into()), &[]);

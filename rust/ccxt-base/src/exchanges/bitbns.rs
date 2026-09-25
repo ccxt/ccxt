@@ -641,7 +641,7 @@ impl BitbnsCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            if (base == Value::Null) || (quote == Value::Null) {
+            if (baseId == Value::Null) || (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
             let mut marketPrecision: Value = self.safe_dict_k(market.clone(), "precision", &[Value::Map({

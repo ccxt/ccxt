@@ -231,12 +231,15 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-            String messageHash = Helpers.add((eventVar + "@"), marketId);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Object symbol = ticker.get("symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
-            client.resolve(ticker, messageHash);
+            if (!java.util.Objects.equals(eventVar, null))
+            {
+                String messageHash = ((eventVar + "@") + marketId);
+                client.resolve(ticker, messageHash);
+            }
         }
         client.resolve(result, eventVar);
     }
@@ -1834,7 +1837,22 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         });
 
     }
-    public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters) //        ]
+    //                market: '1INCH-EUR',
+    //                status: 'trading',
+    //                base: '1INCH',
+    //                quote: 'EUR',
+    //                pricePrecision: 5,
+    //                minOrderInBaseAsset: '2',
+    //                minOrderInQuoteAsset: '5',
+    //                maxOrderInBaseAsset: '1000000000',
+    //                maxOrderInQuoteAsset: '1000000000',
+    //                orderTypes: [Array]
+    //            },
+    //            ...
+    //        ]
+    //    }
+    //
+    public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
     {
         return this.fetchMarketsWs((Object) (parameters));
     }

@@ -2089,6 +2089,9 @@ impl CoinbaseinternationalCore {
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned); // 'SPOT', 'PERP'
         let mut isSpot: Value = (Value::Bool(typeId.as_deref() == Some("SPOT")));
         let mut fees: Value = self.fees.clone();
+        if (baseId == Value::Null) || (quoteId == Value::Null) {
+            return Value::Null;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".into())).into()), quoteId).into());
         let mut settleId: Value = Value::Null;
         if !(matches!(&isSpot, Value::Bool(true))) {

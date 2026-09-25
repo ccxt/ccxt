@@ -1329,7 +1329,6 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.balance = new HashMap<String, Object>() {{}};
         }
         String topic = this.safeString(message, "channel");
-        String messageHash = (topic + "::balance");
         Object info = null;
         List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
@@ -1363,7 +1362,11 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, account, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account))));
-        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
+        if (!java.util.Objects.equals(topic, null))
+        {
+            String messageHash = (topic + "::balance");
+            client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
+        }
     }
 
     public void parseWsBalance(Map<String, Object> balance, String accountType)

@@ -477,12 +477,15 @@ public partial class paradex : ccxt.paradex
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object channel = this.safeString(parameters, "channel");
-        string? messageHash = ((string)add(add(channel, "."), symbol));
+        string? channel = this.safeString(parameters, "channel");
         Dictionary<string, object> ticker = this.parseTicker(data, market);
         this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, channel);
-        client.resolve(ticker, messageHash);
+        if ((channel != null))
+        {
+            string messageHash = ((channel + ".") + symbol);
+            client.resolve(ticker, messageHash);
+        }
         return message;
     }
 
@@ -596,9 +599,12 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> fundingRate = this.parseFundingRateWs(data);
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         this.fundingRates[(string)symbol] = fundingRate;
-        object channel = this.safeString(parameters, "channel");
-        string? messageHash = ((string)add(add(channel, "."), symbol));
-        client.resolve(fundingRate, messageHash);
+        string? channel = this.safeString(parameters, "channel");
+        if ((channel != null))
+        {
+            string messageHash = ((channel + ".") + symbol);
+            client.resolve(fundingRate, messageHash);
+        }
     }
 
     public virtual Dictionary<string, object> parseFundingRateWs(IDictionary<string, object> contract, IDictionary<string, object> market = null)

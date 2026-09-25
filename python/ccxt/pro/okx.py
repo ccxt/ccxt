@@ -324,13 +324,14 @@ class okx(ccxt.async_support.okx):
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         for i in range(0, len(data)):
             trade = self.parse_trade(data[i])
-            messageHash = channel + ':' + symbol
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
             stored.append(trade)
-            client.resolve(stored, messageHash)
+            if channel is not None:
+                messageHash = channel + ':' + symbol
+                client.resolve(stored, messageHash)
 
     async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
@@ -579,8 +580,9 @@ class okx(ccxt.async_support.okx):
             ticker = self.parse_ticker(data[i])
             self.tickers[symbol] = ticker
             newTickers[symbol] = ticker
-        messageHash = channel + '::' + symbol
-        client.resolve(newTickers, messageHash)
+        if channel is not None:
+            messageHash = channel + '::' + symbol
+            client.resolve(newTickers, messageHash)
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1958,8 +1960,9 @@ class okx(ccxt.async_support.okx):
                 marketIds.append(market['id'])
             client.resolve(stored, channel)
             for i in range(0, len(marketIds)):
-                messageHash = channel + ':' + marketIds[i]
-                client.resolve(stored, messageHash)
+                if channel is not None:
+                    messageHash = channel + ':' + marketIds[i]
+                    client.resolve(stored, messageHash)
 
     def handle_my_trades(self, client: Client, message: dict):
         #
@@ -2042,12 +2045,13 @@ class okx(ccxt.async_support.okx):
             symbol = trade['symbol']
             if symbol is not None:
                 symbols[symbol] = True
-        messageHash = channel + '::myTrades'
-        client.resolve(self.myTrades, messageHash)
-        tradeSymbols = list(symbols.keys())
-        for i in range(0, len(tradeSymbols)):
-            symbolMessageHash = messageHash + '::' + tradeSymbols[i]
-            client.resolve(self.myTrades, symbolMessageHash)
+        if channel is not None:
+            messageHash = channel + '::myTrades'
+            client.resolve(self.myTrades, messageHash)
+            tradeSymbols = list(symbols.keys())
+            for i in range(0, len(tradeSymbols)):
+                symbolMessageHash = messageHash + '::' + tradeSymbols[i]
+                client.resolve(self.myTrades, symbolMessageHash)
 
     def request_id(self) -> str:
         ts = str(self.milliseconds())

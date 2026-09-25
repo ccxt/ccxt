@@ -193,8 +193,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             stored.append(trade);
-            String messageHash = Helpers.add((channelName + ":"), symbol);
-            client.resolve(stored, messageHash);
+            if (!java.util.Objects.equals(channelName, null))
+            {
+                String messageHash = ((channelName + ":") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
     }
 
@@ -285,7 +288,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        String messageHash = ((channelName + ":") + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -308,7 +310,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
-        client.resolve(orderbook, messageHash);
+        if (!java.util.Objects.equals(channelName, null))
+        {
+            String messageHash = ((channelName + ":") + symbol);
+            client.resolve(orderbook, messageHash);
+        }
     }
 
     /**
@@ -387,9 +393,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             Object symbol = ticker.get("symbol");
-            String messageHash = Helpers.add((channelName + ":"), symbol);
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-            client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
+            if (!java.util.Objects.equals(channelName, null))
+            {
+                String messageHash = ((channelName + ":") + symbol);
+                client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
+            }
         }
     }
 
@@ -737,9 +746,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
             String symbol = (String) order.get("symbol");
-            String messageHash = ((channelName + ":") + symbol);
             orders.append(order);
-            client.resolve(orders, messageHash);
+            if (!java.util.Objects.equals(channelName, null))
+            {
+                String messageHash = ((channelName + ":") + symbol);
+                client.resolve(orders, messageHash);
+            }
             client.resolve(orders, channelName);
         }
     }
@@ -804,8 +816,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
-            String messageHash = Helpers.add((channelName + ":"), position.get("symbol"));
-            client.resolve(position, messageHash);
+            if (!java.util.Objects.equals(channelName, null))
+            {
+                String messageHash = ((channelName + ":") + position.get("symbol"));
+                client.resolve(position, messageHash);
+            }
         }
     }
 

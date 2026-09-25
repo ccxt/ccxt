@@ -1038,8 +1038,10 @@ impl DeriveCore {
                     add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.safe_string_k(order, "datetime", &[]));
                 }
                 cachedOrders.append(parsed);
-                let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol).into());
-                client.resolve(&[self.orders.clone(), messageHashSymbol]);
+                if (topic != Value::Null) {
+                    let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol).into());
+                    client.resolve(&[self.orders.clone(), messageHashSymbol]);
+                }
             }
         }
         }
@@ -1125,8 +1127,10 @@ impl DeriveCore {
             let mut trade: Value = self.parse_trade(message.clone(), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone()]);
-            let mut messageHash: Value = Value::Str(format!("{}{}", topic, self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into());
-            client.resolve(&[myTrades.clone(), messageHash]);
+            if (topic != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", topic, self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into());
+                client.resolve(&[myTrades.clone(), messageHash]);
+            }
         }
         }
 }

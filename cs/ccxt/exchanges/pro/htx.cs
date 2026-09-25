@@ -964,8 +964,8 @@ public partial class htx : ccxt.htx
         string? type = null;
         object marketId = "*"; // wildcard
         IDictionary<string, object> market = null;
-        object messageHash = null;
-        object channel = null;
+        string? messageHash = null;
+        string? channel = null;
         object trades = null;
         string? subType = null;
         if ((symbol != null))
@@ -1008,10 +1008,13 @@ public partial class htx : ccxt.htx
         {
             List<object> channelAndMessageHash = this.getOrderChannelAndMessageHash(type, subType, market, paramsRequest);
             channel = this.safeString(channelAndMessageHash, 0);
-            object orderMessageHash = this.safeString(channelAndMessageHash, 1);
+            string? orderMessageHash = this.safeString(channelAndMessageHash, 1);
             // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
-            messageHash = add(add(orderMessageHash, ":"), "trade");
+            if ((orderMessageHash != null))
+            {
+                messageHash = ((orderMessageHash + ":") + "trade");
+            }
         }
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "isV5", isV5Linear },
@@ -1360,7 +1363,7 @@ public partial class htx : ccxt.htx
         //         }
         //     }
         //
-        object messageHash = this.safeString2(message, "ch", "topic");
+        string? messageHash = this.safeString2(message, "ch", "topic");
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? marketId = this.safeString(message, "contract_code");
         if ((marketId == null))
@@ -1434,10 +1437,13 @@ public partial class htx : ccxt.htx
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         cachedOrders.append(parsedOrder);
         client.resolve(this.orders, messageHash);
-        if ((isEqual(messageHash, "orders")) && ((marketId != null)))
+        if (((messageHash != null)) && ((marketId != null)))
         {
-            string? specificMessageHash = ((string)add(add(messageHash, "."), marketId.ToLower()));
-            client.resolve(this.orders, specificMessageHash);
+            if (messageHash == "orders")
+            {
+                string specificMessageHash = ((messageHash + ".") + marketId.ToLower());
+                client.resolve(this.orders, specificMessageHash);
+            }
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
@@ -1445,7 +1451,7 @@ public partial class htx : ccxt.htx
         {
             return;
         }
-        string genericMessageHash = ((string)messageHash).Replace((string)("." + ((market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null))), (string)"");
+        string genericMessageHash = messageHash.Replace((string)("." + ((market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null))), (string)"");
         string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
         genericMessageHash = genericMessageHash.Replace(("." + lowerCaseBaseId), (string)"");
         client.resolve(this.orders, genericMessageHash);

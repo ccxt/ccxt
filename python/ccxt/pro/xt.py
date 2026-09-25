@@ -671,8 +671,9 @@ class xt(ccxt.async_support.xt):
             symbol = fundingRate['symbol']
             self.fundingRates[symbol] = fundingRate
             event = self.safe_string(message, 'event')
-            messageHash = event + '::contract'
-            client.resolve(fundingRate, messageHash)
+            if event is not None:
+                messageHash = event + '::contract'
+                client.resolve(fundingRate, messageHash)
         return message
 
     def set_positions_cache(self, client: Client):
@@ -822,8 +823,9 @@ class xt(ccxt.async_support.xt):
             messageHashTail = 'contract'
             if isSpot:
                 messageHashTail = 'spot'
-            messageHash = event + '::' + messageHashTail
-            client.resolve(ticker, messageHash)
+            if event is not None:
+                messageHash = event + '::' + messageHashTail
+                client.resolve(ticker, messageHash)
         return message
 
     def handle_tickers(self, client: Client, message: dict) -> dict:
@@ -979,8 +981,9 @@ class xt(ccxt.async_support.xt):
                 self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             event = self.safe_string(message, 'event')
-            messageHash = event + '::' + tradeType
-            client.resolve(stored, messageHash)
+            if event is not None:
+                messageHash = event + '::' + tradeType
+                client.resolve(stored, messageHash)
         return message
 
     def handle_trade(self, client: Client, message: dict) -> dict:
@@ -1031,8 +1034,9 @@ class xt(ccxt.async_support.xt):
                 tradesArray = ArrayCache(tradesLimit)
                 self.trades[symbol] = tradesArray
             tradesArray.append(trade)
-            messageHash = event + '::' + tradeType
-            client.resolve(tradesArray, messageHash)
+            if event is not None:
+                messageHash = event + '::' + tradeType
+                client.resolve(tradesArray, messageHash)
         return message
 
     def handle_order_book(self, client: Client, message: dict):
