@@ -820,7 +820,7 @@ public class Btcturk extends BtcturkApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -904,7 +904,7 @@ public class Btcturk extends BtcturkApi
 
     }
 
-    public List<Object> parseOHLCVs(Object ohlcvs, Object market, Object timeframe, Long since, Long limit, Object tail)
+    public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         List<Object> timestamp = (List<Object>) this.safeList(ohlcvs, "t", new ArrayList<Object>(Arrays.asList()));
