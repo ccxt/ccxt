@@ -383,7 +383,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Object ticker = this.parseWsInstrument((Map<String, Object>) (message), (Map<String, Object>) null);
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, Helpers.add((channel + "::"), ((Map<String, Object>)ticker).get("symbol")));
+        if (!java.util.Objects.equals(channel, null))
+        {
+            client.resolve(ticker, ((channel + "::") + ((Map<String, Object>)ticker).get("symbol")));
+        }
     }
 
     public Object parseWsInstrument(Map<String, Object> ticker, Map<String, Object> market)
@@ -496,7 +499,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message, (Map<String, Object>) null);
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, Helpers.add((channel + "::"), ticker.get("symbol")));
+        if (!java.util.Objects.equals(channel, null))
+        {
+            client.resolve(ticker, ((channel + "::") + ticker.get("symbol")));
+        }
     }
 
     public Object parseWsTicker(Object ticker, Map<String, Object> market)
@@ -615,7 +621,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
             stored.append(parsed);
         }
-        client.resolve(stored, ((messageHash + "::") + symbol));
+        if (!java.util.Objects.equals(messageHash, null))
+        {
+            client.resolve(stored, ((messageHash + "::") + symbol));
+        }
     }
 
     /**
@@ -700,7 +709,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         client.resolve(tradesArray, channel);
-        client.resolve(tradesArray, Helpers.add((channel + "::"), trade.get("symbol")));
+        if (!java.util.Objects.equals(channel, null))
+        {
+            client.resolve(tradesArray, ((channel + "::") + trade.get("symbol")));
+        }
         return message;
     }
 
@@ -839,7 +851,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Helpers.addElementToObject(orderbook, "datetime", datetime);
         Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
-        client.resolve(orderbook, Helpers.add((channel + "::"), symbol));
+        if (!java.util.Objects.equals(channel, null))
+        {
+            client.resolve(orderbook, ((channel + "::") + symbol));
+        }
     }
 
     public void handleDelta(Object orderbook, Object delta)
@@ -920,7 +935,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String channel = this.safeString(message, "channel");
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(message, (Map<String, Object>) null);
         Helpers.addElementToObject(this.fundingRates, fundingRate.get("symbol"), fundingRate);
-        client.resolve(fundingRate, Helpers.add((channel + "::"), fundingRate.get("symbol")));
+        if (!java.util.Objects.equals(channel, null))
+        {
+            client.resolve(fundingRate, ((channel + "::") + fundingRate.get("symbol")));
+        }
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

@@ -1111,7 +1111,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, (Map<String, Object>) null);
         orders.append(parsed);
         client.resolve(orders, messageHash);
-        client.resolve(orders, Helpers.add((messageHash + "::"), symbol));
+        if (!java.util.Objects.equals(messageHash, null))
+        {
+            client.resolve(orders, ((messageHash + "::") + symbol));
+        }
     }
 
     public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)

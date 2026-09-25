@@ -583,9 +583,12 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                     Helpers.addElementToObject(this.tickers, symbol, result);
                 }
                 ((List<Object>)newTickers).add(result);
-                String messageHash = ((channel + "::") + symbol);
-                client.resolve(result, messageHash);
-                this.tryResolveUsdc(client, messageHash, result);
+                if (!java.util.Objects.equals(channel, null))
+                {
+                    String messageHash = ((channel + "::") + symbol);
+                    client.resolve(result, messageHash);
+                    this.tryResolveUsdc(client, messageHash, result);
+                }
             }
         }
     }

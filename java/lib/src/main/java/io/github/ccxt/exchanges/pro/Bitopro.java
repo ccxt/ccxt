@@ -154,7 +154,6 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
-        String messageHash = ((eventVar + ":") + symbol);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -163,7 +162,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeInteger(message, "timestamp");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount", 2);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        client.resolve(orderbook, messageHash);
+        if (!java.util.Objects.equals(eventVar, null))
+        {
+            String messageHash = ((eventVar + ":") + symbol);
+            client.resolve(orderbook, messageHash);
+        }
     }
 
     /**
@@ -225,7 +228,6 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
-        String messageHash = ((eventVar + ":") + symbol);
         List<Object> rawData = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -239,7 +241,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             tradesCache.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
         }
         Helpers.addElementToObject(this.trades, symbol, tradesCache);
-        client.resolve(tradesCache, messageHash);
+        if (!java.util.Objects.equals(eventVar, null))
+        {
+            String messageHash = ((eventVar + ":") + symbol);
+            client.resolve(tradesCache, messageHash);
+        }
     }
 
     /**
@@ -332,7 +338,10 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         trades.append(parsed);
         client.resolve(trades, messageHash);
-        client.resolve(trades, Helpers.add((messageHash + ":"), symbol));
+        if (!java.util.Objects.equals(messageHash, null))
+        {
+            client.resolve(trades, ((messageHash + ":") + symbol));
+        }
     }
 
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -477,14 +486,17 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
-        String messageHash = ((eventVar + ":") + symbol);
         Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         Helpers.addElementToObject(this.tickers, symbol, result);
-        client.resolve(result, messageHash);
+        if (!java.util.Objects.equals(eventVar, null))
+        {
+            String messageHash = ((eventVar + ":") + symbol);
+            client.resolve(result, messageHash);
+        }
     }
 
     public void authenticate(Object url)

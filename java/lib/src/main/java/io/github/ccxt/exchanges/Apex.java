@@ -787,6 +787,10 @@ public class Apex extends ApexApi
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String settleId = this.safeString(market, "settleAssetId");
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(baseId, null)) || (java.util.Objects.equals(quote, null)) || (java.util.Objects.equals(settle, null)))
+        {
+            return null;
+        }
         String symbol = ((((baseId + "/") + quote) + ":") + settle);
         Object expiry = 0;
         Double takerFee = this.parseNumber("0.0002");
