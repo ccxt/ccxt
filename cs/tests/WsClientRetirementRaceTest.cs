@@ -105,9 +105,27 @@ public partial class BaseTest
         }
     }
 
+    async public Task testWsExchangeCloseRetiresReplacement()
+    {
+        // exchange-wide Close must retire a replacement installed under the url
+        // while the original was closing, not silently detach it (#30643)
+        var exchange = new BaseExchange();
+        var original = makeRetirementClient();
+        var replacement = makeRetirementClient();
+        var replacementFuture = replacement.future("replacement-pending");
+        original.onErrorCallback = (c, e) => exchange.clients[RetirementUrl] = replacement;
+        exchange.clients[RetirementUrl] = original;
+        await exchange.Close();
+        Assert(original.error != null, "the original client must be retired");
+        Assert(replacement.error != null, "the replacement removed from the registry must be retired");
+        Assert(replacementFuture.task.IsCompleted, "the replacement's consumers must be settled");
+        Assert(!exchange.clients.ContainsKey(RetirementUrl), "the registry must be empty after Close");
+    }
+
     async public Task testWsClientRetirementRace()
     {
         await testWsRetirementReplacementSurvivesRace();
+        await testWsExchangeCloseRetiresReplacement();
         await testWsRetirementSameReferenceLeavesNothingBehind();
         await testWsRetirementIsIdempotent();
         await testWsRetirementConcurrentClosersElectOneWinner();
