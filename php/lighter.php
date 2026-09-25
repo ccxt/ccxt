@@ -897,7 +897,7 @@ class lighter extends Exchange {
         return $this->safe_integer($response, 'nonce');
     }
 
-    public function sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function sign_and_create_order(string $method, ?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

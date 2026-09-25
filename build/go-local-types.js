@@ -6381,6 +6381,65 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
 }
 
 export { ccxtGoTupleResultJoin };
+// A parameter printed as a non-pointer Go `string` never holds nil (callers pass a string or go
+// through StringArg, which panics ArgumentsRequired), so a TS guard `p === undefined` on it is a
+// constant: it prints `false` (`!==` prints `true`) and no longer blocks the typing.
+function ccxtGoIsNilLiteral (node) {
+    return (node?.kind === ts.SyntaxKind.NullKeyword) || ((node?.kind === ts.SyntaxKind.Identifier) && (node.escapedText === 'undefined'));
+}
+
+function ccxtGoIsStringParameter (goTranspiler, node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier || typeof goTranspiler.checkerOrUndefined !== 'function') {
+        return false;
+    }
+    const decl = goTranspiler.checkerOrUndefined ()?.getSymbolAtLocation (node)?.valueDeclaration;
+    return (decl?.kind === ts.SyntaxKind.Parameter) && (goTranspiler.goDeclaredTypeOfIdentifier (node) === 'string');
+}
+
+// every nil compare of the param is `if (p === undefined) { throw ... }` with no else: a param that
+// is genuinely optional (`if (p !== undefined) {...}`) keeps its box (fail closed)
+function ccxtGoNilComparesAreThrowGuards (body, param) {
+    const name = param.name?.escapedText;
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.BinaryExpression) && [ n.left, n.right ].some ((s) => (s.kind === ts.SyntaxKind.Identifier) && (s.escapedText === name))
+            && [ n.left, n.right ].some (ccxtGoIsNilLiteral)) {
+            const op = n.operatorToken.kind;
+            const stmt = n.parent;
+            const block = stmt?.thenStatement;
+            const throws = (block?.kind === ts.SyntaxKind.Block) && (block.statements.length === 1) && (block.statements[0].kind === ts.SyntaxKind.ThrowStatement);
+            if (!((op === ts.SyntaxKind.EqualsEqualsEqualsToken) && (stmt.kind === ts.SyntaxKind.IfStatement) && (stmt.expression === n) && throws && (stmt.elseStatement === undefined))) {
+                ok = false;
+                return;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (body, visit);
+    return ok;
+}
+
+function installCcxtGoStringParamNilGuards (goTranspiler) {
+    if (typeof goTranspiler.goParameterKeepsNilCompareNative !== 'function' || typeof goTranspiler.printInlineEquality !== 'function') {
+        return;
+    }
+    const upstreamKeeps = goTranspiler.goParameterKeepsNilCompareNative;
+    goTranspiler.goParameterKeepsNilCompareNative = function (body, param, goType) {
+        return upstreamKeeps.call (this, body, param, goType) || ((goType === 'string') && ccxtGoNilComparesAreThrowGuards (body, param));
+    };
+    const upstreamEquality = goTranspiler.printInlineEquality;
+    goTranspiler.printInlineEquality = function (left, right, leftText, rightText, isEq) {
+        if ((ccxtGoIsNilLiteral (right) && ccxtGoIsStringParameter (this, left))
+            || (ccxtGoIsNilLiteral (left) && ccxtGoIsStringParameter (this, right))) {
+            return isEq ? 'false' : 'true';
+        }
+        return upstreamEquality.call (this, left, right, leftText, rightText, isEq);
+    };
+}
+
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -6396,6 +6455,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoGetArgAddArithmetic (goTranspiler);
     installCcxtGoGetArgMapAlias (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
+    installCcxtGoStringParamNilGuards (goTranspiler);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
         const known = upstream.call (this, initializer, printedValue);

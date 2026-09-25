@@ -834,7 +834,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
         return self.safe_integer(response, 'nonce')
 
-    def sign_and_create_order(self, method: str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
+    def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:
             self.load_markets()
         accountIndex, paramsAccountIndex = self.handle_account_index(params, method, 'accountIndex', 'account_index')

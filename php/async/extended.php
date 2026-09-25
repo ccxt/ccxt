@@ -2740,11 +2740,11 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_extended_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_extended_order_request(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_extended_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_extended_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }

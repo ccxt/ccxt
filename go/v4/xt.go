@@ -3247,19 +3247,19 @@ func (this *Xt) createOrderBody(ch chan any, symbol any, typeVar string, side st
 		return nil
 	}
 }
-func (this *Xt) CreateSpotOrderAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Xt) CreateSpotOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
+func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	if this.Markets == nil {
@@ -3269,7 +3269,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 		"type":   strings.ToUpper(typeVar),
 	}
 	var timeInForce *string = nil
@@ -3283,7 +3283,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 	request["bizType"] = marginOrSpotRequest
 	if typeVar == "market" {
 		timeInForce = this.SafeStringUpper(paramsMarginMode, "timeInForce", "FOK")
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var cost *string = this.SafeString(paramsMarginMode, "cost")
 			var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", true)
 			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice == true {
@@ -3314,7 +3314,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 		timeInForce = this.SafeStringUpper(paramsMarginMode, "timeInForce", "GTC")
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var isMarketBuy bool = (typeVar == "market") && (IsEqual(side, "buy"))
+	var isMarketBuy bool = (typeVar == "market") && (side == "buy")
 	var paramsWithoutCost any = paramsMarginMode
 	if isMarketBuy {
 		paramsWithoutCost = this.Omit(paramsMarginMode, "cost")
@@ -3326,7 +3326,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 		timeInForce = SafeStringPtr("GTX")
 	}
 	var paramsOmitted any = this.Omit(paramsPostOnly, []any{"timeInForce", "postOnly"})
-	if (IsEqual(side, "sell")) || (typeVar == "limit") {
+	if (side == "sell") || (typeVar == "limit") {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	request["timeInForce"] = timeInForce

@@ -2613,7 +2613,7 @@ export default class extended extends Exchange {
         return settlement;
     }
 
-    async createExtendedOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Dict> {
+    async createExtendedOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
