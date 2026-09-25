@@ -17238,7 +17238,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut siteUrl: Value = self.safe_string_k(info, "contractAddressUrl", &[]);
             // check if url matches the field's value
             let mut baseDomain: Value = self.get_base_domain_from_url(siteUrl.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-            if (siteUrl != Value::Null) && (baseDomain != Value::Null) && (starts_with(&depositUrl, &baseDomain)) {
+            if (siteUrl != Value::Null) && (baseDomain != Value::Null) && (matches!((&depositUrl, &baseDomain), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))) {
                 networkCode = currentNetworkCode;
             }
         }
@@ -17451,15 +17451,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marketType: Value = Value::Null;
         let mut hostname: Value = (if (self.hostname.clone() != Value::Null) { self.hostname.clone() } else { Value::Str("binance.com".into()) });
-        if (starts_with(&url, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://api.".into()), hostname).into()), Value::Str("/".into())).into()))) || (starts_with(&url, &Value::Str("https://demo-api".into()))) || (starts_with(&url, &Value::Str("https://testnet.binance.vision".into()))) {
+        if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://api.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (starts_with(&url, &Value::Str("https://demo-api".into()))) || (starts_with(&url, &Value::Str("https://testnet.binance.vision".into()))) {
             marketType = Value::Str("spot".into());
-        }  else if (starts_with(&url, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://dapi.".into()), hostname).into()), Value::Str("/".into())).into()))) || (starts_with(&url, &Value::Str("https://demo-dapi".into()))) || (starts_with(&url, &Value::Str("https://testnet.binancefuture.com/dapi".into()))) {
+        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://dapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (starts_with(&url, &Value::Str("https://demo-dapi".into()))) || (starts_with(&url, &Value::Str("https://testnet.binancefuture.com/dapi".into()))) {
             marketType = Value::Str("inverse".into());
-        }  else if (starts_with(&url, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://fapi.".into()), hostname).into()), Value::Str("/".into())).into()))) || (starts_with(&url, &Value::Str("https://demo-fapi".into()))) || (starts_with(&url, &Value::Str("https://testnet.binancefuture.com/fapi".into()))) {
+        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://fapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (starts_with(&url, &Value::Str("https://demo-fapi".into()))) || (starts_with(&url, &Value::Str("https://testnet.binancefuture.com/fapi".into()))) {
             marketType = Value::Str("linear".into());
-        }  else if (starts_with(&url, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://eapi.".into()), hostname).into()), Value::Str("/".into())).into()))) {
+        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://eapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) {
             marketType = Value::Str("option".into());
-        }  else if (starts_with(&url, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://papi.".into()), hostname).into()), Value::Str("/".into())).into()))) {
+        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://papi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) {
             marketType = Value::Str("portfolioMargin".into());
         }
         if (marketType != Value::Null) {

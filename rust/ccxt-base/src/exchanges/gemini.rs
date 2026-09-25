@@ -1627,7 +1627,7 @@ impl GeminiCore {
                     while { if !__for_first_707 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_707 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
-                    if (ends_with(&marketIdWithoutPerp, &quoteCurrency)) {
+                    if (matches!((&marketIdWithoutPerp, &quoteCurrency), (Value::Str(__h), Value::Str(__p)) if __h.ends_with(__p.as_ref()))) {
                         let mut quoteLength: Value = self.parse_to_int(multiply(&Value::Int(-1), &get_array_length(&quoteCurrency)));
                         baseId = slice(&marketIdWithoutPerp, &Value::Int(0), &quoteLength);
                         quoteId = quoteCurrency.clone();

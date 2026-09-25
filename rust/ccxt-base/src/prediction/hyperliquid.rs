@@ -1588,7 +1588,7 @@ impl HyperliquidCore {
 })]);
                 let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[Value::Str("".into())]);
                 let mut ocLabel: Value = self.safe_string_upper_k(oc.clone(), "label", &[]);
-                if (ocLabel.as_str() == normalizedHint.as_str()) || (ends_with(&ocSymbol, &Value::Str(format!("{}{}", Value::Str(":".into()), normalizedHint).into()))) {
+                if (ocLabel.as_str() == normalizedHint.as_str()) || (matches!(&ocSymbol, Value::Str(__s) if __s.ends_with(format!("{}{}", Value::Str(":".into()), normalizedHint).as_str()))) {
                     return oc;
                 }
             }

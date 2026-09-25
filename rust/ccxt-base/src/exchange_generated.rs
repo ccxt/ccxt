@@ -6827,7 +6827,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_137 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverageSuffixes.len() as i64) as f64) } {
             let mut leverageSuffix: Value = leverageSuffixes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut endsWithSuffix: bool = ends_with(&currencyCode, &leverageSuffix);
+            let mut endsWithSuffix: bool = matches!((&currencyCode, &leverageSuffix), (Value::Str(__h), Value::Str(__p)) if __h.ends_with(__p.as_ref()));
             if endsWithSuffix {
                 if !is_true(&checkBaseCoin) {
                     return Value::Bool(true);
@@ -9230,7 +9230,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_172: bool = true;
                 while { if !__for_first_172 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_172 = false; i.as_f64().unwrap_or(f64::NAN) < ((clientSubscriptions.len() as i64) as f64) } {
                 let mut sub: Value = clientSubscriptions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (sub != Value::Null) && (subHash != Value::Null) && (starts_with(&sub, &subHash)) {
+                if (sub != Value::Null) && (subHash != Value::Null) && (matches!((&sub, &subHash), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &sub);
                 }
             }
@@ -9241,7 +9241,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_173: bool = true;
                 while { if !__for_first_173 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_173 = false; i.as_f64().unwrap_or(f64::NAN) < ((clientFutures.len() as i64) as f64) } {
                 let mut future: Value = clientFutures.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (future != Value::Null) && (subHash != Value::Null) && (starts_with(&future, &subHash)) {
+                if (future != Value::Null) && (subHash != Value::Null) && (matches!((&future, &subHash), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), future));
                     client.reject(&[Value::from(error), future.clone()]);
                 }

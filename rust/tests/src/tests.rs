@@ -3043,7 +3043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
         let mut spotIdString: Value = to_string_val(&spotId);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &spotIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with spotId".into())).into()), spotIdString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &spotIdString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with spotId".into())).into()), spotIdString).into())]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3067,10 +3067,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // linear swap
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
         let mut swapIdString: Value = to_string_val(&swapId);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderIdSwap, &swapIdString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
         // inverse swap
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderIdInverse: ".into()), &clientOrderIdInverse), Value::Str(" does not start with swapId".into())).into()), inverseSwapId).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderIdInverse, &inverseSwapId), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderIdInverse: ".into()), &clientOrderIdInverse), Value::Str(" does not start with swapId".into())).into()), inverseSwapId).into())]);
         // linear swap conditional order
         let mut swapAlgoOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3087,7 +3087,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert(algoOrderIdDefined.clone(), &[Value::Str("binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined".into())]);
             let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
             let mut swapAlgoIdString: Value = to_string_val(&swapId);
-            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientAlgoIdSwap, &swapAlgoIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapAlgoIdString).into())]);
+            assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientAlgoIdSwap, &swapAlgoIdString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance - swap clientOrderId: ".into()), &clientAlgoIdSwap), Value::Str(" does not start with swapId".into())).into()), swapAlgoIdString).into())]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
@@ -3125,7 +3125,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1609 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1609 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
-            assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".into()), &currentClientOrderId), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
+            assert(Value::Bool(is_equal(&Value::Bool(matches!((&currentClientOrderId, &swapIdString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".into()), &currentClientOrderId), Value::Str(" does not start with swapId".into())).into()), swapIdString).into())]);
         }
         }
         if !is_true(&isSync()) {
@@ -3151,7 +3151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut clientOrderId: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into())); // returns order inside array
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - spot clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         let mut spotTag: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("tag".into()));
         assert(Value::Bool(is_equal(&spotTag, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".into()), id).into()), Value::Str(" different from spot tag: ".into())).into()), &spotTag)]);
         let mut swapOrderRequest: Value = Value::Map({
@@ -3165,7 +3165,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into()));
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderIdSwap, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("okx - swap clientOrderId: ".into()), &clientOrderIdSwap), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         let mut swapTag: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("tag".into()));
         assert(Value::Bool(is_equal(&swapTag, &id)), &[add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), &swapTag)]);
         if !is_true(&isSync()) {
@@ -3472,7 +3472,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client-order-id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - spot clientOrderId ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - spot clientOrderId ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3495,9 +3495,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapInverseOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap channel_code ".into()), &clientOrderIdSwap), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderIdSwap, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap channel_code ".into()), &clientOrderIdSwap), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdInverse, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap inverse channel_code ".into()), &clientOrderIdInverse), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderIdInverse, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("htx - swap inverse channel_code ".into()), &clientOrderIdInverse), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3522,7 +3522,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut brokerId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("broker_id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&brokerId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - broker_id: ".into()), &brokerId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&brokerId, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - broker_id: ".into()), &brokerId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut stopOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3539,7 +3539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stopOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdStop: Value = stopOrderRequest.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderIdStop, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - brokerId: ".into()), &clientOrderIdStop), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderIdStop, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("woo - brokerId: ".into()), &clientOrderIdStop), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3564,7 +3564,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client_id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("coinex - clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("coinex - clientOrderId: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3615,7 +3615,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("clOrdID")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("phemex - clOrdID: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("phemex - clOrdID: ".into()), &clientOrderId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -3639,7 +3639,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&brokerId, &idString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("blofin - brokerId: ".into()), &brokerId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&brokerId, &idString), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("blofin - brokerId: ".into()), &brokerId), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4017,7 +4017,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &id)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".into()), &clientOrderId), Value::Str(" for spot order does not start with id: ".into())).into()), id).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &id), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".into()), &clientOrderId), Value::Str(" for spot order does not start with id: ".into())).into()), id).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -4025,7 +4025,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         clientOrderId = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&Value::Bool(starts_with(&clientOrderId, &id)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".into()), &clientOrderId), Value::Str(" for swap order does not start with id: ".into())).into()), id).into())]);
+        assert(Value::Bool(is_equal(&Value::Bool(matches!((&clientOrderId, &id), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("weex - newClientOrderId: ".into()), &clientOrderId), Value::Str(" for swap order does not start with id: ".into())).into()), id).into())]);
 
     Value::Null
 }
