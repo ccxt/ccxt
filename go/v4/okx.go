@@ -2386,7 +2386,7 @@ func (this *Okx) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) 
 	_ = market
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 2, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = defaultValue
 	var instType *string = this.SafeString(params, "instType")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "instType"))
@@ -4534,7 +4534,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var usesHedged bool = isSwapOrFuture && (positionSide == nil)
 	var hedgedparamsHedgedOptionVariable []any = this.HandleOptionBoolAndParamsNullable(paramsSwapOrFuture, "createOrder", "hedged")
 	hedged := GetValue(hedgedparamsHedgedOptionVariable, 0)
-	paramsHedgedOption := GetValue(hedgedparamsHedgedOptionVariable, 1)
+	var paramsHedgedOption map[string]any = MapTyped(GetValue(hedgedparamsHedgedOptionVariable, 1))
 	var paramsHedged any = paramsSwapOrFuture
 	if usesHedged {
 		paramsHedged = paramsHedgedOption
@@ -8839,7 +8839,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			var marketInfo map[string]any = SafeMapTyped(market, "info")
@@ -10198,7 +10198,7 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
 	var marketType *string = nil
@@ -10865,10 +10865,10 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var symbolsLength any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		symbolsLength = len(symbolsNormalized)
 	}
-	if (IsEqual(symbolsNormalized, nil)) || (!IsEqual(symbolsLength, 1)) {
+	if ((symbolsNormalized == nil)) || (!IsEqual(symbolsLength, 1)) {
 		var uly *string = this.SafeString(params, "uly")
 		if uly != nil {
 			request["uly"] = uly
@@ -10882,7 +10882,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		if IsEqual(symbolsLength, 1) {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			var marketId *string = this.SafeString(market, "id", "")

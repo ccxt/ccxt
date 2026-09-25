@@ -927,13 +927,13 @@ public partial class bitrue : Exchange
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
             object marketType = types[i];
-            if (isEqual(marketType, "spot"))
+            if ((marketType is "spot"))
             {
                 promisesRaw.Add(this.spotV1PublicGetExchangeInfo(parameters));
-            } else if (isEqual(marketType, "linear"))
+            } else if ((marketType is "linear"))
             {
                 promisesRaw.Add(this.fapiV1PublicGetContracts(parameters));
-            } else if (isEqual(marketType, "inverse"))
+            } else if ((marketType is "inverse"))
             {
                 promisesRaw.Add(this.dapiV1PublicGetContracts(parameters));
             } else

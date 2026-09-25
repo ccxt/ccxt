@@ -6427,12 +6427,9 @@ class coinex extends Exchange {
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
-        list($marginModeValue, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        $marginMode = $marginModeValue;
-        if ($marginMode === null) {
-            if (($defaultType === 'margin') || ($isMargin === true)) {
-                $marginMode = 'isolated';
-            }
+        list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        if (($marginMode === null) && (($defaultType === 'margin') || ($isMargin === true))) {
+            return array( 'isolated', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );
     }

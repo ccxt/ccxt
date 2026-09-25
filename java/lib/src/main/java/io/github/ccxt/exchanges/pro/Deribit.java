@@ -471,7 +471,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> intervalparamsIntervalVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
             var paramsInterval = ((List<Object>) intervalparamsIntervalVariable).get(1);
             if (java.util.Objects.equals(interval, "raw"))
@@ -673,23 +673,23 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> intervalparamsIntervalVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
-            String interval = (String) ((List<Object>) intervalparamsIntervalVariable).get(0);
-            Map<String, Object> paramsInterval = (Map<String, Object>) ((List<Object>) intervalparamsIntervalVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             // for more info on useDepthEndpoint, see comment in .options
-            List<Object> useDepthEndpointparamsUseDepthEndpointVariable = (List<Object>) this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-            Boolean useDepthEndpoint = (Boolean) ((List<Object>) useDepthEndpointparamsUseDepthEndpointVariable).get(0);
-            Map<String, Object> paramsUseDepthEndpoint = (Map<String, Object>) ((List<Object>) useDepthEndpointparamsUseDepthEndpointVariable).get(1);
-            List<Object> depthparamsDepthVariable = (List<Object>) this.handleOptionStringAndParams(paramsUseDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
-            String depth = (String) ((List<Object>) depthparamsDepthVariable).get(0);
-            Map<String, Object> paramsDepth = (Map<String, Object>) ((List<Object>) depthparamsDepthVariable).get(1);
-            List<Object> groupparamsGroupVariable = (List<Object>) this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
-            String group = (String) ((List<Object>) groupparamsGroupVariable).get(0);
-            Map<String, Object> paramsGroup = (Map<String, Object>) ((List<Object>) groupparamsGroupVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            Boolean useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.first();
+            Map<String, Object> paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+            String depth = depthparamsDepthVariable.first();
+            Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+            String group = groupparamsGroupVariable.first();
+            Map<String, Object> paramsGroup = groupparamsGroupVariable.second();
             String descriptor = interval;
             if (Boolean.TRUE.equals(useDepthEndpoint))
             {

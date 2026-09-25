@@ -2976,7 +2976,7 @@ public partial class bitvavo : Exchange
                 url = add(url, ("?" + this.urlencode(query)));
             }
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             object payload = "";

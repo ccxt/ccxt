@@ -1362,7 +1362,7 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var symbolsLength int = 0
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		symbolsLength = len(symbolsNormalized)
 	}
 	var request map[string]any = map[string]any{}
@@ -2313,7 +2313,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = 0
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		symbolsLength = len(symbolsNormalized)
 	}
 	var request map[string]any = map[string]any{}

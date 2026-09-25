@@ -2255,9 +2255,9 @@ public class Backpack extends BackpackApi
             }
             ((List<Object>)bracketKeys).add("stopLoss");
         }
-        List<Object> selfTradePreventionparamsSelfTradePreventionVariable = (List<Object>) this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention", (String) null);
-        String selfTradePrevention = (String) ((List<Object>) selfTradePreventionparamsSelfTradePreventionVariable).get(0);
-        var paramsSelfTradePrevention = ((List<Object>) selfTradePreventionparamsSelfTradePreventionVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.omit(paramsPostOnly, bracketKeys)), "createOrder", "selfTradePrevention", (String) null);
+        String selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.first();
+        Map<String, Object> paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
         {
             if (java.util.Objects.equals(selfTradePrevention, "EXPIRE_MAKER"))

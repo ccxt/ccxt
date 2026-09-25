@@ -3874,14 +3874,14 @@ public partial class woo : Exchange
         object url = this.implodeHostname(baseApiUrl);
         url = add(url, (("/" + (version)) + "/"));
         Dictionary<string, object> paramsSorted = this.keysort(this.omit(parameters, this.extractParams(path)));
-        if (isEqual(access, "public"))
+        if ((access is "public"))
         {
             url = add(url, add(add(access, "/"), pathWithParams));
             if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(paramsSorted)));
             }
-        } else if (isEqual(access, "pub"))
+        } else if ((access is "pub"))
         {
             url = add(url, pathWithParams);
             if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
@@ -5222,7 +5222,7 @@ public partial class woo : Exchange
         for (int i = 0; i < networkKeys.Count; i++)
         {
             object network = networkKeys[i];
-            if (isEqual(network, "ETH"))
+            if ((network is "ETH"))
             {
                 return network;
             }

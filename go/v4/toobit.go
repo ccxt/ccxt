@@ -1648,7 +1648,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbol *string = this.SafeString(symbolsNormalized, 0)
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -1751,7 +1751,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
@@ -1815,7 +1815,7 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
@@ -1898,7 +1898,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))

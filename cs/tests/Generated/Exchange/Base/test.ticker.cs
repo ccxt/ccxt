@@ -60,7 +60,7 @@ public partial class testMainClass : BaseTest
         // check market
         IDictionary<string, object> market = null;
         bool isUnrecognizedSymbol = false;
-        bool isFetchTickerCalled = isEqual(method, "fetchTicker");
+        bool isFetchTickerCalled = (method is "fetchTicker");
         object symbolForMarket = ((symbol != null)) ? symbol : exchange.safeString(entry, "symbol");
         if ((symbolForMarket != null))
         {

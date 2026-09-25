@@ -379,10 +379,10 @@ public partial class btcmarkets : Exchange
             currency = this.currency(code);
         }
         List<object> response = null;
-        if (isEqual(method, "privateGetTransfers"))
+        if ((method is "privateGetTransfers"))
         {
             response = await this.privateGetTransfers(this.extend(request, parameters));
-        } else if (isEqual(method, "privateGetDeposits"))
+        } else if ((method is "privateGetDeposits"))
         {
             response = await this.privateGetDeposits(this.extend(request, parameters));
         } else
@@ -1609,7 +1609,7 @@ public partial class btcmarkets : Exchange
         string? requestBody = null;
         string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -1635,7 +1635,7 @@ public partial class btcmarkets : Exchange
                 { "BM-AUTH-TIMESTAMP", nonce },
                 { "BM-AUTH-SIGNATURE", signature },
             };
-        } else if (isEqual(api, "public"))
+        } else if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

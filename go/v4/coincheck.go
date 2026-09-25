@@ -940,7 +940,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var fees map[string]any = SafeMapTyped(response, "exchange_fees")
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 
 		ch <- result
 		return nil

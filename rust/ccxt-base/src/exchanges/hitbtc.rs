@@ -4879,12 +4879,10 @@ impl HitbtcCore {
         let mut marginModeparamsMarginModeVariable = self.super_handle_margin_mode_and_params(methodName, params, defaultValue);
         let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut isIsolatedDefault: bool = (marginMode == Value::Null) && ((defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true)));
-        let mut marginModeResolved: Value = marginMode;
-        if isIsolatedDefault {
-            marginModeResolved = Value::Str("isolated".into());
+        if (marginMode == Value::Null) && ((defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true))) {
+            return Value::from(vec![Value::Str("isolated".into()), paramsMarginMode.clone()]);
         }
-        return Value::from(vec![marginModeResolved, paramsMarginMode]);
+        return Value::from(vec![marginMode, paramsMarginMode]);
 
     Value::Null
 }

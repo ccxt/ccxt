@@ -2709,8 +2709,8 @@ public partial class gate : Exchange
             }
         } else
         {
-            bool swap = isEqual(type, "swap");
-            bool future = isEqual(type, "future");
+            bool swap = (type is "swap");
+            bool future = (type is "future");
             if (swap || future)
             {
                 string defaultSettle = "btc";
@@ -4516,8 +4516,8 @@ public partial class gate : Exchange
         List<object> response = new List<object>() {};
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
-            bool isMark = (isEqual(price, "mark"));
-            bool isIndex = (isEqual(price, "index"));
+            bool isMark = ((price is "mark"));
+            bool isIndex = ((price is "index"));
             if (isMark || isIndex)
             {
                 request["contract"] = add(add(price, "_"), (market.ContainsKey("id") ? market["id"] : null));
@@ -8635,7 +8635,7 @@ public partial class gate : Exchange
             endPart = (("/" + pathImploded));
         }
         string? entirePath = (("/" + (type)) + endPart);
-        if ((isEqual(type, "subAccounts")) || (isEqual(type, "withdrawals")))
+        if (((type is "subAccounts")) || ((type is "withdrawals")))
         {
             entirePath = endPart;
         }
@@ -8645,7 +8645,7 @@ public partial class gate : Exchange
             throw new NotSupported ((((this.id + " does not have a testnet for the ") + (type)) + " market type.")) ;
         }
         url = add(url, entirePath);
-        if (isEqual(authentication, "public"))
+        if ((authentication is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -8657,7 +8657,7 @@ public partial class gate : Exchange
             string queryString = "";
             string rawQueryString = "";
             bool requiresURLEncoding = false;
-            if (((isEqual(type, "futures")) || (isEqual(type, "delivery"))) && (method == "POST"))
+            if ((((type is "futures")) || ((type is "delivery"))) && (method == "POST"))
             {
                 List<object> pathParts = pathImploded.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
                 string secondPart = this.safeString(pathParts, 1, "");

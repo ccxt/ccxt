@@ -1359,7 +1359,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var requestedSymbol *string = this.SafeString(symbolsNormalized, 0)
@@ -1399,7 +1399,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		if IsEqual(symbolsNormalized, nil) || this.InArray(symbol, symbolsNormalized) {
+		if (symbolsNormalized == nil) || this.InArray(symbol, symbolsNormalized) {
 			var levels []any = SafeListTyped(entry, "riskLimits")
 			var tiers []any = []any{}
 			for j := 0; j < len(levels); j++ {

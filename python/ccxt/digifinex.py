@@ -3956,14 +3956,12 @@ class digifinex(Exchange, ImplicitAPI):
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
-        marginModeValue, paramsMarginMode = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        marginMode = marginModeValue
+        marginMode, paramsMarginMode = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')
-        else:
-            if (defaultType == 'margin') or (isMargin is True):
-                marginMode = 'cross'
+        elif (defaultType == 'margin') or (isMargin is True):
+            return ['cross', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:

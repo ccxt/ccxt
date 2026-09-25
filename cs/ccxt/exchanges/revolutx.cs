@@ -248,7 +248,7 @@ public partial class revolutx : Exchange
         string baseUrl = baseApiUrl;
         string url = ((baseUrl + "/") + implodedPath);
         string queryString = "";
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

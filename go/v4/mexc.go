@@ -7386,10 +7386,9 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	marginModeValue, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
-	var marginMode any = marginModeValue
+	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
-		marginMode = "isolated"
+		return SafeStringPtr("isolated"), MapTyped(paramsMarginMode)
 	}
 	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)
 }

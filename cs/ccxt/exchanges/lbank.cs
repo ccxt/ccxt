@@ -3483,7 +3483,7 @@ public partial class lbank : Exchange
             throw new NullResponse ((this.id + " parseBalance() returned empty response")) ;
         }
         object success = this.safeValue(response, "result");
-        if ((isEqual(success, "false")) || ((success == null)) || ((success == null)) || (isEqual(success, false)))
+        if (((success is "false")) || ((success == null)) || ((success == null)) || (isEqual(success, false)))
         {
             string? errorCode = this.safeString(response, "error_code");
             string? message = this.safeString(new Dictionary<string, object>() {

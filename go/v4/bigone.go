@@ -1072,7 +1072,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var data any = nil
 	if isSpot {
-		if !IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized != nil {
 			var ids any = this.MarketIds(symbolsNormalized)
 			request["pair_names"] = Join(ids, ",")
 		}

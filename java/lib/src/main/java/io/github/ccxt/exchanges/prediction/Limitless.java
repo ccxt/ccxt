@@ -2520,9 +2520,9 @@ public class Limitless extends LimitlessApi
             if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
             {
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparamsValueVariable = (List<Object>) this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsValueVariable).get(0);
-                paramsValue = ((List<Object>) createMarketBuyOrderRequiresPriceparamsValueVariable).get(1);
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.first();
+                paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.second();
                 Double cost = this.safeNumber(paramsValue, "cost", (Object) null);
                 paramsValue = this.omit(paramsValue, "cost");
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))

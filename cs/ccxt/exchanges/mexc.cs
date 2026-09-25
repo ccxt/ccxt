@@ -2770,7 +2770,7 @@ public partial class mexc : Exchange
         object paramsWithoutClientOrderId = ((clientOrderId != null)) ? this.omit(paramsWithoutCost, new List<object>() {"type", "clientOrderId"}) : paramsWithoutCost;
         if ((marginMode != null))
         {
-            if (!isEqual(marginMode, "isolated"))
+            if (!(marginMode is "isolated"))
             {
                 throw new BadRequest ((((this.id + " createOrder() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
             }
@@ -2947,7 +2947,7 @@ public partial class mexc : Exchange
             { "type", orderType },
             { "openType", openType },
         };
-        if ((!isEqual(orderType, 5)) && (!isEqual(orderType, 6)) && (!isEqual(orderType, "market")))
+        if ((!isEqual(orderType, 5)) && (!isEqual(orderType, 6)) && (!(orderType is "market")))
         {
             string? priceString = this.priceToPrecision(symbol, price);
             if ((priceString == null))
@@ -6700,13 +6700,12 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        (string?, object) marginModeValueparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        string? marginModeValue = marginModeValueparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeValueparamsMarginModeVariable.Item2);
-        string? marginMode = marginModeValue;
+        (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((defaultType == "margin") || ((isMargin == true)))
         {
-            marginMode = "isolated";
+            return ("isolated", paramsMarginMode);
         }
         return (marginMode, paramsMarginMode);
     }

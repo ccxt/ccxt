@@ -667,10 +667,10 @@ function goBoxedPointerSelfTest (): string[] {
     return problems;
 }
 
-// IsEqual(x, nil) on a name declared once in the block as a map, []any or scalar pointer is
+// IsEqual(x, nil) on a name declared once in the block as a map, []any, []string or scalar pointer is
 // `x == nil`: derefScalar folds exactly those typed nils to nil. A `var x string` against a
 // string literal is plain `==`. Any other or repeated declaration keeps the helper.
-const GO_NIL_COMPARABLE_TYPES = new Set (['map[string]any', '[]any', '*string', '*float64', '*int64', '*bool', '*int']);
+const GO_NIL_COMPARABLE_TYPES = new Set (['map[string]any', '[]any', '[]string', '*string', '*float64', '*int64', '*bool', '*int']);
 
 function goTypedNilCompareText (fn: string, isEqualFn: string): string {
     const helper = isEqualFn.replace (/[.(]/g, '\\$&');
@@ -709,8 +709,12 @@ function goTypedNilSelfTest (): string[] {
     const pass = (text: string): string => goTypedNativeNilCompares (text, 'IsEqual(');
     const typed = pass ('\nfunc (this *X) f(p any) any {\n\tvar m map[string]any = SafeMapTyped(p, "a")\n\tvar s *string = this.SafeString(p, "b")\n\tvar t string = "spot"\n\tif !IsEqual(m, nil) && IsEqual(s, nil) && IsEqual(t, "swap") {\n\t\treturn m\n\t}\n\treturn nil\n}\n');
     ok (typed.indexOf ('if (m != nil) && (s == nil) && (t == "swap") {') >= 0, 'typed locals must compare natively: ' + typed);
-    const other = pass ('\nfunc (this *X) f(p any, q map[string]any) any {\n\tvar a any = p\n\tvar l []string = nil\n\tvar n int = 1\n\tif IsEqual(a, nil) || IsEqual(l, nil) || IsEqual(n, nil) || IsEqual(q, nil) || IsEqual(p, "x") {\n\t\treturn nil\n\t}\n\treturn a\n}\n');
-    ok (other.indexOf ('IsEqual(a, nil) || IsEqual(l, nil) || IsEqual(n, nil) || IsEqual(q, nil) || IsEqual(p, "x")') >= 0, 'any/[]string/int/params keep the helper');
+    const other = pass ('\nfunc (this *X) f(p any, q map[string]any, r []string) any {\n\tvar a any = p\n\tvar l []map[string]any = nil\n\tvar n int = 1\n\tif IsEqual(a, nil) || IsEqual(l, nil) || IsEqual(n, nil) || IsEqual(q, nil) || IsEqual(r, nil) || IsEqual(p, "x") {\n\t\treturn nil\n\t}\n\treturn a\n}\n');
+    ok (other.indexOf ('IsEqual(a, nil) || IsEqual(l, nil) || IsEqual(n, nil) || IsEqual(q, nil) || IsEqual(r, nil) || IsEqual(p, "x")') >= 0, 'any/[]map/int/params keep the helper');
+    const strs = pass ('\nfunc (this *X) f(p any) any {\n\tvar s []string = this.MarketSymbols(p)\n\tif !IsEqual(s, nil) {\n\t\treturn s\n\t}\n\tif IsEqual(s, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n');
+    ok ((strs.indexOf ('if (s != nil) {') >= 0) && (strs.indexOf ('if (s == nil) {') >= 0), '[]string locals compare natively: ' + strs);
+    const strsRe = pass ('\nfunc (this *X) f(p any) any {\n\tvar s []string = nil\n\ts, ok := p.([]string)\n\tif IsEqual(s, nil) {\n\t\treturn ok\n\t}\n\treturn nil\n}\n');
+    ok (strsRe.indexOf ('IsEqual(s, nil)') >= 0, 'a rebound []string keeps the helper');
     const shadow = pass ('\nfunc (this *X) f(p any) any {\n\tvar m map[string]any = nil\n\tif true {\n\t\tvar m any = p\n\t\t_ = m\n\t}\n\tm, ok := p.(map[string]any)\n\tif IsEqual(m, nil) {\n\t\treturn ok\n\t}\n\treturn nil\n}\n');
     ok (shadow.indexOf ('IsEqual(m, nil)') >= 0, 'a redeclared name keeps the helper');
     const ws = goTypedNativeNilCompares ('\nfunc (this *X) f(p any) any {\n\tvar l []any = nil\n\tif !ccxt.IsEqual(l, nil) {\n\t\treturn l\n\t}\n\treturn nil\n}\n', 'ccxt.IsEqual(');

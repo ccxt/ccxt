@@ -1502,7 +1502,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), mixed $defaultValue = null): array {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), ?string $defaultValue = null): array {
         $instType = $this->safe_string($params, 'instType');
         $paramsOmitted = $this->omit($params, 'instType');
         $type = $this->safe_string($paramsOmitted, 'type');

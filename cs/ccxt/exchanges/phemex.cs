@@ -5325,7 +5325,7 @@ public partial class phemex : Exchange
         }
         string? requestBody = null;
         Dictionary<string, object> privateHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.seconds();
@@ -5361,13 +5361,13 @@ public partial class phemex : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         url = (this.implodeHostname(baseApiUrl) + url);
-        bool isPrivatePost = (isEqual(api, "private")) && ((method == "POST"));
+        bool isPrivatePost = ((api is "private")) && ((method == "POST"));
         object bodyResolved = body;
         if (isPrivatePost)
         {
             bodyResolved = requestBody;
         }
-        object requestHeaders = (isEqual(api, "private")) ? privateHeaders : headers;
+        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -1109,7 +1109,7 @@ public partial class htx : ccxt.htx
         }
         string? channel = topic;
         object messageHash = topic;
-        if (((contractCode != null)) && (!isEqual(contractCode, "*")))
+        if (((contractCode != null)) && (!(contractCode is "*")))
         {
             messageHash = ((topic + ".") + ((string)contractCode).ToLower());
         }
@@ -3169,7 +3169,7 @@ public partial class htx : ccxt.htx
         };
         object hostnameURL = null;
         object url = null;
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             if (isTrue(isPrivate))
             {
@@ -3271,7 +3271,7 @@ public partial class htx : ccxt.htx
         };
         Dictionary<string, object> extendedSubsription = this.extend(subscription, subscriptionParams);
         Dictionary<string, object> request = null;
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             request = new Dictionary<string, object>() {
                 { "action", "sub" },
@@ -3285,10 +3285,10 @@ public partial class htx : ccxt.htx
                 { "cid", requestId },
             };
         }
-        bool isLinear = isEqual(subtype, "linear");
+        bool isLinear = (subtype is "linear");
         bool? isV5 = this.safeBool(subscriptionParams, "isV5", false);
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
-        object hostname = (isEqual(type, "spot")) ? getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), "spot") : getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), "contract");
+        object hostname = ((type is "spot")) ? getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), "spot") : getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("hostnames") ? ((IDictionary<string, object>)this.urls)["hostnames"] : null), "contract");
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "type", type },
             { "url", url },

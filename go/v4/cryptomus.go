@@ -1391,7 +1391,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var result map[string]any = map[string]any{}
 	var tiers map[string]any = this.ParseFeeTiers(feeTiers)
 	var symbols []string = this.Symbols
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 
 		ch <- result
 		return nil

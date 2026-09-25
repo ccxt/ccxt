@@ -1415,7 +1415,7 @@ public partial class bitflyer : Exchange
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
         object request = (("/" + this.version) + "/");
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             request = add(request, "me/");
         }
@@ -1434,7 +1434,7 @@ public partial class bitflyer : Exchange
         }
         object baseUrl = this.implodeHostname(apiUrl);
         string? url = ((string)add(baseUrl, request));
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();

@@ -290,14 +290,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_cancel_cp");
-            List<Object> channelOptionparamsChannelVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelOptionparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrdersWs", "channel", channel);
             var channelOption = ((List<Object>) channelOptionparamsChannelVariable).get(0);
-            Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelOptionparamsChannelVariable).get(1);
+            Map<String, Object> paramsChannel = channelOptionparamsChannelVariable.second();
             Object url = this.getUrlByMarket(market);
             Map<String, Object> paramsOmitted = this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, (Object) null);
-            String type = (String) ((List<Object>) typequeryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, (String) null);
+            String type = typequeryVariable.first();
+            Map<String, Object> query = typequeryVariable.second();
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
@@ -339,9 +339,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, (Object) null);
-            String type = (String) ((List<Object>) typequeryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, (String) null);
+            String type = typequeryVariable.first();
+            Map<String, Object> query = typequeryVariable.second();
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
@@ -563,8 +563,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 intervalDefault = "50";
             }
-            List<Object> intervalqueryVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
-            String interval = (String) ((List<Object>) intervalqueryVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", intervalDefault);
+            String interval = intervalqueryVariable.first();
             var query = ((List<Object>) intervalqueryVariable).get(1);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String messageHash = (("orderbook" + ":") + symbolValue);
@@ -642,8 +642,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 intervalDefault = "50";
             }
             String interval = intervalDefault;
-            List<Object> intervalOptionparamsIntervalVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "interval", interval);
-            String intervalOption = (String) ((List<Object>) intervalOptionparamsIntervalVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalOptionparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", interval);
+            String intervalOption = intervalOptionparamsIntervalVariable.first();
             var paramsInterval = ((List<Object>) intervalOptionparamsIntervalVariable).get(1);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object limit = this.safeInteger(paramsInterval, "limit");
@@ -1063,8 +1063,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            List<Object> channelNameparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method", (String) null);
-            String channelName = (String) ((List<Object>) channelNameparamsMethodVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), callerMethodNameOption, "method", (String) null);
+            String channelName = channelNameparamsMethodVariable.first();
             var paramsMethod = ((List<Object>) channelNameparamsMethodVariable).get(1);
             Object url = this.getUrlByMarket(market);
             String channel = ((messageType + ".") + channelName);
@@ -1460,10 +1460,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = this.market(symbol);
                 marketId = market.get("id");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, (Object) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object messageType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
@@ -1572,10 +1572,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -1725,9 +1725,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters, (Object) null);
-            type = (String) ((List<Object>) typequeryVariable).get(0);
-            query = ((List<Object>) typequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, (String) null);
+            type = typequeryVariable.first();
+            query = typequeryVariable.second();
             if (java.util.Objects.equals(type, "spot"))
             {
                 type = "swap";
@@ -1748,9 +1748,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String channel = (typeId + ".positions");
             String subType = null;
-            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchPositions", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchPositions", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
-            query = ((List<Object>) subTypequeryVariable).get(1);
+            query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             Client client = this.client(url);
@@ -1957,9 +1957,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
-            type = (String) ((List<Object>) typequeryVariable).get(0);
-            query = ((List<Object>) typequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
+            type = typequeryVariable.first();
+            query = typequeryVariable.second();
             Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
                 put( "margin", "spot" );
@@ -1999,9 +1999,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             String subType = null;
-            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchOrders", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchOrders", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
-            query = ((List<Object>) subTypequeryVariable).get(1);
+            query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             // uid required for non spot markets
@@ -2162,18 +2162,18 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters, (Object) null);
-            type = (String) ((List<Object>) typequeryVariable).get(0);
-            query = ((List<Object>) typequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters, (String) null);
+            type = typequeryVariable.first();
+            query = typequeryVariable.second();
             Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
             }});
             String subType = null;
-            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
-            query = ((List<Object>) subTypequeryVariable).get(1);
+            query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList());

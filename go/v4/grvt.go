@@ -3056,7 +3056,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		request["base"] = []any{}
 		request["quote"] = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {

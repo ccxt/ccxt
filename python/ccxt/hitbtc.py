@@ -3613,11 +3613,9 @@ class hitbtc(Exchange, ImplicitAPI):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
         marginMode, paramsMarginMode = super(hitbtc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        isIsolatedDefault = (marginMode is None) and ((defaultType == 'margin') or (isMargin is True))
-        marginModeResolved = marginMode
-        if isIsolatedDefault:
-            marginModeResolved = 'isolated'
-        return [marginModeResolved, paramsMarginMode]
+        if (marginMode is None) and ((defaultType == 'margin') or (isMargin is True)):
+            return ['isolated', paramsMarginMode]
+        return [marginMode, paramsMarginMode]
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #

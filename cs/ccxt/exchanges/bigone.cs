@@ -2163,7 +2163,7 @@ public partial class bigone : Exchange
         string baseUrl = this.implodeHostname(apiUrl);
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if (isEqual(api, "public") || isEqual(api, "webExchange") || isEqual(api, "contractPublic"))
+        if ((api is "public") || (api is "webExchange") || (api is "contractPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

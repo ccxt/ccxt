@@ -819,7 +819,7 @@ public partial class blofin : ccxt.blofin
         string? callerMethodNameOption = (string)callerMethodNameOptionparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameOptionparamsCallerMethodNameVariable[1]);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-        bool isOHLCV = (isEqual(channelName, "candle"));
+        bool isOHLCV = ((channelName is "candle"));
         object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         symbols = this.marketSymbols(symbols, null, true, true);
         IDictionary<string, object> firstMarket = null;
@@ -927,7 +927,7 @@ public partial class blofin : ccxt.blofin
             { "funding-rate", this.handleFundingRate },
         };
         object method = null;
-        if (isEqual(message, "pong"))
+        if ((message is "pong"))
         {
             method = this.safeValue(methods, "pong");
         } else

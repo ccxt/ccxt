@@ -249,7 +249,7 @@ public partial class mudrex : Exchange
             requestHeaders["Partner-Id"] = brokerId;
         }
         string methodUpper = method.ToUpper();
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             requestHeaders["X-Authentication"] = this.secret;
@@ -1143,7 +1143,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> request = this.extend(q, parameters);
         Dictionary<string, object> response = null;
-        if (isEqual(state, "closed"))
+        if ((state is "closed"))
         {
             response = await this.privateGetFuturesOrdersHistory(request);
         } else

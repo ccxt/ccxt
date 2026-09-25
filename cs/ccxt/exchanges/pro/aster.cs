@@ -1509,7 +1509,7 @@ public partial class aster : ccxt.aster
             try
             {
                 Dictionary<string, object> response = new Dictionary<string, object>() {};
-                if (isEqual(type, "spot"))
+                if ((type is "spot"))
                 {
                     response = await this.sapiPrivatePostV3ListenKey(parameters);
                 } else

@@ -4226,16 +4226,13 @@ export default class digifinex extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        const [ marginModeValue, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
-        let marginMode: Str = marginModeValue;
+        const [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
                 throw new NotSupported (this.id + ' only cross margin is supported');
             }
-        } else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
-                marginMode = 'cross';
-            }
+        } else if ((defaultType === 'margin') || (isMargin === true)) {
+            return [ 'cross', paramsMarginMode ];
         }
         return [ marginMode, paramsMarginMode ];
     }

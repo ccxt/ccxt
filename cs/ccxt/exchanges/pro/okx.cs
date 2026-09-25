@@ -107,10 +107,10 @@ public partial class okx : ccxt.okx
         {
             sandboxSuffix = "?brokerId=9999";
         }
-        bool isBusiness = (isEqual(access, "business"));
-        bool isPublic = (isEqual(access, "public"));
+        bool isBusiness = ((access is "business"));
+        bool isPublic = ((access is "public"));
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
-        if (isBusiness || (((string)channel).IndexOf("candle", StringComparison.Ordinal) > -1) || (isEqual(channel, "orders-algo")))
+        if (isBusiness || (((string)channel).IndexOf("candle", StringComparison.Ordinal) > -1) || ((channel is "orders-algo")))
         {
             return ((string?)((object)(add(add(url, "/business"), sandboxSuffix))));
         } else if (isPublic)
@@ -253,7 +253,7 @@ public partial class okx : ccxt.okx
             { "args", topics },
         };
         string access = "public";
-        if (isEqual(channel, "trades-all"))
+        if ((channel is "trades-all"))
         {
             access = "business";
             await this.authenticate(new Dictionary<string, object>() {
@@ -1765,7 +1765,7 @@ public partial class okx : ccxt.okx
                     client.resolve(orderbook, messageHash);
                 }
             }
-        } else if ((isEqual(channel, "books5")) || (isEqual(channel, "bbo-tbt")))
+        } else if ((isEqual(channel, "books5")) || ((channel is "bbo-tbt")))
         {
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
@@ -1787,7 +1787,7 @@ public partial class okx : ccxt.okx
                 }
             }
         }
-        if (isEqual(channel, "bbo-tbt"))
+        if ((channel is "bbo-tbt"))
         {
             this.handleBidAsk(client, message);
         }
@@ -2937,7 +2937,7 @@ public partial class okx : ccxt.okx
         //
         if ((message is string))
         {
-            if (isEqual(message, "pong"))
+            if ((message is "pong"))
             {
                 this.handlePong(client, message);
             }

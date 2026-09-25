@@ -3693,13 +3693,13 @@ public partial class blofin : Exchange
         }
         object url = add(apiUrl, request);
         // const type = this.getPathAuthenticationType (path);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if (!this.isEmpty(query))
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

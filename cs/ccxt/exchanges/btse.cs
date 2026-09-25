@@ -4216,7 +4216,7 @@ public partial class btse : Exchange
                 url = url + ("?" + queryString);
             }
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             Int64 nonce = this.nonce();

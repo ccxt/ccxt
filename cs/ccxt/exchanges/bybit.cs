@@ -2438,15 +2438,15 @@ public partial class bybit : Exchange
         double? amountPrecision = null;
         double? pricePrecision = null;
         // hard coded amount and price precisions from fetchOptionMarkets
-        if (isEqual(bs, "BTC"))
+        if ((bs is "BTC"))
         {
             amountPrecision = this.parseNumber("0.01");
             pricePrecision = this.parseNumber("5");
-        } else if (isEqual(bs, "ETH"))
+        } else if ((bs is "ETH"))
         {
             amountPrecision = this.parseNumber("0.1");
             pricePrecision = this.parseNumber("0.1");
-        } else if (isEqual(bs, "SOL"))
+        } else if ((bs is "SOL"))
         {
             amountPrecision = this.parseNumber("1");
             pricePrecision = this.parseNumber("0.01");
@@ -2804,20 +2804,20 @@ public partial class bybit : Exchange
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
             object marketType = types[i];
-            if (isEqual(marketType, "spot"))
+            if ((marketType is "spot"))
             {
                 promisesUnresolved.Add(this.FetchSpotMarkets(parameters));
-            } else if (isEqual(marketType, "linear"))
+            } else if ((marketType is "linear"))
             {
                 promisesUnresolved.Add(this.FetchFutureMarkets(new Dictionary<string, object>() {
                     { "category", "linear" },
                 }));
-            } else if (isEqual(marketType, "inverse"))
+            } else if ((marketType is "inverse"))
             {
                 promisesUnresolved.Add(this.FetchFutureMarkets(new Dictionary<string, object>() {
                     { "category", "inverse" },
                 }));
-            } else if (isEqual(marketType, "option"))
+            } else if ((marketType is "option"))
             {
                 List<object> optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new List<object>() {"BTC", "ETH", "SOL"});
                 for (int j = 0; j < optionsCurrencies.Count; j++)
@@ -11724,13 +11724,13 @@ public partial class bybit : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((this.implodeHostname(apiUrl) + "/") + path);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 url = url + ("?" + this.rawencode(parameters));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             this.checkRequiredCredentials();
             bool isOpenapi = url.IndexOf("openapi", StringComparison.Ordinal) >= 0;

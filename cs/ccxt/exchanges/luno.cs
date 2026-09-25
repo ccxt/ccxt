@@ -857,7 +857,7 @@ public partial class luno : Exchange
         //
         Int64? timestamp = this.safeInteger(order, "creation_timestamp");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
-        status = (isEqual(status, "open")) ? status : status;
+        status = ((status is "open")) ? status : status;
         string? side = null;
         string? orderType = this.safeString(order, "type");
         if ((orderType == "ASK") || (orderType == "SELL"))
@@ -1863,7 +1863,7 @@ public partial class luno : Exchange
         {
             url = url + ("?" + this.urlencode(query));
         }
-        if ((isEqual(api, "private")) || (isEqual(api, "exchangePrivate")))
+        if (((api is "private")) || ((api is "exchangePrivate")))
         {
             this.checkRequiredCredentials();
             string auth = this.stringToBase64(((this.apiKey + ":") + this.secret));

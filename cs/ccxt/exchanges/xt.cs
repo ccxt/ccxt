@@ -6768,7 +6768,7 @@ public partial class xt : Exchange
         object endpoint = getValue(api, 1);
         string request = ("/" + this.implodeParams(path, parameters));
         string? payload = null;
-        if ((isEqual(endpoint, "spot")) || (isEqual(endpoint, "user")))
+        if (((endpoint is "spot")) || ((endpoint is "user")))
         {
             if (signed)
             {
@@ -6819,13 +6819,13 @@ public partial class xt : Exchange
                 }
             }
             bool isUndefinedBody = (((method == "GET")) || ((path == "order/{orderId}")) || ((path == "ws-token")));
-            if (((method == "PUT")) && (isEqual(endpoint, "spot")))
+            if (((method == "PUT")) && ((endpoint is "spot")))
             {
                 isUndefinedBody = false;
             }
             signedBody = isUndefinedBody ? null : this.json(query);
             object payloadString = null;
-            if ((isEqual(endpoint, "spot")) || (isEqual(endpoint, "user")))
+            if (((endpoint is "spot")) || ((endpoint is "user")))
             {
                 payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (isUndefinedBody)

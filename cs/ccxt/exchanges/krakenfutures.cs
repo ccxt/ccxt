@@ -4272,11 +4272,11 @@ public partial class krakenfutures : Exchange
         string? url = ((string)add(apiUrl, query));
         object requestBody = ((path == "batchorder")) ? postData : body;
         Dictionary<string, object> privateHeaders = null;
-        if (isEqual(api, "private") || access == "private")
+        if ((api is "private") || access == "private")
         {
             this.checkRequiredCredentials();
             object auth = (postData + "/api/");
-            if (!isEqual(api, "private"))
+            if (!(api is "private"))
             {
                 auth = add(auth, add(api, "/"));
             }

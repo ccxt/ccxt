@@ -2350,7 +2350,7 @@ public partial class mexc : ccxt.mexc
     {
         if ((message is string))
         {
-            if (isEqual(message, "Invalid listen key"))
+            if ((message is "Invalid listen key"))
             {
                 var error = new AuthenticationError((this.id + " invalid listen key"));
                 client.reject(error);
