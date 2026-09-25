@@ -1548,10 +1548,6 @@ func Int64Arg(v any) int64 {
 		if (value == math.Trunc(value)) && (math.Abs(value) < 9.2e18) {
 			return int64(value)
 		}
-	case string:
-		if i, err := strconv.ParseInt(value, 10, 64); err == nil {
-			return i
-		}
 	}
 	panic(ArgumentsRequired(fmt.Sprintf("expected an integer argument, got %T: %v", v, v)))
 }
