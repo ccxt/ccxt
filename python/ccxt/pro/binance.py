@@ -2830,8 +2830,7 @@ class binance(ccxt.async_support.binance):
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         type = self.safe_string(params, 'type', type)
         isPortfolioMargin, paramsPortfolioMargin = self.handle_option_bool_and_params_2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', False)
-        subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, paramsPortfolioMargin)
-        subType = subTypeInfo[0]
+        subType = self.handle_sub_type_and_params('keepAliveListenKey', None, paramsPortfolioMargin)[0]
         if type != 'option' and type != 'stock':
             # guard options first: isLinear returns true for linear-settled options (subType='linear')
             # which would incorrectly convert type='option' to 'future'.
@@ -3345,8 +3344,7 @@ class binance(ccxt.async_support.binance):
         type = None
         paramsMarketType = {}
         type, paramsMarketType = self.handle_market_type_and_params(method, market, params)
-        subTypeAndParams = self.handle_sub_type_and_params(method, market, paramsMarketType)
-        subType = subTypeAndParams[0]
+        subType = self.handle_sub_type_and_params(method, market, paramsMarketType)[0]
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):

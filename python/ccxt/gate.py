@@ -5144,8 +5144,7 @@ class gate(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
-        result = self.handle_market_type_and_params('fetchOrder', market, params)
-        type = self.safe_string(result, 0)
+        type = self.handle_market_type_and_params('fetchOrder', market, params)[0]
         trigger = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
         request, requestParams = self.fetch_order_request(id, symbol, params)
         response: dict
@@ -5227,8 +5226,7 @@ class gate(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         symbolResolved = market['symbol'] if (market is not None) else symbol
-        res = self.handle_market_type_and_params('fetchClosedOrders', market, paramsPaginate)
-        type = self.safe_string(res, 0)
+        type = self.handle_market_type_and_params('fetchClosedOrders', market, paramsPaginate)[0]
         useHistorical, paramsHistorical = self.handle_option_bool_and_params(paramsPaginate, 'fetchClosedOrders', 'historical', False)
         if not useHistorical and ((since is None and until is None) or (type != 'swap')):
             return self.fetch_orders_by_status('finished', symbolResolved, since, limit, paramsHistorical)
@@ -5278,8 +5276,7 @@ class gate(Exchange, ImplicitAPI):
             market = self.market(symbol)
         symbolResolved = market['symbol'] if (market is not None) else symbol
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
-        res = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
-        type = self.safe_string(res, 0)
+        type = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)[0]
         # don't omit here, omits done in prepareOrdersByStatusRequest
         request, requestParams = self.prepare_orders_by_status_request(status, symbolResolved, since, limit, params)
         spot = (type == 'spot') or (type == 'margin')

@@ -2619,8 +2619,7 @@ class bybit(Exchange, ImplicitAPI):
         hasOptionSymbol = False
         if symbols is not None:
             parsedSymbols = []
-            marketTypeInfo = self.handle_market_type_and_params('fetchTickers', None, params)
-            defaultType = marketTypeInfo[0]  # don't omit here
+            defaultType = self.handle_market_type_and_params('fetchTickers', None, params)[0]  # don't omit here
             # we can't use marketSymbols here due to the conflicting ids between markets
             currentType = None
             for i in range(0, len(symbols)):

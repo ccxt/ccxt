@@ -2629,8 +2629,7 @@ class okx(Exchange, ImplicitAPI):
         #         "0" // candlestick state
         #     ]
         #
-        res = self.handle_market_type_and_params('fetchOHLCV', market, None)
-        type = res[0]
+        type = self.handle_market_type_and_params('fetchOHLCV', market, None)[0]
         volumeIndex = 5 if (type == 'spot') else 6
         return [
             self.safe_integer(ohlcv, 0),

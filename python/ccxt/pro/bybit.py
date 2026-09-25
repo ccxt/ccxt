@@ -219,8 +219,7 @@ class bybit(ccxt.async_support.bybit):
             if isSpot:
                 url = url[accessibility]['spot']
             elif (type == 'swap') or (type == 'future'):
-                subTypeAndParams = self.handle_sub_type_and_params(methodValue, market, params, 'linear')
-                subType = subTypeAndParams[0]
+                subType = self.handle_sub_type_and_params(methodValue, market, params, 'linear')[0]
                 url = url[accessibility][subType]
             else:
                 # option
