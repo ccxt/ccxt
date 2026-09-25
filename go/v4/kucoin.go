@@ -2317,7 +2317,12 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if id == nil {
 			continue
 		}
-		baseIdquoteIdVariable := Split(id, "-")
+		baseIdquoteIdVariable := func() []string {
+			if id == nil {
+				return nil
+			}
+			return strings.Split(*id, "-")
+		}()
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
