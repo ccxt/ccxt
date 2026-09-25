@@ -966,7 +966,7 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         try {
-            $this->handle_delta($storedOrderBook, $data);
+            $this->handle_book_delta($storedOrderBook, $data);
             $timestamp = $this->safe_integer_n($message, array( 't', 'ts', 'sendTime' ));
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
@@ -1001,7 +1001,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
         if (($deltaNonce !== null) && ($existingNonce !== null) && ($deltaNonce < $existingNonce)) {

@@ -743,7 +743,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $orderbook['symbol'] = $symbol;
         } else {
             $changes = $this->safe_list($message, 'changes', array());
-            $this->handle_deltas($orderbook, $changes);
+            $this->handle_book_deltas($orderbook, $changes);
         }
         $orderbook['nonce'] = $this->safe_integer($message, 'sequence');
         $orderbook['datetime'] = $datetime;
@@ -754,7 +754,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $rawSide = $this->safe_string_lower($delta, 0);
         $side = 'asks';
         if ($rawSide === 'buy') {
@@ -766,9 +766,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($orderbook, $deltas[$i]);
+            $this->handle_book_delta($orderbook, $deltas[$i]);
         }
     }
 
