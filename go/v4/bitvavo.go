@@ -1539,12 +1539,12 @@ func (this *Bitvavo) ParseAccount(account any) any {
  * @param {string} [params.clientRequestId] client defined unique id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Bitvavo) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1557,14 +1557,14 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "subaccountId"))
 	var direction string
-	if (IsEqual(fromAccount, "master")) && (IsEqual(toAccount, "master")) {
+	if (IsEqual(fromAccount, "master")) && (toAccount == "master") {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)"))
 	} else if IsEqual(fromAccount, "master") {
 		direction = "masterToSub"
 		if IsEqual(subaccountId, nil) {
 			subaccountId = toAccount
 		}
-	} else if IsEqual(toAccount, "master") {
+	} else if toAccount == "master" {
 		direction = "subToMaster"
 		if IsEqual(subaccountId, nil) {
 			subaccountId = fromAccount
@@ -2066,12 +2066,12 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2919,12 +2919,12 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)

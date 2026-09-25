@@ -1385,12 +1385,12 @@ func (this *PredictionExchange) fetchClosedOrdersBody(ch chan any, optionalArgs 
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *PredictionExchange) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)

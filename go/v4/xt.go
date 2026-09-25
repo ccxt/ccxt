@@ -5321,12 +5321,12 @@ func (this *Xt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
-func (this *Xt) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Xt) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Xt) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Xt) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -6885,12 +6885,12 @@ func (this *Xt) ParsePosition(position any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Xt) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Xt) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Xt) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Xt) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6957,12 +6957,12 @@ func (this *Xt) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {string} [params.positionSide] *required* "long" or "short"
  * @returns {object} response from the exchange
  */
-func (this *Xt) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Xt) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Xt) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Xt) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6980,7 +6980,7 @@ func (this *Xt) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...a
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " setMarginMode() supports contract markets only"))
 	}
-	var marginModeLower string = ToLower(marginMode)
+	var marginModeLower string = strings.ToLower(marginMode)
 	if (marginModeLower != "isolated") && (marginModeLower != "cross") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}
@@ -7041,12 +7041,12 @@ func (this *Xt) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...a
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Xt) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Xt) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Xt) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Xt) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

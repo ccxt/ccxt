@@ -2280,12 +2280,12 @@ func (this *Polymarket) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Polymarket) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Polymarket) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Polymarket) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the /data/trades endpoint has no order filter, so fetch the user's trades and keep
@@ -2304,7 +2304,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	for i := 0; i < len(trades); i++ {
 		var trade any = ccxt.GetValue(trades, i)
 		var info map[string]any = ccxt.SafeMapTyped(trade, "info")
-		var belongs bool = (ccxt.IsEqual(this.SafeString(trade, "order"), id)) || (ccxt.IsEqual(this.SafeString(info, "taker_order_id"), id))
+		var belongs bool = (this.SafeString(trade, "order") != nil && *this.SafeString(trade, "order") == id) || (this.SafeString(info, "taker_order_id") != nil && *this.SafeString(info, "taker_order_id") == id)
 		var makerOrders []any = ccxt.SafeListTyped(info, "maker_orders")
 		for j := 0; j < len(makerOrders); j++ {
 			if ccxt.IsEqual(this.SafeString(func() any {

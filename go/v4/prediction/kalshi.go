@@ -2864,12 +2864,12 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome string, typeVar string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) EditOrderAsync(id any, outcome any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) EditOrderAsync(id string, outcome any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, outcome, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kalshi) editOrderBody(ch chan any, id string, outcome any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),

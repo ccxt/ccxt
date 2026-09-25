@@ -973,12 +973,12 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Mercado) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Mercado) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -999,20 +999,20 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 		"quantity": ToFixed(amount, 10),
 		"address":  address,
 	}
-	if IsEqual(code, "BRL") {
+	if code == "BRL" {
 		var account_ref bool = (InOp(paramsWithdrawTag, "account_ref"))
 		if !account_ref {
-			panic(ArgumentsRequired(Add(this.Id+" withdraw() requires account_ref parameter to withdraw ", code)))
+			panic(ArgumentsRequired(this.Id + " withdraw() requires account_ref parameter to withdraw " + code))
 		}
-	} else if !IsEqual(code, "LTC") {
+	} else if code != "LTC" {
 		var tx_fee bool = (InOp(paramsWithdrawTag, "tx_fee"))
 		if !tx_fee {
-			panic(ArgumentsRequired(Add(this.Id+" withdraw() requires tx_fee parameter to withdraw ", code)))
+			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}
-		if IsEqual(code, "XRP") {
+		if code == "XRP" {
 			if IsEqual(tagWithdrawTag, nil) {
 				if !(InOp(paramsWithdrawTag, "destination_tag")) {
-					panic(ArgumentsRequired(Add(this.Id+" withdraw() requires a tag argument or destination_tag parameter to withdraw ", code)))
+					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw " + code))
 				}
 			} else {
 				request["destination_tag"] = tagWithdrawTag

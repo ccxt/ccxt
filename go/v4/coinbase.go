@@ -4383,12 +4383,12 @@ func (this *Coinbase) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
  * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbase) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Coinbase) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -5326,12 +5326,12 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params.travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbase) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Coinbase) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -5356,14 +5356,14 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 	var accountId any = DerefScalar(this.SafeString2(paramsWithdrawTag, "account_id", "accountId"))
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, []any{"account_id", "accountId"}))
 	if IsEqual(accountId, nil) {
-		if IsEqual(code, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
 		accountId = (<-this.FindAccountIdAsync(code, paramsOmitted))
 		PanicOnError(accountId)
 		if IsEqual(accountId, nil) {
-			panic(ExchangeError(Add(this.Id+" withdraw() could not find account id for ", code)))
+			panic(ExchangeError(this.Id + " withdraw() could not find account id for " + code))
 		}
 		request["account_id"] = accountId
 	} else {
@@ -6075,12 +6075,12 @@ func (this *Coinbase) ParseConversion(conversion any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Coinbase) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Coinbase) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

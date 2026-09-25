@@ -492,12 +492,12 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]"))
 }
-func (this *Coinbaseinternational) HandleNetworkIdAndParamsAsync(currencyCode any, methodName string, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) HandleNetworkIdAndParamsAsync(currencyCode string, methodName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.handleNetworkIdAndParamsBody(ch, currencyCode, methodName, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, currencyCode any, methodName string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, currencyCode string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -512,7 +512,7 @@ func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, cur
 		if network == nil {
 			// find default network
 			if this.IsEmpty(networks) {
-				panic(BadRequest(Add(Add(this.Id+" createDepositAddress network not found for currency ", currencyCode), " please specify networkId in params")))
+				panic(BadRequest(this.Id + " createDepositAddress network not found for currency " + currencyCode + " please specify networkId in params"))
 			}
 			var defaultNetwork any = this.FindDefaultNetwork(networks)
 			networkId = GetValue(defaultNetwork, "id")
@@ -1129,12 +1129,12 @@ func (this *Coinbaseinternational) FindDefaultNetwork(networks any) any {
 		return nil
 	}()
 }
-func (this *Coinbaseinternational) LoadCurrencyNetworksAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) LoadCurrencyNetworksAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.loadCurrencyNetworksBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2235,12 +2235,12 @@ func (this *Coinbaseinternational) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
  */
-func (this *Coinbaseinternational) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2609,12 +2609,12 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
  * @param {string} params.clientOrderId client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseinternational) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2979,12 +2979,12 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
  * @param {string} [params.nonce] a unique integer representing the withdrawal request
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbaseinternational) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)

@@ -2224,12 +2224,12 @@ func (this *Latoken) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Latoken) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Latoken) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Latoken) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Latoken) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2245,10 +2245,10 @@ func (this *Latoken) transferBody(ch chan any, code any, amount any, fromAccount
 		"value":     this.CurrencyToPrecision(code, amount),
 	}
 	var response map[string]any = nil
-	if GetIndexOf(toAccount, "@") >= 0 {
+	if strings.Index(toAccount, "@") >= 0 {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferEmail(this.Extend(request, params))).Raw))
-	} else if GetLength(toAccount) == 36 {
+	} else if len(toAccount) == 36 {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferId(this.Extend(request, params))).Raw))
 	} else {
