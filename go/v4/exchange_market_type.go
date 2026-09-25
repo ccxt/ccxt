@@ -65,3 +65,12 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 func TupleSlice(value *string, params map[string]any) []any {
 	return []any{value, params}
 }
+
+// HandleOptionStringAndParams is handleOptionAndParams read as a string: a present option
+// of another type panics (CheckOptionString); the transpiled copy is dropped.
+func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any, optionName any, optionalArgs ...any) (*string, map[string]any) {
+	defaultValue := GetArgStringPtr(optionalArgs, 0, nil)
+	values := this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
+	return this.CheckOptionString(methodName, optionName, GetValue(values, 0)), MapTyped(GetValue(values, 1))
+}
+
