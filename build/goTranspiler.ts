@@ -5367,8 +5367,35 @@ ${caseStatements.join('\n')}
             const line = lines[i];
             const trimmed = line.trim ();
             if (!inLiteral[offset] && /^return([ \t]|$)/.test (trimmed)) {
-                const expr = trimmed.substring ('return'.length).trim ();
+                let expr = trimmed.substring ('return'.length).trim ();
                 if (expr.length === 0) {
+                    return undefined;
+                }
+                // a multi-line expression (e.g. a map literal argument) ends where its delimiters balance;
+                // an expression that never balances leaves the whole method untyped
+                const depthOf = (text: string): number => {
+                    let depth = 0;
+                    for (let k = 0; k < text.length; k++) {
+                        const c = text[k];
+                        if (c === '"' || c === '`' || c === "'") {
+                            k = goSkipLiteralText (text, k);
+                        } else if (c === '(' || c === '[' || c === '{') {
+                            depth += 1;
+                        } else if (c === ')' || c === ']' || c === '}') {
+                            depth -= 1;
+                        }
+                    }
+                    return depth;
+                };
+                while ((depthOf (expr) > 0) && (i + 1 < lines.length)) {
+                    if (/func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
+                        return undefined;
+                    }
+                    offset += lines[i].length + 1;
+                    i += 1;
+                    expr += '\n' + lines[i];
+                }
+                if (depthOf (expr) !== 0) {
                     return undefined;
                 }
                 const indent = line.substring (0, line.length - line.trimStart ().length);
@@ -5377,8 +5404,8 @@ ${caseStatements.join('\n')}
             } else {
                 out.push (line);
             }
-            offset += line.length + 1;
-            if (!inLiteral[offset - 1] && /func\s*\(/.test (line) && (line.indexOf ('{', line.search (/func\s*\(/)) < 0)) {
+            offset += lines[i].length + 1;
+            if (!inLiteral[offset - 1] && /func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
                 return undefined; // a func literal that opens its brace on a later line
             }
         }
