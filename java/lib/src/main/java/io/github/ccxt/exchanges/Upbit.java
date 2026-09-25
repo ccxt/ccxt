@@ -1256,7 +1256,7 @@ public class Upbit extends UpbitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
                 put( "count", limitResolved );
@@ -1284,7 +1284,7 @@ public class Upbit extends UpbitApi
             //                    "ask_bid": "ASK",
             //              "sequential_id":  15428917910540000 }  ]
             //
-            return this.parseTrades(response, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1448,7 +1448,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = this.market(symbol);
             int timeframePeriod = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
                 "timeframe", timeframeValue,
@@ -1500,7 +1500,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2891,7 +2891,7 @@ public class Upbit extends UpbitApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

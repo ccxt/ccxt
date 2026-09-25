@@ -1550,7 +1550,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"symbol\" argument")) ;
             }
-            Integer defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
+            Long defaultMaxLimit = 3950L; // 4000 by docs, but in fact >~3960 returns error
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1561,7 +1561,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(defaultMaxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, defaultMaxLimit)).join();
             }
             String tf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = Helpers.newMap(
@@ -1721,10 +1721,10 @@ public class Pacifica extends PacificaApi
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
             Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            Integer defaultLimit = 100; // Default max limit
+            Long defaultLimit = 100L; // Default max limit
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
@@ -2584,10 +2584,10 @@ public class Pacifica extends PacificaApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer defaultLimit = 100; // Default max limit
+            Long defaultLimit = 100L; // Default max limit
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -2901,10 +2901,10 @@ public class Pacifica extends PacificaApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer defaultLimit = 100; // max default 100
+            Long defaultLimit = 100L; // max default 100
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOrders", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
@@ -3715,10 +3715,10 @@ public class Pacifica extends PacificaApi
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLedger", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
             Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            Integer defaultLimit = 100; // Default max limit
+            Long defaultLimit = 100L; // Default max limit
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
@@ -3846,10 +3846,10 @@ public class Pacifica extends PacificaApi
             {
                 request.put("limit", limit);
             }
-            Integer defaultLimit = 100;
+            Long defaultLimit = 100L;
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, defaultLimit)).join();
             }
             Map<String, Object> response = (this.publicGetFundingHistory(this.extend(request, paramsOriginAndSingleAddress))).join();
             // {
@@ -4038,7 +4038,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
             }
-            List<Object> timestampparamsTimestampVariable = (List<Object>) this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", Helpers.toLongOrNull(this.milliseconds()));
+            List<Object> timestampparamsTimestampVariable = (List<Object>) this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.milliseconds());
             Long timestamp = (Long) ((List<Object>) timestampparamsTimestampVariable).get(0);
             Map<String, Object> paramsTimestamp = (Map<String, Object>) ((List<Object>) timestampparamsTimestampVariable).get(1);
             List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000L);

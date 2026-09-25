@@ -987,7 +987,7 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             // default is 200 when requested with `since`, max 200
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : Math.min(limit, 200);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : Math.min(limit, 200);
             request.put("limit", limitResolved);
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
@@ -999,7 +999,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.publicGetV3Klines(this.extend(requestUntil, paramsUntil))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> OHLCVs = (List<Object>) this.safeList(data, this.safeString(market, "id2"), new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(OHLCVs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(OHLCVs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1108,7 +1108,7 @@ public class Apex extends ApexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 500 : limit; // default is 50
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 500L : limit; // default is 50
             request.put("limit", limitResolved);
             Map<String, Object> response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
             //
@@ -1132,7 +1132,7 @@ public class Apex extends ApexApi
             //  ]
             //
             List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

@@ -3426,10 +3426,10 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("startDate", this.parseToInt((((double) since) / ((double) 1000))));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limit, null) || (limit > 100))
             {
-                limitResolved = 100;
+                limitResolved = 100L;
             }
             request.put("limit", limitResolved);
             // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
@@ -3453,7 +3453,7 @@ public class Whitebit extends WhitebitApi
             //         { ... }                                 // More withdrawal transactions
             //     ]
             //
-            return this.parseTransactions(this.safeList(response, "records", new ArrayList<Object>(Arrays.asList())), currency, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTransactions(this.safeList(response, "records", new ArrayList<Object>(Arrays.asList())), currency, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3490,10 +3490,10 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("startDate", this.parseToInt((((double) since) / ((double) 1000))));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limit, null) || (limit > 100))
             {
-                limitResolved = 100;
+                limitResolved = 100L;
             }
             request.put("limit", limitResolved);
             // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
@@ -3526,7 +3526,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             List<Object> records = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(records, currency, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTransactions(records, currency, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -5073,13 +5073,13 @@ public class Whitebit extends WhitebitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit)).join();
             }
             if (java.util.Objects.equals(this.markets, null))
             {

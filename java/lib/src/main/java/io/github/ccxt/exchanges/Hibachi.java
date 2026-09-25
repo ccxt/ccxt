@@ -1564,7 +1564,7 @@ public class Hibachi extends HibachiApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -1650,7 +1650,7 @@ public class Hibachi extends HibachiApi
             //         "startPrice": "3515.39"
             //     }
             // }
-            return this.parseOrderBook(formattedResponse, symbol, Helpers.toLongOrNull(this.milliseconds()), "bid", "ask", "price", "quantity", 2);
+            return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
 
     }

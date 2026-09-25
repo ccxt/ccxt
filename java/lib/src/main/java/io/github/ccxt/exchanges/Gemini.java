@@ -2335,9 +2335,9 @@ public class Gemini extends GeminiApi
         String nonceMethod = this.safeString(this.options, "nonce", "milliseconds");
         if (java.util.Objects.equals(nonceMethod, "milliseconds"))
         {
-            return Helpers.toLongOrNull(this.milliseconds());
+            return this.milliseconds();
         }
-        return Helpers.toLongOrNull(this.seconds());
+        return this.seconds();
     }
 
     /**

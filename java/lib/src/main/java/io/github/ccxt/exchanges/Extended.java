@@ -1612,7 +1612,7 @@ public class Extended extends ExtendedApi
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
@@ -1657,7 +1657,7 @@ public class Extended extends ExtendedApi
                 ((List<Object>)result).add(this.parseFundingRateHistory(entry, market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbolValue, Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.filterBySymbolSinceLimit(sorted, symbolValue, Helpers.toLongOrNull(sinceResolved), limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -1708,7 +1708,7 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
@@ -1734,7 +1734,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterestsHistory(data, market, Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved));
+            return this.parseOpenInterestsHistory(data, market, Helpers.toLongOrNull(sinceResolved), limitResolved);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }

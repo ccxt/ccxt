@@ -3461,7 +3461,7 @@ public class Polymarket extends PolymarketApi
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     /**

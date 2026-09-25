@@ -2941,7 +2941,7 @@ public class Limitless extends LimitlessApi
                 outcomeSymbol = this.safeString(outcomeObj, "outcome");
             }
             Object paginate = false;
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             Object paramsValue = parameters;
             List<Object> paginateparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
             paginate = ((List<Object>) paginateparamsValueVariable).get(0);
@@ -2949,7 +2949,7 @@ public class Limitless extends LimitlessApi
             if (Boolean.TRUE.equals(paginate))
             {
                 paramsValue = this.omit(paramsValue, "paginate");
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, Helpers.toMapArg(paramsValue), "nextCursor", "cursor", (Long) null, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, Helpers.toMapArg(paramsValue), "nextCursor", "cursor", (Long) null, maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3717,7 +3717,7 @@ public class Limitless extends LimitlessApi
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two orders are signed within the same millisecond
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     /**
