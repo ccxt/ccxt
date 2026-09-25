@@ -596,7 +596,7 @@ public partial class kalshi : PredictionExchange
             {
                 baseTicker = slice(outcomeSymbol, 0, subtract(symbolLength, 3));
             }
-            if (!(inOp(seen, baseTicker)))
+            if (!((baseTicker is string inOpKey0 && seen.ContainsKey(inOpKey0))))
             {
                 seen[(string)baseTicker] = true;
                 tickers.Add(baseTicker);

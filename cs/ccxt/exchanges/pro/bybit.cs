@@ -2667,7 +2667,7 @@ public partial class bybit : ccxt.bybit
             for (int i = 0; i < topicsLength; i++)
             {
                 object topic = getValue(topics, i);
-                if (!(inOp(subscribedTopics, topic)))
+                if (!((topic is string inOpKey1 && subscribedTopics.ContainsKey(inOpKey1))))
                 {
                     newTopics.Add(topic);
                 }

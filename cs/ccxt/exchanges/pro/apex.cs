@@ -1114,7 +1114,7 @@ public partial class apex : ccxt.apex
             {
                 string messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }

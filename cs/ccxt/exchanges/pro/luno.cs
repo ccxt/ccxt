@@ -239,7 +239,7 @@ public partial class luno : ccxt.luno
         object symbol = getValue(subscription, "symbol");
         string messageHash = ("orderbook:" + (symbol));
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }

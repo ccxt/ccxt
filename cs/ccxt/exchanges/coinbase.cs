@@ -1611,7 +1611,7 @@ public partial class coinbase : Exchange
                 continue;
             }
             string type = "crypto";
-            if (inOp(dataById, baseId))
+            if ((dataById != null && baseId is string inOpKey0 && dataById.ContainsKey(inOpKey0)))
             {
                 type = "fiat";
             }

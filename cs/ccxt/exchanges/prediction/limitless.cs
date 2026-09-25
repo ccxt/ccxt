@@ -424,7 +424,7 @@ public partial class limitless : PredictionExchange
             markets.Add(m);
             if (((eventKey != null)) && ((eventKey != "")))
             {
-                if (!(inOp(eventGroups, eventKey)))
+                if (!((eventGroups != null && eventKey != null && eventGroups.ContainsKey(eventKey))))
                 {
                     eventGroups[(string)eventKey] = new Dictionary<string, object>() {
                         { "groupId", groupId },

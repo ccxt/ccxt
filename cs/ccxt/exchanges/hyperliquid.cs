@@ -375,7 +375,7 @@ public partial class hyperliquid : Exchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        if (((symbol != null)) && !(inOp(this.markets, symbol)))
+        if (((symbol != null)) && !((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
         {
             List<object> symbolParts = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
             string? baseName = this.safeString(symbolParts, 0);

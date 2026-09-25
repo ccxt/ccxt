@@ -3229,7 +3229,7 @@ public partial class myriad : PredictionExchange
             object networkId = this.safeString(info, "networkId");
             string? marketId = this.safeString(info, "marketId");
             string? key = ((string)add(add(networkId, ":"), marketId));
-            if (!(inOp(outcomesByMarket, key)))
+            if (!((outcomesByMarket != null && key != null && outcomesByMarket.ContainsKey(key))))
             {
                 outcomesByMarket[(string)key] = new List<object>() {};
                 marketKeys.Add(key);
