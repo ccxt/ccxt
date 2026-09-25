@@ -1321,11 +1321,11 @@ public partial class myriad : PredictionExchange
         byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
         string digest = ((string)this.hash(encoded, keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, null);
-        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        object v = this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null));
+        object v = this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null));
         string sigHex = ((("0x" + r) + s) + this.intToBase16(v));
         return sigHex.ToLower();
     }
@@ -1805,7 +1805,7 @@ public partial class myriad : PredictionExchange
         }
         IDictionary<string, object> fetchedInfo = this.safeDict(fetched, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(fetched, "order", new Dictionary<string, object>() {});
-        List<object> rawOrderKeys = new List<object>(((IDictionary<string,object>)rawOrder).Keys);
+        List<object> rawOrderKeys = new List<object>(rawOrder.Keys);
         int rawOrderKeysLength = rawOrderKeys.Count;
         if ((rawOrderKeysLength == 0))
         {
@@ -1943,7 +1943,7 @@ public partial class myriad : PredictionExchange
             }
             IDictionary<string, object> fetchedInfo = this.safeDict(fetched, "info", new Dictionary<string, object>() {});
             IDictionary<string, object> rawOrder = this.safeDict(fetched, "order", new Dictionary<string, object>() {});
-            List<object> rawOrderKeys = new List<object>(((IDictionary<string,object>)rawOrder).Keys);
+            List<object> rawOrderKeys = new List<object>(rawOrder.Keys);
             int rawOrderKeysLength = rawOrderKeys.Count;
             if ((rawOrderKeysLength == 0))
             {
@@ -2590,8 +2590,8 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-        string? networkId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "networkId");
-        string? marketId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketId");
+        string? networkId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "networkId");
+        string? marketId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketId");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", marketId },
             { "network_id", networkId },
@@ -2861,10 +2861,10 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-        string? networkId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "networkId");
-        string? marketId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketId");
-        string? outcomeId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "outcomeId");
-        string? tradingModel = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "tradingModel", "amm");
+        string? networkId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "networkId");
+        string? marketId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketId");
+        string? outcomeId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "outcomeId");
+        string? tradingModel = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "tradingModel", "amm");
         if (tradingModel == "ob")
         {
             Dictionary<string, object> obRequest = new Dictionary<string, object>() {
@@ -3065,8 +3065,8 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-        string? networkId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "networkId");
-        string? marketId = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketId");
+        string? networkId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "networkId");
+        string? marketId = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketId");
         string? outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
         string? outcomeTitle = this.safeString(outcomeInfo, "outcomeLabel", this.safeString(outcomeInfo, "label", this.safeString(outcomeInfo, "title")));
         string? bucketKey = this.safeString(this.timeframes, timeframeVar, "30d");
@@ -3819,7 +3819,7 @@ public partial class myriad : PredictionExchange
             orderbook["datetime"] = this.iso8601(ts);
             updated[(string)sym] = true;
         }
-        List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
+        List<object> updatedSymbols = new List<object>(updated.Keys);
         int updatedLength = updatedSymbols.Count;
         for (int k = 0; k < updatedLength; k++)
         {

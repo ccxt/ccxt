@@ -2280,7 +2280,7 @@ public partial class xt : Exchange
         for (int i = 0; i < tickers.Count; i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(tickers[i], market);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;
@@ -2385,7 +2385,7 @@ public partial class xt : Exchange
             }
             Dictionary<string, object> marketInner = this.safeMarket(marketId, market, "_", marketType);
             Dictionary<string, object> ticker = this.parseTicker(rawTicker, marketInner);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;
@@ -2449,7 +2449,7 @@ public partial class xt : Exchange
             marketType = hasSpotKeys ? "spot" : "contract";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? percentage = this.safeString2(ticker, "cr", "r");
         if ((percentage != null))
@@ -2856,10 +2856,10 @@ public partial class xt : Exchange
         {
             if ((quantity == null))
             {
-                amount = Precise.stringMul(this.safeString(trade, "a"), this.numberToString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null)));
+                amount = Precise.stringMul(this.safeString(trade, "a"), this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
             } else
             {
-                amount = Precise.stringMul(quantity, this.numberToString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null)));
+                amount = Precise.stringMul(quantity, this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
             }
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -2867,7 +2867,7 @@ public partial class xt : Exchange
             { "id", this.safeStringN(trade, new List<object>() {"i", "tradeId", "execId"}) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", this.safeString2(trade, "orderId", "oi") },
             { "type", this.safeStringLower(trade, "orderType") },
             { "side", side },
@@ -4653,9 +4653,9 @@ public partial class xt : Exchange
         string? symbol = this.safeSymbol(marketId, marketResolved, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
         double? quantity = this.safeNumber(order, "origQty");
-        object amount = (marketType == "spot") ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null)));
+        object amount = (marketType == "spot") ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
         double? filledQuantity = this.safeNumber(order, "executedQty");
-        object filled = (marketType == "spot") ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null)));
+        object filled = (marketType == "spot") ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
         Int64? lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         string? timeInForce = this.safeString(order, "timeInForce");
         bool? postOnly = null;
@@ -5550,7 +5550,7 @@ public partial class xt : Exchange
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "bracket") },
                 { "symbol", this.safeSymbol(marketId, marketResolved, "_", "contract") },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
                 { "minNotional", minNotional },
                 { "maxNotional", this.safeNumber(tier, "maxNominalValue") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintMarginRate") },
@@ -5828,7 +5828,7 @@ public partial class xt : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
         Int64? timestamp = this.safeInteger(interest, "time");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "openInterestAmount", this.safeNumber(interest, "openInterest") },
             { "openInterestValue", this.safeNumber(interest, "openInterestUsd") },
             { "timestamp", timestamp },
@@ -6452,7 +6452,7 @@ public partial class xt : Exchange
             { "hedged", null },
             { "side", this.safeStringLower(position, "positionSide") },
             { "contracts", this.safeNumber2(position, "positionSize", "closePositionSize") },
-            { "contractSize", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null) },
+            { "contractSize", (marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null) },
             { "entryPrice", this.safeNumber2(position, "entryPrice", "closeOpenPrice") },
             { "markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice") },
             { "lastPrice", this.safeNumber(position, "closePrice") },

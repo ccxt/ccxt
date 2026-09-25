@@ -1556,12 +1556,12 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "spot"
 		}()
 	}
-	var marketResolved any = func() any {
+	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
-			return this.SafeMarket(instId, nil, nil, defaultType)
+			return instId
 		}
-		return market
-	}()
+		return nil
+	}(), market, nil, defaultType)
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
 	var feeDetail []any = ccxt.SafeListTyped(trade, "feeDetail")
 	var first map[string]any = ccxt.SafeMapTyped(feeDetail, 0)
@@ -1580,7 +1580,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString2(trade, "orderId", "L"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       ccxt.GetValue(marketResolved, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         this.SafeString(trade, "orderType"),
 		"side":         this.SafeString2(trade, "side", "S"),
 		"takerOrMaker": this.SafeString(trade, "tradeScope"),

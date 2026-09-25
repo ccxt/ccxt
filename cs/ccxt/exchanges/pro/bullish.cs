@@ -526,7 +526,7 @@ public partial class bullish : ccxt.bullish
             }
             string messageHash = "orders";
             client.resolve(orders, messageHash);
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? hashSymbol = ((string)keys[i]);
@@ -653,7 +653,7 @@ public partial class bullish : ccxt.bullish
             }
             string messageHash = "myTrades";
             client.resolve(trades, messageHash);
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? hashSymbol = ((string)keys[i]);
@@ -750,7 +750,7 @@ public partial class bullish : ccxt.bullish
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
             Dictionary<string, object> parsed = this.parseBalance(data);
-            List<object> parsedKeys = new List<object>(((IDictionary<string,object>)parsed).Keys);
+            List<object> parsedKeys = new List<object>(parsed.Keys);
             for (int i = 0; i < parsedKeys.Count; i++)
             {
                 string? parsedKey = ((string)parsedKeys[i]);

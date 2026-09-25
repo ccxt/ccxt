@@ -968,12 +968,12 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         object quoteVolume = this.safeString(ticker, "volCcy24h");
         object baseVolume = this.safeString(ticker, "vol24h");
-        if (((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("swap") ? ((IDictionary<string, object>)marketResolved)["swap"] : null) as bool?) == true)) && ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true)))
+        if (((((marketResolved != null && marketResolved.ContainsKey("swap") ? marketResolved["swap"] : null) as bool?) == true)) && ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)))
         {
             object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -1109,7 +1109,7 @@ public partial class deepcoin : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(trade, "tradeId") },
             { "order", this.safeString(trade, "ordId") },
             { "type", null },
@@ -1615,7 +1615,7 @@ public partial class deepcoin : Exchange
             { "referenceAccount", null },
             { "referenceId", null },
             { "type", this.parseLedgerEntryType(type) },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "amount", amount },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2891,7 +2891,7 @@ public partial class deepcoin : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "uTime") },
             { "status", this.parseOrderStatus(state) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.parseOrderType(orderType) },
             { "timeInForce", this.parseOrderTimeInForce(orderType) },
             { "side", this.safeString(order, "side") },
@@ -3058,7 +3058,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(position, "cTime");
         return this.safePosition(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(position, "posId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -3374,7 +3374,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(instrumentID, market, null, "swap");
         return new Dictionary<string, object>() {
             { "info", info },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "fundingRate", this.safeNumber(info, "rate") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

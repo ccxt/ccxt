@@ -322,7 +322,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $marketResolved = ($market === null) ? $this->safe_market(null, $market) : $market;
+        $marketResolved = $this->safe_market(null, $market);
         $symbol = $marketResolved['symbol'];
         $sideRaw = $this->safe_integer($trade, 'type');
         $side = 'sell';

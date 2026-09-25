@@ -1542,7 +1542,7 @@ public partial class backpack : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", id },
             { "order", orderId },
             { "type", null },
@@ -1960,7 +1960,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "network", null },
             { "address", address },
             { "tag", null },
@@ -2104,7 +2104,7 @@ public partial class backpack : Exchange
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         if (postOnly)
         {
-            ((IDictionary<string,object>)paramsPostOnly)["postOnly"] = true;
+            paramsPostOnly["postOnly"] = true;
         }
         List<object> bracketKeys = new List<object>() {};
         IDictionary<string, object> takeProfit = this.safeDict(paramsPostOnly, "takeProfit");
@@ -2547,7 +2547,7 @@ public partial class backpack : Exchange
         string? id = this.safeString(position, "positionId");
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? entryPrice = this.safeString(position, "entryPrice");
         string? markPrice = this.safeString(position, "markPrice");
         string? netCost = this.safeString(position, "netCost");

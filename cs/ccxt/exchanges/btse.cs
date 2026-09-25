@@ -1249,7 +1249,7 @@ public partial class btse : Exchange
                 frees[(string)code] = Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available"));
             }
         }
-        List<object> codes = new List<object>(((IDictionary<string,object>)totals).Keys);
+        List<object> codes = new List<object>(totals.Keys);
         for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)codes[i]);
@@ -1346,7 +1346,7 @@ public partial class btse : Exchange
         // the exchange only provides the cap of each risk tier, so the floor
         // is derived from the previous tier: 0 for the first tier, and the
         // previous tier's maxNotional for every subsequent tier
-        List<object> symbolKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> symbolKeys = new List<object>(result.Keys);
         for (int i = 0; i < symbolKeys.Count; i++)
         {
             string? symbolKey = ((string)symbolKeys[i]);
@@ -1586,7 +1586,7 @@ public partial class btse : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeTimestamp(interest, "closeTime");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "openInterestAmount", this.safeNumber(interest, "openInterest") },
             { "openInterestValue", this.safeNumber(interest, "openInterestUSD") },
             { "timestamp", timestamp },
@@ -1700,7 +1700,7 @@ public partial class btse : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
@@ -2048,7 +2048,7 @@ public partial class btse : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeStringN(trade, new List<object>() {"tradeId", "serialId", "id"}) },
             { "order", this.safeString(trade, "orderId") },
             { "type", this.parseOrderType(this.safeString2(trade, "orderType", "type")) },
@@ -3031,7 +3031,7 @@ public partial class btse : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", null },
             { "status", status },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", orderType },
             { "timeInForce", this.parseTimeInForce(rawTimeInForce) },
             { "postOnly", this.safeBool(order, "postOnly") },
@@ -3715,7 +3715,7 @@ public partial class btse : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "positionId") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "entryPrice", this.parseNumber(this.safeString(position, "entryPrice")) },
             { "markPrice", this.parseNumber(this.safeString(position, "markPrice")) },
             { "lastPrice", null },
@@ -3878,7 +3878,7 @@ public partial class btse : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", marginMode },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "marginMode", marginModeValue },
         };
     }

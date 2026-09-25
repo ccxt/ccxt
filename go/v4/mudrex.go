@@ -302,7 +302,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) || !IsObject(response) {
+	if (response == nil) || !IsObject(response) {
 		return nil
 	}
 	var success *bool = this.SafeBool(response, "success", true)

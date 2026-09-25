@@ -338,7 +338,7 @@ public partial class blockchaincom : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> markets = await this.publicGetSymbols(parameters);
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> marketIds = new List<object>(markets.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; i < marketIds.Count; i++)
         {
@@ -925,12 +925,12 @@ public partial class blockchaincom : Exchange
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? datetime = this.iso8601(timestamp);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if ((feeCostString != null))
         {
-            string? feeCurrency = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
+            string? feeCurrency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrency },

@@ -1916,7 +1916,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Indodax) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	// { success: 0, error: "invalid order." }

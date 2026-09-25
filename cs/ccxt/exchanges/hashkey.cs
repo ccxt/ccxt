@@ -1646,7 +1646,7 @@ public partial class hashkey : Exchange
             { "id", this.safeString2(trade, "id", "tradeId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "side", side },
             { "price", this.safeString2(trade, "p", "price") },
             { "amount", this.safeStringN(trade, new List<object>() {"q", "qty", "quantity"}) },
@@ -1831,13 +1831,13 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? marketId = this.safeString(ticker, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
-        if (((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contract") ? ((IDictionary<string, object>)marketResolved)["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null), null)))
+        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null), null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null)));
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1900,7 +1900,7 @@ public partial class hashkey : Exchange
         string? marketId = this.safeString(entry, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "price", this.safeNumberOmitZero(entry, "p") },
@@ -3792,7 +3792,7 @@ public partial class hashkey : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "status", this.parseOrderStatus(status) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "side", side },
@@ -3955,7 +3955,7 @@ public partial class hashkey : Exchange
         Int64? fundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
@@ -4131,7 +4131,7 @@ public partial class hashkey : Exchange
     {
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "id", null },
@@ -4379,12 +4379,12 @@ public partial class hashkey : Exchange
         bool success = errorCode == "0000";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
-            { "code", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) },
+            { "code", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
             { "status", success ? "ok" : "failed" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4504,7 +4504,7 @@ public partial class hashkey : Exchange
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
                 { "minNotional", null },
                 { "maxNotional", this.safeNumber(tier, "quantity") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintMargin") },
@@ -4595,7 +4595,7 @@ public partial class hashkey : Exchange
         {
             IDictionary<string, object> fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsedFee = this.parseTradingFee(fee);
-            result[(string)((string)(parsedFee != null && ((IDictionary<string, object>)parsedFee).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedFee)["symbol"] : null))] = parsedFee;
+            result[(string)((string)(parsedFee != null && parsedFee.ContainsKey("symbol") ? parsedFee["symbol"] : null))] = parsedFee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
     }
@@ -4627,7 +4627,7 @@ public partial class hashkey : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "maker", this.safeNumber2(fee, "openMakerFee", "actualMakerRate") },
             { "taker", this.safeNumber2(fee, "openTakerFee", "actualTakerRate") },
             { "percentage", true },

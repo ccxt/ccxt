@@ -337,14 +337,14 @@ public partial class bingx : ccxt.bingx
         object inverse = false;
         if ((isInverse == null))
         {
-            inverse = (((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true);
+            inverse = (((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true);
         } else
         {
             inverse = isInverse;
         }
         string baseVolumeKey = isTrue(inverse) ? "m" : "v";
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(message, "h") },
@@ -1863,7 +1863,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        bool isSpot = ((message != null && ((IDictionary<string, object>)message).ContainsKey("dataType")));
+        bool isSpot = ((message != null && message.ContainsKey("dataType")));
         IDictionary<string, object> data = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         if ((this.orders == null))
         {
@@ -1901,7 +1901,7 @@ public partial class bingx : ccxt.bingx
             }
         }
         stored.append(parsedOrder);
-        string? symbol = ((string)(parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null));
+        string? symbol = ((string)(parsedOrder != null && parsedOrder.ContainsKey("symbol") ? parsedOrder["symbol"] : null));
         string spotHash = "spot:order";
         string swapHash = "swap:order";
         string messageHash = swapHash;
@@ -1971,7 +1971,7 @@ public partial class bingx : ccxt.bingx
         //        }
         //    }
         //
-        bool isSpot = ((message != null && ((IDictionary<string, object>)message).ContainsKey("dataType")));
+        bool isSpot = ((message != null && message.ContainsKey("dataType")));
         IDictionary<string, object> result = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         ccxt.pro.ArrayCache cachedTrades = this.myTrades;
         if ((cachedTrades == null))
@@ -1988,7 +1988,7 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
         Dictionary<string, object> parsed = this.parseTrade(result, market);
-        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
         string messageHash = swapHash;

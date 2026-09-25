@@ -1332,13 +1332,13 @@ public partial class bullish : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(trade, "createdAtTimestamp");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
         string? side = this.safeStringLower(trade, "side");
         bool? isTaker = this.safeBool(trade, "isTaker");
-        string? currency = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
+        string? currency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
         string? code = this.safeCurrencyCode(currency);
         double? feeCost = this.safeNumber(trade, "quoteFee");
         Dictionary<string, object> fee = null;
@@ -1481,7 +1481,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "createdAtTimestamp");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "high") },
@@ -1605,8 +1605,8 @@ public partial class bullish : Exchange
         {
             until = this.sum(startTime, maxDelta);
         }
-        ((IDictionary<string,object>)requestUntil)["createdAtDatetime[gte]"] = this.iso8601(startTime);
-        ((IDictionary<string,object>)requestUntil)["createdAtDatetime[lte]"] = this.iso8601(until);
+        requestUntil["createdAtDatetime[gte]"] = this.iso8601(startTime);
+        requestUntil["createdAtDatetime[lte]"] = this.iso8601(until);
         List<object> response = await this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil));
         //
         //     [
@@ -2061,7 +2061,7 @@ public partial class bullish : Exchange
         (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
         IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2); // is mandatory
-        ((IDictionary<string,object>)paramsTimeInForce)["timeInForce"] = timeInForce.ToUpper();
+        paramsTimeInForce["timeInForce"] = timeInForce.ToUpper();
         if (!isMarketOrder)
         {
             request["price"] = this.priceToPrecision(symbol, price);
@@ -2276,7 +2276,7 @@ public partial class bullish : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        object marketResolved = ((market == null)) ? this.safeMarket(marketId) : market;
+        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market);
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? id = this.safeString(order, "orderId");
         Int64? timestamp = this.safeInteger(order, "createdAtTimestamp");
@@ -2302,7 +2302,7 @@ public partial class bullish : Exchange
         if ((quoteFee != null))
         {
             fee["cost"] = quoteFee;
-            fee["currency"] = getValue(marketResolved, "quote");
+            fee["currency"] = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
         }
         string? average = this.safeString(order, "averageFillPrice");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -2374,11 +2374,11 @@ public partial class bullish : Exchange
         Int64? until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
         if ((until != null))
         {
-            ((IDictionary<string,object>)requestUntil)["createdAtDatetime[lte]"] = this.iso8601(until);
+            requestUntil["createdAtDatetime[lte]"] = this.iso8601(until);
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["createdAtDatetime[gte]"] = this.iso8601(since);
+            requestUntil["createdAtDatetime[gte]"] = this.iso8601(since);
         }
         Dictionary<string, object> response = await this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil));
         //
@@ -2939,7 +2939,7 @@ public partial class bullish : Exchange
         //     ]
         //
         Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(position, "symbol"), market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(position, "createdAtTimestamp");
         string? side = this.safeString(position, "side");
         return this.safePosition(new Dictionary<string, object>() {
@@ -3190,8 +3190,8 @@ public partial class bullish : Exchange
         {
             until = now;
         }
-        ((IDictionary<string,object>)requestUntil)["createdAtDatetime[gte]"] = this.iso8601(startTimestamp);
-        ((IDictionary<string,object>)requestUntil)["createdAtDatetime[lte]"] = this.iso8601(until);
+        requestUntil["createdAtDatetime[gte]"] = this.iso8601(startTimestamp);
+        requestUntil["createdAtDatetime[lte]"] = this.iso8601(until);
         List<object> response = await this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil));
         //
         //     [

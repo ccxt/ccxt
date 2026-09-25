@@ -996,7 +996,7 @@ public partial class onetrading : Exchange
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;

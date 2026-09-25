@@ -335,7 +335,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(ticker, channel);
         if ((channel != null))
         {
-            client.resolve(ticker, ((channel + "::") + ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null))));
+            client.resolve(ticker, ((channel + "::") + ((ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null))));
         }
     }
 
@@ -451,7 +451,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(ticker, channel);
         if ((channel != null))
         {
-            client.resolve(ticker, ((channel + "::") + ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null))));
+            client.resolve(ticker, ((channel + "::") + ((ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null))));
         }
     }
 
@@ -637,7 +637,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //    }
         //
         Dictionary<string, object> trade = this.parseWsTrade(message);
-        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
         string? channel = this.safeString(message, "channel");
         if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
@@ -651,7 +651,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(tradesArray, channel);
         if ((channel != null))
         {
-            client.resolve(tradesArray, ((channel + "::") + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null))));
+            client.resolve(tradesArray, ((channel + "::") + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null))));
         }
         return message;
     }
@@ -866,10 +866,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //
         string? channel = this.safeString(message, "channel");
         Dictionary<string, object> fundingRate = this.parseFundingRate(message);
-        this.fundingRates[(string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null)] = fundingRate;
+        this.fundingRates[(string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null)] = fundingRate;
         if ((channel != null))
         {
-            client.resolve(fundingRate, ((channel + "::") + ((fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null))));
+            client.resolve(fundingRate, ((channel + "::") + ((fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null))));
         }
     }
 

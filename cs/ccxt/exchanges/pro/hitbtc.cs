@@ -284,7 +284,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             type = "snapshot";
         }
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -457,7 +457,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         List<object> result = new List<object>() {};
         string topic = "tickers";
         for (int i = 0; i < marketIds.Count; i++)
@@ -594,7 +594,7 @@ public partial class hitbtc : ccxt.hitbtc
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         List<object> result = new List<object>() {};
         string topic = "bidask";
         for (int i = 0; i < marketIds.Count; i++)
@@ -711,7 +711,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -853,7 +853,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         string? channel = this.safeString(message, "ch", "");
         List<object> splitChannel = channel.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? period = this.safeString(splitChannel, 1);
@@ -1155,7 +1155,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "price", this.safeString(order, "price") },
             { "amount", this.safeString(order, "quantity") },
             { "type", this.safeString(order, "type") },

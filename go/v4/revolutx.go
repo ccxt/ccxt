@@ -1863,7 +1863,7 @@ func (this *Revolutx) editOrderBody(ch chan any, id string, symbol any, typeVar 
 }
 func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsGreaterThanOrEqual(code, 400) {
-		if IsEqual(response, nil) {
+		if response == nil {
 			return nil
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

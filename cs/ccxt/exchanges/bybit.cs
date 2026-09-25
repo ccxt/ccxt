@@ -4297,7 +4297,7 @@ public partial class bybit : Exchange
             marketType = this.safeString(market, "type");
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? amountString = this.safeStringN(trade, new List<object>() {"execQty", "orderQty", "size"});
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
         string? costString = this.safeString(trade, "execValue");
@@ -4345,30 +4345,30 @@ public partial class bybit : Exchange
         {
             string? feeRateString = this.safeString(trade, "feeRate");
             object feeCurrencyCode = null;
-            if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("spot") ? ((IDictionary<string, object>)marketResolved)["spot"] : null) as bool?) == true))
+            if ((((marketResolved != null && marketResolved.ContainsKey("spot") ? marketResolved["spot"] : null) as bool?) == true))
             {
                 if (Precise.stringGt(feeCostString, "0"))
                 {
                     if (side == "buy")
                     {
-                        feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
+                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
                     } else
                     {
-                        feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
                     }
                 } else
                 {
                     if (side == "buy")
                     {
-                        feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
                     } else
                     {
-                        feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
+                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
                     }
                 }
             } else
             {
-                feeCurrencyCode = ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true)) ? (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null) : (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null);
+                feeCurrencyCode = ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)) ? (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null) : (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
@@ -5085,7 +5085,7 @@ public partial class bybit : Exchange
             marketType = isContract ? "contract" : "spot";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -5096,7 +5096,7 @@ public partial class bybit : Exchange
         string? side = this.safeStringLower(order, "side");
         string? amount = null;
         string? cost = null;
-        bool qtyIsQuote = ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("spot") ? ((IDictionary<string, object>)marketResolved)["spot"] : null) as bool?) == true)) && (type == "market") && ((marketUnit == "quoteCoin") || (((marketUnit == null)) && (side == "buy")));
+        bool qtyIsQuote = ((((marketResolved != null && marketResolved.ContainsKey("spot") ? marketResolved["spot"] : null) as bool?) == true)) && (type == "market") && ((marketUnit == "quoteCoin") || (((marketUnit == null)) && (side == "buy")));
         if ((qtyIsQuote == true))
         {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
@@ -5113,7 +5113,7 @@ public partial class bybit : Exchange
         string? status = this.parseOrderStatus(rawStatus);
         Dictionary<string, object> fee = null;
         IDictionary<string, object> cumFeeDetail = this.safeDict(order, "cumFeeDetail", new Dictionary<string, object>() {});
-        List<object> feeCoins = new List<object>(((IDictionary<string,object>)cumFeeDetail).Keys);
+        List<object> feeCoins = new List<object>(cumFeeDetail.Keys);
         string? feeCoinId = this.safeString(feeCoins, 0);
         if ((feeCoinId != null))
         {
@@ -5742,7 +5742,7 @@ public partial class bybit : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
-            ((IDictionary<string,object>)orderRequest).Remove("category");
+            orderRequest.Remove("category");
             ordersRequests.Add(orderRequest);
         }
         IList<object> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -5981,7 +5981,7 @@ public partial class bybit : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
-            ((IDictionary<string,object>)orderRequest).Remove("category");
+            orderRequest.Remove("category");
             ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -7350,8 +7350,8 @@ public partial class bybit : Exchange
         List<object> chains = this.safeList(result, "chains", new List<object>() {});
         string? coin = this.safeString(result, "coin");
         Dictionary<string, object> currencyFromResponse = this.currency(coin);
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {(currencyFromResponse != null && ((IDictionary<string, object>)currencyFromResponse).ContainsKey("code") ? ((IDictionary<string, object>)currencyFromResponse)["code"] : null)}, false, new Dictionary<string, object>() {
-            { "currency", (currencyFromResponse != null && ((IDictionary<string, object>)currencyFromResponse).ContainsKey("code") ? ((IDictionary<string, object>)currencyFromResponse)["code"] : null) },
+        object parsed = this.parseDepositAddresses(chains, new List<object>() {(currencyFromResponse != null && currencyFromResponse.ContainsKey("code") ? currencyFromResponse["code"] : null)}, false, new Dictionary<string, object>() {
+            { "currency", (currencyFromResponse != null && currencyFromResponse.ContainsKey("code") ? currencyFromResponse["code"] : null) },
         });
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
@@ -8403,7 +8403,7 @@ public partial class bybit : Exchange
         string? notional = null;
         string? contractSize = this.safeString(marketResolved, "contractSize");
         string? markPrice = this.safeString(position, "markPrice");
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true))
+        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
         {
             notional = Precise.stringDiv(Precise.stringMul(size, contractSize), markPrice);
         } else
@@ -8425,7 +8425,7 @@ public partial class bybit : Exchange
         string? leverage = this.safeString(position, "leverage");
         if ((liquidationPrice != null))
         {
-            if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) as string) == "USDC"))
+            if ((((marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) as string) == "USDC"))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 bool? useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
@@ -8439,7 +8439,7 @@ public partial class bybit : Exchange
             } else
             {
                 string? bustPrice = this.safeString(position, "bustPrice");
-                if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("linear") ? ((IDictionary<string, object>)marketResolved)["linear"] : null) as bool?) == true))
+                if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
                 {
                     // derived from the following formulas
                     //  (Entry price - Bust price) * Contracts = Collateral
@@ -8474,7 +8474,7 @@ public partial class bybit : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
@@ -9700,7 +9700,7 @@ public partial class bybit : Exchange
         for (int i = 0; i < getArrayLength(fees); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
+            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -9755,7 +9755,7 @@ public partial class bybit : Exchange
                 string? networkCode = this.networkIdToCode(networkId, currencyCode);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
                             { "fee", null },
                             { "percentage", null },
@@ -9768,8 +9768,8 @@ public partial class bybit : Exchange
                 }
                 if ((chainsLength == 1))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(chain, "withdrawFee");
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                    ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(chain, "withdrawFee");
+                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 }
             }
         }
@@ -10549,7 +10549,7 @@ public partial class bybit : Exchange
         object idKey = ((marketIdKey == null)) ? "symbol" : marketIdKey;
         IList<object> filteredResults = ((IList<object>)this.filterByArray(response, idKey, marketIds, false));
         Dictionary<string, object> grouped = this.groupBy(filteredResults, idKey);
-        List<object> keys = new List<object>(((IDictionary<string,object>)grouped).Keys);
+        List<object> keys = new List<object>(grouped.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
@@ -10595,7 +10595,7 @@ public partial class bybit : Exchange
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "id") },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
                 { "minNotional", minNotional },
                 { "maxNotional", this.safeNumber(tier, "riskLimitValue") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
@@ -10707,9 +10707,9 @@ public partial class bybit : Exchange
         string? marketId = this.safeString(income, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
         object code = "USDT";
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true))
+        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
         {
-            code = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+            code = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
         }
         Int64? timestamp = this.safeInteger(income, "execTime");
         return new Dictionary<string, object>() {
@@ -10895,7 +10895,7 @@ public partial class bybit : Exchange
         return new Dictionary<string, object>() {
             { "info", chain },
             { "currency", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "impliedVolatility", this.safeNumber(chain, "markIv") },

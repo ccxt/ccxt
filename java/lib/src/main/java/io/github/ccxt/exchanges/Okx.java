@@ -2712,7 +2712,7 @@ public class Okx extends OkxApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
+        return (this.milliseconds() - timeDifference);
     }
 
     /**
@@ -9074,7 +9074,7 @@ public class Okx extends OkxApi
         }};
     }
 
-    public Object parseBorrowRateHistories(Object response, Object codes, Object since, Object limit)
+    public Object parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
     {
         //
         //    [
@@ -9109,7 +9109,7 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), false));
+            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
         }
         return borrowRateHistories;
     }

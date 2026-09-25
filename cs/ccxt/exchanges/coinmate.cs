@@ -565,7 +565,7 @@ public partial class coinmate : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -707,7 +707,7 @@ public partial class coinmate : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> keys = new List<object>(data.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -919,7 +919,7 @@ public partial class coinmate : Exchange
         string? method = this.safeString(methods, code);
         if ((method == null))
         {
-            List<object> allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);
+            List<object> allowedCurrencies = new List<object>(methods.Keys);
             throw new ExchangeError (((this.id + " withdraw() only allows withdrawing the following currencies: ") + String.Join(", ", allowedCurrencies.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1067,7 +1067,7 @@ public partial class coinmate : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         }
         string? takerOrMaker = this.safeString(trade, "feeType");
@@ -1077,7 +1077,7 @@ public partial class coinmate : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "side", side },
             { "order", orderId },

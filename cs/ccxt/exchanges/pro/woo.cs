@@ -693,7 +693,7 @@ public partial class woo : ccxt.woo
             }
             ticker["ts"] = timestamp;
             Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker);
-            string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
+            string? symbol = ((string)(parsedTicker != null && parsedTicker.ContainsKey("symbol") ? parsedTicker["symbol"] : null));
             if ((symbol != null))
             {
                 this.bidsasks[(string)symbol] = parsedTicker;
@@ -974,7 +974,7 @@ public partial class woo : ccxt.woo
         //
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -1250,7 +1250,7 @@ public partial class woo : ccxt.woo
         string? orderId = this.safeString2(order, "orderId", "algoOrderId");
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.market(marketId);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },
@@ -1435,7 +1435,7 @@ public partial class woo : ccxt.woo
         }
         Dictionary<string, object> trade = this.parseWsTrade(message);
         myTrades.append(trade);
-        string messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
+        string messageHash = ("myTrades:" + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null)));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -1571,7 +1571,7 @@ public partial class woo : ccxt.woo
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> rawPositions = this.safeDict(data, "positions", new Dictionary<string, object>() {});
-        List<object> postitionsIds = new List<object>(((IDictionary<string,object>)rawPositions).Keys);
+        List<object> postitionsIds = new List<object>(rawPositions.Keys);
         if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
@@ -1719,7 +1719,7 @@ public partial class woo : ccxt.woo
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data);
-        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
+        string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
         if ((symbol != null))
         {
             this.fundingRates[(string)symbol] = fundingRate;

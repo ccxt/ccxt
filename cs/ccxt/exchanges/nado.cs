@@ -1202,7 +1202,7 @@ public partial class nado : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)ordersRequestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)ordersRequestUntil)["limit"] = Math.Min(limit.Value, 500);
+            ordersRequestUntil["limit"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", ordersRequestUntil },
@@ -1323,7 +1323,7 @@ public partial class nado : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)matchesRequestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)matchesRequestUntil)["limit"] = Math.Min(limit.Value, 500);
+            matchesRequestUntil["limit"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "matches", matchesRequestUntil },
@@ -2112,7 +2112,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(response.Keys);
         List<object> rates = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
@@ -2209,7 +2209,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(response.Keys);
         List<object> interests = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
@@ -2461,7 +2461,7 @@ public partial class nado : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         }
         object parsedAmount = null;
@@ -2492,7 +2492,7 @@ public partial class nado : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString2(trade, "trade_id", "submission_idx") },
             { "order", this.safeString(trade, "digest") },
             { "type", null },
@@ -2533,7 +2533,7 @@ public partial class nado : Exchange
         Int64? fundingTimestamp = this.safeTimestamp(contract, "next_funding_rate_timestamp");
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "markPrice", this.safeNumber(contract, "mark_price") },
             { "indexPrice", this.safeNumber(contract, "index_price") },
             { "interestRate", null },
@@ -2571,7 +2571,7 @@ public partial class nado : Exchange
         Int64? timestamp = this.safeTimestamp(funding, "timestamp");
         return new Dictionary<string, object>() {
             { "info", funding },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "code", this.safeString(marketResolved, "settle") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2606,7 +2606,7 @@ public partial class nado : Exchange
         string? marketId = this.safeString(interest, "product_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "openInterestAmount", this.safeNumber(interest, "open_interest") },
             { "openInterestValue", this.safeNumber(interest, "open_interest_usd") },
             { "timestamp", null },
@@ -2622,7 +2622,7 @@ public partial class nado : Exchange
         object timestamp = null;
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", null },
@@ -2847,7 +2847,7 @@ public partial class nado : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "isolated", null },
@@ -3370,9 +3370,9 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " signHash() requires privateKey")) ;
         }
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
-        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null))).ToLower();
+        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null))).ToLower();
         return ((("0x" + this.padHex(r, 64)) + this.padHex(s, 64)) + v);
     }
 

@@ -4516,7 +4516,7 @@ func (this *Pacifica) HandleOriginAndSingleAddress(methodName string, params any
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params"))
 }
 func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//

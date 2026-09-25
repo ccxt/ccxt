@@ -2580,7 +2580,7 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Zebpay) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, body)
 		return nil
 	}

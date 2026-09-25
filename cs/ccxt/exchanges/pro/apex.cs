@@ -181,7 +181,7 @@ public partial class apex : ccxt.apex
         string? id = this.safeStringN(trade, new List<object>() {"i", "id", "v"});
         string? marketId = this.safeString2(trade, "s", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? side = this.safeStringLower2(trade, "S", "side");
         string? price = this.safeString2(trade, "p", "price");
@@ -814,11 +814,11 @@ public partial class apex : ccxt.apex
         {
             object rawTrade = getValue(lists, i);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             symbols[(string)symbol] = true;
             trades.append(parsed);
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = ("myTrades:" + (keys[i]));
@@ -870,11 +870,11 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < getArrayLength(lists); i++)
         {
             Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             symbols[(string)symbol] = true;
             orders.append(parsed);
         }
-        List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; i < symbolsArray.Count; i++)
         {
             string currentMessageHash = ("orders:" + (symbolsArray[i]));
@@ -1161,7 +1161,7 @@ public partial class apex : ccxt.apex
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);

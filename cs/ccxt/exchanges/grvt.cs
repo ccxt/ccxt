@@ -1306,7 +1306,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -1402,7 +1402,7 @@ public partial class grvt : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(feeString) },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "rate", this.safeNumber(trade, "fee_rate") },
             };
         }
@@ -1411,7 +1411,7 @@ public partial class grvt : Exchange
             { "id", this.safeString(trade, "trade_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "side", side },
             { "takerOrMaker", takerOrMaker },
             { "price", this.safeString(trade, "price") },
@@ -1474,7 +1474,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -1563,7 +1563,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -1754,7 +1754,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
@@ -1821,7 +1821,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
@@ -2057,7 +2057,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -2506,7 +2506,7 @@ public partial class grvt : Exchange
             }
             // trigger by
             string? triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
-            ((IDictionary<string,object>)((IDictionary<string,object>)orderRequest)["metadata"])["trigger"] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)orderRequest["metadata"])["trigger"] = new Dictionary<string, object>() {
                 { "trigger_type", selectedType },
                 { "tpsl", new Dictionary<string, object>() {
                     { "trigger_by", triggerPriceType },
@@ -2694,9 +2694,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             request["base"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("base") ? request["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             request["quote"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("quote") ? request["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if ((limit != null))
         {
@@ -2707,7 +2707,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -2774,8 +2774,8 @@ public partial class grvt : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() supports contract markets only")) ;
                 }
-                ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
-                ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+                ((IList<object>)(request != null && request.ContainsKey("base") ? request["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+                ((IList<object>)(request != null && request.ContainsKey("quote") ? request["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
             }
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1Positions(this.extend(request, parameters));
@@ -3052,9 +3052,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             request["base"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("base") ? request["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             request["quote"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("quote") ? request["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if ((limit != null))
         {
@@ -3065,7 +3065,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -3139,9 +3139,9 @@ public partial class grvt : Exchange
         {
             market = this.market(symbol);
             request["base"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("base") ? request["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             request["quote"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("quote") ? request["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         if ((limit != null))
         {
@@ -3152,7 +3152,7 @@ public partial class grvt : Exchange
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
+            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
@@ -3590,9 +3590,9 @@ public partial class grvt : Exchange
         {
             Dictionary<string, object> market = this.market(symbol);
             request["base"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("base") ? ((IDictionary<string, object>)request)["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("base") ? request["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
             request["quote"] = new List<object>() {};
-            ((IList<object>)(request != null && ((IDictionary<string, object>)request).ContainsKey("quote") ? ((IDictionary<string, object>)request)["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            ((IList<object>)(request != null && request.ContainsKey("quote") ? request["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters));
         //
@@ -3730,9 +3730,9 @@ public partial class grvt : Exchange
         string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         string privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
-        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["r"] = this.formatSignatureRS((signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["s"] = this.formatSignatureRS((signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
-        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["v"] = this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null));
+        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["r"] = this.formatSignatureRS((signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["s"] = this.formatSignatureRS((signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["v"] = this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null));
         ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["signer"] = ((signerAddress == null)) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress;
         return ((Dictionary<string, object>)((object)(request)));
     }

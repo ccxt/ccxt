@@ -628,7 +628,7 @@ public partial class bit2c : Exchange
         //     }
         //
         IDictionary<string, object> fees = this.safeDict(response, "Fees", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
+        List<object> keys = new List<object>(fees.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -1114,7 +1114,7 @@ public partial class bit2c : Exchange
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", orderId },
             { "type", null },
             { "side", side },
@@ -1217,7 +1217,7 @@ public partial class bit2c : Exchange
             string auth = this.urlencode(query);
             if ((method == "GET"))
             {
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if ((new List<object>(query.Keys)).Count > 0)
                 {
                     url = url + ("?" + auth);
                 }

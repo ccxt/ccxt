@@ -2531,7 +2531,7 @@ impl WeexCore {
         if (realizedPnl.is_some()) {
             tradeMarketType = Value::Str("swap".into());
         }
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[tradeMarketId, Value::Null, Value::Null, tradeMarketType.clone()]) } else { market.clone() });
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { tradeMarketId } else { Value::Null }), market.clone(), Value::Null, tradeMarketType.clone()]);
         let mut isSpot: Value = Value::Null;
         if (market == Value::Null) {
             isSpot = Value::Bool(tradeMarketType.as_str() == Some("spot"));
@@ -4148,7 +4148,7 @@ impl WeexCore {
         if (positionSide.is_none()) {
             orderMarketType = Value::Str("spot".into());
         }
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[orderMarketId, Value::Null, Value::Null, orderMarketType]) } else { market });
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { orderMarketId } else { Value::Null }), market, Value::Null, orderMarketType]);
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("transactTime".into()), Value::Str("time".into()), Value::Str("createTime".into())]), &[]);
         let mut rawStatus: Value = self.safe_string_lower2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]); // algo (trigger) order payloads carry algoStatus instead of status
         let mut triggerPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]));

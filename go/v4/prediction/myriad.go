@@ -5143,7 +5143,7 @@ func (this *Myriad) WalletAddressFromKeys() string {
 }
 func (this *Myriad) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var error *string = this.SafeString(response, "error")

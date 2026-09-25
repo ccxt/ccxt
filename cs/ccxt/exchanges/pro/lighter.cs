@@ -316,7 +316,7 @@ public partial class lighter : ccxt.lighter
         string? channel = this.safeString(message, "channel");
         if (channel == "market_stats:all")
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+            List<object> marketIds = new List<object>(data.Keys);
             for (int i = 0; i < marketIds.Count; i++)
             {
                 string? marketId = ((string)marketIds[i]);
@@ -854,7 +854,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = channel.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? accountIndex = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         IDictionary<string, object> data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         int idsLength = marketIds.Count;
         if ((idsLength == 0))
         {
@@ -880,7 +880,7 @@ public partial class lighter : ccxt.lighter
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
                 Dictionary<string, object> trade = this.parseWsOrderTrade(tradeRaw, market);
                 stored.append(trade);
-                string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+                string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
                 if ((symbol != null))
                 {
                     string? symbolSpecificMessageHash = this.getMessageHash("myTrades", symbol);
@@ -1211,7 +1211,7 @@ public partial class lighter : ccxt.lighter
         if (type == "spot")
         {
             IDictionary<string, object> assets = this.safeDict(message, "assets", new Dictionary<string, object>() {});
-            List<object> assetIds = new List<object>(((IDictionary<string,object>)assets).Keys);
+            List<object> assetIds = new List<object>(assets.Keys);
             for (int i = 0; i < assetIds.Count; i++)
             {
                 string? assetId = ((string)assetIds[i]);
@@ -1482,7 +1482,7 @@ public partial class lighter : ccxt.lighter
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "orders", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         int idsLength = marketIds.Count;
         if ((idsLength == 0))
         {
@@ -1504,7 +1504,7 @@ public partial class lighter : ccxt.lighter
             {
                 Dictionary<string, object> order = this.parseOrder(orders[j], market);
                 stored.append(order);
-                string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
+                string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
                 if ((symbol != null))
                 {
                     string? symbolSpecificMessageHash = this.getMessageHash("orders", symbol);

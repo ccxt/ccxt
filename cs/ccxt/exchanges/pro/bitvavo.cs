@@ -188,7 +188,7 @@ public partial class bitvavo : ccxt.bitvavo
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             Dictionary<string, object> ticker = this.parseTicker(data, market);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             this.tickers[(string)symbol] = ticker;
             result.Add(ticker);
             if ((eventVar != null))
@@ -231,7 +231,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             object data = tickers[i];
             Dictionary<string, object> ticker = this.parseWsBidAsk(data);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((eventVar + ":") + symbol);
@@ -559,7 +559,7 @@ public partial class bitvavo : ccxt.bitvavo
             messageHashes.Add(((((("multi:" + name) + "@") + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + interval));
         }
         List<object> channels = new List<object>() {};
-        List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
+        List<object> intervals = new List<object>(marketIdsByInterval.Keys);
         for (int i = 0; i < intervals.Count; i++)
         {
             string? interval = ((string)intervals[i]);
@@ -642,7 +642,7 @@ public partial class bitvavo : ccxt.bitvavo
             subMessageHashes.Add(((((("multi:" + name) + "@") + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + interval));
         }
         List<object> channels = new List<object>() {};
-        List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
+        List<object> intervals = new List<object>(marketIdsByInterval.Keys);
         for (int i = 0; i < intervals.Count; i++)
         {
             string? interval = ((string)intervals[i]);
@@ -1959,7 +1959,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "book", this.handleOrderBookSubscriptions },
         };
-        List<object> names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> names = new List<object>(subscriptions.Keys);
         for (int i = 0; i < names.Count; i++)
         {
             string? name = ((string)names[i]);

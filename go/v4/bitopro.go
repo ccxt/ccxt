@@ -2407,7 +2407,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to the default error handler
 	}
 	if IsGreaterThanOrEqual(code, 200) && IsLessThan(code, 300) {

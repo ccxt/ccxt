@@ -1353,7 +1353,7 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $defaultType = ($posMode !== null) ? 'contract' : 'spot';
         }
-        $marketResolved = ($market === null) ? $this->safe_market($instId, null, null, $defaultType) : $market;
+        $marketResolved = $this->safe_market(($market === null) ? $instId : null, $market, null, $defaultType);
         $timestamp = $this->safe_integer_n($trade, array( 'uTime', 'cTime', 'ts', 'T', 'execTime' ));
         $feeDetail = $this->safe_list($trade, 'feeDetail', array());
         $first = $this->safe_dict($feeDetail, 0);

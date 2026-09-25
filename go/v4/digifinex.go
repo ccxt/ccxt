@@ -1671,17 +1671,17 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeStringN(trade, []any{"amount", "volume", "size"})
 	var marketId *string = this.SafeStringUpper2(trade, "symbol", "instrument_id")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var marketResolved any = func() any {
+	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
-			return this.SafeMarket(marketId)
+			return marketId
 		}
-		return market
-	}()
+		return nil
+	}(), market)
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "timestamp")
 	var side *string = this.SafeString2(trade, "type", "side")
 	var typeVar *string = nil
 	var takerOrMaker any = nil
-	if GetValue(marketResolved, "type") == "swap" {
+	if marketResolved["type"] == "swap" {
 		timestamp = this.SafeInteger(trade, "trade_time")
 		var orderType *string = this.SafeString(trade, "order_type")
 		var tradeRole *string = this.SafeString(trade, "match_role")
@@ -5708,7 +5708,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fall back to default error handler
 	}
 	var code *string = this.SafeString(response, "code")

@@ -652,7 +652,7 @@ public partial class bithumb : Exchange
         } else
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-            List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+            List<object> quotes = new List<object>(quoteCurrencies.Keys);
             List<object> promises = new List<object>() {};
             for (int i = 0; i < quotes.Count; i++)
             {
@@ -667,7 +667,7 @@ public partial class bithumb : Exchange
                 IDictionary<string, object> response = this.safeDict(results, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 IDictionary<string, object> extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
-                List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
+                List<object> currencyIds = new List<object>(data.Keys);
                 for (int j = 0; j < currencyIds.Count; j++)
                 {
                     string? currencyId = ((string)currencyIds[j]);
@@ -1250,7 +1250,7 @@ public partial class bithumb : Exchange
         } else
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-            List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+            List<object> quotes = new List<object>(quoteCurrencies.Keys);
             if ((symbols != null))
             {
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
@@ -1264,7 +1264,7 @@ public partial class bithumb : Exchange
                         requiredQuotes[(string)quoteId] = true;
                     }
                 }
-                List<object> requiredQuoteIds = new List<object>(((IDictionary<string,object>)requiredQuotes).Keys);
+                List<object> requiredQuoteIds = new List<object>(requiredQuotes.Keys);
                 string? populatedQuotes = this.safeString(requiredQuoteIds, 0);
                 if ((populatedQuotes != null))
                 {
@@ -1683,7 +1683,7 @@ public partial class bithumb : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", null },
             { "type", type },
             { "side", side },
@@ -2055,7 +2055,7 @@ public partial class bithumb : Exchange
         {
             throw new BadRequest ((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
         }
-        ((IDictionary<string,object>)paramsGeneration)["createMarketBuyOrderRequiresPrice"] = false;
+        paramsGeneration["createMarketBuyOrderRequiresPrice"] = false;
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), paramsGeneration);
     }
 
@@ -2569,10 +2569,10 @@ public partial class bithumb : Exchange
             bool? twap = this.safeBool(paramsGeneration, "twap", false);
             if ((twap == true))
             {
-                ((IDictionary<string,object>)paramsGeneration)["state"] = "progress";
+                paramsGeneration["state"] = "progress";
             } else
             {
-                ((IDictionary<string,object>)paramsGeneration)["state"] = "wait";
+                paramsGeneration["state"] = "wait";
             }
             List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsGeneration));
             return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit));
@@ -3105,7 +3105,7 @@ public partial class bithumb : Exchange
             { "addressTo", null },
             { "amount", this.safeNumber(transaction, "amount") },
             { "type", type },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "status", this.parseTransactionStatusByType(this.safeString(transaction, "state"), type) },
             { "updated", null },
             { "tagFrom", null },

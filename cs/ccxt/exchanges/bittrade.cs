@@ -1000,7 +1000,7 @@ public partial class bittrade : Exchange
         //
         if (response.ContainsKey("tick"))
         {
-            if ((isEqual(((IDictionary<string,object>)response)["tick"], null)) || (isEqual(((IDictionary<string,object>)response)["tick"], null)))
+            if ((isEqual(response["tick"], null)) || (isEqual(response["tick"], null)))
             {
                 throw new BadSymbol (((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
@@ -1721,7 +1721,7 @@ public partial class bittrade : Exchange
             for (int i = 0; i < getArrayLength(this.accounts); i++)
             {
                 IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
-                if ((((account != null && ((IDictionary<string, object>)account).ContainsKey("type") ? ((IDictionary<string, object>)account)["type"] : null) as string) == "spot"))
+                if ((((account != null && account.ContainsKey("type") ? account["type"] : null) as string) == "spot"))
                 {
                     accountId = this.safeString(account, "id");
                     if ((accountId != null))
@@ -1834,10 +1834,10 @@ public partial class bittrade : Exchange
             object feeCurrency = null;
             if ((side is "sell"))
             {
-                feeCurrency = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+                feeCurrency = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
             } else
             {
-                feeCurrency = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
+                feeCurrency = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1851,7 +1851,7 @@ public partial class bittrade : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", null },
             { "postOnly", null },

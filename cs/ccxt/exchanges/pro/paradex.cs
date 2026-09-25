@@ -160,7 +160,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        string? symbol = ((string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null));
+        string? symbol = ((string)(parsedTrade != null && parsedTrade.ContainsKey("symbol") ? parsedTrade["symbol"] : null));
         string? messageHash = this.safeString(parameters, "channel");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -258,10 +258,10 @@ public partial class paradex : ccxt.paradex
             string? size = this.safeString(insert, "size");
             if (side == "BUY")
             {
-                ((IList<object>)((IDictionary<string,object>)orderbookData)["bids"]).Add(new List<object>() {price, size});
+                ((IList<object>)orderbookData["bids"]).Add(new List<object>() {price, size});
             } else
             {
-                ((IList<object>)((IDictionary<string,object>)orderbookData)["asks"]).Add(new List<object>() {price, size});
+                ((IList<object>)orderbookData["asks"]).Add(new List<object>() {price, size});
             }
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
@@ -597,7 +597,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRateWs(data);
-        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
+        string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
         this.fundingRates[(string)symbol] = fundingRate;
         string? channel = this.safeString(parameters, "channel");
         if ((channel != null))

@@ -1464,7 +1464,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var success *int64 = this.SafeInteger(response, "success")

@@ -2697,7 +2697,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[marketId.clone()]) } else { market });
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId.clone() } else { Value::Null }), market]);
         let mut symbol: Value = self.safe_symbol(marketId, &[marketResolved.clone()]);
         let mut id: Value = self.safe_string_k(order.clone(), "orderId", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdAtTimestamp", &[]);

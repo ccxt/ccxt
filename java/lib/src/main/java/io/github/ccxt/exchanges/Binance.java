@@ -4500,7 +4500,7 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
+        return (this.milliseconds() - timeDifference);
     }
 
     /**

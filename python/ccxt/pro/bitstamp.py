@@ -277,7 +277,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         timestamp = self.parse_to_int(microtimestamp / 1000)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
-        marketResolved = self.safe_market(None, market) if (market is None) else market
+        marketResolved = self.safe_market(None, market)
         symbol = marketResolved['symbol']
         sideRaw = self.safe_integer(trade, 'type')
         side = 'sell'

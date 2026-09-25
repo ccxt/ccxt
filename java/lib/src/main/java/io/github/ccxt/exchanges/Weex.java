@@ -885,7 +885,7 @@ public class Weex extends WeexApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**
@@ -2112,7 +2112,7 @@ public class Weex extends WeexApi
         {
             tradeMarketType = "swap";
         }
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(tradeMarketId, (Map<String, Object>) null, (String) null, tradeMarketType) : market;
+        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? tradeMarketId : null), market, (String) null, tradeMarketType);
         Object isSpot = null;
         if (java.util.Objects.equals(market, null))
         {
@@ -2157,7 +2157,7 @@ public class Weex extends WeexApi
             "order", this.safeString(trade, "orderId"),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", null,
             "takerOrMaker", takerOrMaker,
             "side", side,
@@ -2165,7 +2165,7 @@ public class Weex extends WeexApi
             "amount", this.safeString(trade, "qty"),
             "cost", this.safeString(trade, "quoteQty"),
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3831,7 +3831,7 @@ public class Weex extends WeexApi
         {
             orderMarketType = "spot";
         }
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(Helpers.toStringArg(orderMarketId), (Map<String, Object>) null, (String) null, orderMarketType) : market;
+        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? orderMarketId : null), market, (String) null, orderMarketType);
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("transactTime", "time", "createTime")));
         String rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         String triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
@@ -3886,7 +3886,7 @@ public class Weex extends WeexApi
             "stopLossPrice", stopLossPrice,
             "takeProfitPrice", takeProfitPrice,
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)

@@ -1582,7 +1582,7 @@ public class Sxbet extends SxbetApi
      * @param {int} limit the user-requested limit
      * @returns {int} the limit clamped to at most 100
      */
-    public Object clampSxbetPerPage(Object limit)
+    public Object clampSxbetPerPage(Long limit)
     {
         Object maxPerPage = 100;
         if (java.util.Objects.equals(limit, null))

@@ -958,7 +958,7 @@ public partial class blofin : Exchange
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
@@ -1114,7 +1114,7 @@ public partial class blofin : Exchange
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "price", "fillPrice");
         string? amount = this.safeString2(trade, "size", "fillSize");
@@ -1143,7 +1143,7 @@ public partial class blofin : Exchange
         }
         if (isSpot)
         {
-            string? spotSymbol = ((string)add(add((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null), "/"), (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null)));
+            string? spotSymbol = ((string)add(add((marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null), "/"), (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null)));
             double? cost = this.parseNumber(Precise.stringMul(price, amount));
             Dictionary<string, object> result = new Dictionary<string, object>() {
                 { "info", trade },
@@ -1892,7 +1892,7 @@ public partial class blofin : Exchange
         bool? reduceOnly = this.safeBool(paramsTpsl, "reduceOnly");
         if ((reduceOnly != null))
         {
-            ((IDictionary<string,object>)paramsTpsl)["reduceOnly"] = reduceOnly == true ? "true" : "false";
+            paramsTpsl["reduceOnly"] = reduceOnly == true ? "true" : "false";
         }
         if (isCombinedSlTp)
         {
@@ -2197,7 +2197,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit; // default 100, max 100
+            requestUntil["limit"] = limit; // default 100, max 100
         }
         string type = "swap";
         IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, type);
@@ -2206,7 +2206,7 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = null;
         if ((typeMarketType == "spot"))
         {
-            ((IDictionary<string,object>)requestUntil)["instType"] = "SPOT";
+            requestUntil["instType"] = "SPOT";
             //
             //     {
             //         "code": "0",
@@ -3033,7 +3033,7 @@ public partial class blofin : Exchange
         //
         string? marketId = this.safeString(position, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? pos = this.safeString(position, "positions");
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString(position, "positionSide");
@@ -3059,7 +3059,7 @@ public partial class blofin : Exchange
         string? contractSizeString = this.numberToString(contractSize);
         string? markPriceString = this.safeString(position, "markPrice");
         string? notionalString = this.safeString(position, "notionalUsd");
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true))
+        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
@@ -3174,10 +3174,10 @@ public partial class blofin : Exchange
             Dictionary<string, object> entryMarket = this.market(entry);
             if (i > 0)
             {
-                instIds = ((instIds + ",") + ((entryMarket != null && ((IDictionary<string, object>)entryMarket).ContainsKey("id") ? ((IDictionary<string, object>)entryMarket)["id"] : null)));
+                instIds = ((instIds + ",") + ((entryMarket != null && entryMarket.ContainsKey("id") ? entryMarket["id"] : null)));
             } else
             {
-                instIds = (instIds + ((entryMarket != null && ((IDictionary<string, object>)entryMarket).ContainsKey("id") ? ((IDictionary<string, object>)entryMarket)["id"] : null)));
+                instIds = (instIds + ((entryMarket != null && entryMarket.ContainsKey("id") ? entryMarket["id"] : null)));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

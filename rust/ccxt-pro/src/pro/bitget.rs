@@ -1861,7 +1861,7 @@ impl BitgetCore {
         }  else {
             defaultType = (if (posMode.is_some()) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         }
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[instId, Value::Null, Value::Null, defaultType]) } else { market });
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { instId } else { Value::Null }), market, Value::Null, defaultType]);
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]);
         let mut feeDetail: Value = self.safe_list_k(trade.clone(), "feeDetail", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(feeDetail, Value::Int(0), &[]);

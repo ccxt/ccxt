@@ -602,7 +602,7 @@ public partial class bitbns : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> keys = new List<object>(data.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -1059,12 +1059,12 @@ public partial class bitbns : Exchange
             amountString = this.safeString(trade, "base_volume");
             costString = this.safeString(trade, "quote_volume");
         }
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if ((feeCostString != null))
         {
-            string? feeCurrencyCode = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
+            string? feeCurrencyCode = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },

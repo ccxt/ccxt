@@ -4622,7 +4622,7 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 	if IsEqual(code, 520) {
 		panic(ExchangeNotAvailable(Add(this.Id+" "+ToString(code)+" ", reason)))
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	if GetValue(body, 0) == "{" {

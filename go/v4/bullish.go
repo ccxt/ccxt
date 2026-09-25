@@ -2582,12 +2582,12 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	var marketResolved any = func() any {
+	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
-			return this.SafeMarket(marketId)
+			return marketId
 		}
-		return market
-	}()
+		return nil
+	}(), market)
 	var symbol *string = this.SafeSymbol(marketId, marketResolved)
 	var id *string = this.SafeString(order, "orderId")
 	var timestamp *int64 = this.SafeInteger(order, "createdAtTimestamp")
@@ -2610,7 +2610,7 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
 	var quoteFee *float64 = this.SafeNumber(order, "quoteFee")
 	if quoteFee != nil {
 		fee["cost"] = quoteFee
-		fee["currency"] = GetValue(marketResolved, "quote")
+		fee["currency"] = marketResolved["quote"]
 	}
 	var average *string = this.SafeString(order, "averageFillPrice")
 	return this.SafeOrder(map[string]any{
@@ -3900,7 +3900,7 @@ func (this *Bullish) handleTokenBody(ch chan any, optionalArgs ...any) any {
 	}
 }
 func (this *Bullish) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//

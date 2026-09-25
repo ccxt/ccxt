@@ -183,7 +183,7 @@ public partial class gemini : ccxt.gemini
         //     }
         //
         Dictionary<string, object> trade = this.parseWsTrade(message);
-        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -284,7 +284,7 @@ public partial class gemini : ccxt.gemini
                 stored.append(trade);
                 storesForSymbols[(string)symbol] = stored;
             }
-            List<object> symbols = new List<object>(((IDictionary<string,object>)storesForSymbols).Keys);
+            List<object> symbols = new List<object>(storesForSymbols.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
                 string? symbol = ((string)symbols[i]);
@@ -599,7 +599,7 @@ public partial class gemini : ccxt.gemini
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        if (((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) != true)) && ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("linear") ? ((IDictionary<string, object>)firstMarket)["linear"] : null) as bool?) != true)))
+        if (((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) != true)) && ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) != true)))
         {
             throw new NotSupported ((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
         }

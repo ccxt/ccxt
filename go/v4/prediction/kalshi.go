@@ -731,7 +731,7 @@ func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, head
 	// errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
 	// outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
 	// through to the base http-status handling.
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var error map[string]any = ccxt.SafeMapTyped(response, "error")

@@ -3467,7 +3467,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) any
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab."))
 }
 func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	var error map[string]any = SafeMapTyped(response, "error")

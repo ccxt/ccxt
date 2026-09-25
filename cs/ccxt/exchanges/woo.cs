@@ -1211,7 +1211,7 @@ public partial class woo : Exchange
         }
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? price = this.safeString2(trade, "executed_price", "executedPrice");
         string? amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         string? order_id = this.safeString2(trade, "order_id", "orderId");
@@ -1480,7 +1480,7 @@ public partial class woo : Exchange
         List<object> tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new List<object>() {});
         Dictionary<string, object> networksById = this.groupBy(tokenNetworkRows, "token");
         Dictionary<string, object> tokensById = this.groupBy(tokenRows, "balance_token");
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)tokensById).Keys);
+        List<object> currencyIds = new List<object>(tokensById.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? id = ((string)currencyIds[i]);
@@ -1505,7 +1505,7 @@ public partial class woo : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> tokensByNetworkId = this.indexBy(getValue(rawCurrency, "_tokens_by_id"), "network");
         Dictionary<string, object> chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
-        List<object> keys = new List<object>(((IDictionary<string,object>)chainsByNetworkId).Keys);
+        List<object> keys = new List<object>(chainsByNetworkId.Keys);
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < keys.Count; j++)
         {
@@ -1841,7 +1841,7 @@ public partial class woo : Exchange
                 { "algoType", "POSITIONAL_TP_SL" },
                 { "childOrders", new List<object>() {} },
             };
-            object childOrders = ((IDictionary<string,object>)outterOrder)["childOrders"];
+            object childOrders = outterOrder["childOrders"];
             string closeSide = "BUY";
             if (orderSide == "BUY")
             {
@@ -2464,7 +2464,7 @@ public partial class woo : Exchange
         string? clientOrderId = ((string)this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId"))); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity"); // This is base amount
         string? orderType = this.safeStringLower(order, "type");
@@ -2621,7 +2621,7 @@ public partial class woo : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "24hHigh") },
@@ -2736,7 +2736,7 @@ public partial class woo : Exchange
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
-                if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("swap") ? ((IDictionary<string, object>)firstMarket)["swap"] : null) as bool?) != true))
+                if ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true))
                 {
                     throw new NotSupported ((this.id + " fetchTickers() supports swap markets only")) ;
                 }
@@ -3877,14 +3877,14 @@ public partial class woo : Exchange
         if ((access is "public"))
         {
             url = add(url, add(add(access, "/"), pathWithParams));
-            if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
+            if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(paramsSorted)));
             }
         } else if ((access is "pub"))
         {
             url = add(url, pathWithParams);
-            if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
+            if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(paramsSorted)));
             }
@@ -3926,7 +3926,7 @@ public partial class woo : Exchange
                     requestHeaders["content-type"] = "application/json";
                 } else
                 {
-                    if ((new List<object>(((IDictionary<string,object>)paramsSigned).Keys)).Count > 0)
+                    if ((new List<object>(paramsSigned.Keys)).Count > 0)
                     {
                         string query = this.urlencode(paramsSigned);
                         url = add(url, ("?" + query));
@@ -3941,7 +3941,7 @@ public partial class woo : Exchange
                     requestBody = auth;
                 } else
                 {
-                    if ((new List<object>(((IDictionary<string,object>)paramsSigned).Keys)).Count > 0)
+                    if ((new List<object>(paramsSigned.Keys)).Count > 0)
                     {
                         url = add(url, ("?" + (auth)));
                     }
@@ -4134,7 +4134,7 @@ public partial class woo : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", fundingRate },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", this.parseNumber("0") },
@@ -4453,7 +4453,7 @@ public partial class woo : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "marginMode", marginMode },
             { "longLeverage", longLeverage },
             { "shortLeverage", shortLeverage },
@@ -4951,11 +4951,11 @@ public partial class woo : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["startTime"] = since;
+            requestUntil["startTime"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["size"] = limit;
+            requestUntil["size"] = limit;
         }
         Dictionary<string, object> response = await this.v3PrivateGetConvertTrades(this.extend(requestUntil, paramsUntil));
         //
@@ -5217,7 +5217,7 @@ public partial class woo : Exchange
     public virtual object defaultNetworkCodeForCurrency(string? code)
     {
         Dictionary<string, object> currencyItem = this.currency(code);
-        object networks = (currencyItem != null && ((IDictionary<string, object>)currencyItem).ContainsKey("networks") ? ((IDictionary<string, object>)currencyItem)["networks"] : null);
+        object networks = (currencyItem != null && currencyItem.ContainsKey("networks") ? currencyItem["networks"] : null);
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; i < networkKeys.Count; i++)
         {

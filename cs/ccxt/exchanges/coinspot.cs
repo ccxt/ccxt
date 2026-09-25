@@ -802,7 +802,7 @@ public partial class coinspot : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IDictionary<string, object> prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
-        List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
+        List<object> ids = new List<object>(prices.Keys);
         for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)ids[i]);

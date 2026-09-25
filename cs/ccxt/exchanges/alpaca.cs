@@ -1243,7 +1243,7 @@ public partial class alpaca : Exchange
         //
         List<object> results = new List<object>() {};
         IDictionary<string, object> snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
+        List<object> marketIds = new List<object>(snapshots.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -1784,7 +1784,7 @@ public partial class alpaca : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? alpacaStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");

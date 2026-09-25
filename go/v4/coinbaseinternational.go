@@ -3093,7 +3093,7 @@ func (this *Coinbaseinternational) HandleErrors(code any, reason any, url any, m
 	//        "status":400
 	//    }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

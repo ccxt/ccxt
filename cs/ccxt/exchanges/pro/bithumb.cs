@@ -939,7 +939,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }};
-        List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> keys = new List<object>(subscriptions.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             request.Add(getValue(subscriptions, keys[i]));

@@ -1667,12 +1667,12 @@ public class Digifinex extends DigifinexApi
         String amountString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "volume", "size")));
         String marketId = this.safeStringUpper2(trade, "symbol", "instrument_id");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, (String) null);
         Long timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
         String type = null;
         String takerOrMaker = null;
-        if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("type"), "swap"))
+        if (java.util.Objects.equals(marketResolved.get("type"), "swap"))
         {
             timestamp = (Long) this.safeInteger(trade, "trade_time");
             String orderType = this.safeString(trade, "order_type");
@@ -1757,7 +1757,7 @@ public class Digifinex extends DigifinexApi
             "cost", null,
             "takerOrMaker", takerOrMaker,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**

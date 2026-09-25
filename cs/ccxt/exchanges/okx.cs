@@ -3031,7 +3031,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> dataByCurrencyId = this.groupBy(data, "ccy");
-        List<object> currencies = new List<object>(((IDictionary<string,object>)dataByCurrencyId).Values);
+        List<object> currencies = new List<object>(dataByCurrencyId.Values);
         return this.parseCurrencies(currencies);
     }
 
@@ -3228,7 +3228,7 @@ public partial class okx : Exchange
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-", marketType);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
@@ -3515,7 +3515,7 @@ public partial class okx : Exchange
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "fillPx", "px");
         string? amount = this.safeString2(trade, "fillSz", "sz");
@@ -4547,7 +4547,7 @@ public partial class okx : Exchange
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-            List<object> attachOrdKeys = new List<object>(((IDictionary<string,object>)attachAlgoOrd).Keys);
+            List<object> attachOrdKeys = new List<object>(attachAlgoOrd.Keys);
             int attachOrdLen = attachOrdKeys.Count;
             if (attachOrdLen > 0)
             {
@@ -6373,10 +6373,10 @@ public partial class okx : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        ((IDictionary<string,object>)requestUntil)["instType"] = this.convertToInstrumentType(type);
+        requestUntil["instType"] = this.convertToInstrumentType(type);
         if (((limit != null)) && ((since == null)))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit; // default 100, max 100
+            requestUntil["limit"] = limit; // default 100, max 100
         }
         Dictionary<string, object> response = await this.privateGetTradeFillsHistory(this.extend(requestUntil, query));
         //
@@ -6685,7 +6685,7 @@ public partial class okx : Exchange
         }
         string? currencyId = this.safeString(depositAddress, "ccy");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? code = ((string)(currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null));
+        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
         string? chain = this.safeString(depositAddress, "chain");
         IDictionary<string, object> networks = this.safeDict(currencyResolved, "networks", new Dictionary<string, object>() {});
         Dictionary<string, object> networksById = this.indexBy(networks, "id");
@@ -6833,7 +6833,7 @@ public partial class okx : Exchange
             return ccxt.BaseExchange.ToDepositAddress(getValue(response, codeNetwork));
         }
         // if the network is not specified, return the first address
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         string? first = this.safeString(keys, 0, "");
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(response, first));
     }
@@ -7692,13 +7692,13 @@ public partial class okx : Exchange
         //
         string? marketId = this.safeString(position, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString2(position, "posSide", "direction");
         bool hedged = side != "net";
         double? contracts = this.parseNumber(contractsAbs);
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("margin") ? ((IDictionary<string, object>)marketResolved)["margin"] : null) as bool?) == true))
+        if ((((marketResolved != null && marketResolved.ContainsKey("margin") ? marketResolved["margin"] : null) as bool?) == true))
         {
             // margin position
             if (side == "net")
@@ -7707,7 +7707,7 @@ public partial class okx : Exchange
                 string? parsedCurrency = this.safeCurrencyCode(posCcy);
                 if ((parsedCurrency != null))
                 {
-                    side = (isEqual((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null), parsedCurrency)) ? "long" : "short";
+                    side = (isEqual((marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null), parsedCurrency)) ? "long" : "short";
                 }
             }
             if ((side == null))
@@ -7737,7 +7737,7 @@ public partial class okx : Exchange
         string? contractSizeString = this.numberToString(contractSize);
         string? markPriceString = this.safeString(position, "markPx");
         string? notionalString = this.safeString(position, "notionalUsd");
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true))
+        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
@@ -7766,7 +7766,7 @@ public partial class okx : Exchange
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if ((initialMarginString == null))
         {
-            if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("linear") ? ((IDictionary<string, object>)marketResolved)["linear"] : null) as bool?) == true))
+            if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
             {
                 string? initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
@@ -8476,7 +8476,7 @@ public partial class okx : Exchange
             }
             result.Add(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("symbol") ? ((IDictionary<string, object>)marketInner)["symbol"] : null) },
+                { "symbol", (marketInner != null && marketInner.ContainsKey("symbol") ? marketInner["symbol"] : null) },
                 { "code", code },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -8830,7 +8830,7 @@ public partial class okx : Exchange
                 ((IList<object>)borrrowRateCode).Add(borrowRateStructure);
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
+        List<object> keys = new List<object>(borrowRateHistories.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? code = ((string)keys[i]);
@@ -9036,11 +9036,11 @@ public partial class okx : Exchange
         string? amount = Precise.stringAbs(amountRaw);
         string? marketId = this.safeString(data, "instId");
         Dictionary<string, object> responseMarket = this.safeMarket(marketId, market);
-        object code = ((((responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("inverse") ? ((IDictionary<string, object>)responseMarket)["inverse"] : null) as bool?) == true)) ? (responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("base") ? ((IDictionary<string, object>)responseMarket)["base"] : null) : (responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("quote") ? ((IDictionary<string, object>)responseMarket)["quote"] : null);
+        object code = ((((responseMarket != null && responseMarket.ContainsKey("inverse") ? responseMarket["inverse"] : null) as bool?) == true)) ? (responseMarket != null && responseMarket.ContainsKey("base") ? responseMarket["base"] : null) : (responseMarket != null && responseMarket.ContainsKey("quote") ? responseMarket["quote"] : null);
         Int64? timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", (responseMarket != null && ((IDictionary<string, object>)responseMarket).ContainsKey("symbol") ? ((IDictionary<string, object>)responseMarket)["symbol"] : null) },
+            { "symbol", (responseMarket != null && responseMarket.ContainsKey("symbol") ? responseMarket["symbol"] : null) },
             { "type", type },
             { "marginMode", "isolated" },
             { "amount", this.parseNumber(amount) },
@@ -9826,7 +9826,7 @@ public partial class okx : Exchange
                 }
             }
         }
-        List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
+        List<object> depositWithdrawCodes = new List<object>(depositWithdrawFees.Keys);
         for (int i = 0; i < depositWithdrawCodes.Count; i++)
         {
             string? code = ((string)depositWithdrawCodes[i]);
@@ -10423,7 +10423,7 @@ public partial class okx : Exchange
         return new Dictionary<string, object>() {
             { "info", chain },
             { "currency", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "impliedVolatility", null },
@@ -10642,11 +10642,11 @@ public partial class okx : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["before"] = since;
+            requestUntil["before"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = await this.privateGetAssetConvertHistory(this.extend(requestUntil, paramsUntil));
         //

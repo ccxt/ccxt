@@ -1694,7 +1694,7 @@ public class Hitbtc extends HitbtcApi
         ), marketResolved);
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String types, String code, Object since, Object limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(String types, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1745,7 +1745,7 @@ public class Hitbtc extends HitbtcApi
             //       }
             //     ]
             //
-            return this.parseTransactions(response, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), parameters);
+            return this.parseTransactions(response, currency, since, limit, parameters);
         });
 
     }

@@ -107,7 +107,7 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)freeBalance).Keys);
+        List<object> currencyIds = new List<object>(freeBalance.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -397,7 +397,7 @@ public partial class cex : ccxt.cex
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         if ((symbol == null))
         {
             return;
@@ -659,7 +659,7 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> trade = this.parseWsTrade(data);
         stored.append(trade);
-        string messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
+        string messageHash = ("myTrades:" + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null)));
         client.resolve(stored, messageHash);
     }
 

@@ -1632,8 +1632,9 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
 // other declaration (the { r, s, v } venues, and the base-class stub that owns the virtual
 // slot) keeps the printer's `object` and every call site stays object.
 export const CSHARP_STRING_RETURN_METHODS_BY_DECLARATION = {
-    'signMessage': 'string',
-    'signHash': 'string',
+    'signMessage': [ 'string', 'Dictionary<string, object>' ],
+    'signHash': [ 'string', 'Dictionary<string, object>' ],
+    'signOnboardingAction': [ 'Dictionary<string, object>' ],
 };
 
 // U37 census: venue-local dict builders whose every declaration returns a local the local pass
@@ -2039,7 +2040,7 @@ function byDeclarationCollectionReturnIsProven (csharp, declaration) {
     }
     // U34: the string table's own fallback (scalar mapped values, `===` is the same proof)
     const mappedString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
-    return mappedString !== undefined && declarationCollectionReturnType (csharp, declaration, mappedString) === mappedString;
+    return mappedString !== undefined && declarationMappedTypes (mappedString).includes (declarationCollectionReturnType (csharp, declaration, mappedString));
 }
 
 // wrap printFunctionType / printReturnStatement on a Transpiler's C# printer. Idempotent.

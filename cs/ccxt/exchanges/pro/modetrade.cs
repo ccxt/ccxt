@@ -381,7 +381,7 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(data[i], new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
@@ -607,7 +607,7 @@ public partial class modetrade : ccxt.modetrade
         //
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -917,7 +917,7 @@ public partial class modetrade : ccxt.modetrade
         string? orderId = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },
@@ -1402,7 +1402,7 @@ public partial class modetrade : ccxt.modetrade
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> keys = new List<object>(balances.Keys);
         Int64? ts = this.safeInteger(message, "ts");
         this.balance["info"] = data;
         this.balance["timestamp"] = ts;

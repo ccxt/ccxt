@@ -14756,7 +14756,7 @@ public class Bitget extends BitgetApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
+        return (this.milliseconds() - timeDifference);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

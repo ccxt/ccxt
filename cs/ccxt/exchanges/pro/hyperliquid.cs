@@ -612,7 +612,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> mids = this.safeDict(data, "mids", new Dictionary<string, object>() {});
         if ((mids != null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)mids).Keys);
+            List<object> keys = new List<object>(mids.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? name = ((string)keys[i]);
@@ -725,11 +725,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             symbols[(string)symbol] = true;
             trades.append(parsed);
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = ("myTrades:" + (keys[i]));
@@ -898,7 +898,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(trade, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? id = this.safeString(trade, "tid");
         string? side = this.safeString(trade, "side");
         if ((side != null))
@@ -1624,7 +1624,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             string? symbol = this.safeString(order, "symbol");
             marketSymbols[(string)symbol] = true;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(marketSymbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);
@@ -1973,7 +1973,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);

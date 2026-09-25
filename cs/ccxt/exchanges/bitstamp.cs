@@ -1292,7 +1292,7 @@ public partial class bitstamp : Exchange
             { "active", true },
             { "deposit", null },
             { "withdraw", null },
-            { "fee", this.safeNumber(getValue(getValue((description != null && ((IDictionary<string, object>)description).ContainsKey("fees") ? ((IDictionary<string, object>)description)["fees"] : null), "funding"), "withdraw"), code) },
+            { "fee", this.safeNumber(getValue(getValue((description != null && description.ContainsKey("fees") ? description["fees"] : null), "funding"), "withdraw"), code) },
             { "precision", tickSize },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
@@ -2116,7 +2116,7 @@ public partial class bitstamp : Exchange
         for (int i = 0; i < getArrayLength(fees); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
+            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -2193,7 +2193,7 @@ public partial class bitstamp : Exchange
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");
-        List<object> ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
+        List<object> ids = new List<object>(currencies.Keys);
         for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)ids[i]);
@@ -2262,7 +2262,7 @@ public partial class bitstamp : Exchange
             };
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", withdrawFee },
                         { "percentage", null },
@@ -2648,7 +2648,7 @@ public partial class bitstamp : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetFundingRateHistoryPair(this.extend(requestUntil, paramsUntil));
         //
@@ -3113,29 +3113,29 @@ public partial class bitstamp : Exchange
             {
                 market = this.getMarketFromTrade(item);
             }
-            string direction = ((((parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("side") ? ((IDictionary<string, object>)parsedTrade)["side"] : null) as string) == "buy")) ? "in" : "out";
+            string direction = ((((parsedTrade != null && parsedTrade.ContainsKey("side") ? parsedTrade["side"] : null) as string) == "buy")) ? "in" : "out";
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
-                { "id", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("id") ? ((IDictionary<string, object>)parsedTrade)["id"] : null) },
-                { "timestamp", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("timestamp") ? ((IDictionary<string, object>)parsedTrade)["timestamp"] : null) },
-                { "datetime", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("datetime") ? ((IDictionary<string, object>)parsedTrade)["datetime"] : null) },
+                { "id", (parsedTrade != null && parsedTrade.ContainsKey("id") ? parsedTrade["id"] : null) },
+                { "timestamp", (parsedTrade != null && parsedTrade.ContainsKey("timestamp") ? parsedTrade["timestamp"] : null) },
+                { "datetime", (parsedTrade != null && parsedTrade.ContainsKey("datetime") ? parsedTrade["datetime"] : null) },
                 { "direction", direction },
                 { "account", null },
-                { "referenceId", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("order") ? ((IDictionary<string, object>)parsedTrade)["order"] : null) },
+                { "referenceId", (parsedTrade != null && parsedTrade.ContainsKey("order") ? parsedTrade["order"] : null) },
                 { "referenceAccount", null },
                 { "type", type },
                 { "currency", this.safeString(market, "base") },
-                { "amount", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("amount") ? ((IDictionary<string, object>)parsedTrade)["amount"] : null) },
+                { "amount", (parsedTrade != null && parsedTrade.ContainsKey("amount") ? parsedTrade["amount"] : null) },
                 { "before", null },
                 { "after", null },
                 { "status", "ok" },
-                { "fee", (parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("fee") ? ((IDictionary<string, object>)parsedTrade)["fee"] : null) },
+                { "fee", (parsedTrade != null && parsedTrade.ContainsKey("fee") ? parsedTrade["fee"] : null) },
             }, currency);
         } else
         {
             Dictionary<string, object> parsedTransaction = this.parseTransaction(item, currency);
             string? direction = null;
-            bool hasTransactionCurrency = !((item != null && ((IDictionary<string, object>)item).ContainsKey("amount"))) && (parsedTransaction.ContainsKey("currency")) && (!isEqual((parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("currency") ? ((IDictionary<string, object>)parsedTransaction)["currency"] : null), null));
+            bool hasTransactionCurrency = !((item != null && ((IDictionary<string, object>)item).ContainsKey("amount"))) && (parsedTransaction.ContainsKey("currency")) && (!isEqual((parsedTransaction != null && parsedTransaction.ContainsKey("currency") ? parsedTransaction["currency"] : null), null));
             object currencyResolved = currency;
             if (hasTransactionCurrency)
             {
@@ -3145,27 +3145,27 @@ public partial class bitstamp : Exchange
             {
                 string? amount = this.safeString(item, "amount");
                 direction = Precise.stringGt(amount, "0") ? "in" : "out";
-            } else if ((parsedTransaction.ContainsKey("currency")) && !isEqual((parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("currency") ? ((IDictionary<string, object>)parsedTransaction)["currency"] : null), null))
+            } else if ((parsedTransaction.ContainsKey("currency")) && !isEqual((parsedTransaction != null && parsedTransaction.ContainsKey("currency") ? parsedTransaction["currency"] : null), null))
             {
                 string? amount = this.safeString(item, this.safeString(currencyResolved, "id"));
                 direction = Precise.stringGt(amount, "0") ? "in" : "out";
             }
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
-                { "id", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("id") ? ((IDictionary<string, object>)parsedTransaction)["id"] : null) },
-                { "timestamp", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("timestamp") ? ((IDictionary<string, object>)parsedTransaction)["timestamp"] : null) },
-                { "datetime", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("datetime") ? ((IDictionary<string, object>)parsedTransaction)["datetime"] : null) },
+                { "id", (parsedTransaction != null && parsedTransaction.ContainsKey("id") ? parsedTransaction["id"] : null) },
+                { "timestamp", (parsedTransaction != null && parsedTransaction.ContainsKey("timestamp") ? parsedTransaction["timestamp"] : null) },
+                { "datetime", (parsedTransaction != null && parsedTransaction.ContainsKey("datetime") ? parsedTransaction["datetime"] : null) },
                 { "direction", direction },
                 { "account", null },
-                { "referenceId", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("txid") ? ((IDictionary<string, object>)parsedTransaction)["txid"] : null) },
+                { "referenceId", (parsedTransaction != null && parsedTransaction.ContainsKey("txid") ? parsedTransaction["txid"] : null) },
                 { "referenceAccount", null },
                 { "type", type },
-                { "currency", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("currency") ? ((IDictionary<string, object>)parsedTransaction)["currency"] : null) },
-                { "amount", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("amount") ? ((IDictionary<string, object>)parsedTransaction)["amount"] : null) },
+                { "currency", (parsedTransaction != null && parsedTransaction.ContainsKey("currency") ? parsedTransaction["currency"] : null) },
+                { "amount", (parsedTransaction != null && parsedTransaction.ContainsKey("amount") ? parsedTransaction["amount"] : null) },
                 { "before", null },
                 { "after", null },
-                { "status", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("status") ? ((IDictionary<string, object>)parsedTransaction)["status"] : null) },
-                { "fee", (parsedTransaction != null && ((IDictionary<string, object>)parsedTransaction).ContainsKey("fee") ? ((IDictionary<string, object>)parsedTransaction)["fee"] : null) },
+                { "status", (parsedTransaction != null && parsedTransaction.ContainsKey("status") ? parsedTransaction["status"] : null) },
+                { "fee", (parsedTransaction != null && parsedTransaction.ContainsKey("fee") ? parsedTransaction["fee"] : null) },
             }, currencyResolved);
         }
     }

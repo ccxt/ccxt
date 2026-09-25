@@ -1982,7 +1982,7 @@ class bullish extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = ($market === null) ? $this->safe_market($marketId) : $market;
+        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market);
         $symbol = $this->safe_symbol($marketId, $marketResolved);
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_integer($order, 'createdAtTimestamp');

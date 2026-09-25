@@ -3191,7 +3191,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 			panic(InvalidOrder(Add(this.Id+" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ", body)))
 		}
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	// check success value for wapi endpoints
