@@ -1277,9 +1277,7 @@ func (this *Coinbase) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var currencyTypeparamsCurrencyTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchWithdrawals", "currencyType")
-	var currencyType *string = SafeStringPtr(GetValue(currencyTypeparamsCurrencyTypeVariable, 0))
-	var paramsCurrencyType map[string]any = MapTyped(GetValue(currencyTypeparamsCurrencyTypeVariable, 1))
+	currencyType, paramsCurrencyType := this.HandleOptionStringAndParams(params, "fetchWithdrawals", "currencyType")
 	if currencyType != nil && *currencyType == "crypto" {
 
 		var results []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, paramsCurrencyType))))
@@ -1322,9 +1320,7 @@ func (this *Coinbase) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var currencyTypeparamsCurrencyTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchDeposits", "currencyType")
-	var currencyType *string = SafeStringPtr(GetValue(currencyTypeparamsCurrencyTypeVariable, 0))
-	var paramsCurrencyType map[string]any = MapTyped(GetValue(currencyTypeparamsCurrencyTypeVariable, 1))
+	currencyType, paramsCurrencyType := this.HandleOptionStringAndParams(params, "fetchDeposits", "currencyType")
 	if currencyType != nil && *currencyType == "crypto" {
 
 		var results []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, paramsCurrencyType))))
@@ -6222,9 +6218,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageCfmPositions(paramsMarketType)).Raw))
 	} else {
-		var portfolioparamsPortfolioVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchPositions", "portfolio")
-		var portfolio *string = SafeStringPtr(GetValue(portfolioparamsPortfolioVariable, 0))
-		var paramsPortfolio map[string]any = MapTyped(GetValue(portfolioparamsPortfolioVariable, 1))
+		portfolio, paramsPortfolio := this.HandleOptionStringAndParams(paramsMarketType, "fetchPositions", "portfolio")
 		if portfolio == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
 		}
@@ -6279,9 +6273,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(futureRequest, params))).Raw))
 	} else {
-		var portfolioparamsPortfolioVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "portfolio")
-		var portfolio *string = SafeStringPtr(GetValue(portfolioparamsPortfolioVariable, 0))
-		var paramsPortfolio map[string]any = MapTyped(GetValue(portfolioparamsPortfolioVariable, 1))
+		portfolio, paramsPortfolio := this.HandleOptionStringAndParams(params, "fetchPositions", "portfolio")
 		if portfolio == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
 		}

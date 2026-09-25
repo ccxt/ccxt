@@ -1541,9 +1541,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		}
 		return params
 	}()
-	var defaultTIFparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(paramsCost, "createOrder", "timeInForce")
-	defaultTIF := GetValue(defaultTIFparamsTimeInForceVariable, 0)
-	paramsTimeInForce := GetValue(defaultTIFparamsTimeInForceVariable, 1)
+	defaultTIF, paramsTimeInForce := this.HandleOptionStringAndParams(paramsCost, "createOrder", "timeInForce")
 	// the venue only accepts lowercase values, normalize the unified uppercase spellings
 	request["time_in_force"] = func() any {
 		if !IsEqual(defaultTIF, nil) {
@@ -1956,9 +1954,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	if price != nil {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
-	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc")
-	timeInForce := GetValue(timeInForceparamsTimeInForceVariable, 0)
-	paramsTimeInForce := GetValue(timeInForceparamsTimeInForceVariable, 1)
+	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc")
 	if !IsEqual(timeInForce, nil) {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		request["time_in_force"] = ToLower(timeInForce)

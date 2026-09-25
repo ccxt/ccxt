@@ -1199,9 +1199,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar string, sid
 	if typeVar == "limit" {
 		defaultTif = "GTC"
 	}
-	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", defaultTif)
-	var timeInForce *string = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 0))
-	var paramsTimeInForce map[string]any = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 1))
+	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", defaultTif)
 	// an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
 	// that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
 	// contradicting the immediate-fill semantics the type promises

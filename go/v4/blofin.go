@@ -1315,9 +1315,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
 	if method != nil && *method == "publicGetMarketTrades" {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(request, paramsMethod))).Raw))
@@ -2311,9 +2309,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var isTrigger *bool = this.SafeBoolN(paramsPaginate, []any{"stop", "trigger"}, false)
 	var isTpSl *bool = this.SafeBool2(paramsPaginate, "tpsl", "TPSL", false)
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
 	var query map[string]any = MapTyped(this.Omit(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
 	var response any = nil
 	if (isTpSl != nil && *isTpSl == true) || (method != nil && *method == "privateGetTradeOrdersTpslPending") {
@@ -3710,9 +3706,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["begin"] = since
 	}
 	var isTrigger *bool = this.SafeBoolN(paramsPaginate, []any{"stop", "trigger", "tpsl", "TPSL"}, false)
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
 	var query map[string]any = MapTyped(this.Omit(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
 	var response any = nil
 	if (isTrigger != nil && *isTrigger == true) || (method != nil && *method == "privateGetTradeOrdersTpslHistory") {

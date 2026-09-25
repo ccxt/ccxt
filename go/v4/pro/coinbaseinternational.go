@@ -312,9 +312,7 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, opti
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var channelparamsChannelVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "channel", "LEVEL1")
-	channel := ccxt.GetValue(channelparamsChannelVariable, 0)
-	var paramsChannel map[string]any = ccxt.MapTyped(ccxt.GetValue(channelparamsChannelVariable, 1))
+	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTicker", "channel", "LEVEL1")
 
 	ch <- ccxt.PanicOnError((<-this.SubscribeAsync(channel, []any{symbol}, paramsChannel)))
 	return nil
@@ -358,9 +356,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var channelparamsChannelVariable []any = this.HandleOptionStringAndParams(params, "watchTickers", "channel", "LEVEL1")
-	channel := ccxt.GetValue(channelparamsChannelVariable, 0)
-	var paramsChannel map[string]any = ccxt.MapTyped(ccxt.GetValue(channelparamsChannelVariable, 1))
+	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "LEVEL1")
 
 	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribeAsync(channel, symbols, paramsChannel))))
 	if this.NewUpdates {

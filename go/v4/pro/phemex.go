@@ -355,9 +355,7 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
-	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var usePerpetualApi bool = (this.SafeString(paramsMarketType, "settle") != nil && *this.SafeString(paramsMarketType, "settle") == "USDT")
 	var messageHash any = ":balance"
 	messageHash = func() any {
@@ -988,9 +986,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			"settle": "USDT",
 		}
 	}
-	typeVarparamsTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchMyTrades", market, this.Extend(params, settleRequest)))
-	typeVar := ccxt.GetValue(typeVarparamsTypeVariable, 0)
-	var paramsType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsTypeVariable, 1))
+	typeVar, paramsType := this.HandleMarketTypeAndParams("watchMyTrades", market, this.Extend(params, settleRequest))
 	if ccxt.IsEqual(symbolResolved, nil) {
 		var settle *string = this.SafeString(paramsType, "settle")
 		messageHash = func() any {
@@ -1200,9 +1196,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			"settle": "USDT",
 		}
 	}
-	typeVarparamsTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchOrders", market, this.Extend(params, settleRequest)))
-	typeVar := ccxt.GetValue(typeVarparamsTypeVariable, 0)
-	var paramsType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsTypeVariable, 1))
+	typeVar, paramsType := this.HandleMarketTypeAndParams("watchOrders", market, this.Extend(params, settleRequest))
 	var isUSDTSettled bool = (this.SafeString(paramsType, "settle") != nil && *this.SafeString(paramsType, "settle") == "USDT")
 	if ccxt.IsEqual(symbolResolved, nil) {
 		messageHash = func() any {

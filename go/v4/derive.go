@@ -3461,9 +3461,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) any 
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID."))
 }
 func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) any {
-	var deriveWalletAddressparamsDeriveWalletAddressVariable []any = this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
-	deriveWalletAddress := GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0)
-	paramsDeriveWalletAddress := GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	if (!IsEqual(deriveWalletAddress, nil)) && (!IsEqual(deriveWalletAddress, "")) {
 		this.Options.Store("deriveWalletAddress", deriveWalletAddress) // saving in options
 		return []any{deriveWalletAddress, paramsDeriveWalletAddress}

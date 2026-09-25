@@ -904,9 +904,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.SortBy(paginatedResponse, "timestamp")
 		return nil
 	}
-	var contractTypeparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchMyTrades", "contractType", "FUTURE")
-	var contractType *string = SafeStringPtr(GetValue(contractTypeparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeparamsContractTypeVariable, 1))
+	contractType, paramsContractType := this.HandleOptionStringAndParams(params, "fetchMyTrades", "contractType", "FUTURE")
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
@@ -1505,7 +1503,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar string, side
 	var market map[string]any = this.Market(symbol)
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var wallet string = "W001"
-	var walletOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams(params, "createOrder", "wallet", wallet), 0))
+	var walletOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "wallet", wallet)), 0))
 	orderRequest = this.Extend(orderRequest, map[string]any{
 		"wallet": walletOption,
 	})
@@ -1665,7 +1663,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	}
 	if isStopLossOrder || isTakeProfitOrder || isTailingStopOrder {
 		var workingType any = "CONTRACT_PRICE"
-		var workingTypequeryVariable []any = this.HandleOptionStringAndParams(query, "createOrder", "triggerPriceType", workingType)
+		workingTypequeryVariable := TupleSlice(this.HandleOptionStringAndParams(query, "createOrder", "triggerPriceType", workingType))
 		workingType = GetValue(workingTypequeryVariable, 0)
 		query = GetValue(workingTypequeryVariable, 1)
 		request["workingType"] = this.EncodeWorkingType(workingType)
@@ -1724,9 +1722,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "createOrder", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"wallet": walletOption,
 		"orders": ordersRequests,
@@ -1775,7 +1771,7 @@ func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	}
 	var request any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
 	var wallet string = "W001"
-	var walletOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams(params, "editOrder", "wallet", wallet), 0))
+	var walletOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "editOrder", "wallet", wallet)), 0))
 	AddElementToObject(request, "wallet", walletOption)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeEditOrder(request)).Raw))
@@ -1826,9 +1822,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "editOrder", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "editOrder", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"wallet":     walletOption,
 		"editOrders": ordersRequests,
@@ -1899,9 +1893,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = this.Market(symbol)
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "cancelAllOrders", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "cancelAllOrders", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"wallet": walletOption,
@@ -1985,9 +1977,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = this.Market(symbol)
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "fetchOpenOrders", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "fetchOpenOrders", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"wallet": walletOption,
@@ -2086,9 +2076,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["orderId"] = id
 	}
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "fetchOpenOrder", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "fetchOpenOrder", "wallet", wallet)
 	request["wallet"] = walletOption
 	var response map[string]any = nil
 	var trigger bool = false
@@ -2156,9 +2144,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		ch <- this.SortBy(paginatedResponse, "timestamp")
 		return nil
 	}
-	var contractTypeparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchCanceledAndClosedOrders", "contractType", "FUTURE")
-	var contractType *string = SafeStringPtr(GetValue(contractTypeparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeparamsContractTypeVariable, 1))
+	contractType, paramsContractType := this.HandleOptionStringAndParams(params, "fetchCanceledAndClosedOrders", "contractType", "FUTURE")
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
@@ -2453,9 +2439,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	}
 	var market map[string]any = this.Market(symbol)
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "setLeverage", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "setLeverage", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"leverage": leverage,
@@ -2498,9 +2482,7 @@ func (this *Bydfi) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = this.Market(symbol)
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "fetchLeverage", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "fetchLeverage", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"wallet": walletOption,
@@ -2565,9 +2547,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(params, "fetchPositions", "contractType", contractType)
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 	}
@@ -2628,9 +2608,7 @@ func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optional
 	}
 	var market map[string]any = this.Market(symbol)
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(params, "fetchPositions", "contractType", contractType)
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 		"symbol":       market["id"],
@@ -2790,9 +2768,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	}
 	var market map[string]any = this.Market(symbol)
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionHistory", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(params, "fetchPositionHistory", "contractType", contractType)
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"contractType": contractTypeOption,
@@ -2847,9 +2823,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionsHistory", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(params, "fetchPositionsHistory", "contractType", contractType)
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 	}
@@ -2935,13 +2909,9 @@ func (this *Bydfi) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market map[string]any = this.Market(symbol)
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchMarginMode", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(params, "fetchMarginMode", "contractType", contractType)
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(paramsContractType, "fetchMarginMode", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(paramsContractType, "fetchMarginMode", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 		"symbol":       market["id"],
@@ -3014,13 +2984,9 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	}
 	var market map[string]any = this.Market(symbol)
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(params, "setMarginMode", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(params, "setMarginMode", "contractType", contractType)
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(paramsContractType, "setMarginMode", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(paramsContractType, "setMarginMode", "wallet", wallet)
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 		"symbol":       market["id"],
@@ -3069,17 +3035,11 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		positionType = "HEDGE"
 	}
 	var wallet string = "W001"
-	var walletOptionparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "setPositionMode", "wallet", wallet)
-	var walletOption *string = SafeStringPtr(GetValue(walletOptionparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletOptionparamsWalletVariable, 1))
+	walletOption, paramsWallet := this.HandleOptionStringAndParams(params, "setPositionMode", "wallet", wallet)
 	var contractType string = "FUTURE"
-	var contractTypeOptionparamsContractTypeVariable []any = this.HandleOptionStringAndParams(paramsWallet, "setPositionMode", "contractType", contractType)
-	var contractTypeOption *string = SafeStringPtr(GetValue(contractTypeOptionparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeOptionparamsContractTypeVariable, 1))
+	contractTypeOption, paramsContractType := this.HandleOptionStringAndParams(paramsWallet, "setPositionMode", "contractType", contractType)
 	var settleCoin string = "USDT"
-	var settleCoinOptionparamsSettleCoinVariable []any = this.HandleOptionStringAndParams(paramsContractType, "setPositionMode", "settleCoin", settleCoin)
-	var settleCoinOption *string = SafeStringPtr(GetValue(settleCoinOptionparamsSettleCoinVariable, 0))
-	var paramsSettleCoin map[string]any = MapTyped(GetValue(settleCoinOptionparamsSettleCoinVariable, 1))
+	settleCoinOption, paramsSettleCoin := this.HandleOptionStringAndParams(paramsContractType, "setPositionMode", "settleCoin", settleCoin)
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 		"wallet":       walletOption,
@@ -3126,16 +3086,12 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var walletparamsWalletVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionMode", "wallet", "W001")
-	var wallet *string = SafeStringPtr(GetValue(walletparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletparamsWalletVariable, 1))
-	var contractTypeparamsContractTypeVariable []any = this.HandleOptionStringAndParams(paramsWallet, "fetchPositionMode", "contractType", "FUTURE")
-	var contractType *string = SafeStringPtr(GetValue(contractTypeparamsContractTypeVariable, 0))
-	var paramsContractType map[string]any = MapTyped(GetValue(contractTypeparamsContractTypeVariable, 1))
+	wallet, paramsWallet := this.HandleOptionStringAndParams(params, "fetchPositionMode", "wallet", "W001")
+	contractType, paramsContractType := this.HandleOptionStringAndParams(paramsWallet, "fetchPositionMode", "contractType", "FUTURE")
 	var settleCoin any = "USDT"
 	var query any = paramsContractType
 	if symbol == nil {
-		var settleCoinqueryVariable []any = this.HandleOptionStringAndParams(paramsContractType, "fetchPositionMode", "settleCoin", settleCoin)
+		settleCoinqueryVariable := TupleSlice(this.HandleOptionStringAndParams(paramsContractType, "fetchPositionMode", "settleCoin", settleCoin))
 		settleCoin = GetValue(settleCoinqueryVariable, 0)
 		query = GetValue(settleCoinqueryVariable, 1)
 	} else {
@@ -3203,12 +3159,8 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params))
-	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
-	var walletparamsWalletVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet")
-	var wallet *string = SafeStringPtr(GetValue(walletparamsWalletVariable, 0))
-	var paramsWallet map[string]any = MapTyped(GetValue(walletparamsWalletVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	wallet, paramsWallet := this.HandleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if wallet == nil {

@@ -1673,9 +1673,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
 	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " fetchMarkPrice() supports contract markets only"))
 	}
-	var priceTypeparamsPriceTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchMarkPrice", "priceType", "MARK")
-	var priceType *string = SafeStringPtr(GetValue(priceTypeparamsPriceTypeVariable, 0))
-	var paramsPriceType map[string]any = MapTyped(GetValue(priceTypeparamsPriceTypeVariable, 1)) // the endpoint defaults to INDEX
+	priceType, paramsPriceType := this.HandleOptionStringAndParams(params, "fetchMarkPrice", "priceType", "MARK") // the endpoint defaults to INDEX
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"priceType": priceType,
@@ -4251,9 +4249,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes342119)
 		return nil
 	}
-	marketTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate))
-	marketType := GetValue(marketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var accountType *string = this.SafeString(accountsByType, marketType, marketType)
 	var request map[string]any = map[string]any{}

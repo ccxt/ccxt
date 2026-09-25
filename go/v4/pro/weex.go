@@ -1085,9 +1085,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOrderBookForSymbols")
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
 	var depth string = "200"
-	var depthOptionparamsDepthVariable []any = this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(depthOptionparamsDepthVariable, 0))
-	var paramsDepth map[string]any = ccxt.MapTyped(ccxt.GetValue(depthOptionparamsDepthVariable, 1))
+	depthOption, paramsDepth := this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
@@ -1166,9 +1164,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOrderBookForSymbols")
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
 	var depth string = "200"
-	var depthOptionparamsDepthVariable []any = this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(depthOptionparamsDepthVariable, 0))
-	var paramsDepth map[string]any = ccxt.MapTyped(ccxt.GetValue(depthOptionparamsDepthVariable, 1))
+	depthOption, paramsDepth := this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
 	var subHashes []any = []any{}
 	var channels []any = []any{}
 	var unSubHashes []any = []any{}
@@ -2004,9 +2000,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
-	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var urlType string = "spot"
 	if isContract {

@@ -1341,9 +1341,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar string, s
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("createOrder", market, params))
-	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	marginMode := ccxt.GetValue(marginModeparamsMarginModeVariable, 0)
 	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))

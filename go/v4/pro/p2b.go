@@ -180,9 +180,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name *string = this.SafeString(watchTickerOptions, "name", "state") // or price
-	var nameOptionparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "name", name)
-	var nameOption *string = ccxt.SafeStringPtr(ccxt.GetValue(nameOptionparamsNameVariable, 0))
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(nameOptionparamsNameVariable, 1))
+	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTicker", "name", name)
 	var market map[string]any = this.Market(symbol)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "tickerSubs"), market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
 	var tickerSubs map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Options, "tickerSubs"))
@@ -223,9 +221,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name *string = this.SafeString(watchTickerOptions, "name", "state") // or price
-	var nameOptionparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchTickers", "name", name)
-	var nameOption *string = ccxt.SafeStringPtr(ccxt.GetValue(nameOptionparamsNameVariable, 0))
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(nameOptionparamsNameVariable, 1))
+	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", name)
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {

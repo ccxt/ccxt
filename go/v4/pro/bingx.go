@@ -1052,9 +1052,7 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market map[string]any = this.Market(symbol)
 	var url any = nil
-	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchOHLCV", market, params))
-	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOHLCV", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOHLCV", market, paramsMarketType, "linear")
 	if ccxt.IsEqual(marketType, "swap") {
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subType)
@@ -1363,12 +1361,8 @@ func (this *Bingx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
-	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
-	subTypeparamsSubTypeVariable := ccxt.TupleSlice(this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear"))
-	subType := ccxt.GetValue(subTypeparamsSubTypeVariable, 0)
-	var paramsSubType map[string]any = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear")
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
 	var spotSubHash string = "spot:balance"
 	var swapSubHash string = "swap:private"
@@ -1501,9 +1495,7 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		market = this.GetMarketFromSymbols(symbolsNormalized)
 		messageHash = "::" + ccxt.Join(symbolsNormalized, ",")
 	}
-	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchPositions", market, params, "swap"))
-	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchPositions", market, params, "swap")
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchPositions", market, paramsMarketType, "linear")
 	if ccxt.IsEqual(typeVar, "spot") {
 		panic(ccxt.NotSupported(this.Id + " watchPositions is not supported for spot markets"))

@@ -2364,9 +2364,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		}
 		bracketKeys = append(bracketKeys, "stopLoss")
 	}
-	var selfTradePreventionparamsSelfTradePreventionVariable []any = this.HandleOptionStringAndParams(this.Omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention")
-	var selfTradePrevention *string = SafeStringPtr(GetValue(selfTradePreventionparamsSelfTradePreventionVariable, 0))
-	paramsSelfTradePrevention := GetValue(selfTradePreventionparamsSelfTradePreventionVariable, 1)
+	selfTradePrevention, paramsSelfTradePrevention := this.HandleOptionStringAndParams(this.Omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention")
 	if selfTradePrevention != nil {
 		if selfTradePrevention != nil && *selfTradePrevention == "EXPIRE_MAKER" {
 			request["selfTradePrevention"] = "RejectMaker"

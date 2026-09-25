@@ -3665,9 +3665,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["stopPrice"] = this.PriceToPrecision(symbol, stopPrice)
 		}
 	}
-	var tifOptionparamsTifOptionVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
-	var tifOption *string = SafeStringPtr(GetValue(tifOptionparamsTifOptionVariable, 0))
-	var paramsTifOption map[string]any = MapTyped(GetValue(tifOptionparamsTifOptionVariable, 1))
+	tifOption, paramsTifOption := this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
 	var tifIsMissing bool = timeInForceIsRequired && (this.SafeString(params, "timeInForce") == nil) && (this.SafeString(request, "timeInForce") == nil)
 	var omitKeys []any = []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"}
 	var requestParams map[string]any = nil
@@ -4782,9 +4780,7 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var methodOptionparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method")
-	var methodOption *string = SafeStringPtr(GetValue(methodOptionparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodOptionparamsMethodVariable, 1))
+	methodOption, paramsMethod := this.HandleOptionStringAndParams(params, "fetchPositions", "method")
 	var defaultMethod *string = methodOption
 	if defaultMethod == nil {
 		var options any = this.SafeDict(this.Options, "fetchPositions")

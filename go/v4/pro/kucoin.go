@@ -542,9 +542,7 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	url := (<-this.NegotiateAsync(false, isFuturesMethod))
 	ccxt.PanicOnError(url)
-	var spotMethodparamsSpotMethodVariable []any = this.HandleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot")
-	spotMethod := ccxt.GetValue(spotMethodparamsSpotMethodVariable, 0)
-	var paramsSpotMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(spotMethodparamsSpotMethodVariable, 1))
+	spotMethod, paramsSpotMethod := this.HandleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot")
 	var method any = func() any {
 		if isFuturesMethod != nil && *isFuturesMethod == true {
 			return "/contractMarket/ticker"
@@ -613,9 +611,7 @@ func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		url := (<-this.NegotiateAsync(false, isFuturesMethod))
 		ccxt.PanicOnError(url)
-		var spotMethodparamsSpotMethodVariable []any = this.HandleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot")
-		spotMethod := ccxt.GetValue(spotMethodparamsSpotMethodVariable, 0)
-		var paramsSpotMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(spotMethodparamsSpotMethodVariable, 1))
+		spotMethod, paramsSpotMethod := this.HandleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot")
 		var method any = func() any {
 			if isFuturesMethod != nil && *isFuturesMethod == true {
 				return "/contractMarket/ticker"
@@ -1851,9 +1847,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		var market map[string]any = this.Market(symbol)
 		var symbolResolved *string = ccxt.SafeStringPtr(market["symbol"])
 		// depth: '1', '5', '50' or 'increment'
-		var depthparamsDepthVariable []any = this.HandleOptionStringAndParams(paramsUta, "watchOrderBook", "utaDepth", "increment")
-		var depth *string = ccxt.SafeStringPtr(ccxt.GetValue(depthparamsDepthVariable, 0))
-		var paramsDepth map[string]any = ccxt.MapTyped(ccxt.GetValue(depthparamsDepthVariable, 1))
+		depth, paramsDepth := this.HandleOptionStringAndParams(paramsUta, "watchOrderBook", "utaDepth", "increment")
 		var messageHash string = "uta:orderbook:" + *symbolResolved + ":depth:" + *depth
 		var channel string = "obu"
 		var subscription map[string]any = map[string]any{}
@@ -1914,9 +1908,7 @@ func (this *Kucoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		var market map[string]any = this.Market(symbol)
 		var symbolResolved *string = ccxt.SafeStringPtr(market["symbol"])
 		// depth: '1', '5', '50' or 'increment'
-		var depthparamsDepthVariable []any = this.HandleOptionStringAndParams(paramsUta, "watchOrderBook", "utaDepth", "increment")
-		var depth *string = ccxt.SafeStringPtr(ccxt.GetValue(depthparamsDepthVariable, 0))
-		var paramsDepth map[string]any = ccxt.MapTyped(ccxt.GetValue(depthparamsDepthVariable, 1))
+		depth, paramsDepth := this.HandleOptionStringAndParams(paramsUta, "watchOrderBook", "utaDepth", "increment")
 		var paramsExtended map[string]any = this.Extend(paramsDepth, map[string]any{
 			"depth": depth,
 		})

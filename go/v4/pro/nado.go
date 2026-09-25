@@ -887,9 +887,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(params, "watchOrders", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	var paramsSubaccount map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountparamsSubaccountVariable, 1))
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
@@ -944,9 +942,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(params, "unWatchOrders", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	var paramsSubaccount map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountparamsSubaccountVariable, 1))
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
@@ -1002,9 +998,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(params, "watchMyTrades", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	var paramsSubaccount map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountparamsSubaccountVariable, 1))
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchMyTrades", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
@@ -1059,9 +1053,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(params, "unWatchMyTrades", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	var paramsSubaccount map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountparamsSubaccountVariable, 1))
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
@@ -1118,9 +1110,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 			productId = this.ParseToInt(market["id"])
 		}
 	}
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(params, "watchPositions", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	var paramsSubaccount map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountparamsSubaccountVariable, 1))
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchPositions", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
@@ -1178,9 +1168,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 			productId = this.ParseToInt(market["id"])
 		}
 	}
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(params, "unWatchPositions", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	var paramsSubaccount map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountparamsSubaccountVariable, 1))
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchPositions", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
@@ -1675,9 +1663,7 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(params, "authenticate", "recvWindow", 5000)
 	recvWindow := ccxt.GetValue(recvWindowparamsRecvWindowVariable, 0)
 	paramsRecvWindow := ccxt.GetValue(recvWindowparamsRecvWindowVariable, 1)
-	var subaccountparamsSubaccountVariable []any = this.HandleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default")
-	subaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 0)
-	paramsSubaccount := ccxt.GetValue(subaccountparamsSubaccountVariable, 1)
+	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default")
 	var id int64 = this.RequestId()
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var expiration any = this.Sum(this.Milliseconds(), recvWindow)

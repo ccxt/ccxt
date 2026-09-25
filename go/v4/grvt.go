@@ -2370,12 +2370,8 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 	var toSubAccount any = toAccount
 	var paramsFundingAccountId any = params
 	if isInternal {
-		var tradingAccountIdparamsTradingAccountIdVariable []any = this.HandleOptionStringAndParams(params, "transfer", "tradingAccountId")
-		tradingAccountId := GetValue(tradingAccountIdparamsTradingAccountIdVariable, 0)
-		var paramsTradingAccountId map[string]any = MapTyped(GetValue(tradingAccountIdparamsTradingAccountIdVariable, 1))
-		var fundingAccountIdparamsFundingVariable []any = this.HandleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId")
-		fundingAccountId := GetValue(fundingAccountIdparamsFundingVariable, 0)
-		var paramsFunding map[string]any = MapTyped(GetValue(fundingAccountIdparamsFundingVariable, 1))
+		tradingAccountId, paramsTradingAccountId := this.HandleOptionStringAndParams(params, "transfer", "tradingAccountId")
+		fundingAccountId, paramsFunding := this.HandleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId")
 		if IsEqual(tradingAccountId, nil) || IsEqual(fundingAccountId, nil) {
 			panic(ArgumentsRequired(this.Id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)"))
 		}

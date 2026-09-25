@@ -3613,9 +3613,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			firstMarket = this.Market(firstSymbol)
 		}
 	}
-	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchTickers", firstMarket, paramsUta))
-	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", firstMarket, paramsUta)
 	var response map[string]any = nil
 	if (tradeType != nil) || EvalTruthy(utaOption) {
 		if tradeType == nil {
@@ -3665,9 +3663,7 @@ func (this *Kucoin) fetchContractTickersBody(ch chan any, optionalArgs ...any) a
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "fetchTickers", "method", "futuresPublicGetContractsActive")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(params, "fetchTickers", "method", "futuresPublicGetContractsActive")
 	var response map[string]any = nil
 	if method != nil && *method == "futuresPublicGetAllTickers" {
 
@@ -3815,9 +3811,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	var response map[string]any = nil
 	var result any = nil
-	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchTicker", market, paramsUta))
-	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTicker", market, paramsUta)
 	if EvalTruthy(utaOption) {
 		request["tradeType"] = this.TypeToTradeType(typeVar)
 
@@ -4128,9 +4122,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["tradeType"] = "FUTURES"
 	}
 	var priceType any = nil
-	var priceTypePriceparamsPriceVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchOHLCV", "price", priceType)
-	var priceTypePrice *string = SafeStringPtr(GetValue(priceTypePriceparamsPriceVariable, 0))
-	var paramsPrice map[string]any = MapTyped(GetValue(priceTypePriceparamsPriceVariable, 1))
+	priceTypePrice, paramsPrice := this.HandleOptionStringAndParams(paramsMarketType, "fetchOHLCV", "price", priceType)
 	if priceTypePrice != nil {
 		var priceTypes map[string]any = map[string]any{
 			"mark":         "mark-price",
@@ -4446,7 +4438,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	var accountType any = "main"
 	var paramsRequest any = nil
-	var accountTypeparamsRequestVariable []any = this.HandleOptionStringAndParams(params, "fetchDepositAddress", "accountType", accountType)
+	accountTypeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "fetchDepositAddress", "accountType", accountType))
 	accountType = GetValue(accountTypeparamsRequestVariable, 0)
 	paramsRequest = GetValue(accountTypeparamsRequestVariable, 1)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -5501,7 +5493,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side strin
 	var isContract *bool = SafeBoolPtr(market["contract"])
 	var accountMode any = "unified"
 	var paramsRequest any = nil
-	var accountModeparamsRequestVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountMode", accountMode)
+	accountModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "accountMode", accountMode))
 	accountMode = GetValue(accountModeparamsRequestVariable, 0)
 	paramsRequest = GetValue(accountModeparamsRequestVariable, 1)
 	var isUnified bool = (IsEqual(accountMode, "unified"))
@@ -5537,7 +5529,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side strin
 	} else {
 		var sizeUnit any = "BASECCY"
 		if isContract != nil && *isContract == true {
-			var sizeUnitparamsRequestVariable []any = this.HandleOptionStringAndParams(paramsRequest, "createOrder", "sizeUnit", "UNIT")
+			sizeUnitparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(paramsRequest, "createOrder", "sizeUnit", "UNIT"))
 			sizeUnit = GetValue(sizeUnitparamsRequestVariable, 0)
 			paramsRequest = GetValue(sizeUnitparamsRequestVariable, 1)
 		}
@@ -6436,7 +6428,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan any, id any, optionalArgs ...any)
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
 	var accountMode any = "unified"
-	var accountModeparamsOmittedVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "cancelOrder", "accountMode", accountMode)
+	accountModeparamsOmittedVariable := TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrder", "accountMode", accountMode))
 	accountMode = GetValue(accountModeparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(accountModeparamsOmittedVariable, 1)
 	request["accountMode"] = accountMode
@@ -7157,9 +7149,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		return nil
 	}
 	var accountMode string = "unified"
-	var accountModeOptionparamsAccountModeVariable []any = this.HandleOptionStringAndParams(paramsPaginate, "fetchUtaOrdersByStatus", "accountMode", accountMode)
-	var accountModeOption *string = SafeStringPtr(GetValue(accountModeOptionparamsAccountModeVariable, 0))
-	var paramsAccountMode map[string]any = MapTyped(GetValue(accountModeOptionparamsAccountModeVariable, 1))
+	accountModeOption, paramsAccountMode := this.HandleOptionStringAndParams(paramsPaginate, "fetchUtaOrdersByStatus", "accountMode", accountMode)
 	var request map[string]any = map[string]any{
 		"accountMode": accountModeOption,
 	}
@@ -7729,7 +7719,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
 	var accountMode any = "unified"
-	var accountModeparamsOmittedVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "fetchOrder", "accountMode", accountMode)
+	accountModeparamsOmittedVariable := TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "fetchOrder", "accountMode", accountMode))
 	accountMode = GetValue(accountModeparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(accountModeparamsOmittedVariable, 1)
 	request["accountMode"] = accountMode
@@ -8745,7 +8735,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 		isContract = true
 	}
 	var accountMode any = "unified"
-	var accountModeparamsOmittedVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "fetchMyTrades", "accountMode", accountMode)
+	accountModeparamsOmittedVariable := TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "fetchMyTrades", "accountMode", accountMode))
 	accountMode = GetValue(accountModeparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(accountModeparamsOmittedVariable, 1)
 	request["accountMode"] = accountMode
@@ -9641,7 +9631,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var accountType any = "main"
 	var paramsRequest any = nil
-	var accountTypeparamsRequestVariable []any = this.HandleOptionStringAndParams(params, "fetchDeposits", "accountType", accountType)
+	accountTypeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "fetchDeposits", "accountType", accountType))
 	accountType = GetValue(accountTypeparamsRequestVariable, 0)
 	paramsRequest = GetValue(accountTypeparamsRequestVariable, 1)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -9851,7 +9841,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var accountType any = "main"
 	var paramsRequest any = nil
-	var accountTypeparamsRequestVariable []any = this.HandleOptionStringAndParams(params, "fetchWithdrawals", "accountType", accountType)
+	accountTypeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "fetchWithdrawals", "accountType", accountType))
 	accountType = GetValue(accountTypeparamsRequestVariable, 0)
 	paramsRequest = GetValue(accountTypeparamsRequestVariable, 1)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -10086,9 +10076,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	requestedTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUta))
-	requestedType := GetValue(requestedTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(requestedTypeparamsMarketTypeVariable, 1))
+	requestedType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUta)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var typeVar *string = this.SafeString(accountsByType, requestedType, requestedType)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "type"))
@@ -10368,7 +10356,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(requestedType, "margin") {
 		// assume cross margin if margin is specified but marginMode is not specified
 		var marginMode any = "cross"
-		var marginModeparamsRequestVariable []any = this.HandleOptionStringAndParams(paramsRequest, "fetchUtaBalance", "marginMode", marginMode)
+		marginModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(paramsRequest, "fetchUtaBalance", "marginMode", marginMode))
 		marginMode = GetValue(marginModeparamsRequestVariable, 0)
 		paramsRequest = GetValue(marginModeparamsRequestVariable, 1)
 		requestedType = marginMode
@@ -13458,7 +13446,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var orders []any = []any{}
 	if uta == true {
 		var accountMode any = "unified"
-		var accountModeparamsRequestVariable []any = this.HandleOptionStringAndParams(paramsRequest, "cancelOrders", "accountMode", accountMode)
+		accountModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(paramsRequest, "cancelOrders", "accountMode", accountMode))
 		accountMode = GetValue(accountModeparamsRequestVariable, 0)
 		paramsRequest = GetValue(accountModeparamsRequestVariable, 1)
 		request["accountMode"] = accountMode
@@ -14138,7 +14126,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", false, true)
 	var marginMode any = "cross"
 	var paramsRequest any = nil
-	var marginModeparamsRequestVariable []any = this.HandleOptionStringAndParams(params, "fetchLeverageTiers", "marginMode", marginMode)
+	marginModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "fetchLeverageTiers", "marginMode", marginMode))
 	marginMode = GetValue(marginModeparamsRequestVariable, 0)
 	paramsRequest = GetValue(marginModeparamsRequestVariable, 1)
 	marginMode = ToUpper(marginMode)

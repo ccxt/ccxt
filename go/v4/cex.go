@@ -951,9 +951,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var dataTypeparamsDataTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchOHLCV", "dataType")
-	var dataType *string = SafeStringPtr(GetValue(dataTypeparamsDataTypeVariable, 0))
-	var paramsDataType map[string]any = MapTyped(GetValue(dataTypeparamsDataTypeVariable, 1))
+	dataType, paramsDataType := this.HandleOptionStringAndParams(params, "fetchOHLCV", "dataType")
 	if dataType == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\""))
 	}
@@ -1602,9 +1600,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar string, side s
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var accountIdparamsAccountIdVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountId")
-	var accountId *string = SafeStringPtr(GetValue(accountIdparamsAccountIdVariable, 0))
-	var paramsAccountId map[string]any = MapTyped(GetValue(accountIdparamsAccountIdVariable, 1))
+	accountId, paramsAccountId := this.HandleOptionStringAndParams(params, "createOrder", "accountId")
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}
@@ -1624,9 +1620,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar string, side s
 		"timestamp":     this.Milliseconds(),
 		"amountCcy1":    this.AmountToPrecision(symbol, amount),
 	}
-	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC")
-	var timeInForce *string = SafeStringPtr(GetValue(timeInForceparamsTimeInForceVariable, 0))
-	var paramsTimeInForce map[string]any = MapTyped(GetValue(timeInForceparamsTimeInForceVariable, 1))
+	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC")
 	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["timeInForce"] = timeInForce
@@ -2218,9 +2212,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountIdparamsAccountIdVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountId")
-	var accountId *string = SafeStringPtr(GetValue(accountIdparamsAccountIdVariable, 0))
-	var paramsAccountId map[string]any = MapTyped(GetValue(accountIdparamsAccountIdVariable, 1))
+	accountId, paramsAccountId := this.HandleOptionStringAndParams(params, "createOrder", "accountId")
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}

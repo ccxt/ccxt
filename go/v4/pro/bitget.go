@@ -122,9 +122,7 @@ func (this *Bitget) GetInstType(methodName any, market any, optionalArgs ...any)
 	}
 	var instTypeDefault *string = ccxt.SafeStringPtr(ccxt.GetValue(productTypeAndParams, 0))
 	var paramsProductType any = ccxt.GetValue(productTypeAndParams, 1)
-	var instTypeOptionparamsInstTypeVariable []any = this.HandleOptionStringAndParams(paramsProductType, methodName, "instType", instTypeDefault)
-	instTypeOption := ccxt.GetValue(instTypeOptionparamsInstTypeVariable, 0)
-	paramsInstType := ccxt.GetValue(instTypeOptionparamsInstTypeVariable, 1)
+	instTypeOption, paramsInstType := this.HandleOptionStringAndParams(paramsProductType, methodName, "instType", instTypeDefault)
 	var instType any = instTypeOption
 	if (uta == true) && (!ccxt.IsEqual(instTypeOption, nil)) {
 		instType = ccxt.ToLower(instTypeOption)
@@ -2805,9 +2803,7 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	} else if !uta {
 		instTypeDefault = "SPOT"
 	}
-	var instTypeOptionparamsInstTypeVariable []any = this.HandleOptionStringAndParams(paramsMarginMode, "watchBalance", "instType", instTypeDefault)
-	instTypeOption := ccxt.GetValue(instTypeOptionparamsInstTypeVariable, 0)
-	var paramsInstType map[string]any = ccxt.MapTyped(ccxt.GetValue(instTypeOptionparamsInstTypeVariable, 1))
+	instTypeOption, paramsInstType := this.HandleOptionStringAndParams(paramsMarginMode, "watchBalance", "instType", instTypeDefault)
 	var instType any = instTypeOption
 	if uta {
 		instType = "UTA"

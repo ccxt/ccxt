@@ -711,9 +711,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
-	var channelparamsChannelVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(channelparamsChannelVariable, 0))
-	var paramsChannel map[string]any = ccxt.MapTyped(ccxt.GetValue(channelparamsChannelVariable, 1))
+	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
@@ -862,9 +860,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
-	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
 	var typeVar string = "contract"
 	if isSpot {

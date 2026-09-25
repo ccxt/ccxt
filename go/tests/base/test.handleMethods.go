@@ -27,47 +27,35 @@ func HelperTestHandleMarketTypeAndParams() {
 	//
 	// case #1, should prevail: param
 	//
-	marketType1params1Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault"))
-	var marketType1 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType1params1Variable, 0))
-	params1 := ccxt.GetValue(marketType1params1Variable, 1)
+	marketType1, params1 := exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault")
 	Assert(func() bool { _, ok := initialParams["defaultType"]; return ok }())
 	Assert(!(ccxt.InOp(params1, "defaultType")))
 	Assert((marketType1 != nil && *marketType1 == "valueFromParam"))
 	//
 	// case #2, should prevail: market.type
 	//
-	marketType2params2Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", market, map[string]any{}, "valueDefault"))
-	var marketType2 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType2params2Variable, 0))
-	params2 := ccxt.GetValue(marketType2params2Variable, 1)
+	marketType2, params2 := exchange.HandleMarketTypeAndParams("fetchX", market, map[string]any{}, "valueDefault")
 	Assert((marketType2 != nil && *marketType2 == "spot"))
 	//
 	// case #3, should prevail: valueDefault
 	//
-	marketType3params3Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}, "valueDefault"))
-	var marketType3 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType3params3Variable, 0))
-	params3 := ccxt.GetValue(marketType3params3Variable, 1)
+	marketType3, params3 := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}, "valueDefault")
 	Assert((marketType3 != nil && *marketType3 == "valueDefault"))
 	//
 	// case #4, should prevail: method options
 	//
-	marketType4params4Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}))
-	var marketType4 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType4params4Variable, 0))
-	params4 := ccxt.GetValue(marketType4params4Variable, 1)
+	marketType4, params4 := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{})
 	Assert((marketType4 != nil && *marketType4 == "valueFromMethodOptions"))
 	//
 	// case #5, should prevail: options
 	//
-	marketType5params5Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil))
-	var marketType5 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType5params5Variable, 0))
-	params5 := ccxt.GetValue(marketType5params5Variable, 1)
+	marketType5, params5 := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
 	Assert((marketType5 != nil && *marketType5 == "valueFromOptions"))
 	//
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
 	ccxt.AddElementToObject(exchange.Options, "defaultType", nil)
-	marketType6params6Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil))
-	var marketType6 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType6params6Variable, 0))
-	params6 := ccxt.GetValue(marketType6params6Variable, 1)
+	marketType6, params6 := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
 	Assert((marketType6 != nil && *marketType6 == "spot"))
 	// fake assertion to avoid unused vars
 	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil) || !ccxt.IsEqual(params4, nil) || !ccxt.IsEqual(params5, nil) || !ccxt.IsEqual(params6, nil))
@@ -115,13 +103,11 @@ func HelperTestHandleTypedOptions() {
 	uta := ccxt.GetValue(utaparams2Variable, 0)
 	params2 := ccxt.GetValue(utaparams2Variable, 1)
 	Assert(ccxt.IsEqual(uta, true))
-	var absentparams3Variable []any = exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "absentKey", "fallback")
-	var absent *string = ccxt.SafeStringPtr(ccxt.GetValue(absentparams3Variable, 0))
-	params3 := ccxt.GetValue(absentparams3Variable, 1)
+	absent, params3 := exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "absentKey", "fallback")
 	Assert((absent != nil && *absent == "fallback"))
-	var fromParamsparams4Variable []any = exchange.HandleOptionStringAndParams(map[string]any{
+	fromParamsparams4Variable := ccxt.TupleSlice(exchange.HandleOptionStringAndParams(map[string]any{
 		"absentKey": "p",
-	}, "fetchX", "absentKey", "fallback")
+	}, "fetchX", "absentKey", "fallback"))
 	var fromParams *string = ccxt.SafeStringPtr(ccxt.GetValue(fromParamsparams4Variable, 0))
 	params4 := ccxt.GetValue(fromParamsparams4Variable, 1)
 	Assert((fromParams != nil && *fromParams == "p"))

@@ -903,9 +903,7 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var messageHash string = "orderbook:" + *symbolValue
 	var orderbook any = nil
 	if ccxt.GetValue(market, "spot") == true {
-		var frequencyparamsFrequencyVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
-		var frequency *string = ccxt.SafeStringPtr(ccxt.GetValue(frequencyparamsFrequencyVariable, 0))
-		var paramsFrequency map[string]any = ccxt.MapTyped(ccxt.GetValue(frequencyparamsFrequencyVariable, 1))
+		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"]))
 
 		orderbook = (<-this.WatchSpotPublicAsync(channel, messageHash, paramsFrequency))
@@ -2221,9 +2219,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var url any = nil
 	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
-		var frequencyparamsFrequencyVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
-		var frequency *string = ccxt.SafeStringPtr(ccxt.GetValue(frequencyparamsFrequencyVariable, 0))
-		var paramsFrequency map[string]any = ccxt.MapTyped(ccxt.GetValue(frequencyparamsFrequencyVariable, 1))
+		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"]))
 		ccxt.AddElementToObject(paramsFrequency, "unsubscribed", true)
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, paramsFrequency)

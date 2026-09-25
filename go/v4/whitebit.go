@@ -2047,9 +2047,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		onlyContractSymbols = false
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", nil, params)
-	var methodOptionparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchTickers", "method")
-	var methodOption *string = SafeStringPtr(GetValue(methodOptionparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodOptionparamsMethodVariable, 1))
+	methodOption, paramsMethod := this.HandleOptionStringAndParams(paramsMarketType, "fetchTickers", "method")
 	var method *string = methodOption
 	if method == nil {
 		// if the user did not specify a method, choose it based on market type and symbols

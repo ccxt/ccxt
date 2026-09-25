@@ -4897,9 +4897,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params))
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
-	subTypeparamsSubTypeVariable := TupleSlice(this.HandleSubTypeAndParams("fetchBalance", nil, paramsMarketType))
-	subType := GetValue(subTypeparamsSubTypeVariable, 0)
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBalance", nil, paramsMarketType)
 	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
 		typeVar = subType
 	}
@@ -5471,7 +5469,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol any, typeVar string, side
 	} else {
 		defaultMethod = "privatePostV5OrderCreate"
 	}
-	var method *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod), 0))
+	var method *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod)), 0))
 	var response any = nil
 	if method != nil && *method == "privatePostV5PositionTradingStop" {
 
@@ -5545,9 +5543,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	}
 	var method *string = nil
 	var query any = nil
-	var methodqueryVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod)
-	method = SafeStringPtr(GetValue(methodqueryVariable, 0))
-	query = GetValue(methodqueryVariable, 1)
+	method, query = this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod)
 	var endpointIsTradingStop bool = (method != nil && *method == "privatePostV5PositionTradingStop")
 	if (price == nil) && (lowerCaseType == "limit") && !endpointIsTradingStop {
 		panic(ArgumentsRequired(this.Id + " createOrder requires a price argument for limit orders"))
@@ -6444,9 +6440,7 @@ func (this *Bybit) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalAr
 	var request map[string]any = map[string]any{
 		"timeWindow": this.ParseToInt(Divide(timeout, 1000)),
 	}
-	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, "swap"))
-	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, "swap")
 	var productMap map[string]any = map[string]any{
 		"spot":   "SPOT",
 		"swap":   "DERIVATIVES",
@@ -8418,9 +8412,7 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	var accounts []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	var isUta any = GetValue(accounts, 1)
-	var accountTypeOptionparamsAccountTypeVariable []any = this.HandleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType")
-	accountTypeOption := GetValue(accountTypeOptionparamsAccountTypeVariable, 0)
-	var paramsAccountType map[string]any = MapTyped(GetValue(accountTypeOptionparamsAccountTypeVariable, 1))
+	accountTypeOption, paramsAccountType := this.HandleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType")
 	var defaultAccountType string = func() string {
 		if isUta == true {
 			return "UTA"
@@ -10336,9 +10328,7 @@ func (this *Bybit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchTradingFees", "type", "future")
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsTypeVariable, 0))
-	var paramsType map[string]any = MapTyped(GetValue(typeVarparamsTypeVariable, 1))
+	typeVar, paramsType := this.HandleOptionStringAndParams(params, "fetchTradingFees", "type", "future")
 	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchTradingFees() is not supported for spot market"))
 	}
@@ -11859,9 +11849,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 	if isUnifiedAccount {
 		accountTypeDefault = "eb_convert_uta"
 	}
-	var accountTypeparamsAccountTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault)
-	var accountType *string = SafeStringPtr(GetValue(accountTypeparamsAccountTypeVariable, 0))
-	var paramsAccountType map[string]any = MapTyped(GetValue(accountTypeparamsAccountTypeVariable, 1))
+	accountType, paramsAccountType := this.HandleOptionStringAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault)
 	var request map[string]any = map[string]any{
 		"accountType": accountType,
 	}
@@ -11988,9 +11976,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 	if isUnifiedAccount {
 		accountTypeDefault = "eb_convert_uta"
 	}
-	var accountTypeparamsAccountTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault)
-	var accountType *string = SafeStringPtr(GetValue(accountTypeparamsAccountTypeVariable, 0))
-	var paramsAccountType map[string]any = MapTyped(GetValue(accountTypeparamsAccountTypeVariable, 1))
+	accountType, paramsAccountType := this.HandleOptionStringAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault)
 	var request map[string]any = map[string]any{
 		"fromCoin":      fromCode,
 		"toCoin":        toCode,
@@ -12116,9 +12102,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 	if isUnifiedAccount {
 		accountTypeDefault = "eb_convert_uta"
 	}
-	var accountTypeparamsAccountTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault)
-	var accountType *string = SafeStringPtr(GetValue(accountTypeparamsAccountTypeVariable, 0))
-	var paramsAccountType map[string]any = MapTyped(GetValue(accountTypeparamsAccountTypeVariable, 1))
+	accountType, paramsAccountType := this.HandleOptionStringAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault)
 	var request map[string]any = map[string]any{
 		"quoteTxId":   id,
 		"accountType": accountType,

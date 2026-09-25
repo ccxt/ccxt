@@ -715,9 +715,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var watchOrderBookOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var name *string = this.SafeString(watchOrderBookOptions, "name", "book_lv2")
-	var nameOptionparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "name", name)
-	nameOption := ccxt.GetValue(nameOptionparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(nameOptionparamsNameVariable, 1))
+	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchOrderBook", "name", name)
 
 	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync(nameOption, nameOption, false, []any{symbol}, paramsName))).(ccxt.OrderBookInterface)
 
