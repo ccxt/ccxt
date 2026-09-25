@@ -384,7 +384,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if market == nil {
 		market = ccxt.MapTyped(this.SafeMarket(nil, market))
 	}
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
 	var side string = "sell"
 	if sideRaw != nil && *sideRaw == 0 {
@@ -763,7 +763,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
 	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
 	market = ccxt.MapTyped(this.SafeMarket(nil, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
@@ -911,7 +911,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	var triggerPrice *string = this.SafeString(order, "stop_price")
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")
 	market = ccxt.MapTyped(this.SafeMarket(nil, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,

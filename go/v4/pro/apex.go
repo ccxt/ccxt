@@ -214,7 +214,7 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeStringN(trade, []any{"i", "id", "v"})
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
 	var side *string = this.SafeStringLower2(trade, "S", "side")
 	var price *string = this.SafeString2(trade, "p", "price")
@@ -1034,7 +1034,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	var promises []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(fetchFunctions))))
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
-	for i := 0; i < ccxt.GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(ccxt.GetValue(promises, i))
 		for ii := 0; ii < len(positions); ii++ {
 			var position any = func() any {

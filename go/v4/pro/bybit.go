@@ -216,7 +216,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if symbol != nil {
 		market = this.Market(symbol)
-		isUsdcSettled = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDC")
+		isUsdcSettled = ccxt.IsEqual(market["settle"], "USDC")
 		typeVar = this.SafeString(market, "type")
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, nil, params)
@@ -1626,7 +1626,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(trade, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, marketType))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger2(trade, "t", "T")
 	var side *string = this.SafeStringLower(trade, "S")
 	var takerOrMaker any = nil
@@ -2048,7 +2048,7 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan any, client any, messageHas
 	var promises []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(fetchFunctions))))
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
-	for i := 0; i < ccxt.GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(ccxt.GetValue(promises, i))
 		for ii := 0; ii < len(positions); ii++ {
 			var position any = func() any {

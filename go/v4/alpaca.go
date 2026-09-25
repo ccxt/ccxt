@@ -1993,7 +1993,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var alpacaStatus *string = this.SafeString(order, "status")
 	var status *string = this.ParseOrderStatus(alpacaStatus)
 	var feeValue *string = this.SafeString(order, "commission")

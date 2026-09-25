@@ -1101,11 +1101,11 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrency *string = SafeStringPtr(GetValue(market, "quote"))
+		var feeCurrency *string = SafeStringPtr(market["quote"])
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrency,

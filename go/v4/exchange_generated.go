@@ -3825,7 +3825,7 @@ func (this *BaseExchange) MarketsForSymbols(optionalArgs ...any) any {
 		return nil
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(symbols); i++ {
+	for i := 0; i < len(symbols); i++ {
 		result = append(result, this.DerivedExchange.Market(GetValue(symbols, i)))
 	}
 	return result
@@ -3878,7 +3878,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 			}
 		}
 		if (sameSubTypeOnly == true) && (isLinearSubType != nil) {
-			if !IsEqual(GetValue(market, "linear"), isLinearSubType) {
+			if !IsEqual(market["linear"], isLinearSubType) {
 				panic(BadRequest(this.Id + " symbols must be of the same subType, either linear or inverse."))
 			}
 		}
@@ -6800,7 +6800,7 @@ func (this *BaseExchange) SafeCurrencyCode(currencyId any, optionalArgs ...any) 
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	return SafeStringPtr(GetValue(currency, "code"))
+	return SafeStringPtr(currency["code"])
 }
 func (this *BaseExchange) FilterBySymbolSinceLimit(array any, optionalArgs ...any) any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7019,7 +7019,7 @@ func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) *string 
 	var marketType *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = marketType
 	market = MapTyped(this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType))
-	return SafeStringPtr(GetValue(market, "symbol"))
+	return SafeStringPtr(market["symbol"])
 }
 func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -8112,7 +8112,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 
 	var results []any = ListTyped(PanicOnError((<-promiseAll(tasks))))
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(results); i++ {
+	for i := 0; i < len(results); i++ {
 		result = this.ArrayConcat(result, GetValue(results, i))
 	}
 	var uniqueResults any = this.RemoveRepeatedElementsFromArray(result)

@@ -2943,7 +2943,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
 	}
 	var marketType *string = nil
@@ -3131,7 +3131,7 @@ func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var typeVar *string = this.SafeString(trade, "orderType")
 	var side *string = this.SafeString(trade, "side")
 	var tradeId *string = this.SafeString(trade, "tradeId")
@@ -3144,7 +3144,7 @@ func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var order *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeIntegerProduct2(trade, "ts", "time", 0.000001)
-	var feeCurrency *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "quote"))
+	var feeCurrency *string = ccxt.SafeStringPtr(market["quote"])
 	var feeRate *string = this.SafeString(trade, "feeRate")
 	var feeCost *string = this.SafeString(trade, "fee")
 	return this.SafeTrade(map[string]any{
@@ -3863,7 +3863,7 @@ func (this *Kucoin) ParseWsUtaPosition(position map[string]any, optionalArgs ...
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(position, "O", 0.000001)
 	var amountString *string = this.SafeString(position, "q")
 	var size *string = ccxt.Precise.StringAbs(amountString)

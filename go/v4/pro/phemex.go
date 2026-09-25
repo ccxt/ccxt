@@ -577,7 +577,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
+	var settleIsUSDT bool = ccxt.IsEqual(market["settle"], "USDT")
 	var name string = "spot_market24h"
 	if isSwap != nil && *isSwap == true {
 		name = func() string {
@@ -634,7 +634,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var first *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, 0))
 	var market map[string]any = ccxt.MapTyped(this.Market(first))
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
+	var settleIsUSDT bool = ccxt.IsEqual(market["settle"], "USDT")
 	var name string = "spot_market24h"
 	if isSwap != nil && *isSwap == true {
 		name = func() string {
@@ -708,7 +708,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
+	var settleIsUSDT bool = ccxt.IsEqual(market["settle"], "USDT")
 	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
 	var name string = "trade"
 	if isUsdtSwap {
@@ -766,7 +766,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
+	var settleIsUSDT bool = ccxt.IsEqual(market["settle"], "USDT")
 	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
 	var name string = "orderbook"
 	if isUsdtSwap {
@@ -826,7 +826,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
+	var settleIsUSDT bool = ccxt.IsEqual(market["settle"], "USDT")
 	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
 	var name string = "kline"
 	if isUsdtSwap {
@@ -974,9 +974,9 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "trades:"
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "symbol"))
-		if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {
+		if ccxt.IsEqual(market["settle"], "USDT") {
 			params = this.Extend(params)
 			ccxt.AddElementToObject(params, "settle", "USDT")
 		}
@@ -1173,9 +1173,9 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "symbol"))
-		if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {
+		if ccxt.IsEqual(market["settle"], "USDT") {
 			params = this.Extend(params)
 			ccxt.AddElementToObject(params, "settle", "USDT")
 		}
@@ -1416,7 +1416,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		if typeVar == nil {
-			var isUsdt bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
+			var isUsdt bool = ccxt.IsEqual(market["settle"], "USDT")
 			typeVar = func() any {
 				if isUsdt {
 					return "perpetual"

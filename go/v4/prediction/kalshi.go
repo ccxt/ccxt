@@ -1372,7 +1372,7 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var targets []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	for i := 0; i < len(outcomes); i++ {
 		targets = append(targets, ccxt.GetValue(outcomes, i))
 	}
 	// group requested outcomes by their market ticker, yes and no outcomes share one market
@@ -2179,7 +2179,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var outcomesLength int = 0
 	if outcomes != nil {
-		outcomesLength = ccxt.GetArrayLength(outcomes)
+		outcomesLength = len(outcomes)
 	}
 	if outcomesLength > 0 {
 
@@ -2202,7 +2202,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if outcomes == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
 	}
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var marketTicker *string = this.SafeString(outcomeInfo, "ticker")
@@ -2578,7 +2578,7 @@ func (this *Kalshi) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, nil, nil, params))))
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var order any = ccxt.GetValue(orders, i)
 		var status *string = this.SafeString(order, "status")
 		if (status != nil && *status == "closed") || (status != nil && *status == "canceled") {

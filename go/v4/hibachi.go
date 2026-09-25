@@ -622,7 +622,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
@@ -2219,7 +2219,7 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
@@ -2810,7 +2810,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = GetValue(market, "numericId")
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))

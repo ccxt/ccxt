@@ -763,7 +763,7 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	// TODO: replace this with a call to parseOrder for unification
 	ch <- this.SafeOrder(map[string]any{
 		"info": response,
-		"id":   ToString(GetValue(GetValue(GetValue(response, "response_data"), "order"), "order_id")),
+		"id":   ToString(GetValue(GetValue(response["response_data"], "order"), "order_id")),
 	}, market)
 	return nil
 }
@@ -894,7 +894,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
 	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

@@ -616,7 +616,7 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "currency_pair")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "last_price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

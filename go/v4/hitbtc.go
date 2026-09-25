@@ -1665,7 +1665,7 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(GetValue(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var taker *bool = this.SafeBool(trade, "taker")
@@ -3242,7 +3242,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var postOnly *bool = this.SafeBool(order, "post_only")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
 	var rawTrades []any = SafeListTyped(order, "trades")
@@ -3651,7 +3651,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 		request["symbols"] = GetValue(market, "id")
 	}
 	if since != nil {
@@ -3957,7 +3957,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -4542,7 +4542,7 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(GetValue(params, "margin_balance"), nil) {
+	if IsEqual(params["margin_balance"], nil) {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))

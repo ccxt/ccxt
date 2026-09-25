@@ -976,7 +976,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// for backward-compatibility
 		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
 	}
-	for i := 0; i < GetArrayLength(types); i++ {
+	for i := 0; i < len(types); i++ {
 		var marketType *string = SafeStringPtr(GetValue(types, i))
 		if marketType != nil && *marketType == "spot" {
 			promisesRaw = append(promisesRaw, this.SpotV1PublicGetExchangeInfo(params))

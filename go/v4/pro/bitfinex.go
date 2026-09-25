@@ -796,7 +796,7 @@ func (this *Bitfinex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	market = ccxt.MapTyped(this.SafeMarket(nil, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, 6)
 	var change *string = this.SafeString(ticker, 4)
 	return this.SafeTicker(map[string]any{

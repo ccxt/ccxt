@@ -567,7 +567,7 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(ms, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var pct *float64 = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1132,7 +1132,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
-	var sym *string = SafeStringPtr(GetValue(market, "symbol"))
+	var sym *string = SafeStringPtr(market["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  oid,
@@ -1620,7 +1620,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		var market map[string]any = MapTyped(this.Market(symbol))
 
 		var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
-		for i := 0; i < GetArrayLength(positions); i++ {
+		for i := 0; i < len(positions); i++ {
 			var p any = GetValue(positions, i)
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
 				continue
@@ -1691,7 +1691,7 @@ func (this *Mudrex) addMarginBody(ch chan any, symbol any, amount any, optionalA
 	if positionId == nil {
 
 		var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
-		for i := 0; i < GetArrayLength(positions); i++ {
+		for i := 0; i < len(positions); i++ {
 			var p any = GetValue(positions, i)
 			if IsEqual(GetValue(p, "symbol"), symbol) {
 				positionId = this.SafeString(p, "id")
@@ -1911,7 +1911,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var ms *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(ms, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
 	var side *string = this.SafeStringLower(trade, "order_type")

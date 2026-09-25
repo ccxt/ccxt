@@ -3768,7 +3768,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	}
 	var promises []any = []any{}
 	var fetchMargins bool = false
-	for i := 0; i < GetArrayLength(types); i++ {
+	for i := 0; i < len(types); i++ {
 		var typeVar any = GetValue(types, i)
 		if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
 			var subTypes []any = []any{"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"}
@@ -3795,7 +3795,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	var markets []any = []any{}
 	this.Options.Store("crossMarginPairsData", []any{})
 	this.Options.Store("isolatedMarginPairsData", []any{})
-	for i := 0; i < GetArrayLength(results); i++ {
+	for i := 0; i < len(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
 		var data []any = SafeListTypedDefault(res, "data", []any{})
 		var firstData map[string]any = SafeMapTyped(data, 0)
@@ -4082,7 +4082,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 
 	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var markets []any = []any{}
-	for i := 0; i < GetArrayLength(results); i++ {
+	for i := 0; i < len(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
 		var data []any = SafeListTypedDefault(res, "data", []any{})
 		markets = this.ArrayConcat(markets, data)
@@ -11790,7 +11790,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "contract"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"cTime", "ctime", "createdTime"})
 	var marginMode *string = this.SafeString(position, "marginMode")
 	var collateral *string = nil
@@ -11992,7 +11992,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		result = ListTyped(this.SafeList(response, "data", []any{}))
 	}
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
+	for i := 0; i < len(result); i++ {
 		var entry any = GetValue(result, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId, market)
@@ -14518,7 +14518,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var uta any = nil
 	var response map[string]any = nil
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
 			request["symbol"] = GetValue(market, "id")

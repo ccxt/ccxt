@@ -93,13 +93,13 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	this.SetBrokerHeaders()
 	var baseIdString any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+		if !ccxt.IsEqual(market["baseId"], nil) {
 			return market["baseId"]
 		}
 		return ""
 	}()
 	var quoteIdString any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+		if !ccxt.IsEqual(market["quoteId"], nil) {
 			return market["quoteId"]
 		}
 		return ""
@@ -140,13 +140,13 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
 			messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 			var baseIdString any = func() any {
-				if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+				if !ccxt.IsEqual(market["baseId"], nil) {
 					return market["baseId"]
 				}
 				return ""
 			}()
 			var quoteIdString any = func() any {
-				if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+				if !ccxt.IsEqual(market["quoteId"], nil) {
 					return market["quoteId"]
 				}
 				return ""
@@ -210,13 +210,13 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		prefix = "markKline"
 	}
 	var streamBaseId any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+		if !ccxt.IsEqual(market["baseId"], nil) {
 			return market["baseId"]
 		}
 		return ""
 	}()
 	var streamQuoteId any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+		if !ccxt.IsEqual(market["quoteId"], nil) {
 			return market["quoteId"]
 		}
 		return ""

@@ -2075,7 +2075,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var typeVar any = nil
 	var query any = nil
@@ -2115,7 +2115,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var payload []any = []any{"!" + "all"}
 	if !ccxt.IsEqual(market, nil) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
-		var mid *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "id"))
+		var mid *string = ccxt.SafeStringPtr(market["id"])
 		if mid != nil {
 			payload = []any{mid}
 		}
@@ -2237,7 +2237,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		if !ccxt.IsEqual(ccxt.GetValue(market, "id"), nil) {
+		if !ccxt.IsEqual(market["id"], nil) {
 			ccxt.AddElementToObject(marketIds, market["id"], true)
 		}
 	}

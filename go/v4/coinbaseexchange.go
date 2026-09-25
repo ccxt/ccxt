@@ -1382,7 +1382,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
@@ -2533,7 +2533,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		//    ]
 		//
 		response = this.ToArray(transfers)
-		for i := 0; i < GetArrayLength(response); i++ {
+		for i := 0; i < len(response); i++ {
 			var account_id *string = this.SafeString(GetValue(response, i), "account_id")
 			var account map[string]any = SafeMapTyped(this.AccountsById, account_id)
 			var codeInner *string = this.SafeString(account, "code")
@@ -2569,7 +2569,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		//    ]
 		//
 		response = this.ToArray(accountTransfers)
-		for i := 0; i < GetArrayLength(response); i++ {
+		for i := 0; i < len(response); i++ {
 			AddElementToObject(GetValue(response, i), "currency", code)
 		}
 	}

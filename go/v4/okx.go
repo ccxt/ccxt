@@ -2974,7 +2974,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 
 		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		var markets []any = []any{}
-		for i := 0; i < GetArrayLength(promisesResult); i++ {
+		for i := 0; i < len(promisesResult); i++ {
 			var res map[string]any = SafeMapTyped(promisesResult, i)
 			var options []any = SafeListTypedDefault(res, "data", []any{})
 			markets = this.ArrayConcat(markets, options)
@@ -3343,7 +3343,7 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-", marketType))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
@@ -3675,7 +3675,7 @@ func (this *Okx) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "tradeId")
 	var marketId *string = this.SafeString(trade, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var price *string = this.SafeString2(trade, "fillPx", "px")
 	var amount *string = this.SafeString2(trade, "fillSz", "sz")
@@ -7058,7 +7058,7 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	}
 	var currencyId *string = this.SafeString(depositAddress, "ccy")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var code *string = SafeStringPtr(GetValue(currency, "code"))
+	var code *string = SafeStringPtr(currency["code"])
 	var chain *string = this.SafeString(depositAddress, "chain")
 	var networks map[string]any = MapTyped(this.SafeDict(currency, "networks", map[string]any{}))
 	var networksById map[string]any = this.IndexBy(networks, "id")
@@ -8943,7 +8943,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 		if GetValue(market, "contract") == true {
 			if GetValue(market, "linear") == true {
 				request["ctType"] = "linear"
@@ -10922,8 +10922,8 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 			market = this.Market(GetValue(symbols, 0))
 			var marketId *string = this.SafeString(market, "id", "")
 			var optionParts []string = strings.Split(*marketId, "-")
-			request["uly"] = GetValue(GetValue(market, "info"), "uly")
-			request["instFamily"] = GetValue(GetValue(market, "info"), "instFamily")
+			request["uly"] = GetValue(market["info"], "uly")
+			request["instFamily"] = GetValue(market["info"], "instFamily")
 			request["expTime"] = this.SafeString(optionParts, 2)
 		}
 	}
@@ -11938,7 +11938,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 		"limit": limit,
 	}
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
 			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
 			request["instId"] = market["id"]

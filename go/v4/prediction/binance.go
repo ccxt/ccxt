@@ -204,7 +204,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 
 		var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(eventParams))))
-		var eventsLength int = ccxt.GetArrayLength(events)
+		var eventsLength int = len(events)
 		var queryMarkets []any = []any{}
 		for ei := 0; ei < eventsLength; ei++ {
 			var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
@@ -228,7 +228,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var rawTopics []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawTopicsAsync(maxMarkets, rest))))
 	var parsedEvents []any = []any{}
 	var flatMarkets []any = []any{}
-	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
+	var rawTopicsLength int = len(rawTopics)
 	for i := 0; i < rawTopicsLength; i++ {
 		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		parsedEvents = append(parsedEvents, parsedEvent)
@@ -608,7 +608,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
 		//         }
 		//     ]
 		//
-		var responseLength int = ccxt.GetArrayLength(response)
+		var responseLength int = len(response)
 		for i := 0; i < responseLength; i++ {
 			var rawTopic any = this.SafeDict(response, i)
 			var topicId *string = this.SafeString(rawTopic, "marketTopicId")
@@ -1059,7 +1059,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var responsesByMarketId map[string]any = map[string]any{}
 	var result map[string]any = map[string]any{}
-	var outcomesLength int = ccxt.GetArrayLength(outcomes)
+	var outcomesLength int = len(outcomes)
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
@@ -1542,7 +1542,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if outcomes != nil {
-		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+		for i := 0; i < len(outcomes); i++ {
 			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)

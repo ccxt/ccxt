@@ -638,7 +638,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		var marketIds []any = []any{}
-		for i := 0; i < GetArrayLength(symbols); i++ {
+		for i := 0; i < len(symbols); i++ {
 			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = MapTyped(this.Market(symbol))
 			marketIds = append(marketIds, market["id"])
@@ -677,7 +677,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
-		for i := 0; i < GetArrayLength(symbols); i++ {
+		for i := 0; i < len(symbols); i++ {
 			var s *string = SafeStringPtr(GetValue(symbols, i))
 			if func() bool {
 				if s == nil {

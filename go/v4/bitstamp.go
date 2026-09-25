@@ -1203,7 +1203,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var market any = GetValue(response, i)
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
 		baseId := GetValue(baseIdquoteIdVariable, 0)

@@ -607,7 +607,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		result = this.ArrayConcat(result, GetValue(promises, i))
 	}
 
@@ -707,7 +707,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	this.Options.Store("hip3TokensByName", map[string]any{})
 	var markets []any = []any{}
-	for i := 0; i < GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		var dexName any = GetValue(fetchDexesList, i)
 		var offset any = GetValue(perpDexesOffset, dexName)
 		var response []any = SafeListTyped(promises, i)
@@ -4404,7 +4404,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		market = MapTyped(this.SafeMarket(marketId, market))
 	}
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var status *string = this.SafeString2(order, "status", "ccxtStatus")
 	order = this.Omit(order, []any{"ccxtStatus"})
@@ -4624,7 +4624,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = MapTyped(this.SafeMarket(marketId))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
@@ -4703,7 +4703,7 @@ func (this *Hyperliquid) GetDexFromSymbols(methodName any, optionalArgs ...any) 
 	if symbols == nil {
 		return nil
 	}
-	var symbolsLength int = GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		return nil
 	}
@@ -4859,7 +4859,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = MapTyped(this.SafeMarket(marketId))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var leverage map[string]any = SafeMapTyped(entry, "leverage")
 	var marginMode *string = this.SafeString(leverage, "type")
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated")
