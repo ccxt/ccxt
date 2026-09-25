@@ -415,7 +415,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut wsRequest: Value = self.wrap_as_post_action(operationType.clone(), request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         if (operationType.as_str() == Some("create_stop_order")) {
@@ -511,13 +514,16 @@ impl PacificaCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, amount, price, market, &[params]);
+        let mut request: Value = self.parent.edit_order_request(id.clone(), symbol.clone(), type_var, side, amount, price, market, &[params]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut wsRequest: Value = self.wrap_as_post_action(batchOperationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -596,7 +602,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut wsRequest: Value = self.wrap_as_post_action(batchOperationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -690,13 +699,16 @@ impl PacificaCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".into()))));
         }
-        let mut request: Value = self.parent.cancel_order_request(id, &[symbol.clone(), params]);
+        let mut request: Value = self.parent.cancel_order_request(id.clone(), &[symbol.clone(), params]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut wsRequest: Value = self.wrap_as_post_action(operationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -772,7 +784,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut wsRequest: Value = self.wrap_as_post_action(operationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -816,7 +831,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -865,7 +883,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -996,7 +1017,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1043,7 +1067,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1097,7 +1124,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1151,7 +1181,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1318,7 +1351,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1367,7 +1403,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1556,7 +1595,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1607,7 +1649,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1720,7 +1765,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1771,7 +1819,10 @@ impl PacificaCore {
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        if (url == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+        }
         let mut userAddressparamsOriginAndSingleAddressVariable = self.parent.handle_origin_and_single_address(Value::Str("unWatchOrders".into()), params);
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
