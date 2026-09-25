@@ -810,7 +810,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (java.util.Objects.equals(interval, null))
         {
             isUta = false;
-            interval = Helpers.replace(channel, (String)"candle", (String)"");
+            interval = channel.replaceFirst("candle", "");
         } else
         {
             isUta = true;
@@ -3490,7 +3490,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (java.util.Objects.equals(interval, null))
         {
             isUta = false;
-            interval = Helpers.replace(channel, (String)"candle", (String)"");
+            interval = channel.replaceFirst("candle", "");
         } else
         {
             isUta = true;

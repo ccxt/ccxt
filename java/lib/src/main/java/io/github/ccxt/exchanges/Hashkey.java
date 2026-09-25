@@ -4945,7 +4945,7 @@ public class Hashkey extends HashkeyApi
     public Object customUrlencode(Map<String, Object> parameters)
     {
         String result = this.urlencode(parameters);
-        result = Helpers.replace(result, (String)"%2C", (String)",");
+        result = result.replaceFirst("%2C", ",");
         return result;
     }
 

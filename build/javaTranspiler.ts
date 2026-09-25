@@ -18,7 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaStringReturnSites } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -531,6 +531,8 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     if (token === 'Integer' && /^-?\d+$/.test (value)) return true;
     const callee = value.match (/^([\w.$]+)\s*\(/);
     if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
+    // native literal String.replaceFirst/replace (section 52) returns String
+    if ((token === 'String' || token === 'java.lang.String') && /^(?:\(\(String\)[\w$]+\)|[\w$]+)\.replace(?:First)?\("/.test (value)) return true;
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
     // a checkcast proves the value only when it wraps the whole expression, not one argument
     if (new RegExp (`^\\(\\s*${token}\\s*\\)`).test (value) && retypeCastSpansValue (value)) return true;
@@ -2361,6 +2363,11 @@ class NewTranspiler {
         installJavaMapLocals(this.transpiler);
         // element writes on handleUntilOption slot 0 / omit-of-Map locals (section 49; also in java-worker.ts)
         patchJavaUntilOmitMapWrites(this.transpiler);
+        // fixed boolean parameters print Boolean (section 51; also in java-worker.ts)
+        installJavaBooleanFixedParams(this.transpiler);
+        installJavaBooleanWriteLocals(this.transpiler);
+        // native String.replaceFirst/replace for literal replace/replaceAll (section 52; also in java-worker.ts)
+        installJavaNativeReplace(this.transpiler);
         // String.replace / native-concat return sites of `: Str` methods (section 53; also in java-worker.ts)
         installJavaStringReturnSites(this.transpiler);
     }
@@ -5669,6 +5676,12 @@ function auditSelfTest (): string[] {
         // typed-list element locals: only final TypedMap DTOs (and String) are element types
         ok(javaIsTypedMapDto('Position') && javaIsTypedMapDto('Order'), 'Position/Order must be TypedMap DTOs');
         ok(!javaIsTypedMapDto('TypedMap') && !javaIsTypedMapDto('Object'), 'TypedMap/Object must not be element DTOs');
+        // Boolean write locals: safeBool/safeBool2 print Object in Java, so they never admit
+        const boolKind = (n: any) => ({ safeBool: 'nullableBoolean', safeBool2: 'nullableBoolean', inArray: 'boolean' } as any)[n?.expression?.name?.text];
+        const boolWrite = (src: string) => javaBooleanLocalWrite({ javaCallBooleanKind: boolKind, getChecker: () => undefined }, (ts.createSourceFile('w.ts', src, ts.ScriptTarget.Latest, true).statements[0] as any).expression);
+        ok(!boolWrite('this.safeBool (m, "linear", false)'), 'safeBool write must not admit a Boolean local');
+        ok(!boolWrite('this.safeBool2 (p, "postOnly", "post_only", false)'), 'safeBool2 write must not admit a Boolean local');
+        ok(boolWrite('false') && boolWrite('undefined') && boolWrite('this.inArray (a, b)'), 'literal/null/boolean-call writes must admit');
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
     } finally {

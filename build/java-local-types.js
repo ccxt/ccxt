@@ -1679,8 +1679,8 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
     'split':       { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, prefixes: [ 'Helpers.split(' ], args: [ 1, 2 ] },
     'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
-    'replace':     { type: 'String', prefixes: [ 'Helpers.replace(' ], args: [ 1, 2 ], nonNull: false },
-    'replaceAll':  { type: 'String', prefixes: [ 'Helpers.replaceAll(' ], args: [ 1, 2 ], nonNull: false },
+    'replace':     { type: 'String', prefixes: [ 'Helpers.replace(' ], match: /^(\(\(String\)\w+\)|\w+)\.replaceFirst\("/, args: [ 1, 2 ], nonNull: false },
+    'replaceAll':  { type: 'String', prefixes: [ 'Helpers.replaceAll(' ], match: /^(\(\(String\)\w+\)|\w+)\.replace\("/, args: [ 1, 2 ], nonNull: false },
     'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], args: [ 1, 2 ], nonNull: false },
     'padEnd':      { type: 'String', prefixes: [ 'Helpers.padEnd(' ], args: [ 2 ], nonNull: true },
     'padStart':    { type: 'String', prefixes: [ 'Helpers.padStart(' ], args: [ 2 ], nonNull: true },
@@ -3631,7 +3631,8 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             }
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && info?.tupleOk?.(parent.parent.right, parent.elements.indexOf (n)) !== true) {
             if (info?.destructureOk?.(parent.parent, parent.elements.indexOf (n)) === true) {
                 continue; // a typed Pair slot read of the narrowed type
             }
@@ -3655,8 +3656,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 let ok;
-                if (info?.writeOnly === true) {
-                    ok = false; // only the family's own writeOk decides
+                if (info?.writeOkOnly === true || info?.writeOnly === true) {
+                    // families whose writes print with no checkcast: only writeOk proves them
+                    ok = false;
                 } else if (javaType === 'String') {
                     // the narrowed declaration can only take writes whose printed Java is
                     // statically String (isStaticallyStringExpression) or a same-family
@@ -5382,7 +5384,8 @@ function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, i
             return false; // `as any` -> ((Object)x); `as T[]` -> a List<String> cast
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && info?.tupleOk?.(parent.parent.right, parent.elements.indexOf (n)) !== true) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isDeleteExpression (parent)) {
@@ -15143,6 +15146,353 @@ export function installJavaMapLocals (transpiler) {
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== 51. fixed `boolean` parameters print `Boolean` =====
+// Every printed declaration of these (method, position) slots is annotated `boolean`, has no
+// default and never writes it, so base and overrides print `Boolean` together.
+const JAVA_BOOLEAN_FIXED_PARAMS = {
+    'createOrderSettlementData': [ 0 ],
+    'enableDemoTrading': [ 0 ],
+    'getListenKey': [ 0 ],
+    'opinionOrderRawAmounts': [ 0 ],
+    'parseSxbetV3BookSides': [ 1 ],
+    'setPositionMode': [ 0 ],
+    'setSandboxMode': [ 0 ],
+};
+
+function javaBooleanFixedParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || node.initializer !== undefined) {
+        return undefined;
+    }
+    const positions = JAVA_BOOLEAN_FIXED_PARAMS[method.name.text];
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (positions === undefined || !positions.includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (annotation !== 'boolean' || !ts.isIdentifier (node.name) || node.dotDotDotToken !== undefined || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java boolean param ${method.name.text}#${index} (${fileName}) is not a read-only boolean`);
+    }
+    return 'Boolean';
+}
+
+// the argument prints a Java boolean/Boolean already: a literal, a primitive boolean expression,
+// or a local/parameter declared Boolean/boolean
+function javaBooleanArgumentIsTyped (printer, arg) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined) {
+        return false;
+    }
+    if (bare.kind === ts.SyntaxKind.TrueKeyword || bare.kind === ts.SyntaxKind.FalseKeyword || bare.kind === ts.SyntaxKind.NullKeyword) {
+        return true;
+    }
+    if (ts.isIdentifier (bare)) {
+        return [ 'boolean', 'Boolean' ].includes (printer.javaDeclaredBooleanKind (bare));
+    }
+    return javaPrimitiveBooleanExpression (printer, bare);
+}
+
+// a comparison, `!x` or a primitive-boolean base call: Java prints a primitive boolean
+function javaPrimitiveBooleanExpression (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isPrefixUnaryExpression (value)) {
+        return value.operator === ts.SyntaxKind.ExclamationToken;
+    }
+    if (ts.isBinaryExpression (value)) {
+        return JAVA_COMPARISON_OPERATORS.has (value.operatorToken.kind);
+    }
+    return ts.isCallExpression (value) && printer.javaCallBooleanKind (value) === 'boolean';
+}
+
+const JAVA_COMPARISON_OPERATORS = new Set ([
+    ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken,
+    ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+]);
+
+// the argument sits at a table slot of a `this.m (...)` / `super.m (...)` call
+function javaBooleanFixedSlotArgument (arg) {
+    const call = arg?.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)) {
+        return false;
+    }
+    const positions = JAVA_BOOLEAN_FIXED_PARAMS[call.expression.name.text];
+    return positions !== undefined && positions.includes (call.arguments.indexOf (arg));
+}
+
+export function installJavaBooleanFixedParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaBooleanFixedParamsPatched) {
+        return;
+    }
+    printer._javaBooleanFixedParamsPatched = true;
+    const upstreamType = printer.javaNativeParameterType.bind (printer);
+    printer.javaNativeParameterType = function (node) {
+        return javaBooleanFixedParamType (printer, node) ?? upstreamType (node);
+    };
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (type !== 'Boolean') {
+            return upstreamTyped (arg, type);
+        }
+        if (javaBooleanArgumentIsTyped (printer, arg)) {
+            return true;
+        }
+        if (!javaBooleanFixedSlotArgument (arg)) {
+            return upstreamTyped (arg, type);
+        }
+        throw new Error (`java boolean param: argument ${arg.getText ()} is not a proven boolean`);
+    };
+}
+
+// `let x = await this.isUTAEnabled ()` / `let x = undefined`: an Object local whose every write is
+// null, a boolean literal, a primitive-boolean base call, that awaited call or element 0 of a
+// Pair<Boolean, ...> handler prints `Boolean` (safeBool* are declared Object in Java: excluded).
+function javaAwaitedUtaCall (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined || !ts.isAwaitExpression (value) || !ts.isCallExpression (value.expression)) {
+        return false;
+    }
+    const callee = value.expression.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword || callee.name.text !== 'isUTAEnabled') {
+        return false;
+    }
+    const declaration = printer.getChecker ().getResolvedSignature (value.expression)?.declaration?.resolve ();
+    return declaration?.name?.text === 'isUTAEnabled' && declaration.type?.getText ().replace (/\s/g, '') === 'Promise<boolean>';
+}
+
+export function javaBooleanLocalWrite (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
+        return true;
+    }
+    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || javaPrimitiveBooleanExpression (printer, value);
+}
+
+export function installJavaBooleanWriteLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBooleanWriteLocalsPatched) {
+        return;
+    }
+    printer._javaBooleanWriteLocalsPatched = true;
+    const retyped = new WeakSet ();
+    // only these handlers print `Pair<Boolean, ...>`; handleParamBool* print List<Object> (slot 0 Object)
+    const pairBool = new Set (['handleOptionBoolAndParams', 'handleOptionBoolAndParams2']);
+    const tupleOk = (right, index) => index === 0 && printer.javaBooleanBoxTupleElement (right, 0)
+        && pairBool.has (unwrapParens (right)?.expression?.name?.text);
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || !javaBooleanLocalWrite (printer, declaration.initializer)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || (at !== 0 && printed.charAt (at - 1) !== '\n')) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+            ok = isSafeToNarrow (printer, declaration, declaration.name.text, 'Boolean', isProFile, {
+                writeOk: (rhs) => javaBooleanLocalWrite (printer, rhs),
+                tupleOk,
+                writeOkOnly: true,
+            });
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        retyped.add (declaration);
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Boolean ') + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (retyped.has (declaration) ? 'Boolean' : undefined));
+}
+
+// ===== 52. native String.replaceFirst / String.replace for literal replace/replaceAll =====
+// Helpers.replace is a literal first-occurrence replace (null base -> null), Helpers.replaceAll
+// a literal replace-all. With a checker-proven non-null plain `string` identifier receiver and
+// two string-literal arguments, the native call is identical (no regex/`$` chars on replaceFirst).
+const JAVA_REPLACE_REGEX_CHARS = /[\\^$.|?*+()[\]{}]/;
+
+// a write that is never null in Java: a string literal, a `+` with a literal operand (concat),
+// a safeString-family read with a string-literal default, a base urlencode, or `x.replace(..)` on itself
+const JAVA_REPLACE_DEFAULTED_READS = new Set ([ 'safeString', 'safeString2', 'safeStringLower', 'safeStringUpper', 'safeStringLower2', 'safeStringUpper2' ]);
+
+function javaReplaceResolvesToBase (printer, call) {
+    const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+    return declaration !== undefined && HELPER_SOURCE_FILE.test (declaration.getSourceFile ().fileName);
+}
+
+function javaReplaceNonNullWrite (printer, name, node) {
+    let value = unwrapParens (node);
+    while (value !== undefined && (ts.isAsExpression (value) || ts.isParenthesizedExpression (value))) {
+        value = value.expression;
+    }
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isStringLiteralLike (value)) {
+        return true;
+    }
+    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return ts.isStringLiteralLike (unwrapParens (value.left)) || ts.isStringLiteralLike (unwrapParens (value.right))
+            || javaReplaceNonNullWrite (printer, name, value.left);
+    }
+    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
+        const callee = value.expression;
+        const method = callee.name.text;
+        if (callee.expression.kind === ts.SyntaxKind.ThisKeyword && JAVA_REPLACE_DEFAULTED_READS.has (method)) {
+            const last = value.arguments[value.arguments.length - 1];
+            const minArgs = /2$/.test (method) ? 4 : 3;
+            return value.arguments.length === minArgs && last !== undefined && ts.isStringLiteralLike (last);
+        }
+        // Encode.urlencode / urlencodeNested end in String.join (never null) when the base resolves
+        if (callee.expression.kind === ts.SyntaxKind.ThisKeyword && (method === 'urlencode' || method === 'urlencodeNested')) {
+            return javaReplaceResolvesToBase (printer, value);
+        }
+        if ((method === 'replace' || method === 'replaceAll') && ts.isIdentifier (callee.expression)
+            && callee.expression.text === name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// is there a `name === undefined` / `name !== undefined` test in `scope` before `use`
+function javaReplaceHasUndefinedGuard (scope, name, use) {
+    let found = false;
+    const visit = (n) => {
+        if (found || n.pos >= use.pos) {
+            return;
+        }
+        if (ts.isBinaryExpression (n)
+            && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (n.operatorToken.kind)) {
+            const l = unwrapParens (n.left);
+            const r = unwrapParens (n.right);
+            const isName = (x) => x !== undefined && ts.isIdentifier (x) && x.text === name;
+            const isUndef = (x) => x !== undefined && ((ts.isIdentifier (x) && x.text === 'undefined') || x.kind === ts.SyntaxKind.NullKeyword);
+            if ((isName (l) && isUndef (r)) || (isName (r) && isUndef (l))) {
+                found = true;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return found;
+}
+
+// the receiver is a non-null Java String: the checker types the use as plain `string`, and
+// either the declaration is nullable and an undefined-test precedes the use (CFA guard), or
+// every write of a local is a never-null String value
+function javaNativeReplaceReceiver (printer, node) {
+    const receiver = node?.expression?.expression;
+    if (receiver === undefined || !ts.isIdentifier (receiver) || printer.printNode (receiver, 0) !== receiver.text) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const type = checker.getTypeAtLocation (receiver);
+    if (type === undefined || (type.flags & ts.TypeFlags.Union) !== 0 || (type.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) === 0) {
+        return undefined;
+    }
+    const symbol = checker.getSymbolAtLocation (receiver);
+    const declaration = symbol?.valueDeclaration?.resolve ();
+    if (declaration === undefined || !(ts.isVariableDeclaration (declaration) || ts.isParameterDeclaration (declaration))
+        || !ts.isIdentifier (declaration.name)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || enclosingFunction (receiver) !== scope) {
+        return undefined;
+    }
+    const name = receiver.text;
+    const declared = checker.getTypeAtLocation (declaration.name);
+    const nullable = declared !== undefined && (declared.flags & ts.TypeFlags.Union) !== 0;
+    if (nullable && javaReplaceHasUndefinedGuard (scope, name, receiver)) {
+        return name;
+    }
+    if (!ts.isVariableDeclaration (declaration) || declaration.initializer === undefined
+        || !javaReplaceNonNullWrite (printer, name, declaration.initializer)) {
+        return undefined;
+    }
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        const parent = n.parent;
+        if (ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind >= ts.SyntaxKind.FirstAssignment
+            && parent.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken && parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken) {
+                return undefined;
+            }
+            if (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && !javaReplaceNonNullWrite (printer, name, parent.right)) {
+                return undefined;
+            }
+        } else if ((ts.isVariableDeclaration (parent) && parent.name === n && parent !== declaration)
+            || ts.isArrayLiteralExpression (parent) || ts.isShorthandPropertyAssignment (parent)
+            || (ts.isPrefixUnaryExpression (parent) || ts.isPostfixUnaryExpression (parent))) {
+            return undefined;
+        }
+    }
+    return name;
+}
+
+function javaNativeReplaceText (printer, node, out, helper, name, parsedArg, parsedArg2) {
+    const args = node?.arguments;
+    if (typeof out !== 'string' || args === undefined || args.length !== 2
+        || !ts.isStringLiteral (args[0]) || !ts.isStringLiteral (args[1]) || args[0].text === '') {
+        return out;
+    }
+    const recv = javaNativeReplaceReceiver (printer, node);
+    if (recv === undefined || name !== recv) {
+        return out;
+    }
+    const head = [ `Helpers.${helper}(${recv}, `, `Helpers.${helper}(((String)${recv}), ` ].find ((h) => out.startsWith (h));
+    const tail = `${parsedArg}, ${parsedArg2})`;
+    const castTail = `(String)${parsedArg}, (String)${parsedArg2})`;
+    if (head === undefined || !(out === head + tail || out === head + castTail)) {
+        return out;
+    }
+    const target = head.slice (`Helpers.${helper}(`.length, -2);
+    if (helper === 'replace') {
+        if (JAVA_REPLACE_REGEX_CHARS.test (args[0].text) || /[$\\]/.test (args[1].text)) {
+            return out;
+        }
+        return `${target}.replaceFirst(${parsedArg}, ${parsedArg2})`;
+    }
+    return `${target}.replace(${parsedArg}, ${parsedArg2})`;
+}
+
+export function installJavaNativeReplace (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printReplaceCall !== 'function' || printer._javaNativeReplacePatched) {
+        return;
+    }
+    printer._javaNativeReplacePatched = true;
+    for (const [ method, helper ] of [ [ 'printReplaceCall', 'replace' ], [ 'printReplaceAllCall', 'replaceAll' ] ]) {
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+            const out = upstream (node, identation, name, parsedArg, parsedArg2);
+            try {
+                return javaNativeReplaceText (this, node, out, helper, name, parsedArg, parsedArg2);
+            } catch (e) {
+                return out;
+            }
+        };
+    }
 }
 
 // ===== 53. String returns built by String.replace / native concat =====

@@ -3719,7 +3719,7 @@ public class Bitstamp extends BitstampApi
             {
                 authBody = requestBody;
             }
-            String auth = (((((Helpers.add(Helpers.add(xAuth, java.util.Objects.requireNonNullElse(method, "GET")), Helpers.replace(((String)url), "https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
+            String auth = (((((Helpers.add(Helpers.add(xAuth, java.util.Objects.requireNonNullElse(method, "GET")), ((String)url).replaceFirst("https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             privateHeaders.put("X-Auth-Signature", signature);
         }

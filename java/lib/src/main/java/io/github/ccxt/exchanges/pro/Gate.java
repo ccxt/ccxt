@@ -1487,7 +1487,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList(marketId));
             // uid required for non spot markets
-            Object requiresUid = (!java.util.Objects.equals(type, "spot"));
+            Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
             List<Object> trades = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (paramsSubType), requiresUid)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1584,7 +1584,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
-            Object requiresUid = (!java.util.Objects.equals(type, "spot"));
+            Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
             Object channelType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
                 put( "margin", "spot" );
@@ -2009,7 +2009,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             // uid required for non spot markets
-            Object requiresUid = (!java.util.Objects.equals(type, "spot"));
+            Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
             List<Object> orders = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
             Long limitResolved = limit;
             if (this.newUpdates)

@@ -2291,10 +2291,10 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 		"amount":   amount,
 	}
 	var response map[string]any = nil
-	if InOp(paramsWithdrawTag, "payment_method_id") {
+	if _, ok := paramsWithdrawTag["payment_method_id"]; ok {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, paramsWithdrawTag))).Raw))
-	} else if InOp(paramsWithdrawTag, "coinbase_account_id") {
+	} else if _, ok := paramsWithdrawTag["coinbase_account_id"]; ok {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Raw))
 	} else {

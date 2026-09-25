@@ -951,11 +951,11 @@ public class Lighter extends LighterApi
 
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        Helpers.addElementToObject(this.options, "chainId", ((Helpers.isTrue(enable))) ? 300 : 304);
+        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
     }
 
     public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)

@@ -1095,7 +1095,7 @@ public class Sxbet extends SxbetApi
             }
             String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
             String outcomeId = this.safeString(outcomeObj, "outcomeId");
-            Object isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
+            Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
             // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
             // matches the normalize-to-one-book convention used by other prediction venues
@@ -2524,12 +2524,12 @@ public class Sxbet extends SxbetApi
      * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
-    public Map<String, Object> parseSxbetV3BookSides(Map<String, Object> snapshot, Object isOutcomeOne)
+    public Map<String, Object> parseSxbetV3BookSides(Map<String, Object> snapshot, Boolean isOutcomeOne)
     {
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
-        Object ownLevels = ((Helpers.isTrue((isOutcomeOne)))) ? this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList()));
-        Object oppositeLevels = ((Helpers.isTrue((isOutcomeOne)))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
+        Object ownLevels = ((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList()));
+        Object oppositeLevels = ((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         Integer ownLevelsLength = ((List<?>)ownLevels).size();
         for (var i = 0; (ownLevelsLength != null && i < ownLevelsLength); i++)

@@ -2089,7 +2089,7 @@ public class Paradex extends ParadexApi
         String triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         List<Object> flags = (List<Object>) this.safeList(order, "flags", (Object) null);
-        Object reduceOnly = null;
+        Boolean reduceOnly = null;
         if (!java.util.Objects.equals(flags, null))
         {
             reduceOnly = this.inArray("REDUCE_ONLY", flags);

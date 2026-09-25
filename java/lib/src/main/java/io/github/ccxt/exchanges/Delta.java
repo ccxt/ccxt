@@ -1066,7 +1066,7 @@ public class Delta extends DeltaApi
                     // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                     amountPrecision = this.parseNumber("1");
                 }
-                Object linear = (java.util.Objects.equals(settle, quote));
+                Boolean linear = (java.util.Objects.equals(settle, quote));
                 String optionType = null;
                 String symbol = ((base + "/") + quote);
                 if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
@@ -1756,7 +1756,7 @@ public class Delta extends DeltaApi
         String type = this.safeString(metaData, "order_type");
         if (!java.util.Objects.equals(type, null))
         {
-            type = Helpers.replace(type, (String)"_order", (String)"");
+            type = type.replaceFirst("_order", "");
         }
         String feeCostString = this.safeString(trade, "commission");
         Map<String, Object> fee = null;
@@ -2239,7 +2239,7 @@ public class Delta extends DeltaApi
         String type = this.safeString(order, "order_type");
         if (!java.util.Objects.equals(type, null))
         {
-            type = Helpers.replace(type, (String)"_order", (String)"");
+            type = type.replaceFirst("_order", "");
         }
         String price = this.safeString(order, "limit_price");
         String amount = this.safeString(order, "size");

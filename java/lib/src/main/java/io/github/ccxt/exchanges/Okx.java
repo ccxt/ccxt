@@ -2892,8 +2892,8 @@ public class Okx extends OkxApi
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Double maxSpotCost = this.safeNumber(market, "maxMktSz", (Object) null);
         Object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
-        Object quoteEqualSettle = (java.util.Objects.equals(quoteId, settleId));
-        Object baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
+        Boolean quoteEqualSettle = (java.util.Objects.equals(quoteId, settleId));
+        Boolean baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
         String status = this.safeString(market, "state");
         Long instIdCode = this.safeInteger(market, "instIdCode");
         return this.extend(fees, Helpers.newMap(
@@ -8866,13 +8866,13 @@ public class Okx extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             String hedgeMode = null;
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 hedgeMode = "long_short_mode";
             } else
@@ -9997,11 +9997,11 @@ public class Okx extends OkxApi
         ), marketResolved);
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        if (Helpers.isTrue(enable))
+        if (Boolean.TRUE.equals(enable))
         {
             Helpers.addElementToObject(this.headers, "x-simulated-trading", "1");
         } else if (((Map<?, ?>)this.headers).containsKey("x-simulated-trading"))

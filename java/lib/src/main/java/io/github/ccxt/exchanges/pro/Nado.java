@@ -2210,17 +2210,17 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         if ((((String)messageHash).indexOf("trade:") == 0))
         {
-            String symbol = Helpers.replace(((String)messageHash), "trade:", "");
+            String symbol = ((String)messageHash).replaceFirst("trade:", "");
             if (((Map<?, ?>)this.trades).containsKey(symbol))
             {
-                ((Map<String,Object>)this.trades).remove((String)symbol);
+                ((Map<String,Object>)this.trades).remove(symbol);
             }
         } else if ((((String)messageHash).indexOf("orderbook:") == 0))
         {
-            String symbol = Helpers.replace(((String)messageHash), "orderbook:", "");
+            String symbol = ((String)messageHash).replaceFirst("orderbook:", "");
             if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
             {
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                ((Map<String,Object>)this.orderbooks).remove(symbol);
             }
         } else if ((((String)messageHash).indexOf("ohlcv:") == 0))
         {
@@ -2233,10 +2233,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if ((((String)messageHash).indexOf("ticker:") == 0))
         {
-            String symbol = Helpers.replace(((String)messageHash), "ticker:", "");
+            String symbol = ((String)messageHash).replaceFirst("ticker:", "");
             if (((Map<?, ?>)this.tickers).containsKey(symbol))
             {
-                ((Map<String,Object>)this.tickers).remove((String)symbol);
+                ((Map<String,Object>)this.tickers).remove(symbol);
             }
         } else if (java.util.Objects.equals(messageHash, "ticker"))
         {
@@ -2247,10 +2247,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if ((((String)messageHash).indexOf("bidask:") == 0))
         {
-            String symbol = Helpers.replace(((String)messageHash), "bidask:", "");
+            String symbol = ((String)messageHash).replaceFirst("bidask:", "");
             if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
             {
-                ((Map<String,Object>)this.bidsasks).remove((String)symbol);
+                ((Map<String,Object>)this.bidsasks).remove(symbol);
             }
         } else if (java.util.Objects.equals(messageHash, "bidask"))
         {

@@ -1477,7 +1477,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        String interval = Helpers.replace(channel, (String)"candle", (String)"");
+        String interval = channel.replaceFirst("candle", "");
         // use a reverse lookup in a static map instead
         String timeframe = this.findTimeframe(interval, (Object) null);
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -3059,7 +3059,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String msg = this.safeString(message, "msg");
                 if (!java.util.Objects.equals(msg, null) && Helpers.isTrue(msg.startsWith(((String)"Illegal request: {"))))
                 {
-                    String stringifiedJson = Helpers.replace(msg, (String)"Illegal request: ", (String)"");
+                    String stringifiedJson = msg.replaceFirst("Illegal request: ", "");
                     Object parsedJson = this.parseJson(stringifiedJson);
                     id = this.safeString(parsedJson, "id");
                 }

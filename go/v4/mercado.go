@@ -1000,18 +1000,18 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 		"address":  address,
 	}
 	if code == "BRL" {
-		var account_ref bool = (InOp(paramsWithdrawTag, "account_ref"))
+		var account_ref bool = (func() bool { _, ok := paramsWithdrawTag["account_ref"]; return ok }())
 		if !account_ref {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires account_ref parameter to withdraw " + code))
 		}
 	} else if code != "LTC" {
-		var tx_fee bool = (InOp(paramsWithdrawTag, "tx_fee"))
+		var tx_fee bool = (func() bool { _, ok := paramsWithdrawTag["tx_fee"]; return ok }())
 		if !tx_fee {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}
 		if code == "XRP" {
 			if tagWithdrawTag == nil {
-				if !(InOp(paramsWithdrawTag, "destination_tag")) {
+				if _, ok := paramsWithdrawTag["destination_tag"]; !ok {
 					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw " + code))
 				}
 			} else {
