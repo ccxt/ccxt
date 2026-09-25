@@ -11,7 +11,7 @@ def inputs(o,acc):
         for v in o: inputs(v,acc)
     return acc
 tot=0
-for f in sorted(glob.glob('ts/src/test/static/*/*.json')):
+for f in sorted(glob.glob('ts/src/test/static/**/*.json', recursive=True)):
     txt=open(f).read(); d=json.loads(txt)
     if not isinstance(d,dict): continue
     targets=set()
