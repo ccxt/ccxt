@@ -37,7 +37,12 @@
     },
     "alpaca": {
         "skip": "private endpoints, todo",
-        "skipWs": "private endpoints, todo"
+        "skipWs": "private endpoints, todo",
+        "skipMethods": {
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2165"
+            }
+        }
     },
     "arkham": {
         "skip": "exchange closed",
@@ -157,6 +162,10 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2220",
+                "compareTimestampToLimit": "todo"
             },
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:187"
@@ -410,6 +419,10 @@
             "orderBook": {
                 "compareToZero": "frequently, zero amount is set in some orderbook entry"
             },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2264",
+                "compareTimestampToLimit": "todo"
+            },
             "fetchTrades": {
                 "sideSequence": "todo check, eg https://api.bithumb.com/v1/trades/ticks?count=12000&market=KRW-BTC"
             }
@@ -521,6 +534,10 @@
             "fetchOrderBook": {
                 "timestamp": "not provided"
             },
+            "fetchOHLCV": {
+                "compareTimestampToSince": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2209",
+                "compareAmountToZero": "sometimes zero amount returned"
+            },
             "watchTicker": {
                 "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:1178"
             },
@@ -557,6 +574,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "need directional parsing, eg https://www.bitrue.com/api/v1/trades?symbol=BTCUSDT&limit=12000"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -694,6 +714,9 @@
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2308"
             },
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid"
@@ -927,6 +950,7 @@
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745",
                 "compareOHLC": "todo"
             },
+            "fetchOHLCV": "multiple test failure",
             "fetchTickers": {
                 "checkActiveSymbols": "tmp VXV issue"
             }
@@ -1268,6 +1292,9 @@
             "fetchTrades": {
                 "sideSequence": "todo check",
                 "requireBothSides": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1287,6 +1314,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1335,6 +1365,9 @@
             },
             "ticker": {
                 "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:528"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1415,6 +1448,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1442,6 +1478,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1464,6 +1503,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1492,6 +1534,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1517,6 +1562,9 @@
             },
             "watchTickers": {
                 "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2028"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1528,6 +1576,9 @@
             },
             "orderBook": {
                 "timestamp": "the orderbook endpoint carries no timestamp"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1539,6 +1590,9 @@
             },
             "orderBook": {
                 "timestamp": "the venue reports no book time; the AMM book is synthesized from the current implied price"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1620,6 +1674,9 @@
             },
             "watchOrderBookForSymbols": {
                 "timestamp": "not provided"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1644,12 +1701,20 @@
             "fetchTrades": {
                 "fees": "missing",
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
     "blofin": {
         "skipWs": "loadMarkets is geo-blocked from the test environment, ws tests can not bootstrap",
-        "until": "2026-08-31"
+        "until": "2026-08-31",
+        "methods": {
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
+            }
+        }
     },
     "extended": {
         "skip": "loadMarkets is geo-blocked from the test environment (403)",
@@ -1658,6 +1723,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "spot": "SPOT rows are intentionally retained for balance symbol resolution despite has.spot being false; see extended.parseMarket"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1714,6 +1782,9 @@
             },
             "orderBook": {
                 "timestamp": "the orderbook_fp response carries no timestamp"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1738,6 +1809,9 @@
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5965"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2052,6 +2126,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2069,7 +2146,8 @@
             },
             "fetchOrderBook": {
                 "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
-            }
+            },
+            "fetchOHLCV": "too many issues in the endpoint, compareAmountToZero, compareTimestampToLimit, compareToNow, and even string responses"
         }
     },
     "oceanex": {
@@ -2083,7 +2161,10 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
-            "fetchOrderBooks": "fetchOrderBooks returned 0 length"
+            "fetchOrderBooks": "fetchOrderBooks returned 0 length",
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2317"
+            }
         }
     },
     "okcoin": {
@@ -2111,7 +2192,12 @@
     },
     "opinion": {
         "httpsProxy": "http://188.245.226.105:8911",
-        "wsProxy": "http://188.245.226.105:8911"
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
+            }
+        }
     },
     "onetrading": {
         "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
@@ -2121,7 +2207,10 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "orderBook": {
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2237"
+            },
+            "orderBook":{
                 "compareToNextItem": "messed bids sequence",
                 "timestamp": "not provided"
             },
@@ -2179,7 +2268,10 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"
+            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures",
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
+            }
         },
         "preferredPredictionOutcome": "DEMOCRATIC_PRESIDENTIAL_NOMINEE_2028_BERNIE_SANDERS_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_879:YES",
         "predictionNote": "liquid book, resolves 2028; C#/Go/Java dict ordering otherwise scans onto placeholder markets (Another team / Person Y) whose CLOB books 404; the harness falls back to a scan if this pin goes stale"
@@ -2258,6 +2350,10 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
+            "fetchOHLCV": {
+                "compareAmountToZero": "sometimes zero amount returned",
+                "compareTimestampToLimit": "todo"
+            },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
             }
@@ -2290,6 +2386,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2360,6 +2459,9 @@
             },
             "fetchOrderBook": {
                 "compareToNextItem": "tmp"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2393,6 +2495,9 @@
             },
             "fetchOrderBooks": {
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2396"
             }
         }
     },
@@ -2457,6 +2562,9 @@
             "fetchTrades": {
                 "sideSequence": "todo check",
                 "requireBothSides": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2552,6 +2660,9 @@
             },
             "fetchCurrencies": {
                 "type": "todo"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2634,6 +2745,9 @@
             "fetchTrades": {
                 "sideSequence": "todo check",
                 "requireBothSides": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -2745,7 +2859,10 @@
             "watchTradesForSymbols": {
                 "side": "not provided"
             },
-            "watchBidsAsks.go": "Go test harness repanics the NotSupported thrown for swap symbols (spot-only channel) instead of skipping it like the other languages, recheck 2026-10-01"
+            "watchBidsAsks.go": "Go test harness repanics the NotSupported thrown for swap symbols (spot-only channel) instead of skipping it like the other languages, recheck 2026-10-01",
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo"
+            }
         }
     },
     "btse": {
