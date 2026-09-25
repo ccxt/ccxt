@@ -8,6 +8,7 @@ import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 // ----------------------------------------------------------------------------
 
@@ -329,13 +330,13 @@ export default class woo extends wooRest {
         return orderbook;
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const price = this.safeFloat2 (delta, 'price', 0);
         const amount = this.safeFloat2 (delta, 'quantity', 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

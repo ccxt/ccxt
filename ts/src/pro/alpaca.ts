@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -285,12 +286,12 @@ export default class alpaca extends alpacaRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'p', 's');
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

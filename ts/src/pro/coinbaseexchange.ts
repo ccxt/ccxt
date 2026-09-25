@@ -9,6 +9,7 @@ import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict,
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -897,13 +898,13 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         });
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

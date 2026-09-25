@@ -5,6 +5,7 @@ import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 // ----------------------------------------------------------------------------
 
@@ -129,13 +130,13 @@ export default class extended extends extendedRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const price = this.safeFloat (delta, 'p');
         const amount = this.safeFloat2 (delta, 'c', 'q');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

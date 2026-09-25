@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, NullableDict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -737,12 +738,12 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const bookArray = this.parseOrderBookBidAsk (delta, 'px', 'qty', 'num');
         bookside.storeArray (bookArray);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

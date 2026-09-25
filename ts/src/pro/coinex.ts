@@ -7,6 +7,7 @@ import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, Reque
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int, NullableList, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -844,12 +845,12 @@ export default class coinex extends coinexRest {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

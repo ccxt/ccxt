@@ -9,6 +9,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1081,12 +1082,12 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

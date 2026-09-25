@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -632,7 +633,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta);
         bookside.storeArray (bidAsk);
     }

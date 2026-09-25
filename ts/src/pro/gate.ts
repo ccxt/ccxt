@@ -601,7 +601,7 @@ export default class gate extends gateRest {
             if ((nonce === undefined) || ((deltaStart !== undefined) && (nonce >= deltaStart))) {
                 return;
             }
-            this.handleDelta (orderbook, result);
+            this.handleBookDelta (orderbook, result);
         }
         client.resolve (orderbook, messageHash);
     }
@@ -701,7 +701,7 @@ export default class gate extends gateRest {
         } else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
             return;
         } else if ((deltaStart !== undefined) && (nonce >= deltaStart - 1)) {
-            this.handleDelta (storedOrderBook, delta);
+            this.handleBookDelta (storedOrderBook, delta);
         } else {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
@@ -745,7 +745,7 @@ export default class gate extends gateRest {
         }
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         const timestamp = this.safeInteger (delta, 't');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

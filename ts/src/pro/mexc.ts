@@ -927,7 +927,7 @@ export default class mexc extends mexcRest {
             return;
         }
         try {
-            this.handleDelta (storedOrderBook, data);
+            this.handleBookDelta (storedOrderBook, data);
             const timestamp = this.safeIntegerN (message, [ 't', 'ts', 'sendTime' ]);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
@@ -962,7 +962,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
         if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
