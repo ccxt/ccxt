@@ -1990,6 +1990,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         //    }
         //
         $error = $this->safe_string($message, 'error');
+        if ($error === null) {
+            return null;
+        }
         $code = $this->safe_integer($error, 'errorCode');
         $action = $this->safe_string($message, 'action');
         $buildMessage = $this->build_message_hash($action, $message);
