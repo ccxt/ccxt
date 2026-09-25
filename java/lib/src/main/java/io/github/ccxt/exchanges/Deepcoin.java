@@ -909,7 +909,7 @@ public class Deepcoin extends DeepcoinApi
                     // we calculate until (after) for correct pagination
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                     Long numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
-                    Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));
+                    Object endTime = Helpers.add(since, (((duration * numberOfCandles)) * 1000L));
                     if (!java.util.Objects.equals(until, null))
                     {
                         endTime = Helpers.mathMin(endTime, until);

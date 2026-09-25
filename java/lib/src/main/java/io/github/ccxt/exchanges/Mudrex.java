@@ -403,10 +403,10 @@ public class Mudrex extends MudrexApi
             }};
             // the endpoint requires an explicit time window (in seconds)
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object requestLimit = limit;
+            Long requestLimit = limit;
             if (java.util.Objects.equals(requestLimit, null))
             {
-                requestLimit = 500;
+                requestLimit = 500L;
             }
             Long now = this.seconds();
             Object startTime = null;

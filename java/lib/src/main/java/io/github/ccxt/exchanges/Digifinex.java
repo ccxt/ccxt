@@ -1974,8 +1974,8 @@ public class Digifinex extends DigifinexApi
                     if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(until, null)))
                     {
                         Long endTime = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
-                        Object startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200;
-                        startTime = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(startLimit, duration), 1000)));
+                        Long startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200L;
+                        startTime = Helpers.subtract(endTime, (((startLimit * duration) * 1000L)));
                     }
                 }
                 if (!java.util.Objects.equals(startTime, null))

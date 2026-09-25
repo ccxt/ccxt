@@ -1012,7 +1012,7 @@ public class Hyperliquid extends HyperliquidApi
             if (java.util.Objects.equals(since, null))
             {
                 Object tf = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                Object candleCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
+                Long candleCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100L;
                 Object startOffset = Helpers.multiply(Helpers.multiply(tf, candleCount), -1000);
                 startTime = this.sum(until, startOffset);
                 if (java.util.Objects.equals(startTime, null))

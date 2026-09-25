@@ -3580,8 +3580,8 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("startTime", since);
             } else
             {
-                Object maxLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : limit;
-                request.put("startTime", Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(maxLimit, 60), 60), 1000)));
+                Long maxLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : limit;
+                request.put("startTime", Helpers.subtract(this.milliseconds(), (((maxLimit * 60L) * 60L) * 1000L)));
             }
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");

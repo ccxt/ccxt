@@ -733,7 +733,7 @@ public class Bitbank extends BitbankApi
             Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
             Long limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(this.milliseconds(), Helpers.multiply((((long) duration) * 1000L), windowLimit)) : since;
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(this.milliseconds(), ((((long) duration) * 1000L) * windowLimit)) : since;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();

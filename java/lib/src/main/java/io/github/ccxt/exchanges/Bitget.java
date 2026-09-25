@@ -6676,7 +6676,7 @@ public class Bitget extends BitgetApi
                 timeframes = Helpers.GetValue(timeframesOption, marketType);
                 request.put("granularity", this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             }
-            Integer msInDay = 86400000;
+            Long msInDay = 86400000L;
             Long now = this.milliseconds();
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
             Long until = this.safeInteger(paramsUTA, "until");

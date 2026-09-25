@@ -1090,12 +1090,12 @@ public class Mercado extends MercadoApi
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
-                request.put("to", this.sum(request.get("from"), Helpers.multiply(limitResolved, this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m")))));
+                request.put("to", this.sum(request.get("from"), (limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m")))));
             } else
             {
                 Long to = this.seconds();
                 request.put("to", to);
-                request.put("from", Helpers.subtract(to, (Helpers.multiply(limitResolved, this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m"))))));
+                request.put("from", Helpers.subtract(to, ((limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m"))))));
             }
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and

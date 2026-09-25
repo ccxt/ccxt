@@ -1733,7 +1733,7 @@ public class Polymarket extends PolymarketApi
                 }
             } else
             {
-                Object barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
+                Long barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100L;
                 startS = Helpers.subtract(nowS, (Helpers.multiply(Helpers.multiply(barCount, fidelityMin), 60)));
             }
             // the venue rejects startTs/endTs spans over 15 days ("interval is too long")

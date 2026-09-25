@@ -1241,11 +1241,11 @@ public class Onetrading extends OnetradingApi
             {
                 Long now = this.milliseconds();
                 request.put("to", this.iso8601(now));
-                request.put("from", this.iso8601(Helpers.subtract(now, Helpers.multiply(limitResolved, duration))));
+                request.put("from", this.iso8601(Helpers.subtract(now, (limitResolved * duration))));
             } else
             {
                 request.put("from", this.iso8601(since));
-                request.put("to", this.iso8601(this.sum(since, Helpers.multiply(limitResolved, duration))));
+                request.put("to", this.iso8601(this.sum(since, (limitResolved * duration))));
             }
             Map<String, Object> response = (this.publicGetCandlesticksInstrumentCode(this.extend(request, parameters))).join();
             //

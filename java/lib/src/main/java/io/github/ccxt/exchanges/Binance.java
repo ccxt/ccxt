@@ -17168,9 +17168,9 @@ public class Binance extends BinanceApi
             } else if ((!java.util.Objects.equals(since, null)) && ((since != 0)))
             {
                 // exchange default
-                Object limitDefault = (((java.util.Objects.equals(limit, null)))) ? 30 : limit;
+                Long limitDefault = (((java.util.Objects.equals(limit, null)))) ? 30L : limit;
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "5m"));
-                request.put("endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limitDefault), 1000)));
+                request.put("endTime", this.sum(since, ((duration * limitDefault) * 1000L)));
             }
             List<Object> response = null;
             if (java.util.Objects.equals(market.get("inverse"), true))

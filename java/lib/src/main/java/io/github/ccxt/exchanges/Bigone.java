@@ -1548,7 +1548,7 @@ public class Bigone extends BigoneApi
             {
                 // const start = this.parseToInt (since / 1000);
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                Object endByLimit = this.sum(since, Helpers.multiply(Helpers.multiply(limitResolved, duration), 1000));
+                Object endByLimit = this.sum(since, ((limitResolved * duration) * 1000L));
                 if (Boolean.TRUE.equals(untilIsDefined))
                 {
                     request.put("time", this.iso8601(Helpers.mathMin(endByLimit, (until + 1L))));

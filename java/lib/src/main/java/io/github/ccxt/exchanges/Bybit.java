@@ -9078,8 +9078,8 @@ public class Bybit extends BybitApi
             {
                 // the endpoint walks backwards from endTime and ignores a lone startTime
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"));
-                Object requestedLimit = (((java.util.Objects.equals(limit, null)))) ? 50 : limit; // exchange default
-                request.put("endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, requestedLimit), 1000)));
+                Long requestedLimit = (((java.util.Objects.equals(limit, null)))) ? 50L : limit; // exchange default
+                request.put("endTime", this.sum(since, ((duration * requestedLimit) * 1000L)));
             }
             if (!java.util.Objects.equals(limit, null))
             {

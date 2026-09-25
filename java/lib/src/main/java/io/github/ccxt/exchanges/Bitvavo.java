@@ -1288,7 +1288,7 @@ public class Bitvavo extends BitvavoApi
             // https://github.com/ccxt/ccxt/issues/9227
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             request.put("start", since);
-            Object sinceLimit = (((java.util.Objects.equals(limit, null)))) ? 1440 : Math.min(limit, 1440);
+            Long sinceLimit = (((java.util.Objects.equals(limit, null)))) ? 1440L : Math.min(limit, 1440);
             request.put("end", this.sum(since, Helpers.multiply(Helpers.multiply(sinceLimit, duration), 1000)));
         }
         io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);

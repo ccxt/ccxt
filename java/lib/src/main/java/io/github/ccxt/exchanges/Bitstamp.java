@@ -1999,7 +1999,7 @@ public class Bitstamp extends BitstampApi
                     if (Boolean.TRUE.equals(untilIsDefined))
                     {
                         Object end = this.parseToInt((((double) until) / ((double) 1000)));
-                        request.put("start", Helpers.subtract(Helpers.subtract(end, (Helpers.multiply(duration, limitResolved))), 1));
+                        request.put("start", Helpers.subtract(Helpers.subtract(end, ((duration * limitResolved))), 1));
                         request.put("end", end);
                     }
                 } else
@@ -2011,7 +2011,7 @@ public class Bitstamp extends BitstampApi
                         request.put("end", this.parseToInt((((double) until) / ((double) 1000))));
                     } else
                     {
-                        request.put("end", this.sum(start, Helpers.subtract(Helpers.multiply(duration, limitResolved), 1)));
+                        request.put("end", this.sum(start, Helpers.subtract((duration * limitResolved), 1)));
                     }
                     request.put("limit", limitResolved);
                 }
@@ -2021,7 +2021,7 @@ public class Bitstamp extends BitstampApi
                 {
                     Long start = this.parseToInt((((double) since) / ((double) 1000)));
                     request.put("start", start);
-                    Object end = this.sum(start, Helpers.subtract(Helpers.multiply(duration, limitResolved), 1));
+                    Object end = this.sum(start, Helpers.subtract((duration * limitResolved), 1));
                     if (Boolean.TRUE.equals(untilIsDefined))
                     {
                         end = Helpers.mathMin(end, this.parseToInt((((double) until) / ((double) 1000))));
@@ -2031,7 +2031,7 @@ public class Bitstamp extends BitstampApi
                 {
                     Object end = this.parseToInt((((double) until) / ((double) 1000)));
                     request.put("end", end);
-                    request.put("start", Helpers.subtract(Helpers.subtract(end, (Helpers.multiply(duration, limitResolved))), 1));
+                    request.put("start", Helpers.subtract(Helpers.subtract(end, ((duration * limitResolved))), 1));
                 }
                 request.put("limit", Helpers.mathMin(limitResolved, 1000)); // min 1, max 1000
             }

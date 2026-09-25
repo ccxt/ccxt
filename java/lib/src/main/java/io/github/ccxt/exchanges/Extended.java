@@ -1616,7 +1616,7 @@ public class Extended extends ExtendedApi
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limitResolved, 60), 60), 1000))) : since;
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, ((((limitResolved * 60L) * 60L) * 1000L))) : since;
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
                 "startTime", sinceResolved,
@@ -1712,7 +1712,7 @@ public class Extended extends ExtendedApi
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(limitResolved, this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))), 1000))) : since;
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply((limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))), 1000))) : since;
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
                 "interval", interval,

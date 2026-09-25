@@ -1221,7 +1221,7 @@ public class Backpack extends BackpackApi
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
                 Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-                Object startTime = Helpers.subtract(endTime, (Helpers.multiply(windowLimit, duration)));
+                Object startTime = Helpers.subtract(endTime, ((windowLimit * duration)));
                 request.put("startTime", startTime);
             } else
             {

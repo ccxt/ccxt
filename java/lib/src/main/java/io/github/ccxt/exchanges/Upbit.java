@@ -1458,7 +1458,7 @@ public class Upbit extends UpbitApi
             if (!java.util.Objects.equals(since, null))
             {
                 // convert `since` to `to` value
-                request.put("to", this.iso8601(this.sum(since, Helpers.multiply(Helpers.multiply(timeframePeriod, limitResolved), 1000))));
+                request.put("to", this.iso8601(this.sum(since, ((timeframePeriod * limitResolved) * 1000L))));
             }
             if (java.util.Objects.equals(timeframeValue, "minutes"))
             {

@@ -861,7 +861,7 @@ public class Indodax extends IndodaxApi
             } else
             {
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                request.put("from", Helpers.subtract(Helpers.subtract(now, Helpers.multiply(limitResolved, duration)), 1));
+                request.put("from", Helpers.subtract(Helpers.subtract(now, (limitResolved * duration)), 1));
             }
             List<Object> response = (this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted))).join();
             //
