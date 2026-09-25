@@ -169,7 +169,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'public': {
                     'post': {
                         'info': {
-                            'cost': 20,
+                            'cost': 10,
                             'byType': {
                                 'l2Book': 2,
                                 'allMids': 2,
