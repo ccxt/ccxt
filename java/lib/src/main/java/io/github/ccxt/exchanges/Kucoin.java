@@ -2072,7 +2072,7 @@ public class Kucoin extends KucoinApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**
@@ -11300,7 +11300,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseBorrowRateHistories(Object response, Object codes, Object since, Object limit)
+    public Object parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
     {
         //
         //     [
@@ -11332,7 +11332,7 @@ public class Kucoin extends KucoinApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), false));
+            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
         }
         return borrowRateHistories;
     }

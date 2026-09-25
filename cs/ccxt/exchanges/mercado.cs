@@ -543,7 +543,7 @@ public partial class mercado : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", null },
             { "type", type },
             { "side", side },
@@ -602,7 +602,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -802,7 +802,7 @@ public partial class mercado : Exchange
         Int64? timestamp = this.safeTimestamp(order, "created_timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "fee") },
-            { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+            { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
         };
         string? price = this.safeString(order, "limit_price");
         // price = this.safeNumber (order, 'executed_price_avg', price);
@@ -811,7 +811,7 @@ public partial class mercado : Exchange
         string? filled = this.safeString(order, "executed_quantity");
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         List<object> rawTrades = this.safeList(order, "operations", new List<object>() {});
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -976,7 +976,7 @@ public partial class mercado : Exchange
             { "addressTo", null },
             { "amount", null },
             { "type", null },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "status", null },
             { "updated", null },
             { "tagFrom", null },
@@ -1024,7 +1024,7 @@ public partial class mercado : Exchange
         if ((since != null))
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
-            request["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), (limitResolved * this.parseTimeframe(timeframeVar)));
+            request["to"] = this.sum((request != null && request.ContainsKey("from") ? request["from"] : null), (limitResolved * this.parseTimeframe(timeframeVar)));
         } else
         {
             Int64 to = this.seconds();

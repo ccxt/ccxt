@@ -620,7 +620,7 @@ public partial class apex : Exchange
                 }
             }
         }
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkKeys = new List<object>(networks.Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
         bool? valueForEmpty = emptyChains ? false : null;
@@ -934,7 +934,7 @@ public partial class apex : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["start"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
+            requestUntil["start"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
         }
         Dictionary<string, object> response = await this.publicGetV3Klines(this.extend(requestUntil, paramsUntil));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1096,7 +1096,7 @@ public partial class apex : Exchange
             { "order", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "takerOrMaker", null },
             { "side", side },
@@ -1307,7 +1307,7 @@ public partial class apex : Exchange
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -1342,7 +1342,7 @@ public partial class apex : Exchange
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.safeString(order, "fee") },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settleId") ? ((IDictionary<string, object>)marketResolved)["settleId"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("settleId") ? marketResolved["settleId"] : null) },
             } },
             { "info", order },
         }, marketResolved);
@@ -2160,7 +2160,7 @@ public partial class apex : Exchange
         // }
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         Int64? timestamp = this.safeInteger(position, "updatedTime");

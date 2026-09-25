@@ -560,7 +560,7 @@ public partial class lbank : Exchange
         //
         List<object> currenciesData = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> grouped = this.groupBy(currenciesData, "assetCode");
-        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        List<object> values = new List<object>(grouped.Values);
         return this.parseCurrencies(values);
     }
 
@@ -880,7 +880,7 @@ public partial class lbank : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         IDictionary<string, object> tickerData = this.safeDict(ticker, "ticker", new Dictionary<string, object>() {});
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        object data = ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contract") ? ((IDictionary<string, object>)marketResolved)["contract"] : null) as bool?) == true)) ? ticker : tickerData;
+        object data = ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) ? ticker : tickerData;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1488,7 +1488,7 @@ public partial class lbank : Exchange
         {
             IDictionary<string, object> used = this.safeDict(data, "freeze", new Dictionary<string, object>() {});
             IDictionary<string, object> free = this.safeDict(data, "free", new Dictionary<string, object>() {});
-            List<object> currencies = new List<object>(((IDictionary<string,object>)free).Keys);
+            List<object> currencies = new List<object>(free.Keys);
             for (int i = 0; i < currencies.Count; i++)
             {
                 string? currencyId = ((string)currencies[i]);
@@ -1793,7 +1793,7 @@ public partial class lbank : Exchange
         for (int i = 0; i < fees.Count; i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
-            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
+            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
             result[(string)symbol] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -2094,7 +2094,7 @@ public partial class lbank : Exchange
             { "timestamp", timestamp },
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(rawStatus) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
@@ -3343,7 +3343,7 @@ public partial class lbank : Exchange
                 }
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", withdrawFee },
                             { "percentage", null },

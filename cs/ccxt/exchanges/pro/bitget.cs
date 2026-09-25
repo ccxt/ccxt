@@ -231,7 +231,7 @@ public partial class bitget : ccxt.bitget
                 symbolOrInstId = "symbol";
             }
             args[(string)topicOrChannel] = "ticker";
-            args[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
+            args[(string)symbolOrInstId] = (marketInner != null && marketInner.ContainsKey("id") ? marketInner["id"] : null);
             topics.Add(args);
             messageHashes.Add(("ticker:" + symbol));
         }
@@ -304,7 +304,7 @@ public partial class bitget : ccxt.bitget
         //
         this.handleBidAsk(client, message);
         Dictionary<string, object> ticker = this.parseWsTicker(message);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         if ((symbol != null))
         {
             this.tickers[(string)symbol] = ticker;
@@ -426,7 +426,7 @@ public partial class bitget : ccxt.bitget
         string? changeCoefficient = this.safeString2(ticker, "price24hPcnt", "change24h");
         string? changePercentage = Precise.stringMul(changeCoefficient, "100");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString2(ticker, "high24h", "highPrice24h") },
@@ -497,7 +497,7 @@ public partial class bitget : ccxt.bitget
                 symbolOrInstId = "symbol";
             }
             args[(string)topicOrChannel] = "ticker";
-            args[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
+            args[(string)symbolOrInstId] = (marketInner != null && marketInner.ContainsKey("id") ? marketInner["id"] : null);
             topics.Add(args);
             messageHashes.Add(("bidask:" + symbol));
         }
@@ -514,7 +514,7 @@ public partial class bitget : ccxt.bitget
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         Dictionary<string, object> ticker = this.parseWsBidAsk(message);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = ticker;
@@ -540,7 +540,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString(ticker, "instId", utaMarketId);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "ask", this.safeString2(ticker, "askPr", "ask1Price") },
@@ -1456,7 +1456,7 @@ public partial class bitget : ccxt.bitget
         {
             defaultType = ((posMode != null)) ? "contract" : "spot";
         }
-        object marketResolved = ((market == null)) ? this.safeMarket(instId, null, null, defaultType) : market;
+        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? instId : null, market, null, defaultType);
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts", "T", "execTime"});
         List<object> feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(feeDetail, 0);
@@ -1476,7 +1476,7 @@ public partial class bitget : ccxt.bitget
             { "order", this.safeString2(trade, "orderId", "L") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(marketResolved, "symbol") },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.safeString(trade, "orderType") },
             { "side", this.safeString2(trade, "side", "S") },
             { "takerOrMaker", this.safeString(trade, "tradeScope") },
@@ -2078,13 +2078,13 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = this.parseWsOrder(order, market);
             ccxt.pro.BaseCache.appendTo(stored, parsed);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol != null))
             {
                 marketSymbols[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(marketSymbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);
@@ -2283,7 +2283,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString2(order, "instId", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
         List<object> orderFee = this.safeList(order, "feeDetail", new List<object>() {});
         IDictionary<string, object> fee = this.safeDict(orderFee, 0);
@@ -2619,7 +2619,7 @@ public partial class bitget : ccxt.bitget
             }
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             string symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);
         }

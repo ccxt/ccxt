@@ -304,7 +304,7 @@ export default class bitstamp extends bitstampRest {
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
-        const marketResolved: Market = (market === undefined) ? this.safeMarket (undefined, market) : market;
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const symbol = marketResolved['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');
         let side: Str = 'sell';

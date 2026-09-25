@@ -366,7 +366,7 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsBidAsk(data);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         this.bidsasks[(string)symbol] = ticker;
         string? messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
@@ -576,7 +576,7 @@ public partial class deribit : ccxt.deribit
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsed[i]);
             cachedTrades.append(trade);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             marketIds[(string)symbol] = true;
         }
         client.resolve(cachedTrades, channel);

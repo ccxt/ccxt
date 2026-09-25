@@ -1776,7 +1776,7 @@ class weex extends Exchange {
         if ($realizedPnl !== null) {
             $tradeMarketType = 'swap';
         }
-        $marketResolved = ($market === null) ? $this->safe_market($tradeMarketId, null, null, $tradeMarketType) : $market;
+        $marketResolved = $this->safe_market(($market === null) ? $tradeMarketId : null, $market, null, $tradeMarketType);
         $isSpot = null;
         if ($market === null) {
             $isSpot = $tradeMarketType === 'spot';
@@ -3181,7 +3181,7 @@ class weex extends Exchange {
         if ($positionSide === null) {
             $orderMarketType = 'spot';
         }
-        $marketResolved = ($market === null) ? $this->safe_market($orderMarketId, null, null, $orderMarketType) : $market;
+        $marketResolved = $this->safe_market(($market === null) ? $orderMarketId : null, $market, null, $orderMarketType);
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
         $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));

@@ -862,7 +862,7 @@ public partial class btcmarkets : Exchange
         //
         string? marketId = this.safeString(ticker, "marketId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "volume24h");
@@ -979,12 +979,12 @@ public partial class btcmarkets : Exchange
         string? marketId = this.safeString(trade, "marketId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         object feeCurrencyCode = null;
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) as string) == "AUD"))
+        if ((((marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) as string) == "AUD"))
         {
-            feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+            feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
         } else
         {
-            feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
+            feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
         }
         string? side = this.safeString(trade, "side");
         if (side == "Bid")
@@ -1014,7 +1014,7 @@ public partial class btcmarkets : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "order", orderId },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "price", priceString },
@@ -1356,7 +1356,7 @@ public partial class btcmarkets : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
@@ -1617,7 +1617,7 @@ public partial class btcmarkets : Exchange
             string auth = ((method + request) + nonce);
             if (((method == "GET")) || ((method == "DELETE")))
             {
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if ((new List<object>(query.Keys)).Count > 0)
                 {
                     request = request + ("?" + this.urlencode(query));
                 }
@@ -1637,7 +1637,7 @@ public partial class btcmarkets : Exchange
             };
         } else if ((api is "public"))
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(query));
             }

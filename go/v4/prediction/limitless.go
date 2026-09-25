@@ -4093,7 +4093,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
  * @description maps limitless error responses to ccxt exceptions
  */
 func (this *Limitless) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	if (ccxt.IsGreaterThanOrEqual(statusCode, 200)) && (ccxt.IsLessThan(statusCode, 300)) {

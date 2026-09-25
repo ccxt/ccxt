@@ -14883,6 +14883,119 @@ export function installJavaStringListArgs (transpiler) {
     };
 }
 
+// ===== 48. Long slots that already receive a Long =====
+// (a) a Long venue return of native `(a - b)` over proven long operands is already a long
+// (autoboxed on return), so the toLongOrNull wrapper goes; (b) read-only required `since` /
+// `limit: Int` params of venue-only methods print `Long` when every call passes a Long slot.
+const JAVA_LONG_SLOT_PARAM_NAMES = new Set ([ 'since', 'limit' ]);
+const JAVA_LONG_SLOT_VENUE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/;
+
+function javaLongSlotMinusIsLong (printer, node) {
+    const n = unwrapNoCastAssertion (unwrapParens (node));
+    if (n === undefined || !ts.isBinaryExpression (n) || n.operatorToken.kind !== ts.SyntaxKind.MinusToken) {
+        return false;
+    }
+    try {
+        if (javaSubtractLongPair (printer, n.left, n.right)) {
+            return true;
+        }
+    } catch (e) {
+        // an unprovable operand keeps the helper
+    }
+    return printer.javaProvableNumericKind (n.left) === 'long' && printer.javaProvableNumericKind (n.right) === 'long';
+}
+
+function javaLongSlotArgIsLong (printer, arg) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined) {
+        return false;
+    }
+    if (bare.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (bare) && bare.text === 'undefined')) {
+        return true;
+    }
+    return ts.isIdentifier (bare) && printer.printNode (bare, 0) === bare.text && printer.javaArgumentHasType (bare, 'Long');
+}
+
+function javaLongSlotParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || node.initializer !== undefined || node.dotDotDotToken !== undefined
+        || !ts.isIdentifier (node.name) || !JAVA_LONG_SLOT_PARAM_NAMES.has (node.name.text)
+        || method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {})
+        || !ts.isClassDeclaration (method.parent) || node.type === undefined || !ts.isTypeReferenceNode (node.type)
+        || node.type.getText () !== 'Int') {
+        return undefined;
+    }
+    const file = node.getSourceFile ();
+    if (!JAVA_LONG_SLOT_VENUE_FILE.test (file.fileName.replace (/\\/g, '/'))) {
+        return undefined;
+    }
+    const cache = printer._javaLongSlotParams ?? (printer._javaLongSlotParams = new WeakMap ());
+    if (cache.has (node)) {
+        return cache.get (node);
+    }
+    cache.set (node, undefined);
+    let result;
+    try {
+        const name = method.name.text;
+        const index = method.parameters.indexOf (node);
+        const venueOnly = printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name);
+        if (venueOnly && !printer.javaParameterIsWritten (node) && !printer.javaParameterIsCompoundAssigned (node)) {
+            // every `this.<name> (..)` in this file must hand the slot a Long (or nothing)
+            let ok = true;
+            const visit = (n) => {
+                if (!ok) {
+                    return;
+                }
+                if (ts.isPropertyAccessExpression (n) && n.name.text === name && !(ts.isCallExpression (n.parent) && n.parent.expression === n)) {
+                    ok = n.parent !== method;
+                }
+                if (isThisOrSuperCall (n) && n.expression.name.text === name) {
+                    const arg = n.arguments[index];
+                    ok = arg !== undefined && javaLongSlotArgIsLong (printer, arg);
+                }
+                n.forEachChild (visit);
+            };
+            visit (file);
+            result = ok ? 'Long' : undefined;
+        }
+    } catch (e) {
+        result = undefined;
+    }
+    cache.set (node, result);
+    return result;
+}
+
+export function installJavaLongSlots (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._javaLongSlotsPatched) {
+        return;
+    }
+    printer._javaLongSlotsPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        return upstreamType (node) ?? javaLongSlotParamType (printer, node);
+    };
+    // a Long-declared identifier (or null) needs no `(Long)` checkcast into a Long slot
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        return upstreamTyped (arg, type) || (type === 'Long' && javaLongSlotArgIsLong (printer, arg));
+    };
+    const upstreamReturn = printer.printReturnStatement.bind (printer);
+    printer.printReturnStatement = function (node, identation) {
+        const printed = upstreamReturn (node, identation);
+        const open = 'return Helpers.toLongOrNull((';
+        const at = printed.indexOf (open);
+        if (at === -1 || !/\)\);\s*$/.test (printed) || !javaLongSlotMinusIsLong (printer, node.expression)) {
+            return printed;
+        }
+        const inner = printed.slice (at + open.length - 1, printed.lastIndexOf ('));') + 1);
+        if (/^\(Helpers\./.test (inner)) {
+            return printed;
+        }
+        return printed.slice (0, at) + 'return ' + inner + printed.slice (printed.lastIndexOf ('));') + 2);
+    };
+}
+
 // ===== 50. Map locals joined over Map writes (native core Map arguments) =====
 // `let p = undefined/{}/extend(a, b)/omit(map, k)` whose every write is one of those, a Map copy or
 // a typed Pair slot 1 prints `java.util.Map<String, Object>`; core Map arguments then drop toMapArg.

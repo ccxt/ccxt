@@ -4690,12 +4690,12 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 		marketType = "spot"
 	}
 	var marketId *string = this.SafeString2(orderData, "symbol", "s")
-	var marketResolved any = func() any {
+	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
-			return this.SafeMarket(marketId, nil, nil, marketType)
+			return marketId
 		}
-		return market
-	}()
+		return nil
+	}(), market, nil, marketType)
 	var side *string = this.SafeStringLower2(orderData, "side", "S")
 	var timestamp *int64 = this.SafeIntegerN(orderData, []any{"time", "transactTime", "E", "createdTime"})
 	var lastTradeTimestamp *int64 = this.SafeInteger2(orderData, "updateTime", "T")
@@ -4703,18 +4703,18 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCurrencyCode any = DerefScalar(this.SafeString2(orderData, "feeAsset", "N"))
 	var feeCost *string = this.SafeStringN(orderData, []any{"fee", "commission", "n"})
 	if IsEqual(feeCurrencyCode, nil) {
-		if GetValue(marketResolved, "spot") == true {
+		if marketResolved["spot"] == true {
 			if side != nil && *side == "buy" {
-				feeCurrencyCode = GetValue(marketResolved, "base")
+				feeCurrencyCode = marketResolved["base"]
 			} else {
-				feeCurrencyCode = GetValue(marketResolved, "quote")
+				feeCurrencyCode = marketResolved["quote"]
 			}
 		} else {
 			feeCurrencyCode = func() any {
-				if GetValue(marketResolved, "inverse") == true {
-					return GetValue(marketResolved, "settle")
+				if marketResolved["inverse"] == true {
+					return marketResolved["settle"]
 				}
-				return GetValue(marketResolved, "quote")
+				return marketResolved["quote"]
 			}()
 		}
 	}
@@ -7854,7 +7854,7 @@ func (this *Bingx) SetSandboxMode(enable any) {
 	this.Options.Store("sandboxMode", enable)
 }
 func (this *Bingx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//

@@ -849,7 +849,7 @@ public partial class krakenfutures : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? open = this.safeString(ticker, "open24h");
         string? last = this.safeString(ticker, "last");
@@ -862,10 +862,10 @@ public partial class krakenfutures : Exchange
         bool? isIndex = this.safeBool(marketResolved, "index", false);
         if ((isIndex != true))
         {
-            if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("linear") ? ((IDictionary<string, object>)marketResolved)["linear"] : null) as bool?) == true))
+            if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
             {
                 baseVolume = volume;
-            } else if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true))
+            } else if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
             {
                 quoteVolume = volume;
             }
@@ -1065,14 +1065,14 @@ public partial class krakenfutures : Exchange
         {
             int duration = this.parseTimeframe(timeframeVar);
             request["from"] = this.parseToInt(((double?)since / 1000));
-            object toTimestamp = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), subtract(multiply(windowLimit, duration), 1));
+            object toTimestamp = this.sum((request != null && request.ContainsKey("from") ? request["from"] : null), subtract(multiply(windowLimit, duration), 1));
             Int64 currentTimestamp = this.seconds();
             request["to"] = mathMin(toTimestamp, currentTimestamp);
         } else if (!(limitResolved == null))
         {
             int duration = this.parseTimeframe(timeframeVar);
             request["to"] = this.seconds();
-            request["from"] = this.parseToInt(subtract((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), (multiply(duration, limitResolved))));
+            request["from"] = this.parseToInt(subtract((request != null && request.ContainsKey("to") ? request["to"] : null), (multiply(duration, limitResolved))));
         }
         Dictionary<string, object> response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, paramsOmitted));
         //
@@ -1742,7 +1742,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> order = new Dictionary<string, object>() {};
         if (response.ContainsKey("cancelStatus"))
         {
-            order = this.parseOrder(((IDictionary<string,object>)response)["cancelStatus"]);
+            order = this.parseOrder(response["cancelStatus"]);
         }
         return ccxt.BaseExchange.ToOrder(this.extend(new Dictionary<string, object>() {             { "info", response },         }, order));
     }
@@ -3330,7 +3330,7 @@ public partial class krakenfutures : Exchange
         bool isCash = (accountType == "cashAccount");
         IDictionary<string, object> balances = this.safeDict2(response, "balances", "currencies", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -3791,7 +3791,7 @@ public partial class krakenfutures : Exchange
         return new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "executionUid") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", datetime },
             { "initialMargin", null },
@@ -3944,7 +3944,7 @@ public partial class krakenfutures : Exchange
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "minNotional", minNotional },
                 { "maxNotional", null },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },

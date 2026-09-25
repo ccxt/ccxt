@@ -3815,7 +3815,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseFundingHistories(Object response, String symbol, Object since, Object limit)
+    public Object parseFundingHistories(Object response, String symbol, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
@@ -3825,7 +3825,7 @@ public class Gate extends GateApi
             ((List<Object>)result).add(funding);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), false);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
     public Object parseFundingHistory(Object info, Map<String, Object> market)
@@ -8851,7 +8851,7 @@ public class Gate extends GateApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
+        return (this.milliseconds() - timeDifference);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

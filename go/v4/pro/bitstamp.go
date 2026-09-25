@@ -382,13 +382,8 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp int64 = this.ParseToInt(float64(*microtimestamp) / 1000)
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
-	var marketResolved any = func() any {
-		if market == nil {
-			return this.SafeMarket(nil, market)
-		}
-		return market
-	}()
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(marketResolved, "symbol"))
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
+	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
 	var side string = "sell"
 	if sideRaw != nil && *sideRaw == 0 {

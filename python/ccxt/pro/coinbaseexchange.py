@@ -604,7 +604,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             previousOrders = self.safe_dict(orders.hashmap, symbol, {})
             previousOrder = self.safe_dict(previousOrders, orderId)
             if previousOrder is None:
-                previousOrder = self.safe_value_2(previousOrders, makerOrderId, takerOrderId)
+                previousOrder = self.safe_dict_n(previousOrders, [makerOrderId, takerOrderId])
             if previousOrder is None:
                 parsed = self.parse_ws_order(message)
                 orders.append(parsed)

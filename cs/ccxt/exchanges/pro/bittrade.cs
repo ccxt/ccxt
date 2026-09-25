@@ -120,7 +120,7 @@ public partial class bittrade : ccxt.bittrade
         Int64? timestamp = this.safeInteger(message, "ts");
         ticker["timestamp"] = timestamp;
         ticker["datetime"] = this.iso8601(timestamp);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, ch);
         return message;

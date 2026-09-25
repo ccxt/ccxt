@@ -882,11 +882,11 @@ public partial class deepcoin : ccxt.deepcoin
             if (side == "0")
             {
                 // bid
-                ((IList<object>)((IDictionary<string,object>)orderedEntries)["bids"]).Add(new List<object>() {price, volume});
+                ((IList<object>)orderedEntries["bids"]).Add(new List<object>() {price, volume});
             } else if (side == "1")
             {
                 // ask
-                ((IList<object>)((IDictionary<string,object>)orderedEntries)["asks"]).Add(new List<object>() {price, volume});
+                ((IList<object>)orderedEntries["asks"]).Add(new List<object>() {price, volume});
             }
         }
         Int64? timestamp = this.safeInteger(message, "mt", 0);

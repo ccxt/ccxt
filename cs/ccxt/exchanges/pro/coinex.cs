@@ -173,7 +173,7 @@ public partial class coinex : ccxt.coinex
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
             Dictionary<string, object> tickers = ((Dictionary<string, object>)this.filterByArray(newTickers, "symbol", symbols));
-            List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            List<object> tickersSymbols = new List<object>(tickers.Keys);
             int numTickers = tickersSymbols.Count;
             if (numTickers > 0)
             {
@@ -278,7 +278,7 @@ public partial class coinex : ccxt.coinex
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         List<object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
         Dictionary<string, object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
-        List<object> currencies = new List<object>(((IDictionary<string,object>)activeCurrenciesById).Keys);
+        List<object> currencies = new List<object>(activeCurrenciesById.Keys);
         if ((currencies == null))
         {
             currencies = new List<object>() {};
@@ -680,7 +680,7 @@ public partial class coinex : ccxt.coinex
         string? feeCost = ((string)this.omitZero(this.safeString(trade, "fee")));
         if ((feeCost != null))
         {
-            string? feeCurrencyId = this.safeString(trade, "fee_ccy", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
+            string? feeCurrencyId = this.safeString(trade, "fee_ccy", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
                 { "cost", feeCost },
@@ -919,7 +919,7 @@ public partial class coinex : ccxt.coinex
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, paramsOmitted);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        List<object> marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
+        List<object> marketList = new List<object>(watchOrderBookSubscriptions.Values);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "depth.subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1247,7 +1247,7 @@ public partial class coinex : ccxt.coinex
             { "status", this.safeString(data, "event") },
         }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-        string? symbol = ((string)(parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null));
+        string? symbol = ((string)(parsedOrder != null && parsedOrder.ContainsKey("symbol") ? parsedOrder["symbol"] : null));
         Dictionary<string, object> market = this.market(symbol);
         if ((this.orders == null))
         {
@@ -1367,7 +1367,7 @@ public partial class coinex : ccxt.coinex
         string? feeCost = ((string)this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee")));
         if ((feeCost != null))
         {
-            string? feeCurrencyId = this.safeString(order, "fee_ccy", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
+            string? feeCurrencyId = this.safeString(order, "fee_ccy", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
                 { "cost", feeCost },
@@ -1380,7 +1380,7 @@ public partial class coinex : ccxt.coinex
             { "datetime", this.iso8601(timestamp) },
             { "timestamp", timestamp },
             { "lastTradeTimestamp", this.safeInteger(order, "updated_at") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.safeString(order, "type") },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1488,7 +1488,7 @@ public partial class coinex : ccxt.coinex
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(data);
-        string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
+        string? symbol = ((string)(parsedTicker != null && parsedTicker.ContainsKey("symbol") ? parsedTicker["symbol"] : null));
         this.bidsasks[(string)symbol] = parsedTicker;
         string messageHash = ("bidsasks:" + symbol);
         client.resolve(parsedTicker, messageHash);

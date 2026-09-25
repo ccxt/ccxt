@@ -484,7 +484,7 @@ public partial class indodax : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
+        List<object> currencyIds = new List<object>(free.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -690,7 +690,7 @@ public partial class indodax : Exchange
         //
         Dictionary<string, object> response = await this.publicGetApiTickerAll(parameters);
         IDictionary<string, object> tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> keys = new List<object>(tickers.Keys);
         Dictionary<string, object> parsedTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -1264,10 +1264,10 @@ public partial class indodax : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         Dictionary<string, object> result = this.depositWithdrawFee(response);
-        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("withdraw") ? ((IDictionary<string, object>)result)["withdraw"] : null))["fee"] = this.safeNumber(data, "withdraw_fee");
-        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("withdraw") ? ((IDictionary<string, object>)result)["withdraw"] : null))["percentage"] = false;
-        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("deposit") ? ((IDictionary<string, object>)result)["deposit"] : null))["fee"] = 0;
-        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("deposit") ? ((IDictionary<string, object>)result)["deposit"] : null))["percentage"] = false;
+        ((IDictionary<string,object>)(result != null && result.ContainsKey("withdraw") ? result["withdraw"] : null))["fee"] = this.safeNumber(data, "withdraw_fee");
+        ((IDictionary<string,object>)(result != null && result.ContainsKey("withdraw") ? result["withdraw"] : null))["percentage"] = false;
+        ((IDictionary<string,object>)(result != null && result.ContainsKey("deposit") ? result["deposit"] : null))["fee"] = 0;
+        ((IDictionary<string,object>)(result != null && result.ContainsKey("deposit") ? result["deposit"] : null))["percentage"] = false;
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
     }
 
@@ -1361,13 +1361,13 @@ public partial class indodax : Exchange
         IDictionary<string, object> currency = null;
         if ((code == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
+            List<object> keys = new List<object>(withdraw.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 object key = keys[i];
                 transactions = this.arrayConcat(transactions, getValue(withdraw, key));
             }
-            keys = new List<object>(((IDictionary<string,object>)deposit).Keys);
+            keys = new List<object>(deposit.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 object key = keys[i];
@@ -1586,7 +1586,7 @@ public partial class indodax : Exchange
         IDictionary<string, object> data = this.safeDict(response, "return");
         IDictionary<string, object> addresses = this.safeDict(data, "address", new Dictionary<string, object>() {});
         IDictionary<string, object> networks = this.safeDict(data, "network", new Dictionary<string, object>() {});
-        List<object> addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
+        List<object> addressKeys = new List<object>(addresses.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };

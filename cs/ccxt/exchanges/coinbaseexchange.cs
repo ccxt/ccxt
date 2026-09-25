@@ -1165,7 +1165,7 @@ public partial class coinbaseexchange : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         string delimiter = "-";
         for (int i = 0; i < marketIds.Count; i++)
         {
@@ -1279,7 +1279,7 @@ public partial class coinbaseexchange : Exchange
         string? feeCost = this.safeString2(trade, "fill_fees", "fee");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", feeCost },
-            { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+            { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
@@ -1299,7 +1299,7 @@ public partial class coinbaseexchange : Exchange
         }
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "size");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
@@ -1618,7 +1618,7 @@ public partial class coinbaseexchange : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "rate", null },
             };
         }
@@ -1637,7 +1637,7 @@ public partial class coinbaseexchange : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },

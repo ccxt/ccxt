@@ -890,7 +890,7 @@ public partial class backpack : ccxt.backpack
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", orderId },
             { "type", null },
             { "side", side },
@@ -1262,7 +1262,7 @@ public partial class backpack : ccxt.backpack
         string? status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         string? marketId = this.safeString(order, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? type = this.safeStringLower(order, "o");
         string? timeInForce = this.safeString(order, "f");
         string? side = this.parseWsOrderSide(this.safeString(order, "S"));
@@ -1443,7 +1443,7 @@ public partial class backpack : ccxt.backpack
         parsedPosition["timestamp"] = timestamp;
         parsedPosition["datetime"] = this.iso8601(timestamp);
         cache.append(parsedPosition);
-        string symbolSpecificMessageHash = ((messageHash + ":") + ((parsedPosition != null && ((IDictionary<string, object>)parsedPosition).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedPosition)["symbol"] : null)));
+        string symbolSpecificMessageHash = ((messageHash + ":") + ((parsedPosition != null && parsedPosition.ContainsKey("symbol") ? parsedPosition["symbol"] : null)));
         client.resolve(new List<object>() {parsedPosition}, messageHash);
         client.resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);
     }
@@ -1473,7 +1473,7 @@ public partial class backpack : ccxt.backpack
         string? id = this.safeString(position, "i");
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? notional = this.safeString(position, "n");
         string? liquidationPrice = this.safeString(position, "l");
         string? entryPrice = this.safeString(position, "b");

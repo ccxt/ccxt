@@ -1324,7 +1324,7 @@ public partial class nado : ccxt.nado
                 Int64 id = this.requestId();
                 object requestParams = ((subscriptionParams == null)) ? parameters : getValue(subscriptionParams, i);
                 Dictionary<string, object> request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
-                string subscribeHash = ("subscribe:" + this.json((request != null && ((IDictionary<string, object>)request).ContainsKey("stream") ? ((IDictionary<string, object>)request)["stream"] : null)));
+                string subscribeHash = ("subscribe:" + this.json((request != null && request.ContainsKey("stream") ? request["stream"] : null)));
                 object streamSubscription = this.safeValue(client.subscriptions, subscribeHash);
                 if ((streamSubscription == null))
                 {
@@ -1431,7 +1431,7 @@ public partial class nado : ccxt.nado
             { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", null },
             { "type", null },
             { "side", side },
@@ -1485,7 +1485,7 @@ public partial class nado : ccxt.nado
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1493,7 +1493,7 @@ public partial class nado : ccxt.nado
             { "id", this.safeString2(trade, "id", "submission_idx") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", this.safeString(trade, "order_digest") },
             { "type", null },
             { "side", side },
@@ -1533,7 +1533,7 @@ public partial class nado : ccxt.nado
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
         trades.append(trade);
-        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
         client.resolve(trades, "myTrades");
         client.resolve(trades, ("myTrades:" + symbol));
     }
@@ -1630,7 +1630,7 @@ public partial class nado : ccxt.nado
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", ((filled == null)) ? null : timestamp },
             { "lastUpdateTimestamp", timestamp },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1659,7 +1659,7 @@ public partial class nado : ccxt.nado
         }
         ccxt.pro.ArrayCache orders = this.orders;
         orders.append(order);
-        string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
+        string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));
     }
@@ -1705,7 +1705,7 @@ public partial class nado : ccxt.nado
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "isolated", this.safeBool(position, "isolated") },
@@ -1757,7 +1757,7 @@ public partial class nado : ccxt.nado
         {
             positions.append(position);
         }
-        string? symbol = ((string)(position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
+        string? symbol = ((string)(position != null && position.ContainsKey("symbol") ? position["symbol"] : null));
         client.resolve(positions, "positions");
         client.resolve(positions, ("positions:" + symbol));
     }
@@ -1779,7 +1779,7 @@ public partial class nado : ccxt.nado
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(bidask, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "ask", this.parseX18(this.safeString(bidask, "ask_price")) },
@@ -1821,7 +1821,7 @@ public partial class nado : ccxt.nado
         //
         Int64? timestamp = this.safeInteger(message, "time");
         IDictionary<string, object> bbos = this.safeDict(message, "bbos", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)bbos).Keys);
+        List<object> marketIds = new List<object>(bbos.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < marketIds.Count; i++)
         {
@@ -1851,7 +1851,7 @@ public partial class nado : ccxt.nado
     public virtual void handleAllBidsAsks(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> tickers = this.parseWsAllBidsAsks(message);
-        List<object> symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> symbols = new List<object>(tickers.Keys);
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);

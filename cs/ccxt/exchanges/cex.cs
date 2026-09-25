@@ -423,7 +423,7 @@ public partial class cex : Exchange
         double? currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> keys = new List<object>(rawNetworks.Keys);
         for (int j = 0; j < keys.Count; j++)
         {
             string? networkId = ((string)keys[j]);
@@ -787,7 +787,7 @@ public partial class cex : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(trade, "tradeId") },
             { "order", null },
             { "type", null },
@@ -978,9 +978,9 @@ public partial class cex : Exchange
                 market = this.safeMarket(key);
             }
             Dictionary<string, object> parsed = this.parseTradingFee(getValue(response, key), market);
-            if (!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null), null))
+            if (!isEqual((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null), null))
             {
-                result[(string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null)] = parsed;
+                result[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
         }
         List<object> symbols = this.symbols;
@@ -1369,7 +1369,7 @@ public partial class cex : Exchange
             marketId = ((currency1 + "-") + currency2);
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? feeAmount = this.safeNumber(order, "feeAmount");
@@ -2011,7 +2011,7 @@ public partial class cex : Exchange
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain"), this.safeString(currencyResolved, "code")) },
             { "address", address },
             { "tag", null },

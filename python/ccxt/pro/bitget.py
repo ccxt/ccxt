@@ -1211,7 +1211,7 @@ class bitget(ccxt.async_support.bitget):
             defaultType = 'contract' if (category != 'SPOT') else 'spot'
         else:
             defaultType = 'contract' if (posMode is not None) else 'spot'
-        marketResolved = self.safe_market(instId, None, None, defaultType) if (market is None) else market
+        marketResolved = self.safe_market(instId if (market is None) else None, market, None, defaultType)
         timestamp = self.safe_integer_n(trade, ['uTime', 'cTime', 'ts', 'T', 'execTime'])
         feeDetail = self.safe_list(trade, 'feeDetail', [])
         first = self.safe_dict(feeDetail, 0)

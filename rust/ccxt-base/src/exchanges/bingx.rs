@@ -5503,7 +5503,7 @@ impl BingxCore {
             marketType = Value::Str("spot".into());
         }
         let mut marketId: Value = self.safe_string2(orderData.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]);
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]) } else { market });
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId.clone() } else { Value::Null }), market, Value::Null, marketType.clone()]);
         let mut side: Value = self.safe_string_lower2(orderData.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
         let mut timestamp: Value = self.safe_integer_n(orderData.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("transactTime".into()), Value::Str("E".into()), Value::Str("createdTime".into())]), &[]);
         let mut lastTradeTimestamp: Value = self.safe_integer2(orderData.clone(), Value::Str("updateTime".into()), Value::Str("T".into()), &[]);

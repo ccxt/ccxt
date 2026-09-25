@@ -937,8 +937,8 @@ public partial class ndax : Exchange
             object side = ((levelSide != null) && (levelSide != 0)) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
-        result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
-        result["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);
+        result["bids"] = this.sortBy(result["bids"], 0, true);
+        result["asks"] = this.sortBy(result["asks"], 0);
         result["timestamp"] = latestTimestamp;
         result["datetime"] = this.iso8601(latestTimestamp);
         result["nonce"] = nonce;

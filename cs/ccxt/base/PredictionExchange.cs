@@ -554,7 +554,7 @@ public partial class PredictionExchange : BaseExchange
     public virtual string? safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)
     {
         IDictionary<string, object> outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return ((string?)((object)((outcomeObjValue != null && ((IDictionary<string, object>)outcomeObjValue).ContainsKey("outcome") ? ((IDictionary<string, object>)outcomeObjValue)["outcome"] : null))));
+        return ((string?)((object)((outcomeObjValue != null && outcomeObjValue.ContainsKey("outcome") ? outcomeObjValue["outcome"] : null))));
     }
 
     public virtual string shortenSlug(object slug)
@@ -605,7 +605,7 @@ public partial class PredictionExchange : BaseExchange
                 lastDash = true;
             }
         }
-        List<object> replacementKeys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        List<object> replacementKeys = new List<object>(replacements.Keys);
         for (int i = 0; i < replacementKeys.Count; i++)
         {
             string? replacementKey = ((string)replacementKeys[i]);

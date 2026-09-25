@@ -556,7 +556,7 @@ public partial class toobit : ccxt.toobit
         {
             object ticker = data[i];
             Dictionary<string, object> parsed = this.parseWsTicker(ticker);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = parsed;

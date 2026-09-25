@@ -932,7 +932,7 @@ public partial class bydfi : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
             };
         }
         string? orderId = this.safeString(trade, "orderId");
@@ -946,7 +946,7 @@ public partial class bydfi : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(trade, "id") },
             { "order", orderId },
             { "type", this.parseTradeType(rawType) },
@@ -2162,7 +2162,7 @@ public partial class bydfi : Exchange
         if ((quoteFee != null))
         {
             fee["cost"] = quoteFee;
-            fee["currency"] = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+            fee["currency"] = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -2173,7 +2173,7 @@ public partial class bydfi : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger2(order, "updateTime", "mtime") },
             { "status", this.parseOrderStatus(rawStatus) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.parseOrderType(rawType) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
@@ -2497,7 +2497,7 @@ public partial class bydfi : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "entryPrice", this.parseNumber(this.safeString2(position, "avgOpenPositionPrice", "avgPrice")) },
             { "markPrice", this.parseNumber(this.safeString(position, "markPrice")) },
             { "lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")) },

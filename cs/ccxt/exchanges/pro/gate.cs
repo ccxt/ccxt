@@ -1032,7 +1032,7 @@ public partial class gate : ccxt.gate
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             Dictionary<string, object> parsedItem = this.parseTicker(rawTicker, market);
-            string? symbol = ((string)(parsedItem != null && ((IDictionary<string, object>)parsedItem).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedItem)["symbol"] : null));
+            string? symbol = ((string)(parsedItem != null && parsedItem.ContainsKey("symbol") ? parsedItem["symbol"] : null));
             if (isTicker)
             {
                 if ((symbol != null))
@@ -1188,7 +1188,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsedTrades[i]);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             ccxt.pro.ArrayCache cachedTrades = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((cachedTrades == null))
             {
@@ -1304,7 +1304,7 @@ public partial class gate : ccxt.gate
             stored.append(parsed);
             marketIds[(string)symbol] = timeframe;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);
@@ -1418,13 +1418,13 @@ public partial class gate : ccxt.gate
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsed[i]);
             cachedTrades.append(trade);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             if ((symbol != null))
             {
                 marketIds[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? market = ((string)keys[i]);
@@ -1966,7 +1966,7 @@ public partial class gate : ccxt.gate
                 marketIds[(string)(market.ContainsKey("id") ? market["id"] : null)] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string messageHash = ((hashPrefix + ":") + (keys[i]));
@@ -2573,7 +2573,7 @@ public partial class gate : ccxt.gate
             { "delivery", "future" },
             { "fx", "swap" },
         };
-        List<object> keys = new List<object>(((IDictionary<string,object>)findBy).Keys);
+        List<object> keys = new List<object>(findBy.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);

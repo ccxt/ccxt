@@ -3896,7 +3896,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	//

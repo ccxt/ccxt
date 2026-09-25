@@ -103,7 +103,7 @@ public partial class alpaca : ccxt.alpaca
         //    ]
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
@@ -529,7 +529,7 @@ public partial class alpaca : ccxt.alpaca
         orders.append(order);
         string messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = ("orders:" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null)));
+        messageHash = ("orders:" + ((order != null && order.ContainsKey("symbol") ? order["symbol"] : null)));
         client.resolve(orders, messageHash);
     }
 

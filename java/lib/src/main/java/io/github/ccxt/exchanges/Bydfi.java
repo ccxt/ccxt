@@ -785,7 +785,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public Object getClosestLimit(Object limit)
+    public Object getClosestLimit(Long limit)
     {
         List<Object> limits = new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000));
         Object result = 1000;
@@ -3363,7 +3363,7 @@ public class Bydfi extends BydfiApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(Object type, String code, Object since, Object limit, Object parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(Object type, String code, Long since, Long limit, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3389,7 +3389,7 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, this.safeString(currency, "code"), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, maxLimit, true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, this.safeString(currency, "code"), since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3470,7 +3470,7 @@ public class Bydfi extends BydfiApi
                 "type", type
             );
             Map<String, Object> paramsTransaction = this.extend(paramsUntil, transactionParams);
-            return this.parseTransactions(data, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsTransaction);
+            return this.parseTransactions(data, currency, since, limit, paramsTransaction);
         });
 
     }

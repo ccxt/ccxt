@@ -3772,7 +3772,7 @@ class bingx(Exchange, ImplicitAPI):
         if positionSide is None:
             marketType = 'spot'
         marketId = self.safe_string_2(orderData, 'symbol', 's')
-        marketResolved = self.safe_market(marketId, None, None, marketType) if (market is None) else market
+        marketResolved = self.safe_market(marketId if (market is None) else None, market, None, marketType)
         side = self.safe_string_lower_2(orderData, 'side', 'S')
         timestamp = self.safe_integer_n(orderData, ['time', 'transactTime', 'E', 'createdTime'])
         lastTradeTimestamp = self.safe_integer_2(orderData, 'updateTime', 'T')

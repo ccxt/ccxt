@@ -1421,7 +1421,7 @@ public partial class toobit : Exchange
             takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1579,13 +1579,13 @@ public partial class toobit : Exchange
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
-        if (((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contract") ? ((IDictionary<string, object>)marketResolved)["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null), null)))
+        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null), null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null)));
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
         }
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "h") },
@@ -1653,7 +1653,7 @@ public partial class toobit : Exchange
         string? marketId = this.safeString(entry, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "price", this.safeNumberOmitZero(entry, "price") },
@@ -2228,7 +2228,7 @@ public partial class toobit : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "status", this.parseOrderStatus(this.safeString(order, "status")) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.parseOrderType(rawType) },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", (rawType == "LIMIT_MAKER") },
@@ -2561,7 +2561,7 @@ public partial class toobit : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)requestUntil)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? marketType = ((string)getValue(this.handleMarketTypeAndParams("fetchOrders", market, paramsUntil), 0));
         List<object> response = new List<object>() {};
@@ -2780,7 +2780,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", null, paramsUntil);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -2837,7 +2837,7 @@ public partial class toobit : Exchange
             { "referenceId", null },
             { "referenceAccount", null },
             { "type", this.parseLedgerType(this.safeString(item, "flowType")) },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "amount", amount },
             { "before", null },
             { "after", after },
@@ -2980,7 +2980,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if (!(limit == null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         List<object> response = new List<object>() {};
         if ((type == "deposits"))
@@ -3391,7 +3391,7 @@ public partial class toobit : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "entryPrice", this.safeNumber(position, "avgPrice") },
             { "markPrice", this.safeNumber(position, "markPrice") },
             { "lastPrice", this.safeNumber(position, "lastPrice") },

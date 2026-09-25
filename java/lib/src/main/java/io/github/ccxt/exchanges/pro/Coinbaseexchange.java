@@ -810,10 +810,10 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 return;
             }
             Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Object previousOrder = this.safeDict(previousOrders, orderId, (Object) null);
+            Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrders, orderId, (Object) null);
             if (java.util.Objects.equals(previousOrder, null))
             {
-                previousOrder = this.safeValue2(previousOrders, makerOrderId, takerOrderId);
+                previousOrder = (Map<String, Object>) this.safeDictN(previousOrders, new ArrayList<Object>(Arrays.asList(makerOrderId, takerOrderId)), (Object) null);
             }
             if (java.util.Objects.equals(previousOrder, null))
             {
@@ -834,15 +834,15 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                     if (java.util.Objects.equals(type, "match"))
                     {
                         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
-                        if (java.util.Objects.equals(((Map<String, Object>)previousOrder).get("trades"), null))
+                        if (java.util.Objects.equals(previousOrder.get("trades"), null))
                         {
-                            ((Map<String, Object>)previousOrder).put("trades", new ArrayList<Object>(Arrays.asList()));
+                            previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                         }
-                        ((List<Object>)((Map<String, Object>)previousOrder).get("trades")).add(trade);
+                        ((List<Object>)previousOrder.get("trades")).add(trade);
                         Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                         String totalCost = "0";
                         String totalAmount = "0";
-                        Object trades = ((Map<String, Object>)previousOrder).get("trades");
+                        Object trades = previousOrder.get("trades");
                         for (var i = 0; i < Helpers.getArrayLength(trades); i++)
                         {
                             Map<String, Object> tradeEntry = (Map<String, Object>) this.safeDict(trades, i, (Object) null);
@@ -851,38 +851,38 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         }
                         if (!Precise.stringEq(totalAmount, "0"))
                         {
-                            ((Map<String, Object>)previousOrder).put("average", this.parseNumber(Precise.stringDiv(totalCost, totalAmount)));
+                            previousOrder.put("average", this.parseNumber(Precise.stringDiv(totalCost, totalAmount)));
                         }
-                        ((Map<String, Object>)previousOrder).put("cost", this.parseNumber(totalCost));
+                        previousOrder.put("cost", this.parseNumber(totalCost));
                         String previousOrderFilled = this.safeString(previousOrder, "filled");
                         if (!java.util.Objects.equals(previousOrderFilled, null))
                         {
-                            ((Map<String, Object>)previousOrder).put("filled", this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount"))));
-                            if (!java.util.Objects.equals(((Map<String, Object>)previousOrder).get("amount"), null))
+                            previousOrder.put("filled", this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount"))));
+                            if (!java.util.Objects.equals(previousOrder.get("amount"), null))
                             {
-                                ((Map<String, Object>)previousOrder).put("remaining", this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled"))));
+                                previousOrder.put("remaining", this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled"))));
                             }
                         }
-                        if (java.util.Objects.equals(((Map<String, Object>)previousOrder).get("fee"), null))
+                        if (java.util.Objects.equals(previousOrder.get("fee"), null))
                         {
-                            ((Map<String, Object>)previousOrder).put("fee", new HashMap<String, Object>() {{
+                            previousOrder.put("fee", new HashMap<String, Object>() {{
     put( "cost", 0 );
     put( "currency", Coinbaseexchange.this.safeString(trade.get("fee"), "currency") );
 }});
                         }
-                        if ((!java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
+                        if ((!java.util.Objects.equals(Helpers.GetValue(previousOrder.get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                         {
-                            Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.sum(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), this.safeNumber(trade.get("fee"), "cost", (Object) null)));
+                            Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.sum(Helpers.GetValue(previousOrder.get("fee"), "cost"), this.safeNumber(trade.get("fee"), "cost", (Object) null)));
                             Map<String, Object> previousOrderFee = (Map<String, Object>) this.safeDict(previousOrder, "fee", (Object) null);
                             Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", (Object) null);
-                            Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost"))));
+                            Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost"))));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     } else if ((java.util.Objects.equals(type, "received")) || (java.util.Objects.equals(type, "done")))
                     {
-                        Map<String, Object> info = this.extend(((Map<String, Object>)previousOrder).get("info"), message);
+                        Map<String, Object> info = this.extend(previousOrder.get("info"), message);
                         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (info), (Map<String, Object>) null);
                         List<String> keys = new ArrayList<String>(order.keySet());
                         // update the reference

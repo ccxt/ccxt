@@ -843,7 +843,7 @@ public partial class xt : ccxt.xt
             Int64? timestamp = this.safeInteger(data, "t");
             fundingRate["timestamp"] = timestamp;
             fundingRate["datetime"] = this.iso8601(timestamp);
-            string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
+            string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
             this.fundingRates[(string)symbol] = fundingRate;
             string? eventVar = this.safeString(message, "event");
             if ((eventVar != null))
@@ -1021,7 +1021,7 @@ public partial class xt : ccxt.xt
             string? cv = this.safeString(data, "cv");
             bool isSpot = (cv != null);
             Dictionary<string, object> ticker = this.parseTicker(data);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
@@ -1123,7 +1123,7 @@ public partial class xt : ccxt.xt
         {
             object tickerData = data[i];
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
@@ -1139,7 +1139,7 @@ public partial class xt : ccxt.xt
             string? symbolsString = ((string)(parts != null && 2 < parts.Count ? parts[2] : null));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
             Dictionary<string, object> tickers = ((Dictionary<string, object>)this.filterByArray(newTickers, "symbol", symbols));
-            List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            List<object> tickersSymbols = new List<object>(tickers.Keys);
             int numTickers = tickersSymbols.Count;
             if (numTickers > 0)
             {
@@ -1459,7 +1459,7 @@ public partial class xt : ccxt.xt
             { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", this.safeString(trade, "i", "orderId") },
             { "type", this.parseOrderStatus(this.safeString(trade, "st", "state")) },
             { "side", this.safeStringLower(trade, "sd", "orderSide") },
@@ -1534,8 +1534,8 @@ public partial class xt : ccxt.xt
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
-            { "type", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("type") ? ((IDictionary<string, object>)marketResolved)["type"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
+            { "type", (marketResolved != null && marketResolved.ContainsKey("type") ? marketResolved["type"] : null) },
             { "timeInForce", null },
             { "postOnly", null },
             { "side", this.safeStringLower2(order, "sd", "orderSide") },
@@ -1726,7 +1726,7 @@ public partial class xt : ccxt.xt
             this.myTrades = stored;
         }
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        string? tradeSymbol = ((string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null));
+        string? tradeSymbol = ((string)(parsedTrade != null && parsedTrade.ContainsKey("symbol") ? parsedTrade["symbol"] : null));
         if ((tradeSymbol == null))
         {
             return;

@@ -3501,7 +3501,7 @@ public partial class gate : Exchange
                 withdrawFees = this.safeNumber(entry, "withdraw_fix");
             } else
             {
-                List<object> networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
+                List<object> networkIds = new List<object>(withdrawFixOnChains.Keys);
                 for (int j = 0; j < networkIds.Count; j++)
                 {
                     string? networkId = ((string)networkIds[j]);
@@ -3594,7 +3594,7 @@ public partial class gate : Exchange
         };
         if ((withdrawFixOnChains != null))
         {
-            List<object> chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
+            List<object> chainKeys = new List<object>(withdrawFixOnChains.Keys);
             for (int i = 0; i < chainKeys.Count; i++)
             {
                 string? chainKey = ((string)chainKeys[i]);
@@ -3603,7 +3603,7 @@ public partial class gate : Exchange
                 string? networkCode = this.networkIdToCode(chainKey, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
                             { "percentage", false },
@@ -4408,7 +4408,7 @@ public partial class gate : Exchange
             IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
-            List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+            List<object> keys = new List<object>(balances.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currencyId = ((string)keys[i]);
@@ -5182,7 +5182,7 @@ public partial class gate : Exchange
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", orderId },
             { "type", null },
             { "side", side },
@@ -8518,7 +8518,7 @@ public partial class gate : Exchange
         if ((code != null))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)requestUntil)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            requestUntil["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -8527,11 +8527,11 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["from"] = since;
+            requestUntil["from"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         List<object> response = null;
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", paramsUntil, "cross");
@@ -8544,7 +8544,7 @@ public partial class gate : Exchange
         {
             if ((market != null))
             {
-                ((IDictionary<string,object>)requestUntil)["currency_pair"] = (market.ContainsKey("id") ? market["id"] : null);
+                requestUntil["currency_pair"] = (market.ContainsKey("id") ? market["id"] : null);
             }
             response = await this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode));
         } else if ((marginMode == "cross"))
@@ -8686,7 +8686,7 @@ public partial class gate : Exchange
             } else
             {
                 IDictionary<string, object> urlQueryParams = this.safeDict(query, "query", new Dictionary<string, object>() {});
-                if ((new List<object>(((IDictionary<string,object>)urlQueryParams).Keys)).Count > 0)
+                if ((new List<object>(urlQueryParams.Keys)).Count > 0)
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = add(url, ("?" + queryString));
@@ -8782,7 +8782,7 @@ public partial class gate : Exchange
         double? total = this.safeNumber(data, "margin");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
@@ -10182,7 +10182,7 @@ public partial class gate : Exchange
         return new Dictionary<string, object>() {
             { "info", chain },
             { "currency", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "impliedVolatility", null },

@@ -4610,7 +4610,7 @@ public class Bingx extends BingxApi
             marketType = "spot";
         }
         String marketId = this.safeString2(orderData, "symbol", "s");
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType) : market;
+        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, marketType);
         String side = this.safeStringLower2(orderData, "side", "S");
         Long timestamp = this.safeIntegerN(orderData, new ArrayList<Object>(Arrays.asList("time", "transactTime", "E", "createdTime")));
         Long lastTradeTimestamp = (Long) this.safeInteger2(orderData, "updateTime", "T");
@@ -4619,18 +4619,18 @@ public class Bingx extends BingxApi
         String feeCost = this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("fee", "commission", "n")));
         if ((java.util.Objects.equals(feeCurrencyCode, null)))
         {
-            if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("spot"), true))
+            if (java.util.Objects.equals(marketResolved.get("spot"), true))
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    feeCurrencyCode = ((Map<String, Object>)marketResolved).get("base");
+                    feeCurrencyCode = marketResolved.get("base");
                 } else
                 {
-                    feeCurrencyCode = ((Map<String, Object>)marketResolved).get("quote");
+                    feeCurrencyCode = marketResolved.get("quote");
                 }
             } else
             {
-                feeCurrencyCode = (((java.util.Objects.equals(((Map<String, Object>)marketResolved).get("inverse"), true)))) ? ((Map<String, Object>)marketResolved).get("settle") : ((Map<String, Object>)marketResolved).get("quote");
+                feeCurrencyCode = (((java.util.Objects.equals(marketResolved.get("inverse"), true)))) ? marketResolved.get("settle") : marketResolved.get("quote");
             }
         }
         Object stopLoss = this.safeValue(orderData, "stopLoss");
@@ -4683,7 +4683,7 @@ public class Bingx extends BingxApi
             "info", info,
             "id", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("orderId", "i", "mainOrderId"))),
             "clientOrderId", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))),
-            "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), "-", marketType),
+            "symbol", this.safeSymbol(marketId, marketResolved, "-", marketType),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "lastTradeTimestamp", lastTradeTimestamp,
@@ -4708,7 +4708,7 @@ public class Bingx extends BingxApi
             ),
             "trades", null,
             "reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro", (Object) null)
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)

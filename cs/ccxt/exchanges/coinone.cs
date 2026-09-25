@@ -947,10 +947,10 @@ public partial class coinone : Exchange
             object feeCurrencyCode = null;
             if (side == "sell")
             {
-                feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+                feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
             } else
             {
-                feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
+                feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
@@ -964,7 +964,7 @@ public partial class coinone : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "order", orderId },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -1452,7 +1452,7 @@ public partial class coinone : Exchange
         //     }
         //
         IDictionary<string, object> walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
+        List<object> keys = new List<object>(walletAddress.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {

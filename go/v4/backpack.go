@@ -3063,7 +3063,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts string, recvWindow any
 	return payload
 }
 func (this *Backpack) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//

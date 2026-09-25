@@ -2327,7 +2327,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 	//      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
 	// and because of `.parseJson` bug, we need extra fix
 	var responseFixed any = nil
-	if IsEqual(response, nil) {
+	if response == nil {
 		if IsEqual(body, nil) {
 			panic(NullResponse(this.Id + " returned empty response"))
 		} else if GetValue(body, 0) == "{" {
@@ -2338,7 +2338,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 		}
 	}
 	var responseParsed any = func() any {
-		if IsEqual(response, nil) {
+		if response == nil {
 			return responseFixed
 		}
 		return response

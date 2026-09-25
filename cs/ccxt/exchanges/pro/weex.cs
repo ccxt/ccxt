@@ -229,7 +229,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "ticker";
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -287,7 +287,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "ticker";
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -449,7 +449,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "trade";
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -508,7 +508,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "trade";
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -681,7 +681,7 @@ public partial class weex : ccxt.weex
         List<object> firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
         string? firstSymbol = this.safeString(firstEntry, 0);
         Dictionary<string, object> firstMarket = this.market(firstSymbol);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? priceType = "LAST_PRICE";
         object paramsPriceType = paramsOmitted;
         if ((isContract == true))
@@ -695,7 +695,7 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null)))
+            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
             {
                 throw new BadRequest ((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -765,7 +765,7 @@ public partial class weex : ccxt.weex
         List<object> firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
         string? firstSymbol = this.safeString(firstEntry, 0);
         Dictionary<string, object> firstMarket = this.market(firstSymbol);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? priceType = "LAST_PRICE";
         object paramsPriceType = paramsOmitted;
         if ((isContract == true))
@@ -779,7 +779,7 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null)))
+            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
             {
                 throw new BadRequest ((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -927,7 +927,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         object paramsOmitted = this.omit(parameters, "callerMethodName");
         string depth = "200";
@@ -990,7 +990,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
+        bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         object paramsOmitted = this.omit(parameters, "callerMethodName");
         string depth = "200";
@@ -1101,7 +1101,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
+        if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
             throw new NotSupported ((this.id + " watchBidsAsks is supported for spot markets only")) ;
         }
@@ -1144,7 +1144,7 @@ public partial class weex : ccxt.weex
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null) as bool?) == true))
+        if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
             throw new NotSupported ((this.id + " unWatchBidsAsks is supported for spot markets only")) ;
         }
@@ -1192,7 +1192,7 @@ public partial class weex : ccxt.weex
             return;
         }
         Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = ticker;
@@ -1373,7 +1373,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = this.parseWsMyTrade(trade);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
@@ -1381,7 +1381,7 @@ public partial class weex : ccxt.weex
             trades.append(parsed);
         }
         string messageHash = "myTrades";
-        List<object> symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolKeys = new List<object>(symbols.Keys);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolKeys);
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
@@ -1451,7 +1451,7 @@ public partial class weex : ccxt.weex
             { "id", this.safeString(trade, "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", this.safeString(trade, "orderId") },
             { "type", this.safeString(trade, "type") },
             { "side", side },
@@ -1613,14 +1613,14 @@ public partial class weex : ccxt.weex
             IDictionary<string, object> rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = this.parseWsOrder(rawOrder);
             orders.append(parsed);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
             }
         }
         string messageHash = "orders";
-        List<object> symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolKeys = new List<object>(symbols.Keys);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolKeys);
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
@@ -1769,7 +1769,7 @@ public partial class weex : ccxt.weex
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },
             { "clientOrderId", this.safeString(order, "clientOrderId") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.parseOrderType(rawType) },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", null },

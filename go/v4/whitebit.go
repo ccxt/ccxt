@@ -5559,7 +5559,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(code, 404) {
 		panic(ExchangeError(this.Id + " " + ToString(code) + " endpoint not found"))
 	}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		// For cases where we have a meaningful status
 		// {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
 		var status *string = this.SafeString(response, "status")

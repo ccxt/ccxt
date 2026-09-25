@@ -491,7 +491,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((marketId != null))
         {
             Dictionary<string, object> trade = this.parseWsTrade(message);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
@@ -600,7 +600,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            string? currentSide = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("side") ? ((IDictionary<string, object>)parsed)["side"] : null));
+            string? currentSide = ((string)(parsed != null && parsed.ContainsKey("side") ? parsed["side"] : null));
             parsed["side"] = this.safeString(new Dictionary<string, object>() {
                 { "buy", "sell" },
                 { "sell", "buy" },
@@ -612,10 +612,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             idKey = "maker_order_id";
         }
         parsed["order"] = this.safeString(trade, idKey);
-        Dictionary<string, object> marketResolved = this.market((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
-        string? feeCurrency = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
+        Dictionary<string, object> marketResolved = this.market((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        string? feeCurrency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
         string? feeCost = null;
-        if ((!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("cost") ? ((IDictionary<string, object>)parsed)["cost"] : null), null)) && ((feeRate != null)))
+        if ((!isEqual((parsed != null && parsed.ContainsKey("cost") ? parsed["cost"] : null), null)) && ((feeRate != null)))
         {
             string? cost = this.safeString(parsed, "cost");
             feeCost = Precise.stringMul(cost, feeRate);
@@ -739,10 +739,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 return;
             }
             IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-            object previousOrder = this.safeDict(previousOrders, orderId);
+            IDictionary<string, object> previousOrder = this.safeDict(previousOrders, orderId);
             if ((previousOrder == null))
             {
-                previousOrder = this.safeValue2(previousOrders, makerOrderId, takerOrderId);
+                previousOrder = this.safeDictN(previousOrders, new List<object>() {makerOrderId, takerOrderId});
             }
             if ((previousOrder == null))
             {
@@ -763,15 +763,15 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     if (type == "match")
                     {
                         Dictionary<string, object> trade = this.parseWsTrade(message);
-                        if (isEqual(getValue(previousOrder, "trades"), null))
+                        if (isEqual(GetValue(previousOrder, "trades"), null))
                         {
-                            ((IDictionary<string,object>)previousOrder)["trades"] = new List<object>() {};
+                            previousOrder["trades"] = new List<object>() {};
                         }
-                        ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
-                        ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
+                        ((IList<object>)GetValue(previousOrder, "trades")).Add(trade);
+                        previousOrder["lastTradeTimestamp"] = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
                         string? totalCost = "0";
                         string? totalAmount = "0";
-                        object trades = getValue(previousOrder, "trades");
+                        object trades = GetValue(previousOrder, "trades");
                         for (int i = 0; i < getArrayLength(trades); i++)
                         {
                             IDictionary<string, object> tradeEntry = this.safeDict(trades, i);
@@ -780,47 +780,47 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         }
                         if (!Precise.stringEq(totalAmount, "0"))
                         {
-                            ((IDictionary<string,object>)previousOrder)["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
+                            previousOrder["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                         }
-                        ((IDictionary<string,object>)previousOrder)["cost"] = this.parseNumber(totalCost);
+                        previousOrder["cost"] = this.parseNumber(totalCost);
                         string? previousOrderFilled = this.safeString(previousOrder, "filled");
                         if ((previousOrderFilled != null))
                         {
-                            ((IDictionary<string,object>)previousOrder)["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount")));
-                            if (!isEqual(getValue(previousOrder, "amount"), null))
+                            previousOrder["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount")));
+                            if (!isEqual(GetValue(previousOrder, "amount"), null))
                             {
-                                ((IDictionary<string,object>)previousOrder)["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
+                                previousOrder["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
                             }
                         }
-                        if (isEqual(getValue(previousOrder, "fee"), null))
+                        if (isEqual(GetValue(previousOrder, "fee"), null))
                         {
-                            ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
+                            previousOrder["fee"] = new Dictionary<string, object>() {
                                 { "cost", 0 },
-                                { "currency", this.safeString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "currency") },
+                                { "currency", this.safeString((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "currency") },
                             };
                         }
-                        if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
+                        if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"), null)))
                         {
-                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"));
+                            ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.sum(getValue(GetValue(previousOrder, "fee"), "cost"), this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"));
                             IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee");
                             IDictionary<string, object> tradeFee = this.safeDict(trade, "fee");
-                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
+                            ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     } else if ((type == "received") || (type == "done"))
                     {
-                        Dictionary<string, object> info = this.extend(getValue(previousOrder, "info"), message);
+                        Dictionary<string, object> info = this.extend(GetValue(previousOrder, "info"), message);
                         Dictionary<string, object> order = this.parseWsOrder(info);
-                        List<object> keys = new List<object>(((IDictionary<string,object>)order).Keys);
+                        List<object> keys = new List<object>(order.Keys);
                         // update the reference
                         for (int i = 0; i < keys.Count; i++)
                         {
                             string? key = ((string)keys[i]);
                             if (!isEqual(getValue(order, key), null))
                             {
-                                ((IDictionary<string,object>)previousOrder)[(string)key] = getValue(order, key);
+                                previousOrder[(string)key] = getValue(order, key);
                             }
                         }
                         // update the newUpdates count
@@ -915,7 +915,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = this.parseTicker(message);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;

@@ -1898,12 +1898,12 @@ public partial class predictfun : PredictionExchange
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
-        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
+        string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
         string signatureHex = ((("0x" + r) + s) + v);
         return signatureHex.ToLower();

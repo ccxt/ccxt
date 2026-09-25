@@ -606,7 +606,7 @@ public partial class hibachi : Exchange
         //      }
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? id = this.safeString(trade, "id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
@@ -827,7 +827,7 @@ public partial class hibachi : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "status", this.parseOrderStatus(status) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "side", side },
@@ -1454,9 +1454,9 @@ public partial class hibachi : Exchange
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             string hash = ((string)this.hash(message, sha256, "hex"));
             Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-            string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-            string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
-            string v = this.intToBase16((signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null));
+            string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+            string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+            string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));
             return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
         }
     }
@@ -1918,7 +1918,7 @@ public partial class hibachi : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? side = this.safeStringLower(position, "direction");
         string? quantity = this.safeString(position, "quantity");
         string? unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");

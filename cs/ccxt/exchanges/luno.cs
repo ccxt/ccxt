@@ -508,7 +508,7 @@ public partial class luno : Exchange
         //
         List<object> currenciesData = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> grouped = this.groupBy(currenciesData, "native_currency");
-        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        List<object> values = new List<object>(grouped.Values);
         return this.parseCurrencies(values);
     }
 
@@ -880,13 +880,13 @@ public partial class luno : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", quoteFee },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         } else if ((baseFee != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", baseFee },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null) },
             };
         }
         string? id = this.safeString(order, "order_id");
@@ -897,7 +897,7 @@ public partial class luno : Exchange
             { "timestamp", timestamp },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1072,7 +1072,7 @@ public partial class luno : Exchange
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         List<object> rawTickers = this.safeList(response, "tickers", new List<object>() {});
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
-        List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> ids = new List<object>(tickers.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < ids.Count; i++)
         {
@@ -1640,8 +1640,8 @@ public partial class luno : Exchange
         string? before = after;
         string? amount = "0.0";
         Dictionary<string, object> result = this.parseLedgerComment(comment);
-        string? type = ((string)(result != null && ((IDictionary<string, object>)result).ContainsKey("type") ? ((IDictionary<string, object>)result)["type"] : null));
-        string? referenceId = ((string)(result != null && ((IDictionary<string, object>)result).ContainsKey("referenceId") ? ((IDictionary<string, object>)result)["referenceId"] : null));
+        string? type = ((string)(result != null && result.ContainsKey("type") ? result["type"] : null));
+        string? referenceId = ((string)(result != null && result.ContainsKey("referenceId") ? result["referenceId"] : null));
         string? direction = null;
         string? status = null;
         if (!Precise.stringEquals(balance_delta, "0.0"))
@@ -1841,8 +1841,8 @@ public partial class luno : Exchange
         //     }
         //
         Dictionary<string, object> result = this.depositWithdrawFee(response);
-        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("withdraw") ? ((IDictionary<string, object>)result)["withdraw"] : null))["fee"] = this.safeNumber(response, "fee");
-        ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("withdraw") ? ((IDictionary<string, object>)result)["withdraw"] : null))["percentage"] = false;
+        ((IDictionary<string,object>)(result != null && result.ContainsKey("withdraw") ? result["withdraw"] : null))["fee"] = this.safeNumber(response, "fee");
+        ((IDictionary<string,object>)(result != null && result.ContainsKey("withdraw") ? result["withdraw"] : null))["percentage"] = false;
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
     }
 

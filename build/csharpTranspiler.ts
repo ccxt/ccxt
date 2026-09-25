@@ -5406,20 +5406,16 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
-    // `((IDictionary<string,object>)x)` around a PARAMETER whose emitted signature declares a
-    // concrete dictionary: the cast only names the box that declaration carries, so it is an
-    // identity conversion and the receiver's own indexer/member does the same work. A
-    // parameter's type exists nowhere at print time — ccxt prints every parameter `object` and
-    // retypes the ones its passes own (typeCoreArgs, retypeParseMarketParams, the ws message
-    // handler) — so the proof is read here, from the emitted signature, exactly like the string
-    // receivers above. Only casts whose receiver really is the parameter are dropped: a name the
-    // body also binds as a non-dictionary (a local, a lambda/foreach/catch variable) is skipped.
+    // `((IDictionary<string, object>)x)` around a parameter or local whose emitted declaration is
+    // `Dictionary<string, object>` / `IDictionary<string, object>`: an identity or implicit upcast,
+    // so the receiver's own member does the same work. Names also bound otherwise are skipped.
     retypeDictReceiverCasts (content: string): string {
-        if (!content.includes ('((IDictionary<string,object>)')) {
+        if (!content.includes ('((IDictionary<string,object>)') && !content.includes ('((IDictionary<string, object>)')) {
             return content;
         }
+        const dictType = /^I?Dictionary<string, ?object>\??$/;
         const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
-        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/;
+        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>\??|IList<[^>]*>\??|Dictionary<[^>]*>\??|IDictionary<[^>]*>\??|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??|[A-Z][\w.<>, ?\[\]]*?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[=;]/;
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
@@ -5438,24 +5434,22 @@ class NewTranspiler {
                 if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
             }
             const candidates = new Set<string> ();
+            const blocked = new Set<string> ();
             for (const param of this.splitCsharpParams (sig[2])) {
-                const declaredDict = /^(Dictionary<string, object>|IDictionary<string, object>)\s+([A-Za-z_][A-Za-z0-9_]*)/.exec (param.trim ());
-                if (declaredDict !== null) {
-                    candidates.add (declaredDict[2]);
+                const declared = /^(?:ref\s+|out\s+|params\s+)?(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*=.*)?$/.exec (param.trim ());
+                if (declared !== null) {
+                    (dictType.test (declared[1]) ? candidates : blocked).add (declared[2]);
                 }
             }
-            if (candidates.size === 0) {
-                continue;
-            }
-            const blocked = new Set<string> ();
             for (let j = bodyStart + 1; j < bodyEnd; j++) {
                 const declaration = declRe.exec (lines[j]);
                 if (declaration === null) {
                     continue;
                 }
-                if ((declaration[1] !== 'Dictionary<string, object>') && (declaration[1] !== 'IDictionary<string, object>')) {
-                    blocked.add (declaration[2]);
-                }
+                (dictType.test (declaration[1]) ? candidates : blocked).add (declaration[2]);
+            }
+            if (candidates.size === 0) {
+                continue;
             }
             const body = lines.slice (bodyStart + 1, bodyEnd);
             const text = body.join ('\n');
@@ -5470,7 +5464,11 @@ class NewTranspiler {
                 if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
                     continue; // a loop/catch variable of the same name would shadow it
                 }
-                rewritten = rewritten.replace (new RegExp ('\\(\\(IDictionary<string,object>\\)' + name + '\\)', 'g'), name);
+                const typedParam = new RegExp ('[(,]\\s*([\\w.<>?\\[\\]]+(?:, ?[\\w.<>?]+>)?)\\s+' + name + '\\s*[,)]', 'g');
+                if ([...text.matchAll (typedParam)].some ((m) => !dictType.test (m[1]))) {
+                    continue; // a lambda or local-function parameter of another type would shadow it
+                }
+                rewritten = rewritten.replace (new RegExp ('\\(\\(IDictionary<string, ?object>\\)' + name + '\\)(?=[.[])', 'g'), name);
             }
             if (rewritten !== text) {
                 const rewrittenBody = rewritten.split ('\n');

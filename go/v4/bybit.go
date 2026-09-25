@@ -12705,7 +12705,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Bybit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//

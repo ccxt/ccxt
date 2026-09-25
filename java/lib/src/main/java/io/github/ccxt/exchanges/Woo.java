@@ -4059,7 +4059,7 @@ public class Woo extends WooApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)

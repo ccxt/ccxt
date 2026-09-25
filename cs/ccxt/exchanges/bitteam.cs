@@ -738,7 +738,7 @@ public partial class bitteam : Exchange
         IDictionary<string, object> statuses = this.safeDict(statusesResponse, numericId, new Dictionary<string, object>() {});
         bool? deposit = this.safeBool(statuses, "depositStatus");
         bool? withdraw = this.safeBool(statuses, "withdrawStatus");
-        List<object> networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
+        List<object> networkIds = new List<object>(feesByNetworkId.Keys);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         double? networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         string? typeRaw = this.safeString(currency, "type");
@@ -1459,7 +1459,7 @@ public partial class bitteam : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "status", status },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", "GTC" },
             { "side", side },
@@ -1894,7 +1894,7 @@ public partial class bitteam : Exchange
         string? close = this.safeString2(ticker, "lastPrice", "last_price");
         string? changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "open", null },
@@ -2189,7 +2189,7 @@ public partial class bitteam : Exchange
         //
         string? marketId = this.safeString(trade, "pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? id = this.safeString2(trade, "id", "trade_id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "quantity", "base_volume");
@@ -2313,7 +2313,7 @@ public partial class bitteam : Exchange
         };
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Dictionary<string, object> balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
-        List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
+        List<object> rawCurrencyIds = new List<object>(balanceByCurrencies.Keys);
         for (int i = 0; i < rawCurrencyIds.Count; i++)
         {
             string? rawCurrencyId = ((string)rawCurrencyIds[i]);

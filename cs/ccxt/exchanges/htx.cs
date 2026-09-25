@@ -3254,7 +3254,7 @@ public partial class htx : Exchange
         string? direction = this.safeString(entry, "direction"); // "buy" or "sell"
         // group timestamp should not be assigned to the individual trades' times
         return new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "price", price },
@@ -3476,7 +3476,7 @@ public partial class htx : Exchange
         //
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
@@ -4674,7 +4674,7 @@ public partial class htx : Exchange
                             subResult[(string)code] = this.parseMarginBalanceHelper(balance, code, subResult);
                         }
                     }
-                    List<object> subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
+                    List<object> subCodes = new List<object>(subResult.Keys);
                     for (int j = 0; j < subCodes.Count; j++)
                     {
                         string? subCode = ((string)subCodes[j]);
@@ -5017,7 +5017,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["size"] = limit;
+            requestUntil["size"] = limit;
         }
         Dictionary<string, object> response = null;
         if (method == "spot_private_get_v1_order_orders")
@@ -9470,7 +9470,7 @@ public partial class htx : Exchange
         //     }
         //
         Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(position, "contract_code"));
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? contracts = this.safeString(position, "volume");
         double? contractSize = this.safeNumber(marketResolved, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
@@ -9497,7 +9497,7 @@ public partial class htx : Exchange
         string? lastPrice = this.safeString(position, "last_price");
         string? faceValue = Precise.stringMul(contracts, contractSizeString);
         string? notional = null;
-        if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("linear") ? ((IDictionary<string, object>)marketResolved)["linear"] : null) as bool?) == true))
+        if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
         {
             notional = Precise.stringMul(faceValue, lastPrice);
         } else
@@ -10963,20 +10963,20 @@ public partial class htx : Exchange
         {
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
-                ((IDictionary<string,object>)requestUntil)["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
+                requestUntil["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 if ((limit != null))
                 {
-                    ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+                    requestUntil["limit"] = limit;
                 }
                 response = await this.contractPublicGetV5MarketLiquidationOrders(this.extend(requestUntil, paramsUntil));
             } else
             {
-                ((IDictionary<string,object>)requestUntil)["contract"] = (market.ContainsKey("id") ? market["id"] : null);
+                requestUntil["contract"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(requestUntil, paramsUntil));
             }
         } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
         {
-            ((IDictionary<string,object>)requestUntil)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(requestUntil, paramsUntil));
         } else
         {

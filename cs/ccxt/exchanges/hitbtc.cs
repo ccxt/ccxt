@@ -863,7 +863,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> ids = new List<object>(response.Keys);
         for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)ids[i]);
@@ -1227,7 +1227,7 @@ public partial class hitbtc : Exchange
             response = await this.privateGetFuturesBalance(paramsOmitted);
         } else
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+            List<object> keys = new List<object>(accountsByType.Keys);
             throw new BadRequest (((this.id + " fetchBalance() type parameter must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         //
@@ -1322,7 +1322,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
@@ -1416,7 +1416,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> response = await this.publicGetPublicTrades(this.extend(request, parameters));
         List<object> trades = new List<object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -1556,7 +1556,7 @@ public partial class hitbtc : Exchange
         Int64? timestamp = this.parse8601(getValue(trade, "timestamp"));
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         bool? taker = this.safeBool(trade, "taker");
@@ -1847,7 +1847,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> response = await this.publicGetPublicOrderbook(this.extend(request, parameters));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -1996,7 +1996,7 @@ public partial class hitbtc : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(response[i]);
-            string? symbol = ((string)(fee != null && ((IDictionary<string, object>)fee).ContainsKey("symbol") ? ((IDictionary<string, object>)fee)["symbol"] : null));
+            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -2052,7 +2052,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = Math.Min(limit.Value, 1000);
+            requestUntil["limit"] = Math.Min(limit.Value, 1000);
         }
         string? price = this.safeString(paramsUntil, "price");
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, "price");
@@ -2910,7 +2910,7 @@ public partial class hitbtc : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         bool? postOnly = this.safeBool(order, "post_only");
         string? timeInForce = this.safeString(order, "time_in_force");
         List<object> rawTrades = this.safeList(order, "trades");
@@ -3084,7 +3084,7 @@ public partial class hitbtc : Exchange
         }
         if (((fromNetworkValue2 == null)) || ((toNetworkValue2 == null)))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)networks).Keys);
+            List<object> keys = new List<object>(networks.Keys);
             throw new ArgumentsRequired (((this.id + " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ") + String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3212,7 +3212,7 @@ public partial class hitbtc : Exchange
         //         }
         //     }
         //
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
         for (int i = 0; i < marketIds.Count; i++)
         {
@@ -3223,7 +3223,7 @@ public partial class hitbtc : Exchange
             }
             IDictionary<string, object> rawFundingRate = this.safeDict(response, marketId);
             Dictionary<string, object> marketInner = this.market(marketId);
-            string? symbol = ((string)(marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("symbol") ? ((IDictionary<string, object>)marketInner)["symbol"] : null));
+            string? symbol = ((string)(marketInner != null && marketInner.ContainsKey("symbol") ? marketInner["symbol"] : null));
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
             fundingRates[(string)symbol] = fundingRate;
         }
@@ -3265,15 +3265,15 @@ public partial class hitbtc : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)requestUntil)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["from"] = since;
+            requestUntil["from"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetPublicFuturesHistoryFunding(this.extend(requestUntil, paramsUntil));
         //
@@ -3291,7 +3291,7 @@ public partial class hitbtc : Exchange
         //        ...
         //    }
         //
-        List<object> contracts = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> contracts = new List<object>(response.Keys);
         List<object> rates = new List<object>() {};
         for (int i = 0; i < contracts.Count; i++)
         {
@@ -3301,7 +3301,7 @@ public partial class hitbtc : Exchange
             for (int j = 0; j < fundingRateData.Count; j++)
             {
                 object entry = fundingRateData[j];
-                string? symbolInner = this.safeSymbol((marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("symbol") ? ((IDictionary<string, object>)marketInner)["symbol"] : null));
+                string? symbolInner = this.safeSymbol((marketInner != null && marketInner.ContainsKey("symbol") ? marketInner["symbol"] : null));
                 double? fundingRate = this.safeNumber(entry, "funding_rate");
                 string? datetime = this.safeString(entry, "timestamp");
                 rates.Add(new Dictionary<string, object>() {
@@ -3546,7 +3546,7 @@ public partial class hitbtc : Exchange
         }
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3651,7 +3651,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         List<object> results = new List<object>() {};
-        List<object> markets = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> markets = new List<object>(response.Keys);
         for (int i = 0; i < markets.Count; i++)
         {
             string? marketId = ((string)markets[i]);
@@ -4166,7 +4166,7 @@ public partial class hitbtc : Exchange
             }
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", withdrawResult },
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },

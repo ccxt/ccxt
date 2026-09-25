@@ -1341,7 +1341,7 @@ public partial class p2b : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> keys = new List<object>(result.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
@@ -1401,7 +1401,7 @@ public partial class p2b : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.safeString(order, "type") },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1415,7 +1415,7 @@ public partial class p2b : Exchange
             { "remaining", this.safeString(order, "left") },
             { "status", null },
             { "fee", new Dictionary<string, object>() {
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "cost", this.safeString(order, "dealFee") },
             } },
             { "trades", null },

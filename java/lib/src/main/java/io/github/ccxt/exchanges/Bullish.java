@@ -1933,7 +1933,7 @@ public class Bullish extends BullishApi
         return paramsResult;
     }
 
-    public Object getClosestLimit(Object limit)
+    public Object getClosestLimit(Long limit)
     {
         Integer pageSize = 5;
         if ((Helpers.isGreaterThan(limit, 5)) && (Helpers.isLessThan(limit, 26)))
@@ -2387,8 +2387,8 @@ public class Bullish extends BullishApi
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "createdAtTimestamp");
         String type = this.safeString(order, "type");
@@ -2413,7 +2413,7 @@ public class Bullish extends BullishApi
         if (!java.util.Objects.equals(quoteFee, null))
         {
             fee.put("cost", quoteFee);
-            fee.put("currency", ((Map<String, Object>)marketResolved).get("quote"));
+            fee.put("currency", marketResolved.get("quote"));
         }
         String average = this.safeString(order, "averageFillPrice");
         return this.safeOrder(Helpers.newMap(
@@ -2438,7 +2438,7 @@ public class Bullish extends BullishApi
             "fee", fee,
             "info", order,
             "average", average
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)

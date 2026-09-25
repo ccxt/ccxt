@@ -373,8 +373,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket((String) null, market, (String) null, (String) null) : market;
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        String symbol = (String) marketResolved.get("symbol");
         Long sideRaw = this.safeInteger(trade, "type");
         String side = "sell";
         if ((sideRaw != null && sideRaw == 0))
@@ -395,7 +395,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             "amount", amount,
             "cost", null,
             "fee", null
-        ), Helpers.toMapArg(marketResolved)));
+        ), marketResolved));
     }
 
     public void handleTrade(Client client, Map<String, Object> message)

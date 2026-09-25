@@ -857,7 +857,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? last = this.safeString(ticker, "trade_price");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "high_price") },
@@ -1078,7 +1078,7 @@ public partial class upbit : Exchange
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -1088,7 +1088,7 @@ public partial class upbit : Exchange
             { "order", orderId },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -2167,7 +2167,7 @@ public partial class upbit : Exchange
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -2178,7 +2178,7 @@ public partial class upbit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", this.safeStringUpper(order, "time_in_force") },
             { "postOnly", null },

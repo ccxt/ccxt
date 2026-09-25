@@ -1723,7 +1723,7 @@ class weex(Exchange, ImplicitAPI):
         tradeMarketType = 'spot'
         if realizedPnl is not None:
             tradeMarketType = 'swap'
-        marketResolved = self.safe_market(tradeMarketId, None, None, tradeMarketType) if (market is None) else market
+        marketResolved = self.safe_market(tradeMarketId if (market is None) else None, market, None, tradeMarketType)
         isSpot = None
         if market is None:
             isSpot = tradeMarketType == 'spot'
@@ -2973,7 +2973,7 @@ class weex(Exchange, ImplicitAPI):
         orderMarketType = 'swap'
         if positionSide is None:
             orderMarketType = 'spot'
-        marketResolved = self.safe_market(orderMarketId, None, None, orderMarketType) if (market is None) else market
+        marketResolved = self.safe_market(orderMarketId if (market is None) else None, market, None, orderMarketType)
         timestamp = self.safe_integer_n(order, ['transactTime', 'time', 'createTime'])
         rawStatus = self.safe_string_lower_2(order, 'status', 'algoStatus')  # algo (trigger) order payloads carry algoStatus instead of status
         triggerPrice = self.omit_zero(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))

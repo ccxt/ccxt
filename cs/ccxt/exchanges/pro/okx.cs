@@ -488,12 +488,12 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawfr = this.safeDict(data, i);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawfr);
-            string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
+            string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
             if ((symbol != null))
             {
                 this.fundingRates[(string)symbol] = fundingRate;
             }
-            client.resolve(fundingRate, (("funding-rate" + ":") + ((fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null))));
+            client.resolve(fundingRate, (("funding-rate" + ":") + ((fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null))));
         }
     }
 
@@ -513,7 +513,7 @@ public partial class okx : ccxt.okx
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
-        ((IDictionary<string,object>)paramsChannel)["channel"] = channel;
+        paramsChannel["channel"] = channel;
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, paramsChannel));
@@ -581,7 +581,7 @@ public partial class okx : ccxt.okx
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
-        ((IDictionary<string,object>)paramsChannel)["channel"] = channel;
+        paramsChannel["channel"] = channel;
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolValue}, paramsChannel));
@@ -807,7 +807,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker, market);
-        string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
+        string? symbol = ((string)(parsedTicker != null && parsedTicker.ContainsKey("symbol") ? parsedTicker["symbol"] : null));
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = parsedTicker;
@@ -2196,7 +2196,7 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            if (isEqual((position != null && ((IDictionary<string, object>)position).ContainsKey("contracts") ? ((IDictionary<string, object>)position)["contracts"] : null), 0) && (this.safeString(rawPosition, "posSide") == "net"))
+            if (isEqual((position != null && position.ContainsKey("contracts") ? position["contracts"] : null), 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
@@ -2371,7 +2371,7 @@ public partial class okx : ccxt.okx
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)parsed[i]);
                 ccxt.pro.BaseCache.appendTo(stored, order);
-                string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
+                string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
             }
@@ -2475,7 +2475,7 @@ public partial class okx : ccxt.okx
             Dictionary<string, object> rawTrade = ((Dictionary<string, object>)filteredOrders[i]);
             Dictionary<string, object> trade = this.orderToTrade(rawTrade);
             myTrades.append(trade);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
@@ -2485,7 +2485,7 @@ public partial class okx : ccxt.okx
         {
             string messageHash = (channel + "::myTrades");
             client.resolve(this.myTrades, messageHash);
-            List<object> tradeSymbols = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> tradeSymbols = new List<object>(symbols.Keys);
             for (int i = 0; i < tradeSymbols.Count; i++)
             {
                 string symbolMessageHash = ((messageHash + "::") + (tradeSymbols[i]));
@@ -2534,7 +2534,7 @@ public partial class okx : ccxt.okx
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         if ((instIdCode != null))
         {
-            ((IDictionary<string,object>)args).Remove("instId");
+            args.Remove("instId");
             args["instIdCode"] = instIdCode;
         }
         string? ordType = this.safeString(args, "ordType");
@@ -2623,7 +2623,7 @@ public partial class okx : ccxt.okx
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         if ((instIdCode != null))
         {
-            ((IDictionary<string,object>)args).Remove("instId");
+            args.Remove("instId");
             args["instIdCode"] = instIdCode;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

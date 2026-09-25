@@ -3456,7 +3456,7 @@ func (this *Ndax) HandleErrors(code any, reason any, url any, method any, header
 	if IsEqual(code, 404) {
 		panic(AuthenticationError(Add(this.Id+" ", body)))
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	//

@@ -1847,7 +1847,7 @@ public partial class mexc : ccxt.mexc
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data);
-        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
+        string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
         if ((symbol != null))
         {
             this.fundingRates[(string)symbol] = fundingRate;
@@ -2063,7 +2063,7 @@ public partial class mexc : ccxt.mexc
             string? frequency = frequencyparamsFrequencyVariable.Item1;
             IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
-            ((IDictionary<string,object>)paramsFrequency)["unsubscribed"] = true;
+            paramsFrequency["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});
         } else
         {

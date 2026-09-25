@@ -246,7 +246,7 @@ public partial class upbit : ccxt.upbit
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         if ((symbol != null))
         {
             this.tickers[(string)symbol] = ticker;
@@ -330,7 +330,7 @@ public partial class upbit : ccxt.upbit
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         Dictionary<string, object> trade = this.parseTrade(message);
-        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
         if ((symbol == null))
         {
             return;
@@ -576,7 +576,7 @@ public partial class upbit : ccxt.upbit
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -587,7 +587,7 @@ public partial class upbit : ccxt.upbit
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", this.safeString(order, "trade_timestamp") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.safeString(order, "order_type") },
             { "timeInForce", this.safeString(order, "time_in_force") },
             { "postOnly", null },
@@ -625,7 +625,7 @@ public partial class upbit : ccxt.upbit
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -633,7 +633,7 @@ public partial class upbit : ccxt.upbit
             { "id", this.safeString(trade, "trade_uuid") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "side", side },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "volume") },
@@ -670,7 +670,7 @@ public partial class upbit : ccxt.upbit
         myTrades.append(trade);
         string messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
-        messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
+        messageHash = ("myTrades:" + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null)));
         client.resolve(myTrades, messageHash);
     }
 

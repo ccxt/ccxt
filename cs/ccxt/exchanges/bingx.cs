@@ -2961,7 +2961,7 @@ public partial class bingx : Exchange
             type = "spot";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, type);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? open = this.safeString(ticker, "openPrice");
         string? high = this.safeString(ticker, "highPrice");
         string? low = this.safeString(ticker, "lowPrice");
@@ -4458,7 +4458,7 @@ public partial class bingx : Exchange
             marketType = "spot";
         }
         string? marketId = this.safeString2(orderData, "symbol", "s");
-        object marketResolved = ((market == null)) ? this.safeMarket(marketId, null, null, marketType) : market;
+        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market, null, marketType);
         string? side = this.safeStringLower2(orderData, "side", "S");
         Int64? timestamp = this.safeIntegerN(orderData, new List<object>() {"time", "transactTime", "E", "createdTime"});
         Int64? lastTradeTimestamp = this.safeInteger2(orderData, "updateTime", "T");
@@ -4467,18 +4467,18 @@ public partial class bingx : Exchange
         string? feeCost = this.safeStringN(orderData, new List<object>() {"fee", "commission", "n"});
         if (((feeCurrencyCode == null)))
         {
-            if (isEqual(getValue(marketResolved, "spot"), true))
+            if ((((marketResolved != null && marketResolved.ContainsKey("spot") ? marketResolved["spot"] : null) as bool?) == true))
             {
                 if (side == "buy")
                 {
-                    feeCurrencyCode = getValue(marketResolved, "base");
+                    feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
                 } else
                 {
-                    feeCurrencyCode = getValue(marketResolved, "quote");
+                    feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
                 }
             } else
             {
-                feeCurrencyCode = (isEqual(getValue(marketResolved, "inverse"), true)) ? getValue(marketResolved, "settle") : getValue(marketResolved, "quote");
+                feeCurrencyCode = ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)) ? (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) : (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
             }
         }
         object stopLoss = this.safeValue(orderData, "stopLoss");
@@ -5710,7 +5710,7 @@ public partial class bingx : Exchange
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, defaultNetworkForCurrency));
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                List<object> keys = new List<object>(addressStructures.Keys);
                 string? key = this.safeString(keys, 0);
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, key));
             }
@@ -5731,7 +5731,7 @@ public partial class bingx : Exchange
         string? tag = this.safeString(depositAddress, "tag");
         string? currencyId = this.safeString(depositAddress, "coin");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? code = ((string)(currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null));
+        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
         string? address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         string? networkId = this.safeString(depositAddress, "network");
         string? networkCode = this.networkIdToCode(networkId, code);
@@ -6354,7 +6354,7 @@ public partial class bingx : Exchange
         // currencie structure
         //
         IDictionary<string, object> networks = this.safeDict(fee, "networks", new Dictionary<string, object>() {});
-        List<object> networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkCodes = new List<object>(networks.Keys);
         int networksLength = networkCodes.Count;
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", networks },
@@ -6374,7 +6374,7 @@ public partial class bingx : Exchange
             {
                 string? networkCode = ((string)(networkCodes != null && i < networkCodes.Count ? networkCodes[i] : null));
                 IDictionary<string, object> network = this.safeDict(networks, networkCode);
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
@@ -6386,8 +6386,8 @@ public partial class bingx : Exchange
                 };
                 if ((networksLength == 1))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(network, "withdrawFee");
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                    ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(network, "withdrawFee");
+                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 }
             }
         }
@@ -6412,7 +6412,7 @@ public partial class bingx : Exchange
         }
         IDictionary<string, object> response = await this.fetchCurrencies(parameters);
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
-        List<object> responseCodes = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> responseCodes = new List<object>(response.Keys);
         for (int i = 0; i < responseCodes.Count; i++)
         {
             string? code = ((string)responseCodes[i]);
@@ -6549,15 +6549,15 @@ public partial class bingx : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)requestUntil)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["startTime"] = since;
+            requestUntil["startTime"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = Math.Min(limit.Value, 100); // api maximum 100
+            requestUntil["limit"] = Math.Min(limit.Value, 100); // api maximum 100
         }
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsUntil);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -7256,7 +7256,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
         if ((access is "public"))
         {
-            if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
+            if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(paramsSorted)));
             }

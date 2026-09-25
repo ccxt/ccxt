@@ -232,7 +232,7 @@ public partial class opinion : PredictionExchange
                 if ((marketType == 1))
                 {
                     Dictionary<string, object> eventVar = this.parseEvent(raw);
-                    object childMarkets = (eventVar != null && ((IDictionary<string, object>)eventVar).ContainsKey("markets") ? ((IDictionary<string, object>)eventVar)["markets"] : null);
+                    object childMarkets = (eventVar != null && eventVar.ContainsKey("markets") ? eventVar["markets"] : null);
                     int childMarketsLength = getArrayLength(childMarkets);
                     for (int ci = 0; ci < childMarketsLength; ci++)
                     {
@@ -741,7 +741,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
+        string tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
         List<object> promises = new List<object> {this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new Dictionary<string, object>() {
@@ -844,7 +844,7 @@ public partial class opinion : PredictionExchange
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
-            string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
+            string tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
             promises.Add(this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
                 { "token_id", tokenId },
             }, parameters)));
@@ -888,7 +888,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
+        string tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token_id", tokenId },
         };
@@ -937,7 +937,7 @@ public partial class opinion : PredictionExchange
             throw new BadRequest (((((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar)) + ", supported timeframes are ") + String.Join(", ", supportedKeys.ToArray()))) ;
         }
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
+        string tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar);
         Dictionary<string, object> response = await this.opinionPublicGetTokenPriceHistory(this.extend(new Dictionary<string, object>() {
             { "token_id", tokenId },
@@ -1104,8 +1104,8 @@ public partial class opinion : PredictionExchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        object sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(getValue(sig, "r"))) + this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
+        Dictionary<string, object> sig = this.signMessage(encoded, this.privateKey);
+        return ((("0x" + this.remove0xPrefix((sig != null && sig.ContainsKey("r") ? sig["r"] : null))) + this.remove0xPrefix((sig != null && sig.ContainsKey("s") ? sig["s"] : null))) + this.intToBase16((sig != null && sig.ContainsKey("v") ? sig["v"] : null)));
     }
 
     public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string? side, double? amount, double? price, object decimals)
@@ -1179,7 +1179,7 @@ public partial class opinion : PredictionExchange
         await this.loadApiKey();
         this.checkRequiredCredentials();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-        string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
+        string tokenId = ((string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null));
         bool isMarket = ((type == "market"));
         string sideStr = side.ToUpper();
         if ((price == null))
@@ -1747,22 +1747,22 @@ public partial class opinion : PredictionExchange
         return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches
-        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
             { "r", ("0x" + r) },
             { "s", ("0x" + s) },
-            { "v", this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)) },
+            { "v", this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)) },
         };
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -1793,8 +1793,8 @@ public partial class opinion : PredictionExchange
             { "timestamp", timestamp },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-        object sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(getValue(sig, "r"))) + this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
+        Dictionary<string, object> sig = this.signMessage(encoded, this.privateKey);
+        return ((("0x" + this.remove0xPrefix((sig != null && sig.ContainsKey("r") ? sig["r"] : null))) + this.remove0xPrefix((sig != null && sig.ContainsKey("s") ? sig["s"] : null))) + this.intToBase16((sig != null && sig.ContainsKey("v") ? sig["v"] : null)));
     }
 
     /**
@@ -1899,10 +1899,10 @@ public partial class opinion : PredictionExchange
             { "apiKey", this.safeString(response, "apiKey") },
             { "walletAddress", this.safeString(response, "walletAddress") },
         };
-        this.options["apiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
+        this.options["apiKey"] = creds["apiKey"];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = ((string)((IDictionary<string,object>)creds)["apiKey"]);
+        this.apiKey = ((string)creds["apiKey"]);
         return creds;
     }
 

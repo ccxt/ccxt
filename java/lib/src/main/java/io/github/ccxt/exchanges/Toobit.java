@@ -3105,7 +3105,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public CompletableFuture<Object> fetchDepositsOrWithdrawalsHelper(String type, String code, Object since, Object limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchDepositsOrWithdrawalsHelper(String type, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3140,7 +3140,7 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateGetApiV1AccountWithdrawOrders(this.extend(requestUntil, paramsUntil))).join();
             }
-            return this.parseTransactions(response, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsUntil);
+            return this.parseTransactions(response, currency, since, limit, paramsUntil);
         });
 
     }

@@ -1915,7 +1915,7 @@ class bullish(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketResolved = self.safe_market(marketId) if (market is None) else market
+        marketResolved = self.safe_market(marketId if (market is None) else None, market)
         symbol = self.safe_symbol(marketId, marketResolved)
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'createdAtTimestamp')

@@ -2571,7 +2571,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 }
 func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	// { "message": "Invalid token" }
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	if (IsGreaterThanOrEqual(code, 400)) && (IsLessThanOrEqual(code, 503)) {

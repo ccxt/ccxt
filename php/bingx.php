@@ -3942,7 +3942,7 @@ class bingx extends Exchange {
             $marketType = 'spot';
         }
         $marketId = $this->safe_string_2($orderData, 'symbol', 's');
-        $marketResolved = ($market === null) ? $this->safe_market($marketId, null, null, $marketType) : $market;
+        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market, null, $marketType);
         $side = $this->safe_string_lower_2($orderData, 'side', 'S');
         $timestamp = $this->safe_integer_n($orderData, array( 'time', 'transactTime', 'E', 'createdTime' ));
         $lastTradeTimestamp = $this->safe_integer_2($orderData, 'updateTime', 'T');
