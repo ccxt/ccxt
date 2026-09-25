@@ -540,7 +540,7 @@ public partial class PredictionExchange : BaseExchange
             return ((IDictionary<string, object>)((object)(outcomeObj)));
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        outcomeObj = new Dictionary<string, object>() {
+        Dictionary<string, object> outcomeObjValue = new Dictionary<string, object>() {
             { "outcome", outcomeIdOrSymbol },
             { "outcomeId", outcomeIdOrSymbol },
             { "market", null },
@@ -548,13 +548,13 @@ public partial class PredictionExchange : BaseExchange
             { "event", null },
             { "info", new Dictionary<string, object>() {} },
         };
-        return ((IDictionary<string, object>)((object)(outcomeObj)));
+        return ((IDictionary<string, object>)((object)(outcomeObjValue)));
     }
 
     public virtual string? safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)
     {
-        outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return ((string?)((object)(getValue(outcomeObj, "outcome"))));
+        IDictionary<string, object> outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        return ((string?)((object)((outcomeObjValue != null && ((IDictionary<string, object>)outcomeObjValue).ContainsKey("outcome") ? ((IDictionary<string, object>)outcomeObjValue)["outcome"] : null))));
     }
 
     public virtual string shortenSlug(object slug)
@@ -657,11 +657,8 @@ public partial class PredictionExchange : BaseExchange
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if ((outcome == null))
-        {
-            outcome = "";
-        }
-        string upper = ((string)outcome).ToUpper();
+        object outcomeValue = ((outcome == null)) ? "" : outcome;
+        string upper = ((string)outcomeValue).ToUpper();
         string allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         List<object> chars = this.stringToCharsArray(upper);
         string label = "";

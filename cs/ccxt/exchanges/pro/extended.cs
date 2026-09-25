@@ -56,15 +56,14 @@ public partial class extended : ccxt.extended
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("orderbook:" + (symbolVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("orderbook:" + symbolValue);
         string query = this.urlencode(parameters);
         string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/orderbooks/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
@@ -72,7 +71,7 @@ public partial class extended : ccxt.extended
             url = url + ("?" + query);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
-            { "symbol", symbolVar },
+            { "symbol", symbolValue },
             { "limit", limit },
         }));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -194,29 +193,29 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = messageHash + (":" + (symbolVar));
+            Dictionary<string, object> market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + (":" + (symbolResolved));
         }
         object orders = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
-            { "symbol", symbolVar },
-            { "limit", limitVar },
+            { "symbol", symbolResolved },
+            { "limit", limit },
         });
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -322,29 +321,29 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = messageHash + (":" + (symbolVar));
+            Dictionary<string, object> market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + (":" + (symbolResolved));
         }
         object trades = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
-            { "symbol", symbolVar },
-            { "limit", limitVar },
+            { "symbol", symbolResolved },
+            { "limit", limit },
         });
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -432,21 +431,21 @@ public partial class extended : ccxt.extended
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string messageHash = "positions";
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            messageHash = messageHash + ("::" + String.Join(",", symbols.ToArray()));
+            messageHash = messageHash + ("::" + String.Join(",", symbolsNormalized.ToArray()));
         }
         object positions = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
-            { "symbols", symbols },
+            { "symbols", symbolsNormalized },
             { "limit", limit },
         });
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
@@ -597,22 +596,21 @@ public partial class extended : ccxt.extended
      */
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("fundingRate:" + (symbolVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("fundingRate:" + symbolValue);
         string query = this.urlencode(parameters);
         string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/funding/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
             url = url + ("?" + query);
         }
-        return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "symbol", symbolVar },             { "messageHash", messageHash },         }));
+        return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "symbol", symbolValue },             { "messageHash", messageHash },         }));
     }
 
     public virtual void handleFundingRate(WebSocketClient client, object message)
@@ -639,12 +637,12 @@ public partial class extended : ccxt.extended
     public virtual Dictionary<string, object> parseWsFundingRate(IDictionary<string, object> fundingRate, IDictionary<string, object> market = null, object message = null)
     {
         string? marketId = this.safeString(fundingRate, "m");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(message, "ts");
         Int64? fundingTimestamp = this.safeInteger(fundingRate, "T");
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", fundingRate },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
@@ -675,22 +673,21 @@ public partial class extended : ccxt.extended
      */
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("markPrice:" + (symbolVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("markPrice:" + symbolValue);
         string query = this.urlencode(parameters);
         string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/prices/mark/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
             url = url + ("?" + query);
         }
-        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "name", "markPrice" },             { "symbol", symbolVar },             { "messageHash", messageHash },         }));
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "name", "markPrice" },             { "symbol", symbolValue },             { "messageHash", messageHash },         }));
     }
 
     public virtual void handleMarkPrice(WebSocketClient client, Dictionary<string, object> message)
@@ -741,16 +738,14 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("trades:" + (symbolVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("trades:" + symbolValue);
         string query = this.urlencode(parameters);
         string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/publicTrades/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
@@ -758,14 +753,15 @@ public partial class extended : ccxt.extended
             url = url + ("?" + query);
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
-            { "symbol", symbolVar },
-            { "limit", limitVar },
+            { "symbol", symbolValue },
+            { "limit", limit },
         }));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -837,17 +833,15 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? price = this.safeString(parameters, "price");
         string? candleType = this.safeString(parameters, "candleType");
         if ((candleType == null))
@@ -863,26 +857,27 @@ public partial class extended : ccxt.extended
                 candleType = "trades";
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"candleType", "price"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"candleType", "price"});
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((((("ohlcv:" + (symbolVar)) + ":") + (timeframeVar)) + ":") + candleType);
+        string messageHash = ((((("ohlcv:" + symbolValue) + ":") + (timeframeVar)) + ":") + candleType);
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
-        }, parameters));
+        }, paramsOmitted));
         string url = ((((((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/candles/") + ((market.ContainsKey("id") ? market["id"] : null))) + "/") + candleType) + "?") + query);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
-            { "symbol", symbolVar },
+            { "symbol", symbolValue },
             { "timeframe", timeframeVar },
             { "candleType", candleType },
-            { "limit", limitVar },
+            { "limit", limit },
             { "messageHash", messageHash },
         }));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)

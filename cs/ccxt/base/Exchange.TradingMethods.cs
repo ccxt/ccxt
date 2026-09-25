@@ -103,18 +103,17 @@ public partial class Exchange
 
     public async virtual Task<ccxt.Ticker> FetchMarkPrice(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchMarkPrices") ? this.has["fetchMarkPrices"] : null), null) && (((this.has.ContainsKey("fetchMarkPrices") ? this.has["fetchMarkPrices"] : null) as bool?) != false))
         {
             await this.loadMarkets();
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolVar}, parameters));
-            IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
+            Dictionary<string, object> market = this.market(symbol);
+            string? symbolResolved = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolResolved}, parameters));
+            IDictionary<string, object> ticker = this.safeDict(tickers, symbolResolved);
             if ((ticker == null))
             {
-                throw new NullResponse ((string)((this.id + " fetchMarkPrices() could not find a ticker for ") + (symbolVar))) ;
+                throw new NullResponse (((this.id + " fetchMarkPrices() could not find a ticker for ") + symbolResolved)) ;
             } else
             {
                 return ccxt.BaseExchange.ToTicker(ticker);
@@ -266,10 +265,10 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+        object paramsValue = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
         if (!isEqual((this.has.ContainsKey("createOrderWithTakeProfitAndStopLossWs") ? this.has["createOrderWithTakeProfitAndStopLossWs"] : null), null) && (((this.has.ContainsKey("createOrderWithTakeProfitAndStopLossWs") ? this.has["createOrderWithTakeProfitAndStopLossWs"] : null) as bool?) != false))
         {
-            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsValue);
         }
         throw new NotSupported ((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
     }
@@ -345,12 +344,12 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((this.id + " createStopLossOrderWs() requires a stopLossPrice argument")) ;
         }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "stopLossPrice", stopLossPrice },
         });
         if (!isEqual((this.has.ContainsKey("createStopLossOrderWs") ? this.has["createStopLossOrderWs"] : null), null) && (((this.has.ContainsKey("createStopLossOrderWs") ? this.has["createStopLossOrderWs"] : null) as bool?) != false))
         {
-            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsExtended);
         }
         throw new NotSupported ((this.id + " createStopLossOrderWs() is not supported yet")) ;
     }
@@ -405,12 +404,12 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((this.id + " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
         }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "takeProfitPrice", takeProfitPrice },
         });
         if (!isEqual((this.has.ContainsKey("createTakeProfitOrderWs") ? this.has["createTakeProfitOrderWs"] : null), null) && (((this.has.ContainsKey("createTakeProfitOrderWs") ? this.has["createTakeProfitOrderWs"] : null) as bool?) != false))
         {
-            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsExtended);
         }
         throw new NotSupported ((this.id + " createTakeProfitOrderWs() is not supported yet")) ;
     }
@@ -501,12 +500,12 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((this.id + " createTriggerOrderWs() requires a triggerPrice argument")) ;
         }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "triggerPrice", triggerPrice },
         });
         if (!isEqual((this.has.ContainsKey("createTriggerOrderWs") ? this.has["createTriggerOrderWs"] : null), null) && (((this.has.ContainsKey("createTriggerOrderWs") ? this.has["createTriggerOrderWs"] : null) as bool?) != false))
         {
-            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrderWs(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsExtended);
         }
         throw new NotSupported ((this.id + " createTriggerOrderWs() is not supported yet")) ;
     }
@@ -578,18 +577,17 @@ public partial class Exchange
 
     public async virtual Task<ccxt.Ticker> FetchTickerWs(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchTickersWs") ? this.has["fetchTickersWs"] : null), null) && (((this.has.ContainsKey("fetchTickersWs") ? this.has["fetchTickersWs"] : null) as bool?) != false))
         {
             await this.loadMarkets();
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolVar}, parameters));
-            IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
+            Dictionary<string, object> market = this.market(symbol);
+            string? symbolResolved = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolResolved}, parameters));
+            IDictionary<string, object> ticker = this.safeDict(tickers, symbolResolved);
             if ((ticker == null))
             {
-                throw new NullResponse ((string)((this.id + " fetchTickerWs() could not find a ticker for ") + (symbolVar))) ;
+                throw new NullResponse (((this.id + " fetchTickerWs() could not find a ticker for ") + symbolResolved)) ;
             } else
             {
                 return ccxt.BaseExchange.ToTicker(ticker);
@@ -738,18 +736,17 @@ public partial class Exchange
 
     public async virtual Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchTickers") ? this.has["fetchTickers"] : null), null) && (((this.has.ContainsKey("fetchTickers") ? this.has["fetchTickers"] : null) as bool?) != false))
         {
             await this.loadMarkets();
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
-            IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
+            Dictionary<string, object> market = this.market(symbol);
+            string? symbolResolved = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolResolved}, parameters));
+            IDictionary<string, object> ticker = this.safeDict(tickers, symbolResolved);
             if ((ticker == null))
             {
-                throw new NullResponse ((string)((this.id + " fetchTickers() could not find a ticker for ") + (symbolVar))) ;
+                throw new NullResponse (((this.id + " fetchTickers() could not find a ticker for ") + symbolResolved)) ;
             } else
             {
                 return ccxt.BaseExchange.ToTicker(ticker);
@@ -967,12 +964,12 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((this.id + " createTriggerOrder() requires a triggerPrice argument")) ;
         }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "triggerPrice", triggerPrice },
         });
         if (!isEqual((this.has.ContainsKey("createTriggerOrder") ? this.has["createTriggerOrder"] : null), null) && (((this.has.ContainsKey("createTriggerOrder") ? this.has["createTriggerOrder"] : null) as bool?) != false))
         {
-            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsExtended);
         }
         throw new NotSupported ((this.id + " createTriggerOrder() is not supported yet")) ;
     }
@@ -997,12 +994,12 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((this.id + " createStopLossOrder() requires a stopLossPrice argument")) ;
         }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "stopLossPrice", stopLossPrice },
         });
         if (!isEqual((this.has.ContainsKey("createStopLossOrder") ? this.has["createStopLossOrder"] : null), null) && (((this.has.ContainsKey("createStopLossOrder") ? this.has["createStopLossOrder"] : null) as bool?) != false))
         {
-            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsExtended);
         }
         throw new NotSupported ((this.id + " createStopLossOrder() is not supported yet")) ;
     }
@@ -1027,12 +1024,12 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((this.id + " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
         }
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "takeProfitPrice", takeProfitPrice },
         });
         if (!isEqual((this.has.ContainsKey("createTakeProfitOrder") ? this.has["createTakeProfitOrder"] : null), null) && (((this.has.ContainsKey("createTakeProfitOrder") ? this.has["createTakeProfitOrder"] : null) as bool?) != false))
         {
-            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsExtended);
         }
         throw new NotSupported ((this.id + " createTakeProfitOrder() is not supported yet")) ;
     }
@@ -1062,10 +1059,10 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+        object paramsValue = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
         if (!isEqual((this.has.ContainsKey("createOrderWithTakeProfitAndStopLoss") ? this.has["createOrderWithTakeProfitAndStopLoss"] : null), null) && (((this.has.ContainsKey("createOrderWithTakeProfitAndStopLoss") ? this.has["createOrderWithTakeProfitAndStopLoss"] : null) as bool?) != false))
         {
-            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+            return await this.CreateOrder(symbol,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), paramsValue);
         }
         throw new NotSupported ((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
     }
