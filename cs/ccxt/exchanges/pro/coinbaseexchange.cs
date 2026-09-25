@@ -822,9 +822,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         for (int i = 0; i < keys.Count; i++)
                         {
                             string? key = ((string)keys[i]);
-                            if (!isEqual(getValue(order, key), null))
+                            if (!isEqual((order != null && key != null && order.ContainsKey(key) ? order[key] : null), null))
                             {
-                                previousOrder[(string)key] = getValue(order, key);
+                                previousOrder[(string)key] = (order != null && key != null && order.ContainsKey(key) ? order[key] : null);
                             }
                         }
                         // update the newUpdates count

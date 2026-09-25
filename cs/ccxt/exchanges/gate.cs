@@ -2517,7 +2517,7 @@ public partial class gate : Exchange
         List<string> underlyings = ccxt.BaseExchange.FromStringList(await this.FetchOptionUnderlyings());
         for (int i = 0; i < (underlyings?.Count ?? 0); i++)
         {
-            string? underlying = ((string)getValue(underlyings, i));
+            string? underlying = ((string)(underlyings != null && i < underlyings.Count ? underlyings[i] : null));
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
             query["underlying"] = underlying;
             List<object> response = await this.publicOptionsGetContracts(query);
@@ -3508,7 +3508,7 @@ public partial class gate : Exchange
                     string? networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber(getValue(withdrawFixOnChains, networkId));
+                        ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber((withdrawFixOnChains != null && networkId != null && withdrawFixOnChains.ContainsKey(networkId) ? withdrawFixOnChains[networkId] : null));
                     }
                 }
             }
@@ -3605,7 +3605,7 @@ public partial class gate : Exchange
                 {
                     ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
+                            { "fee", this.parseNumber((withdrawFixOnChains != null && chainKey != null && withdrawFixOnChains.ContainsKey(chainKey) ? withdrawFixOnChains[chainKey] : null)) },
                             { "percentage", false },
                         } },
                         { "deposit", new Dictionary<string, object>() {

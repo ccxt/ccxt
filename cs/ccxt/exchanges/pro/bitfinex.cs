@@ -288,9 +288,9 @@ public partial class bitfinex : ccxt.bitfinex
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         int ohlcvsLength = (ohlcvs?.Count ?? 0);
-        for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
+        for (Int64 i = 0; i < ohlcvsLength; postFixIncrement(ref i))
         {
-            object ohlcv = getValue(ohlcvs, subtract(subtract(ohlcvsLength, i), 1));
+            object ohlcv = getValue(ohlcvs, ((ohlcvsLength - i) - 1));
             IList<object> parsed = this.parseOHLCV(ohlcv, market);
             stored.append(parsed);
         }
@@ -487,9 +487,9 @@ public partial class bitfinex : ccxt.bitfinex
             List<object> trades = this.safeList(message, 1, new List<object>() {});
             // needs to be reversed to make chronological order
             int length = trades.Count;
-            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            for (Int64 i = 0; i < length; postFixIncrement(ref i))
             {
-                object index = subtract(subtract(length, i), 1);
+                Int64 index = ((length - i) - 1);
                 Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
                 stored.append(parsed);
             }

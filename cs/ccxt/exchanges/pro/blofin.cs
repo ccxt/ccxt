@@ -289,7 +289,7 @@ public partial class blofin : ccxt.blofin
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker(getValue(result, symbolValue));
+        return ccxt.BaseExchange.ToTicker((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null));
     }
 
     /**

@@ -1347,7 +1347,7 @@ public partial class bitopro : Exchange
         for (int i = 0; i < dataKeys.Count; i++)
         {
             string? marketId = ((string)dataKeys[i]);
-            object orderIds = getValue(data, marketId);
+            object orderIds = (data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null);
             for (int j = 0; j < getArrayLength(orderIds); j++)
             {
                 orders.Add(this.safeOrder(new Dictionary<string, object>() {

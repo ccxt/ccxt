@@ -1386,7 +1386,7 @@ public partial class whitebit : Exchange
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            object market = getValue(markets, marketId);
+            object market = (markets != null && marketId != null && markets.ContainsKey(marketId) ? markets[marketId] : null);
             string? marketSymbol = this.safeString(market, "symbol");
             if (((market == null)) || ((market == null)) || ((marketSymbol == null)) || (marketSymbol == ""))
             {
@@ -1987,7 +1987,7 @@ public partial class whitebit : Exchange
         {
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> ticker = this.parseTicker(getValue(response, marketId), market);
+            Dictionary<string, object> ticker = this.parseTicker((response != null && marketId != null && response.ContainsKey(marketId) ? response[marketId] : null), market);
             string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             result[(string)symbol] = ticker;
         }

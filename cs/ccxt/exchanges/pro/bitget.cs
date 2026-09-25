@@ -1346,9 +1346,9 @@ public partial class bitget : ccxt.bitget
         List<object> data = this.safeList(message, "data", new List<object>() {});
         int length = data.Count;
         // fix chronological order by reversing
-        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        for (Int64 i = 0; i < length; postFixIncrement(ref i))
         {
-            object index = subtract(subtract(length, i), 1);
+            Int64 index = ((length - i) - 1);
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade, market);
             stored.append(parsed);

@@ -1491,7 +1491,7 @@ public partial class phemex : Exchange
             }
             result[(string)side] = orders;
         }
-        result[(string)bidsKey] = this.sortBy(getValue(result, bidsKey), 0, true);
+        result[(string)bidsKey] = this.sortBy((result != null && bidsKey != null && result.ContainsKey(bidsKey) ? result[bidsKey] : null), 0, true);
         result[(string)asksKey] = this.sortBy(getValue(result, asksKey), 0);
         return result;
     }

@@ -1215,9 +1215,9 @@ public partial class krakenfutures : Exchange
             // we need to reverse the list to fix chronology
             rawTrades = new List<object>() {};
             int length = elements.Count;
-            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            for (Int64 i = 0; i < length; postFixIncrement(ref i))
             {
-                object index = subtract((length - 1), i);
+                Int64 index = ((length - 1) - i);
                 IDictionary<string, object> element = this.safeDict(elements, index);
                 IDictionary<string, object> eventVar = this.safeDict(element, "event", new Dictionary<string, object>() {});
                 IDictionary<string, object> executionContainer = this.safeDict(eventVar, "Execution", new Dictionary<string, object>() {});
@@ -3334,7 +3334,7 @@ public partial class krakenfutures : Exchange
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
-            object balance = getValue(balances, currencyId);
+            object balance = (balances != null && currencyId != null && balances.ContainsKey(currencyId) ? balances[currencyId] : null);
             string? code = this.safeCurrencyCode(currencyId);
             if ((code == null))
             {

@@ -452,7 +452,7 @@ public partial class nado : ccxt.nado
         await this.loadMarkets();
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolValue));
+        return ccxt.BaseExchange.ToTicker((tickers != null && symbolValue != null && tickers.ContainsKey(symbolValue) ? tickers[symbolValue] : null));
     }
 
     /**
@@ -1863,7 +1863,7 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);
-            object ticker = getValue(tickers, symbol);
+            object ticker = (tickers != null && symbol != null && tickers.ContainsKey(symbol) ? tickers[symbol] : null);
             this.bidsasks[(string)symbol] = ticker;
             this.tickers[(string)symbol] = ticker;
             client.resolve(ticker, ("bidask:" + symbol));

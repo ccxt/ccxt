@@ -2634,7 +2634,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> depositAddresses = depositAddressesRaw;
         if (((network != null) && depositAddresses.ContainsKey(network)))
         {
-            return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, network));
+            return ccxt.BaseExchange.ToDepositAddress((depositAddresses != null && network != null && depositAddresses.ContainsKey(network) ? depositAddresses[network] : null));
         }
         List<object> keys = new List<object>(depositAddresses.Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, (keys != null && 0 < keys.Count ? keys[0] : null)));

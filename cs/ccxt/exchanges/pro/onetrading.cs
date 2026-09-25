@@ -1170,7 +1170,7 @@ public partial class onetrading : ccxt.onetrading
         }
         if (((marketId != null)) && ((timeframeVar != null)))
         {
-            ((IDictionary<string,object>)getValue(subscription, marketId))[timeframeVar] = true;
+            ((IDictionary<string,object>)(subscription != null && marketId != null && subscription.ContainsKey(marketId) ? subscription[marketId] : null))[timeframeVar] = true;
         }
         List<object> properties = new List<object>() {};
         List<object> marketIds = new List<object>(subscription.Keys);

@@ -4068,7 +4068,7 @@ public partial class pacifica : Exchange
             List<string> sortedKeys = this.sort(keys);
             for (int i = 0; i < (sortedKeys?.Count ?? 0); i++)
             {
-                string? key = ((string)getValue(sortedKeys, i));
+                string? key = ((string)(sortedKeys != null && i < sortedKeys.Count ? sortedKeys[i] : null));
                 result[(string)key] = this.sortJsonKeys(getValue(value, key));
             }
             return result;

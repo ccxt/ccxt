@@ -2770,7 +2770,7 @@ public partial class BaseExchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        object market = getValue(markets, symbol);
+        object market = (markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null);
         string? feeSide = this.safeString(market, "feeSide", "quote");
         bool? useQuote = null;
         if (feeSide == "get")
@@ -7250,9 +7250,9 @@ public partial class BaseExchange
                 IDictionary<string, object> last = this.safeDict(response, (responseLength - 1));
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = null; // search for the cursor
-                for (object j = 0; isLessThan(j, responseLength); postFixIncrement(ref j))
+                for (Int64 j = 0; j < responseLength; postFixIncrement(ref j))
                 {
-                    object index = subtract(subtract(responseLength, j), 1);
+                    Int64 index = ((responseLength - j) - 1);
                     IDictionary<string, object> entry = this.safeDict(response, index);
                     IDictionary<string, object> info = this.safeDict(entry, "info");
                     object cursor = ((cursorReceived == null)) ? null : this.safeValue(info, cursorReceived);

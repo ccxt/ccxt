@@ -6498,8 +6498,8 @@ public partial class bingx : Exchange
         List<string> keys = this.sort(rawKeys);
         for (int i = 0; i < (keys?.Count ?? 0); i++)
         {
-            string? key = ((string)getValue(keys, i));
-            object value = getValue(parameters, key);
+            string? key = ((string)(keys != null && i < keys.Count ? keys[i] : null));
+            object value = (parameters != null && key != null && parameters.ContainsKey(key) ? parameters[key] : null);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string arrStr = "[";
@@ -7079,7 +7079,7 @@ public partial class bingx : Exchange
         object result = null;
         for (int i = 0; i < (keys?.Count ?? 0); i++)
         {
-            object key = getValue(keys, i);
+            object key = (keys != null && i < keys.Count ? keys[i] : null);
             object value = getValue(parameters, key);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {

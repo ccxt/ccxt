@@ -421,9 +421,9 @@ public partial class testMainClass
         // run-tests.js, so the exceptions are still printed out to console from there.
         args ??= new List<object>();
         isPublic ??= false;
-        object maxRetries = 3;
+        Int64 maxRetries = 3;
         object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-        for (int i = 0; isLessThan(i, maxRetries); i++)
+        for (int i = 0; i < maxRetries; i++)
         {
             try
             {
@@ -443,7 +443,7 @@ public partial class testMainClass
                 if (isTrue(isOperationFailed))
                 {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
-                    if (isEqual(i, subtract(maxRetries, 1)))
+                    if (isEqual(i, (maxRetries - 1)))
                     {
                         object isOnMaintenance = (e is OnMaintenance);
                         object isExchangeNotAvailable = (e is ExchangeNotAvailable);

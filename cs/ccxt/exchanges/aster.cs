@@ -5063,7 +5063,7 @@ public partial class aster : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(dict, key);
+            object value = (dict != null && key != null && dict.ContainsKey(key) ? dict[key] : null);
             string capitalizedKey = this.capitalize(key);
             capitalized[(string)capitalizedKey] = value;
         }

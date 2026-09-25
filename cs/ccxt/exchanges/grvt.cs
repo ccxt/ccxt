@@ -3724,7 +3724,7 @@ public partial class grvt : Exchange
         }
         Dictionary<string, object> domainData = this.eipDomainData();
         Dictionary<string, object> definitions = this.eipDefinitions();
-        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
+        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions != null && structureType != null && definitions.ContainsKey(structureType) ? definitions[structureType] : null), messageData);
         string ethEncodedMessageHashed = ("0x" + (this.hash(ethEncodedMessage, keccak, "hex")));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;

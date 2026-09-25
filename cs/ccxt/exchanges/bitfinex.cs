@@ -1544,7 +1544,7 @@ public partial class bitfinex : Exchange
         bool hasMarketId = ((firstValue != null)) && (firstValue.StartsWith("t") || firstValue.StartsWith("f"));
         bool isFetchTicker = !hasMarketId;
         string? symbol = null;
-        object minusIndex = 0;
+        Int64 minusIndex = 0;
         if (isFetchTicker)
         {
             minusIndex = 1;
@@ -1571,28 +1571,28 @@ public partial class bitfinex : Exchange
         if (isFundingCurrency)
         {
             // per api docs, they are different array type
-            last = this.safeString(ticker, subtract(10, minusIndex));
-            bid = this.safeString(ticker, subtract(2, minusIndex));
-            ask = this.safeString(ticker, subtract(5, minusIndex));
-            change = this.safeString(ticker, subtract(8, minusIndex));
+            last = this.safeString(ticker, (10 - minusIndex));
+            bid = this.safeString(ticker, (2 - minusIndex));
+            ask = this.safeString(ticker, (5 - minusIndex));
+            change = this.safeString(ticker, (8 - minusIndex));
             // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
             // branch reads at index 6 and scales
-            percentage = Precise.stringMul(this.safeString(ticker, subtract(9, minusIndex)), "100");
-            volume = this.safeString(ticker, subtract(11, minusIndex));
-            high = this.safeString(ticker, subtract(12, minusIndex));
-            low = this.safeString(ticker, subtract(13, minusIndex));
+            percentage = Precise.stringMul(this.safeString(ticker, (9 - minusIndex)), "100");
+            volume = this.safeString(ticker, (11 - minusIndex));
+            high = this.safeString(ticker, (12 - minusIndex));
+            low = this.safeString(ticker, (13 - minusIndex));
         } else
         {
             // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-            last = this.safeString(ticker, subtract(7, minusIndex));
-            bid = this.safeString(ticker, subtract(1, minusIndex));
-            ask = this.safeString(ticker, subtract(3, minusIndex));
-            change = this.safeString(ticker, subtract(5, minusIndex));
-            percentage = this.safeString(ticker, subtract(6, minusIndex));
+            last = this.safeString(ticker, (7 - minusIndex));
+            bid = this.safeString(ticker, (1 - minusIndex));
+            ask = this.safeString(ticker, (3 - minusIndex));
+            change = this.safeString(ticker, (5 - minusIndex));
+            percentage = this.safeString(ticker, (6 - minusIndex));
             percentage = Precise.stringMul(percentage, "100");
-            volume = this.safeString(ticker, subtract(8, minusIndex));
-            high = this.safeString(ticker, subtract(9, minusIndex));
-            low = this.safeString(ticker, subtract(10, minusIndex));
+            volume = this.safeString(ticker, (8 - minusIndex));
+            high = this.safeString(ticker, (9 - minusIndex));
+            low = this.safeString(ticker, (10 - minusIndex));
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -3915,9 +3915,9 @@ public partial class bitfinex : Exchange
         List<object> reversedArray = new List<object>() {};
         IList<object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
         int ratesLength = (rawRates?.Count ?? 0);
-        for (object i = 0; isLessThan(i, ratesLength); postFixIncrement(ref i))
+        for (Int64 i = 0; i < ratesLength; postFixIncrement(ref i))
         {
-            object index = subtract(subtract(ratesLength, i), 1);
+            Int64 index = ((ratesLength - i) - 1);
             object valueAtIndex = getValue(rawRates, index);
             reversedArray.Add(valueAtIndex);
         }

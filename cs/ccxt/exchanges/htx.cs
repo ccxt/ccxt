@@ -4959,7 +4959,7 @@ public partial class htx : Exchange
         object account = null;
         if ((result != null && code != null && result.ContainsKey(code)))
         {
-            account = getValue(result, code);
+            account = (result != null && code != null && result.ContainsKey(code) ? result[code] : null);
         } else
         {
             account = this.account();

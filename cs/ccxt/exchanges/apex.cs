@@ -1407,13 +1407,13 @@ public partial class apex : Exchange
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
                 if (((marketsById != null)) && (((newMarketId != null) && (marketsById?.ContainsKey(newMarketId) == true))))
                 {
-                    object markets = getValue(marketsById, newMarketId);
+                    object markets = (marketsById != null && newMarketId != null && marketsById.ContainsKey(newMarketId) ? marketsById[newMarketId] : null);
                     int numMarkets = getArrayLength(markets);
                     if (numMarkets > 0)
                     {
-                        if (isEqual(getValue(getValue(getValue(marketsById, newMarketId), 0), "id2"), marketId))
+                        if (isEqual(getValue(getValue((marketsById != null && newMarketId != null && marketsById.ContainsKey(newMarketId) ? marketsById[newMarketId] : null), 0), "id2"), marketId))
                         {
-                            marketResolved = getValue(getValue(marketsById, newMarketId), 0);
+                            marketResolved = getValue((marketsById != null && newMarketId != null && marketsById.ContainsKey(newMarketId) ? marketsById[newMarketId] : null), 0);
                         }
                     }
                 }

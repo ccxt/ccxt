@@ -394,9 +394,9 @@ public partial class gemini : ccxt.gemini
         }
         int changesLength = changes.Count;
         // reverse order of array to store candles in ascending order
-        for (object i = 0; isLessThan(i, changesLength); postFixIncrement(ref i))
+        for (Int64 i = 0; i < changesLength; postFixIncrement(ref i))
         {
-            object index = subtract(subtract(changesLength, i), 1);
+            Int64 index = ((changesLength - i) - 1);
             IList<object> parsed = this.parseOHLCV(getValue(changes, index), market);
             stored.append(parsed);
         }

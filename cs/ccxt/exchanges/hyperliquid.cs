@@ -5307,7 +5307,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> ois = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToOpenInterest(getValue(ois, symbolValue));
+        return ccxt.BaseExchange.ToOpenInterest((ois != null && symbolValue != null && ois.ContainsKey(symbolValue) ? ois[symbolValue] : null));
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)

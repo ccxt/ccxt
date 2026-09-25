@@ -196,7 +196,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolValue));
+        return ccxt.BaseExchange.ToTicker((tickers != null && symbolValue != null && tickers.ContainsKey(symbolValue) ? tickers[symbolValue] : null));
     }
 
     /**
@@ -651,9 +651,9 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 List<object> trades = this.safeList(message, "trades", new List<object>() {});
                 int length = trades.Count;
-                for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+                for (Int64 i = 0; i < length; postFixIncrement(ref i))
                 {
-                    object index = subtract((length - 1), i); // need reverse to correct chronology
+                    Int64 index = ((length - 1) - i); // need reverse to correct chronology
                     object item = getValue(trades, index);
                     Dictionary<string, object> trade = this.parseWsTrade(item);
                     tradesArray.append(trade);

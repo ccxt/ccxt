@@ -924,7 +924,7 @@ public partial class upbit : Exchange
                 {
                     quoteCurrencies = add(quoteCurrencies, ",");
                 }
-                quoteCurrencies = add(quoteCurrencies, getValue(sortedQuoteIds, i));
+                quoteCurrencies = add(quoteCurrencies, (sortedQuoteIds != null && i < sortedQuoteIds.Count ? sortedQuoteIds[i] : null));
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "quote_currencies", quoteCurrencies },

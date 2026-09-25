@@ -658,9 +658,9 @@ public partial class lighter : ccxt.lighter
             this.trades[(string)symbol] = stored;
         }
         int dataLength = data.Count;
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (Int64 i = 0; i < dataLength; postFixIncrement(ref i))
         {
-            object iReversed = subtract((dataLength - 1), i);
+            Int64 iReversed = ((dataLength - 1) - i);
             Dictionary<string, object> trade = this.parseWsTrade(getValue(data, iReversed), market);
             stored.append(trade);
         }
@@ -877,9 +877,9 @@ public partial class lighter : ccxt.lighter
             Dictionary<string, object> market = this.safeMarket(marketId);
             List<object> trades = this.safeList(data, marketId, new List<object>() {});
             int tradesLength = trades.Count;
-            for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
+            for (Int64 j = 0; j < tradesLength; postFixIncrement(ref j))
             {
-                object jReversed = subtract((tradesLength - 1), j);
+                Int64 jReversed = ((tradesLength - 1) - j);
                 object tradeRaw = getValue(trades, jReversed);
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
                 Dictionary<string, object> trade = this.parseWsOrderTrade(tradeRaw, market);
@@ -1077,9 +1077,9 @@ public partial class lighter : ccxt.lighter
             stored = this.liquidations;
         }
         int dataLength = data.Count;
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (Int64 i = 0; i < dataLength; postFixIncrement(ref i))
         {
-            object iReversed = subtract((dataLength - 1), i);
+            Int64 iReversed = ((dataLength - 1) - i);
             Dictionary<string, object> liquidation = this.parseWsLiquidation(getValue(data, iReversed), market);
             ccxt.pro.BaseCache.appendTo(stored, liquidation);
         }

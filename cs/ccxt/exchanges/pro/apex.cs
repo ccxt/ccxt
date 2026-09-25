@@ -153,9 +153,9 @@ public partial class apex : ccxt.apex
             this.trades[(string)symbol] = stored;
         }
         int length = (trades?.Count ?? 0);
-        for (object j = 0; isLessThan(j, length); postFixIncrement(ref j))
+        for (Int64 j = 0; j < length; postFixIncrement(ref j))
         {
-            object index = subtract(subtract(length, j), 1);
+            Int64 index = ((length - j) - 1);
             Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
             stored.append(parsed);
         }

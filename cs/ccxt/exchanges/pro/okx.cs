@@ -405,7 +405,7 @@ public partial class okx : ccxt.okx
         parameters ??= new Dictionary<string, object>();
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> fr = ccxt.BaseExchange.FromFundingRates(await this.WatchFundingRates(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToFundingRate(getValue(fr, symbolValue));
+        return ccxt.BaseExchange.ToFundingRate((fr != null && symbolValue != null && fr.ContainsKey(symbolValue) ? fr[symbolValue] : null));
     }
 
     /**
@@ -585,7 +585,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolValue}, paramsChannel));
-        return ccxt.BaseExchange.ToTicker(getValue(ticker, symbolValue));
+        return ccxt.BaseExchange.ToTicker((ticker != null && symbolValue != null && ticker.ContainsKey(symbolValue) ? ticker[symbolValue] : null));
     }
 
     /**

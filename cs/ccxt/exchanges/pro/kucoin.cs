@@ -3481,7 +3481,7 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual(getValue(newPosition, key), null))
+            if (isEqual((newPosition != null && key != null && newPosition.ContainsKey(key) ? newPosition[key] : null), null))
             {
                 newPosition.Remove(key);
             }
@@ -3532,7 +3532,7 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual(getValue(newPosition, key), null))
+            if (isEqual((newPosition != null && key != null && newPosition.ContainsKey(key) ? newPosition[key] : null), null))
             {
                 newPosition.Remove(key);
             }

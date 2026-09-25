@@ -1372,14 +1372,14 @@ public partial class revolutx : Exchange
             Dictionary<string, object> market = this.market(symbol);
             request["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object thirtyDays = 2592000000;
+        Int64 thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
             request["start_date"] = since;
         } else if ((until != null))
         {
-            request["start_date"] = subtract(until, thirtyDays);
+            request["start_date"] = (until - thirtyDays);
         }
         if ((until != null))
         {
@@ -1387,8 +1387,8 @@ public partial class revolutx : Exchange
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            object defaultEnd = add(since, thirtyDays);
-            request["end_date"] = (isLessThan(defaultEnd, now)) ? defaultEnd : now;
+            Int64? defaultEnd = (since + thirtyDays);
+            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
         }
         if ((limit != null))
         {
@@ -1512,14 +1512,14 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object thirtyDays = 2592000000;
+        Int64 thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
             request["start_date"] = since;
         } else if ((until != null))
         {
-            request["start_date"] = subtract(until, thirtyDays);
+            request["start_date"] = (until - thirtyDays);
         }
         if ((until != null))
         {
@@ -1527,8 +1527,8 @@ public partial class revolutx : Exchange
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            object defaultEnd = add(since, thirtyDays);
-            request["end_date"] = (isLessThan(defaultEnd, now)) ? defaultEnd : now;
+            Int64? defaultEnd = (since + thirtyDays);
+            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
         }
         if ((limit != null))
         {

@@ -6830,7 +6830,7 @@ public partial class okx : Exchange
         string? codeNetwork = this.networkIdToCode(codeValue, codeValue);
         if (((codeNetwork != null)) && (((codeNetwork != null) && (response?.ContainsKey(codeNetwork) == true))))
         {
-            return ccxt.BaseExchange.ToDepositAddress(getValue(response, codeNetwork));
+            return ccxt.BaseExchange.ToDepositAddress((response != null && codeNetwork != null && response.ContainsKey(codeNetwork) ? response[codeNetwork] : null));
         }
         // if the network is not specified, return the first address
         List<object> keys = new List<object>(response.Keys);
