@@ -253,9 +253,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access string, methodName s
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var privateAccess bool = (access == "private")
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id *string = ccxt.SafeStringPtr(ccxt.Add(this.NumberToString(this.Milliseconds()), name)) // call back ID
 	var subscribe map[string]any = map[string]any{
@@ -342,9 +340,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access s
 	var subscriptionParams map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = subscriptionParams
 	var privateAccess bool = (access == "private")
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id *string = ccxt.SafeStringPtr(ccxt.Add(this.NumberToString(this.Milliseconds()), name)) // call back ID
 	var unsubscribe map[string]any = map[string]any{

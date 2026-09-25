@@ -2750,9 +2750,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		request["product_ids"] = this.MarketIds(symbolsNormalized)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", this.GetMarketFromSymbols(symbolsNormalized), params, "default")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", this.GetMarketFromSymbols(symbolsNormalized), params, "default")
 	if (marketType != nil) && (marketType == nil || *marketType != "default") {
 		request["product_type"] = func() string {
 			if marketType != nil && *marketType == "swap" {
@@ -3193,9 +3191,7 @@ func (this *Coinbase) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	var isV3 *bool = this.SafeBool(params, "v3", false)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"v3"}))
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsOmitted)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsOmitted)
 	var method *string = this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
 	if marketType != nil && *marketType == "future" {
 
@@ -6234,9 +6230,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "future" {
 
@@ -6487,9 +6481,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var productType string = "FUTURE"
 	if isSpot {

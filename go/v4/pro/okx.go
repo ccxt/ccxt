@@ -1057,7 +1057,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 		messageHashes = append(messageHashes, messageHash)
 	}
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params), 0))
+	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)), 0))
 	var channel string = "liquidation-orders"
 	var typeVar *string = marketType
 	if marketType != nil && *marketType == "spot" {

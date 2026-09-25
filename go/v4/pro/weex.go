@@ -1439,9 +1439,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var symbolResolved *string = this.SafeString(market, "symbol")
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	var isContract bool = (marketType == nil || *marketType != "spot")
 	var messageHash string = "myTrades"
 	if isContract {
@@ -1489,9 +1487,7 @@ func (this *Weex) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols."))
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("unWatchMyTrades", nil, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("unWatchMyTrades", nil, params)
 	var isContract bool = (marketType == nil || *marketType != "spot")
 	var subHash string = "myTrades"
 	if isContract {
@@ -1687,9 +1683,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var symbolResolved *string = this.SafeString(market, "symbol")
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
 	var isContract bool = (marketType == nil || *marketType != "spot")
 	var messageHash string = "orders"
 	if isContract {
@@ -1736,9 +1730,7 @@ func (this *Weex) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols."))
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("unWatchOrders", nil, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("unWatchOrders", nil, params)
 	var isContract bool = (marketType == nil || *marketType != "spot")
 	var subHash string = "orders"
 	if isContract {
@@ -2012,7 +2004,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
 	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))

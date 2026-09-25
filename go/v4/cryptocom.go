@@ -1872,9 +1872,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	var broker *string = this.SafeString(this.Options, "broker", "CCXT")
 	request["broker_id"] = broker
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginModeparamsValueVariable := this.CustomHandleMarginModeAndParams("createOrder", paramsMarketType)
 	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsValueVariable, 0))
 	paramsValue := GetValue(marginModeparamsValueVariable, 1)
@@ -3866,7 +3864,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var typeVar any = nil
 	var paramsMarketType any = nil
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
+	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params))
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})

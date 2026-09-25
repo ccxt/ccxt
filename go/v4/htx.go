@@ -2165,9 +2165,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	// so this method uses the live native endpoints instead
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 	var status string
 	var eta *int64 = nil
 	var response map[string]any = nil
@@ -2195,9 +2193,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		}()
 		eta = this.SafeInteger(data, "haltEndTime")
 	} else {
-		var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchStatus", nil, paramsMarketType)
-		var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-		var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+		subType, paramsSubType := this.HandleSubTypeAndParams("fetchStatus", nil, paramsMarketType)
 
 		response = MapTyped(PanicOnError((<-this.ContractPublicGetHeartbeat(paramsSubType)).Raw))
 		//
@@ -3171,12 +3167,8 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(first)
 	}
 	var isSubTypeRequested bool = (InOp(params, "subType")) || (InOp(params, "business_type"))
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
 	var request map[string]any = map[string]any{}
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var future bool = (typeVar != nil && *typeVar == "future")
@@ -3299,12 +3291,8 @@ func (this *Htx) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchLastPrices", market, params)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, paramsSubType)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchLastPrices", market, params)
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, paramsSubType)
 	var response map[string]any = nil
 	if ((typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future")) && (subType != nil && *subType == "linear") {
 
@@ -3666,9 +3654,7 @@ func (this *Htx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
 	if marketType == nil || *marketType != "spot" {
 		panic(NotSupported(this.Id + " fetchOrderTrades() is only supported for spot markets"))
 	}
@@ -3772,9 +3758,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate)
 	var paramsUntil any = nil
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -4619,7 +4603,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if isUnifiedAccount {
 		panic(NotSupported(this.Id + " fetchBalance() unified account has been deprecated on htx"))
 	}
-	var typeVarparamsTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUnified)
+	typeVarparamsTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUnified))
 	typeVar := GetValue(typeVarparamsTypeVariable, 0)
 	var paramsType map[string]any = MapTyped(GetValue(typeVarparamsTypeVariable, 1))
 	var subTypeOptionparamsSubTypeVariable []any = this.HandleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType")
@@ -4939,9 +4923,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
@@ -5510,9 +5492,7 @@ func (this *Htx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	var contract bool = (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future")
 	if contract && (symbol == nil) {
 		panic(ArgumentsRequired(Add(Add(this.Id+" fetchOrders() requires a symbol argument for ", marketType), " orders")))
@@ -5583,9 +5563,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, paramsPaginate)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, paramsPaginate)
 	if marketType != nil && *marketType == "spot" {
 
 		var retRes424219 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("partial-canceled,canceled", symbol, since, limit, paramsMarketType))))
@@ -5671,9 +5649,7 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
 	if marketType != nil && *marketType == "spot" {
 
 		var retRes430119 []any = ListTyped(PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, paramsMarketType))))
@@ -5730,12 +5706,8 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear")
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear")
 	var isLinear bool = (subType != nil && *subType == "linear")
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
@@ -6743,9 +6715,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		}
 		return typeVar
 	}()
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("createOrder", market, paramsPostOnly)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("createOrder", market, paramsPostOnly)
 	var query any = paramsSubType
 	var isLinear bool = (subType != nil && *subType == "linear")
 	var reduceOnly *bool = this.SafeBool2(query, "reduceOnly", "reduce_only", false)
@@ -7365,12 +7335,8 @@ func (this *Htx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("cancelOrder", market, paramsMarketType)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("cancelOrder", market, paramsMarketType)
 	var isLinear bool = (subType != nil && *subType == "linear")
 	var request map[string]any = map[string]any{}
 	var trigger *bool = this.SafeBool2(paramsSubType, "stop", "trigger")
@@ -7574,9 +7540,7 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	var request map[string]any = map[string]any{}
 	var trigger *bool = this.SafeBool2(paramsMarketType, "stop", "trigger")
 	var stopLossTakeProfit *bool = this.SafeBool(paramsMarketType, "stopLossTakeProfit")
@@ -7883,9 +7847,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
@@ -8699,9 +8661,7 @@ func (this *Htx) transferBody(ch chan any, code any, amount any, fromAccount any
 		"currency": currency["id"],
 		"amount":   ParseFloat(transferAmount),
 	}
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("transfer", nil, params)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("transfer", nil, params)
 	var fromAccountId any = this.ConvertTypeToAccount(fromAccount)
 	var toAccountId any = this.ConvertTypeToAccount(toAccount)
 	var toCross bool = (IsEqual(toAccountId, "cross"))
@@ -9714,9 +9674,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
 	var initialRequest map[string]any = map[string]any{
 		"type": "30,31",
 	}
@@ -9820,9 +9778,7 @@ func (this *Htx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("setLeverage", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
+	marketType, query := this.HandleMarketTypeAndParams("setLeverage", market, params)
 	var request map[string]any = map[string]any{
 		"lever_rate": leverage,
 	}
@@ -10091,12 +10047,8 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			market = this.Market(first)
 		}
 	}
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params, "linear")
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, paramsSubType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositions", market, params, "linear")
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, paramsSubType)
 	var marketType *string = marketTypeOption
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		marketType = SafeStringPtr("future")
@@ -10175,9 +10127,7 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		return marginModeOption
 	}()
-	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, paramsMarginMode)
-	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
+	marketType, query := this.HandleMarketTypeAndParams("fetchPosition", market, paramsMarginMode)
 	var request map[string]any = map[string]any{}
 	if (GetValue(market, "future") == true) && (GetValue(market, "inverse") == true) {
 		request["symbol"] = market["settleId"]
@@ -10675,12 +10625,8 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "linear")
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenInterests", market, paramsSubType)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "linear")
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenInterests", market, paramsSubType)
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "future" {
 
@@ -11888,12 +11834,8 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 			market = this.Market(first)
 		}
 	}
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params, "linear")
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params, "linear")
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType)
 	var marketType *string = marketTypeOption
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		marketType = SafeStringPtr("future")

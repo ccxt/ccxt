@@ -222,9 +222,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		isUsdcSettled = ccxt.IsEqual(market["settle"], "USDC")
 		typeVar = this.SafeString(market, "type")
 	} else {
-		var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodValue, nil, params)
-		var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-		var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+		marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodValue, nil, params)
 		typeVar = marketType
 		var defaultSettle *string = this.SafeString(this.Options, "defaultSettle")
 		defaultSettle = this.SafeString2(paramsMarketType, "settle", "defaultSettle", defaultSettle)
@@ -245,8 +243,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		if isSpot == true {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "spot")
 		} else if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
-			var subTypeAndParams any = this.HandleSubTypeAndParams(methodValue, market, params, "linear")
-			var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(subTypeAndParams, 0))
+			var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(methodValue, market, params, "linear")), 0))
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), subType)
 		} else {
 			// option
@@ -2679,12 +2676,8 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var method string = "watchBalance"
 	var messageHash string = "balances"
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType)
 
 	var unified []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)

@@ -2049,9 +2049,7 @@ func (this *Kucoin) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	var response map[string]any = nil
 	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "margin") {
 		//
@@ -2105,9 +2103,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParams(params, "fetchStatus", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, paramsUta)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchStatus", nil, paramsUta)
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
 		var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
@@ -3617,7 +3613,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			firstMarket = this.Market(firstSymbol)
 		}
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", firstMarket, paramsUta)
+	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchTickers", firstMarket, paramsUta))
 	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
 	var response map[string]any = nil
@@ -3819,7 +3815,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	var response map[string]any = nil
 	var result any = nil
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, paramsUta)
+	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchTicker", market, paramsUta))
 	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
 	if EvalTruthy(utaOption) {
@@ -4127,9 +4123,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["startAt"] = this.ParseToInt(MathFloor(Divide((Subtract(endAt, Multiply(limit, duration))), denominator)))
 	}
 	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOHLCV", market, paramsPaginate)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOHLCV", market, paramsPaginate)
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		request["tradeType"] = "SPOT"
 	} else {
@@ -4735,9 +4729,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	var response map[string]any = nil
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, paramsUta)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderBook", market, paramsUta)
 	if EvalTruthy(utaOption) {
 		var limitString string = "20"
 		if (limit == nil) || (limit != nil && *limit >= 100) {
@@ -6143,9 +6135,7 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, paramsUta)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		var retRes498819 map[string]any = MapTyped(PanicOnError((<-this.CancelSpotOrderAsync(id, symbol, paramsMarketType))))
@@ -6534,9 +6524,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsUta)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		var retRes528319 []any = ListTyped(PanicOnError((<-this.CancelAllSpotOrdersAsync(symbol, paramsMarketType))))
@@ -7469,9 +7457,7 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var marketType *string = nil
 	if symbol == nil {
-		var marketTypeparamsOmittedVariable []any = this.HandleMarketTypeAndParams("fetchOrder", nil, paramsOmitted)
-		marketType = SafeStringPtr(GetValue(marketTypeparamsOmittedVariable, 0))
-		paramsOmitted = GetValue(marketTypeparamsOmittedVariable, 1)
+		marketType, paramsOmitted = this.HandleMarketTypeAndParams("fetchOrder", nil, paramsOmitted)
 	} else {
 		var market map[string]any = this.Market(symbol)
 		marketType = this.SafeString(market, "type")
@@ -8404,9 +8390,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var paramsRequest any = nil
-	var marketTypeparamsRequestVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsRequestVariable, 0))
-	paramsRequest = GetValue(marketTypeparamsRequestVariable, 1)
+	marketType, paramsRequest = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
@@ -8888,9 +8872,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	var response map[string]any = nil
 	var trades any = nil
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTrades", market, paramsUta)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTrades", market, paramsUta)
 	if EvalTruthy(utaOption) {
 		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 			request["tradeType"] = "SPOT"
@@ -10122,7 +10104,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var requestedTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUta)
+	requestedTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUta))
 	requestedType := GetValue(requestedTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = MapTyped(GetValue(requestedTypeparamsMarketTypeVariable, 1))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -10398,7 +10380,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestedType any = "unified"
 	var paramsRequest any = nil
-	var requestedTypeparamsRequestVariable []any = this.HandleMarketTypeAndParams("fetchUtaBalance", nil, params, requestedType)
+	requestedTypeparamsRequestVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchUtaBalance", nil, params, requestedType))
 	requestedType = GetValue(requestedTypeparamsRequestVariable, 0)
 	paramsRequest = GetValue(requestedTypeparamsRequestVariable, 1)
 	if IsEqual(requestedType, "margin") {
@@ -11183,7 +11165,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if uta == true {
 		requestedType = "UNIFIED"
 	}
-	var requestedTypeparamsRequestVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, paramsRequest, requestedType)
+	requestedTypeparamsRequestVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchLedger", nil, paramsRequest, requestedType))
 	requestedType = GetValue(requestedTypeparamsRequestVariable, 0)
 	paramsRequest = GetValue(requestedTypeparamsRequestVariable, 1)
 	var marginMode any = nil
@@ -12244,9 +12226,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var market map[string]any = nil
 	var marketType *string = nil
 	var paramsRequest any = nil
-	var marketTypeparamsRequestVariable []any = this.HandleMarketTypeAndParams("setLeverage", nil, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsRequestVariable, 0))
-	paramsRequest = GetValue(marketTypeparamsRequestVariable, 1)
+	marketType, paramsRequest = this.HandleMarketTypeAndParams("setLeverage", nil, params)
 	if (symbol != nil) || ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin")) {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " setLeverage requires a symbol argument for contract markets"))

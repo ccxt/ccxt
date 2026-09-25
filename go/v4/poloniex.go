@@ -1443,9 +1443,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	if marketType != nil && *marketType == "swap" {
 
 		responseRaw := (<-this.SwapPublicGetV3MarketTickers(this.Extend(request, paramsMarketType)))
@@ -1939,9 +1937,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate)
 	var isContract bool = this.InArray(marketType, []any{"swap", "future"})
 	var request map[string]any = map[string]any{}
 	var startKey string = "startTime"
@@ -2284,9 +2280,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	if limit != nil {
 		var max int = func() int {
 			if marketType != nil && *marketType == "spot" {
@@ -2418,9 +2412,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params, "swap")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params, "swap")
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchClosedOrders() is not supported for spot markets yet"))
 	}
@@ -2848,9 +2840,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["symbols"] = []any{GetValue(market, "id")}
 	}
 	var response any = []any{}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
 
 		var raw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateDeleteV3TradeAllOrders(this.Extend(request, paramsMarketType))).Raw))
@@ -2941,9 +2931,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	if marketType == nil || *marketType != "spot" {
 		panic(NotSupported(this.Id + " fetchOrder() is not supported for " + *marketType + " markets yet"))
 	}
@@ -3140,9 +3128,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	if marketType == nil || *marketType != "spot" {
 
 		var responseRaw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3AccountBalance(paramsMarketType)).Raw))

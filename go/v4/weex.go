@@ -906,9 +906,7 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	var response map[string]any = nil
 	if typeVar == nil || *typeVar != "spot" {
 
@@ -1362,9 +1360,7 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var symbolsLength int = 0
 	if !IsEqual(symbolsNormalized, nil) {
 		symbolsLength = GetArrayLength(symbolsNormalized)
@@ -1461,9 +1457,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
@@ -1612,9 +1606,7 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	if typeVar == nil || *typeVar != "spot" {
 		panic(NotSupported(this.Id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets"))
 	}
@@ -2494,9 +2486,7 @@ func (this *Weex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var requestedType *string = this.SafeString(params, "type")
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	// the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
 	var typeVar *string = marketType
@@ -3105,9 +3095,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	var trigger *bool = this.SafeBool(paramsMarketType, "trigger", false)
 	if (trigger != nil && *trigger == true) && (IsEqual(id, nil)) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument for trigger orders"))
@@ -3190,9 +3178,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	var trigger *bool = this.SafeBool(paramsMarketType, "trigger", false)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "trigger"))
 	var response []any = nil
@@ -3251,9 +3237,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	var clientOrderIds any = this.SafeList(paramsMarketType, "clientOrderIds")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "clientOrderIds"))
@@ -3322,9 +3306,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	var request map[string]any = map[string]any{}
 	if (IsEqual(id, nil)) && !isSpot {
@@ -3412,9 +3394,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "fetchOpenOrders", "paginate", false)
 	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
@@ -3579,9 +3559,7 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	var orders any = nil
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
@@ -3639,9 +3617,7 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
 	var orders any = nil
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
@@ -3788,9 +3764,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\""))
 	}
@@ -4155,9 +4129,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	if isSpot && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument for spot markets"))
@@ -4283,7 +4255,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes342519)
 		return nil
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate)
+	marketTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate))
 	marketType := GetValue(marketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")

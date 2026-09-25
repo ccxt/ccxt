@@ -1000,9 +1000,7 @@ func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	if typeVar != nil && *typeVar == "spot" {
 		var request map[string]any = map[string]any{
 			"asset_pair_name": market["id"],
@@ -1068,9 +1066,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized any = this.MarketSymbols(symbols)

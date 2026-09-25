@@ -498,9 +498,7 @@ func (this *Lbank) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	var response any = nil
 	if typeVar != nil && *typeVar == "swap" {
 
@@ -1073,9 +1071,7 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var response any = nil
 	if typeVar != nil && *typeVar == "swap" {
 		request["productGroup"] = "SwapU"
@@ -1176,9 +1172,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	var response any = nil
 	if typeVar != nil && *typeVar == "swap" {
 		request["depth"] = limitResolved

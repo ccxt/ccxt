@@ -3568,9 +3568,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 	_ = params
 	var subType *string = nil
 	var paramsSubType any = nil
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("handleProductTypeAndParams", nil, params)
-	subType = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	paramsSubType = GetValue(subTypeparamsSubTypeVariable, 1)
+	subType, paramsSubType = this.HandleSubTypeAndParams("handleProductTypeAndParams", nil, params)
 	var defaultProductType any = nil
 	if (subType != nil) && (market == nil) {
 		// set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
@@ -5911,9 +5909,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	// Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
 	// as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
 	// with higher priority and only default to spot, if `subType` is not set in params
@@ -6538,9 +6534,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchTradingFees", params)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
 	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
-	var marketTypeparamsMarginModeVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, paramsMarginMode)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marketTypeparamsMarginModeVariable, 1)
+	marketType, paramsMarginMode = this.HandleMarketTypeAndParams("fetchTradingFees", nil, paramsMarginMode)
 	var uta any = nil
 	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchTradingFees", false))))
 	uta = GetValue(utaparamsMarginModeVariable, 0)
@@ -7047,9 +7041,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchBalance", false))))
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
-	var marketTypeparamsUTAVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUTA)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marketTypeparamsUTAVariable, 1)
+	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUTA)
 	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("fetchBalance", paramsUTA)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
 	paramsUTA = GetValue(marginModeparamsUTAVariable, 1)
@@ -8023,9 +8015,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var marketType *string = nil
 	var marginMode *string = nil
 	var paramsMarketType any = nil
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	paramsMarketType = GetValue(marketTypeparamsMarketTypeVariable, 1)
+	marketType, paramsMarketType = this.HandleMarketTypeAndParams("createOrder", market, params)
 	var marginModeparamsMarketTypeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsMarketTypeVariable, 0))
 	paramsMarketType = GetValue(marginModeparamsMarketTypeVariable, 1)
@@ -10086,9 +10076,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 		request["symbol"] = GetValue(market, "id")
 	}
 	var marketType *string = nil
-	var marketTypeparamsUTAVariable []any = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, paramsUTA)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marketTypeparamsUTAVariable, 1)
+	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, paramsUTA)
 	var marginMode *string = nil
 	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsUTA)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
@@ -10605,9 +10593,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var marketTypeparamsOmittedVariable []any = this.HandleMarketTypeAndParams("fetchLedger", market, paramsOmitted)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsOmittedVariable, 0))
-	paramsOmitted = GetValue(marketTypeparamsOmittedVariable, 1)
+	marketType, paramsOmitted = this.HandleMarketTypeAndParams("fetchLedger", market, paramsOmitted)
 	var uta any = nil
 	var utaparamsOmittedVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchLedger", false))))
 	uta = GetValue(utaparamsOmittedVariable, 0)
@@ -13085,7 +13071,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	var paramsMarketType any = nil
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTransfers", nil, params)
+	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchTransfers", nil, params))
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
 	var fromAccount *string = this.SafeString(paramsMarketType, "fromAccount", typeVar)
@@ -13704,9 +13690,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyLiquidations", market, paramsPaginate)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyLiquidations", market, paramsPaginate)
 	if typeVar == nil || *typeVar != "spot" {
 		panic(NotSupported(this.Id + " fetchMyLiquidations() supports spot margin markets only"))
 	}

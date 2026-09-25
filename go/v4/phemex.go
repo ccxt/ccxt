@@ -2010,12 +2010,8 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var first *string = this.SafeString(symbols, 0)
 		market = this.Market(first)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
 	var query map[string]any = MapTyped(this.Omit(paramsSubType, "type"))
 	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {
@@ -2548,9 +2544,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var code *string = this.SafeString(paramsMarketType, "code")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"code"}))
 	var response map[string]any = nil
@@ -4036,9 +4030,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	var request map[string]any = map[string]any{}
 	var limitResolved any = func() any {
 		if limit == nil {
@@ -4570,9 +4562,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		settle = SafeStringPtr(GetValue(settleparamsSettleVariable, 0))
 		paramsSettle = GetValue(settleparamsSettleVariable, 1)
 	}
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, paramsSettle)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositions", market, paramsSettle)
 	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
 		code = "USDT"
@@ -6586,9 +6576,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		settle = SafeStringPtr(GetValue(settleparamsSettleVariable, 0))
 		paramsSettle = GetValue(settleparamsSettleVariable, 1)
 	}
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, paramsSettle)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsADLRank", market, paramsSettle)
 	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
 		code = "USDT"

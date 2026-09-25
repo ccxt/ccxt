@@ -2958,9 +2958,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true, true)
 	var paramsRequest any = params
 	if IsEqual(symbolsNormalized, nil) {
-		var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
-		var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-		var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+		marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
 		if marketType == nil || *marketType != "swap" {
 			panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 		}

@@ -862,7 +862,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
 	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))

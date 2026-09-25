@@ -1271,12 +1271,8 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchBalance", nil, paramsMarketType)
-	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBalance", nil, paramsMarketType)
 	var response map[string]any = nil
 	var result any = nil
 	if typeVar != nil && *typeVar == "swap" {
@@ -1840,9 +1836,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(this.Id + " fetchTickers only support spot & swap markets"))
 		}
 	} else {
-		var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
-		var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-		var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+		marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 		if marketType == nil || *marketType != "spot" {
 			panic(NotSupported(this.Id + " fetchTickers only support spot when symbols are not proved"))
 		}

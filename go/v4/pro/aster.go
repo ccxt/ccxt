@@ -1828,7 +1828,7 @@ func (this *Aster) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var typeVar any = nil
-	var typeMarketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
+	typeMarketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar))
 	typeMarketType := ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
 	if typeVar == nil {
@@ -2259,7 +2259,7 @@ func (this *Aster) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "orders"
 	var typeVar any = nil
-	var typeMarketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar)
+	typeMarketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar))
 	typeMarketType := ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
 	if typeVar == nil {
@@ -2325,7 +2325,7 @@ func (this *Aster) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "myTrades"
 	var typeVar any = nil
-	var typeMarketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar)
+	typeMarketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar))
 	typeMarketType := ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
 	if typeVar == nil {

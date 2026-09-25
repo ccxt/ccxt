@@ -1030,9 +1030,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
 	var name any = this.GetSupportedMapping(marketType, map[string]any{
 		"spot":   "spot_subscribe",
 		"margin": "margin_subscribe",
@@ -1290,9 +1288,7 @@ func (this *Hitbtc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var name any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot_balance_subscribe",
 		"swap":   "futures_balance_subscribe",
@@ -1345,7 +1341,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar string, s
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
+	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("createOrder", market, params))
 	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
@@ -1407,9 +1403,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("cancelOrderWs", paramsMarketType)
 	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModequeryVariable, 0))
 	var query map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModequeryVariable, 1))
@@ -1461,9 +1455,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType)
 	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsMarginModeVariable, 0))
 	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))
@@ -1521,9 +1513,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = ccxt.GetValue(market, "id")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
 	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType), 0))
 	if marketType != nil && *marketType == "swap" {
 
