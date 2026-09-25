@@ -2131,13 +2131,13 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = getArrayLength(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
             await this.loadOutcomes(outcomes);
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
@@ -2163,9 +2163,9 @@ public partial class polymarket : PredictionExchange
         {
             throw new ExchangeError ((this.id + " fetchPositions() missing outcomes")) ;
         }
-        for (int i = 0; i < getArrayLength(outcomes); i++)
+        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             wantedIds[(string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null)] = true;
         }
         List<object> result = new List<object>() {};
@@ -2920,7 +2920,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();

@@ -3041,7 +3041,7 @@ public partial class coinex : Exchange
      * @param {boolean} [params.trigger] set to true for canceling stop orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -3060,9 +3060,9 @@ public partial class coinex : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
         List<object> requestIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            requestIds.Add(parseInt(getValue(ids, i)));
+            requestIds.Add(parseInt((ids != null && i < ids.Count ? ids[i] : null)));
         }
         if ((trigger == true))
         {
@@ -3829,7 +3829,7 @@ public partial class coinex : Exchange
      * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3850,12 +3850,12 @@ public partial class coinex : Exchange
             object symbol = null;
             if (((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                int symbolsLength = getArrayLength(symbols);
+                int symbolsLength = symbols?.Count ?? 0;
                 if (symbolsLength > 1)
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = getValue(symbols, 0);
+                symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             } else
             {
                 symbol = symbols;

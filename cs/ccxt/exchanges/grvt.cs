@@ -2762,7 +2762,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2774,9 +2774,9 @@ public partial class grvt : Exchange
             symbols = this.marketSymbols(symbols);
             request["base"] = new List<object>() {};
             request["quote"] = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
                 {

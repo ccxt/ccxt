@@ -972,29 +972,29 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
-    public virtual List<object> idsQueryStrings(object ids, object maxQueryLength)
+    public virtual List<object> idsQueryStrings(IList<object> ids, object maxQueryLength)
     {
         if ((ids == null))
         {
             return new List<object>() {};
         }
-        object idsString = "";
+        string idsString = "";
         List<object> queries = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            object id = getValue(ids, i);
-            if (!isEqual(idsString, ""))
+            string? id = ((string)(ids != null && i < ids.Count ? ids[i] : null));
+            if (idsString != "")
             {
-                idsString = add(idsString, ",");
+                idsString = (idsString + ",");
             }
-            idsString = add(idsString, id);
-            if (isGreaterThanOrEqual(((string)idsString).Length, maxQueryLength))
+            idsString = (idsString + id);
+            if (isGreaterThanOrEqual(idsString.Length, maxQueryLength))
             {
                 queries.Add(idsString);
                 idsString = "";
             }
         }
-        if (!isEqual(idsString, ""))
+        if (idsString != "")
         {
             queries.Add(idsString);
         }

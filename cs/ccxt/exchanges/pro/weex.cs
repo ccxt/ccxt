@@ -668,7 +668,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -690,7 +690,7 @@ public partial class weex : ccxt.weex
             priceType = priceTypeparametersVariable[0];
             parameters = priceTypeparametersVariable[1];
         }
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
@@ -1985,7 +1985,7 @@ public partial class weex : ccxt.weex
      * @param {int} [params.accountNumber] account number to query orders for, required
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2000,7 +2000,7 @@ public partial class weex : ccxt.weex
         string subscriptionHash = messageHash;
         if ((symbols != null))
         {
-            messageHash = messageHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = messageHash + ("::" + String.Join(",", symbols.ToArray()));
         }
         string channel = "positions";
         this.setPositionsCache(client, parameters);

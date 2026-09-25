@@ -630,7 +630,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -1917,7 +1917,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.privateKey == null))
@@ -1927,13 +1927,13 @@ public partial class myriad : PredictionExchange
         object paramsForLookup = parameters;
         string? networkIdParam = this.safeString2(parameters, "networkId", "network_id");
         parameters = this.omit(parameters, new List<object>() {"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"});
-        int idsLength = getArrayLength(ids);
+        int idsLength = ids?.Count ?? 0;
         List<object> signedOrders = new List<object>() {};
         List<object> wrappers = new List<object>() {};
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
         for (int i = 0; i < idsLength; i++)
         {
-            object id = getValue(ids, i);
+            string? id = ((string)(ids != null && i < ids.Count ? ids[i] : null));
             object fetched = this.getOrderResponseFromParams(id, paramsForLookup);
             if ((fetched == null))
             {
@@ -4258,7 +4258,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes != null))

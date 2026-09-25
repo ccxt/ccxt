@@ -59,7 +59,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " fetchPositionsHistory () is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Position>> FetchPositionsRisk(object symbols = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchPositionsRisk(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchPositionsRisk() is not supported yet")) ;
@@ -179,7 +179,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " cancelOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelOrdersWs(object ids, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelOrdersWs() is not supported yet")) ;
@@ -718,7 +718,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " fetchPosition() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchPositions() is not supported yet")) ;
@@ -730,7 +730,7 @@ public partial class Exchange
         return await this.WatchPositions(symbols,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public async virtual Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchPositions() is not supported yet")) ;
@@ -1100,7 +1100,7 @@ public partial class Exchange
         return await this.CancelOrder("", symbol, extendedParams);
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelOrders() is not supported yet")) ;

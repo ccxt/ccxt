@@ -322,7 +322,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -333,7 +333,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         symbols = this.marketSymbols(symbols);
         if (((symbols != null)) && !this.isEmpty(symbols))
         {
-            messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ("::" + String.Join(",", symbols.ToArray()));
         }
         messageHash = ("positions" + messageHash);
         object newPositions = await this.subscribePrivate("open_positions", messageHash, parameters);

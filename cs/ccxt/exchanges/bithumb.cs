@@ -2878,7 +2878,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

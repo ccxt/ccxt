@@ -3290,7 +3290,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4840,7 +4840,7 @@ public partial class bingx : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4861,7 +4861,7 @@ public partial class bingx : Exchange
         };
         List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds");
         parameters = this.omit(parameters, "clientOrderIds");
-        object idsToParse = ids;
+        IList<object> idsToParse = ids;
         bool areClientOrderIds = ((clientOrderIds != null));
         if (areClientOrderIds)
         {

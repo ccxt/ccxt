@@ -2254,13 +2254,13 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = getArrayLength(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
             await this.loadOutcomes(outcomes);
         }
         string? address = this.safeString(parameters, "address");
@@ -2475,7 +2475,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
@@ -2484,7 +2484,7 @@ public partial class predictfun : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
         }
-        int idsLength = getArrayLength(ids);
+        int idsLength = ids?.Count ?? 0;
         if ((idsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrders() requires at least one order hash")) ;

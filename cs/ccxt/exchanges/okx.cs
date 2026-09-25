@@ -5033,8 +5033,9 @@ public partial class okx : Exchange
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
+        object idsVar = ids;
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
         {
@@ -5060,7 +5061,7 @@ public partial class okx : Exchange
         }
         if ((clientOrderIds == null))
         {
-            ids = this.parseIds(ids);
+            idsVar = this.parseIds(idsVar);
             if ((algoIds != null))
             {
                 for (int i = 0; i < getArrayLength(algoIds); i++)
@@ -5071,18 +5072,18 @@ public partial class okx : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(ids); i++)
+            for (int i = 0; i < getArrayLength(idsVar); i++)
             {
                 if (((trailing == true)) || isTrigger)
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "algoId", getValue(ids, i) },
+                        { "algoId", getValue(idsVar, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 } else
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "ordId", getValue(ids, i) },
+                        { "ordId", getValue(idsVar, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -7531,7 +7532,7 @@ public partial class okx : Exchange
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7542,9 +7543,9 @@ public partial class okx : Exchange
         if ((symbols != null))
         {
             List<object> marketIds = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                object entry = getValue(symbols, i);
+                string? entry = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(entry);
                 marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
             }

@@ -6143,7 +6143,7 @@ public partial class bybit : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -6179,7 +6179,7 @@ public partial class bybit : Exchange
                 { "orderLinkId", this.safeString(clientOrderIds, i) },
             });
         }
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             ordersRequests.Add(new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -8150,7 +8150,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8168,13 +8168,13 @@ public partial class bybit : Exchange
         object symbol = null;
         if (((symbols != null)) && ((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 1)
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
             } else if ((symbolsLength == 1))
             {
-                symbol = getValue(symbols, 0);
+                symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             }
             symbols = this.marketSymbols(symbols);
         } else if ((symbols != null))

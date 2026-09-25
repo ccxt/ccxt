@@ -1297,7 +1297,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchPositions() is not supported yet")) ;
@@ -1354,7 +1354,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelOrders() is not supported yet")) ;
@@ -1456,7 +1456,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<List<ccxt.Position>> WatchPositions(object outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> WatchPositions(IList<object> outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchPositions() is not supported yet")) ;
@@ -1903,7 +1903,7 @@ public partial class PredictionExchange : BaseExchange
         return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
     }
 
-    public virtual object filterByOutcomesSinceLimit(object array, object outcomes = null, Int64? since = null, Int64? limit = null, object tail = null)
+    public virtual object filterByOutcomesSinceLimit(object array, IList<object> outcomes = null, Int64? since = null, Int64? limit = null, object tail = null)
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "outcome", outcomes, false));

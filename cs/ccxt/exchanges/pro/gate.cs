@@ -1596,7 +1596,7 @@ public partial class gate : ccxt.gate
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1631,7 +1631,7 @@ public partial class gate : ccxt.gate
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
-            messageHash = add(messageHash, ("::" + String.Join(",", ((IList<object>)symbols).ToArray())));
+            messageHash = add(messageHash, ("::" + String.Join(",", symbols.ToArray())));
         }
         string channel = (typeId + ".positions");
         string? subType = null;
@@ -1657,7 +1657,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbols, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
     {
         if ((this.positions == null))
         {

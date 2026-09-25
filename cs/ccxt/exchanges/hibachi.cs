@@ -1289,13 +1289,13 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            Dictionary<string, object> orderRequest = this.cancelOrderRequest(getValue(ids, i));
+            Dictionary<string, object> orderRequest = this.cancelOrderRequest((ids != null && i < ids.Count ? ids[i] : null));
             orderRequest["action"] = "cancel";
             orders.Add(orderRequest);
         }
@@ -1847,7 +1847,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

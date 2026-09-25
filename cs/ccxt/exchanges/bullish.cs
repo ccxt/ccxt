@@ -2884,7 +2884,7 @@ public partial class bullish : Exchange
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});

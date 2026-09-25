@@ -7255,7 +7255,7 @@ public partial class htx : Exchange
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7314,7 +7314,7 @@ public partial class htx : Exchange
             {
                 if ((clientOrderIds == null))
                 {
-                    request["order_id"] = String.Join(",", ((IList<object>)ids).ToArray());
+                    request["order_id"] = String.Join(",", ids.ToArray());
                 } else
                 {
                     request["client_order_id"] = clientOrderIds;
@@ -9600,7 +9600,7 @@ public partial class htx : Exchange
      * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9611,7 +9611,7 @@ public partial class htx : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
                 string? first = this.safeString(symbols, 0);

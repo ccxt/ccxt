@@ -1105,7 +1105,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -1114,9 +1114,9 @@ public partial class hyperliquid : PredictionExchange
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
             await this.loadOutcomes(outcomes);
-            for (int i = 0; i < getArrayLength(outcomes); i++)
+            for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
-                object requested = getValue(outcomes, i);
+                string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
                 IDictionary<string, object> requestedOutcomeObj = this.safeOutcome(requested);
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;
@@ -1549,7 +1549,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1584,11 +1584,11 @@ public partial class hyperliquid : PredictionExchange
         } else
         {
             cancelAction["type"] = "cancel";
-            for (int i = 0; i < getArrayLength(ids); i++)
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "a", assetId },
-                    { "o", this.parseToNumeric(getValue(ids, i)) },
+                    { "o", this.parseToNumeric((ids != null && i < ids.Count ? ids[i] : null)) },
                 });
             }
         }

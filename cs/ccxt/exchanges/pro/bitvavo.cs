@@ -533,7 +533,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -543,9 +543,9 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            object symbolAndTimeframe = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);

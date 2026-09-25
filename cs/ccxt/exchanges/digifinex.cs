@@ -2451,7 +2451,7 @@ public partial class digifinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2463,7 +2463,7 @@ public partial class digifinex : Exchange
         parameters = this.omit(parameters, "type");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", orderType },
-            { "order_id", String.Join(",", ((IList<object>)ids).ToArray()) },
+            { "order_id", String.Join(",", ids.ToArray()) },
         };
         Dictionary<string, object> response = await this.privateSpotPostSpotOrderCancel(this.extend(request, parameters));
         //
@@ -4193,7 +4193,7 @@ public partial class digifinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4209,12 +4209,12 @@ public partial class digifinex : Exchange
             object symbol = null;
             if (((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                int symbolsLength = getArrayLength(symbols);
+                int symbolsLength = symbols?.Count ?? 0;
                 if (symbolsLength > 1)
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = getValue(symbols, 0);
+                symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             } else
             {
                 symbol = symbols;

@@ -458,7 +458,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -467,7 +467,7 @@ public partial class grvt : ccxt.grvt
         }
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
@@ -839,7 +839,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -853,9 +853,9 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         if ((symbols != null))
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
                 messageHashes.Add(("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
