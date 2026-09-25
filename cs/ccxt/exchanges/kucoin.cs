@@ -8287,7 +8287,7 @@ public partial class kucoin : Exchange
         }
     }
 
-    public virtual object parseSpotOrUtaTrade(object trade, object market = null)
+    public virtual object parseSpotOrUtaTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -8436,7 +8436,7 @@ public partial class kucoin : Exchange
         }, marketResolved);
     }
 
-    public virtual object parseContractTrade(object trade, object market = null)
+    public virtual object parseContractTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)

@@ -73,7 +73,7 @@ public partial class phemex : ccxt.phemex
         return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
     }
 
-    public override string? fromEr(object er, object market = null)
+    public override string? fromEr(object er, IDictionary<string, object> market = null)
     {
         if (((er == null)) || ((market == null)))
         {
