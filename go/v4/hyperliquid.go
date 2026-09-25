@@ -552,7 +552,7 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 	// add in wrapped map
 	var fullName *string = this.SafeString(rawCurrency, "fullName")
 	if (fullName != nil) && (name != nil) {
-		var isWrapped bool = StartsWith(fullName, "Unit ") && StartsWith(name, "U")
+		var isWrapped bool = (fullName != nil && strings.HasPrefix(*fullName, "Unit ")) && (name != nil && strings.HasPrefix(*name, "U"))
 		if isWrapped {
 			var parts []string = Split(name, "U")
 			var nameWithoutU any = ""
@@ -4557,10 +4557,10 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		"rejected":       "rejected",
 		"marginCanceled": "canceled",
 	}
-	if EndsWith(status, "Rejected") {
+	if status != nil && strings.HasSuffix(*status, "Rejected") {
 		return "rejected"
 	}
-	if EndsWith(status, "Canceled") {
+	if status != nil && strings.HasSuffix(*status, "Canceled") {
 		return "canceled"
 	}
 	return this.SafeString(statuses, status, status)

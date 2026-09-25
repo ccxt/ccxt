@@ -2157,10 +2157,10 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 	if status == nil {
 		return nil
 	}
-	if ccxt.EndsWith(status, "Rejected") {
+	if status != nil && strings.HasSuffix(*status, "Rejected") {
 		return "rejected"
 	}
-	if ccxt.EndsWith(status, "Canceled") {
+	if status != nil && strings.HasSuffix(*status, "Canceled") {
 		return "canceled"
 	}
 	return this.SafeString(statuses, status, status)

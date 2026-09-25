@@ -295,7 +295,7 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	var data any = this.SafeDict(rawData, "instrument_ticker", map[string]any{})
 	var topic *string = this.SafeString(params, "channel")
 	var ticker any = nil
-	if (topic != nil) && ccxt.StartsWith(topic, "ticker_slim") {
+	if topic != nil && strings.HasPrefix(*topic, "ticker_slim") {
 		// the slim payload uses short keys and does not carry the instrument name,
 		// so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
 		var parts []string = ccxt.Split(topic, ".")

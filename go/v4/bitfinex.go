@@ -1644,7 +1644,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	// in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
 	// look like a number and the whole array would be read off by one.
 	var firstValue *string = this.SafeString(ticker, 0)
-	var hasMarketId bool = (firstValue != nil) && (StartsWith(firstValue, "t") || StartsWith(firstValue, "f"))
+	var hasMarketId bool = (firstValue != nil) && ((firstValue != nil && strings.HasPrefix(*firstValue, "t")) || (firstValue != nil && strings.HasPrefix(*firstValue, "f")))
 	var isFetchTicker bool = !hasMarketId
 	var symbol any = nil
 	var minusIndex int = 0

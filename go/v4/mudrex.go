@@ -678,7 +678,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 func (this *Mudrex) ParseMarket(asset any) any {
 	var ms *string = this.SafeString(asset, "symbol")
 	var base any = ms
-	if (ms != nil) && EndsWith(ms, "USDT") {
+	if ms != nil && strings.HasSuffix(*ms, "USDT") {
 		base = func() string {
 			if ms == nil {
 				return ""

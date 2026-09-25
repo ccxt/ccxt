@@ -356,7 +356,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "c", "")
 	var marketId *string = this.SafeString(message, "s")
 	var market any = this.SafeMarket(marketId)
-	var channelStartsWithSpot bool = ccxt.StartsWith(channel, "spot")
+	var channelStartsWithSpot bool = (channel != nil && strings.HasPrefix(*channel, "spot"))
 	var marketIdIsUndefined bool = (marketId == nil)
 	var isSpot any = func() any {
 		if marketIdIsUndefined {

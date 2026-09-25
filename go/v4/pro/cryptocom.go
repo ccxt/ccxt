@@ -1953,7 +1953,7 @@ func (this *Cryptocom) HandleSubscribe(client any, message map[string]any) {
 		// channel might be user.trade.BTC_USDT
 		this.HandleTrades(client, result)
 	}
-	if (channel != nil) && ccxt.StartsWith(channel, "user.order") {
+	if channel != nil && strings.HasPrefix(*channel, "user.order") {
 		// channel might be user.order.BTC_USDT
 		this.HandleOrders(client, result)
 	}
