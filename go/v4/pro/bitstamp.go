@@ -231,10 +231,10 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	} else if deltaNonce == nil || (nonce != nil && *nonce >= *deltaNonce) {
 		return
 	}
-	this.HandleDelta(storedOrderBook, delta)
+	this.HandleBookDelta(storedOrderBook, delta)
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
-func (this *Bitstamp) HandleDelta(orderbook any, delta any) {
+func (this *Bitstamp) HandleBookDelta(orderbook any, delta any) {
 	var timestamp *int64 = this.SafeTimestamp(delta, "timestamp")
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))

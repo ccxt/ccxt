@@ -204,7 +204,7 @@ func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 	}
 	return ccxt.GetArrayLength(cache)
 }
-func (this *Xt) HandleDelta(orderbook any, delta any) {
+func (this *Xt) HandleBookDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger2(delta, "i", "u"))
 	var obAsks []any = ccxt.SafeListTyped(delta, "a")
 	var obBids []any = ccxt.SafeListTyped(delta, "b")

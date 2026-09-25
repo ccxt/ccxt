@@ -477,7 +477,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else if typeVar != nil && *typeVar == "ORDER_BOOK_UPDATE" {
 		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
-		this.HandleDeltas(orderbook, changes)
+		this.HandleBookDeltas(orderbook, changes)
 	} else {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOrderBook() did not recognize message type ", typeVar)))
 	}
@@ -487,7 +487,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, channel)
 }
-func (this *Onetrading) HandleDelta(orderbook any, delta any) {
+func (this *Onetrading) HandleBookDelta(orderbook any, delta any) {
 	//
 	//   [ 'BUY', "0.053595", "0" ]
 	//
@@ -503,7 +503,7 @@ func (this *Onetrading) HandleDelta(orderbook any, delta any) {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
 	}
 }
-func (this *Onetrading) HandleDeltas(orderbook any, deltas any) {
+func (this *Onetrading) HandleBookDeltas(orderbook any, deltas any) {
 	//
 	//    [
 	//       [ 'BUY', "0.053593", "0" ],
@@ -511,7 +511,7 @@ func (this *Onetrading) HandleDeltas(orderbook any, deltas any) {
 	//    ]
 	//
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(orderbook, ccxt.GetValue(deltas, i))
+		this.HandleBookDelta(orderbook, ccxt.GetValue(deltas, i))
 	}
 }
 

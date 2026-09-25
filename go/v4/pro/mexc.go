@@ -1062,7 +1062,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 				}
 			}()
 			// try block:
-			this.HandleDelta(storedOrderBook, data)
+			this.HandleBookDelta(storedOrderBook, data)
 			var timestamp *int64 = this.SafeIntegerN(message, []any{"t", "ts", "sendTime"})
 			ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
 			ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
@@ -1093,7 +1093,7 @@ func (this *Mexc) HandleBooksideDelta(bookside any, bidasks any) {
 		}
 	}
 }
-func (this *Mexc) HandleDelta(orderbook any, delta any) {
+func (this *Mexc) HandleBookDelta(orderbook any, delta any) {
 	var existingNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var deltaNonce *int64 = this.SafeIntegerN(delta, []any{"r", "version", "fromVersion"})
 	if (deltaNonce != nil) && (existingNonce != nil) && (*deltaNonce < *existingNonce) {
