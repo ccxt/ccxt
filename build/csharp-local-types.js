@@ -16935,3 +16935,122 @@ export function installCsharpBooleanParams (transpiler) {
     };
     csharp._booleanParamsPatched = true;
 }
+
+// ===== native ordered comparisons and null-guarded subtract =====
+//
+// isGreaterThan answers true for (value, null) and false for (null, *); isLessThan is
+// !GT && !EQ, isGreaterThanOrEqual GT || EQ, isLessThanOrEqual LT || EQ. The emitted forms
+// below reproduce that table with C#'s lifted operators; doubles take `>` only (NaN makes
+// !GT && !EQ true, and isEqual's Convert.ToInt64 overflow answers false for huge values).
+const NATIVE_COMPARISON_SYMBOLS = {
+    [ts.SyntaxKind.GreaterThanToken]: '>',
+    [ts.SyntaxKind.LessThanToken]: '<',
+    [ts.SyntaxKind.GreaterThanEqualsToken]: '>=',
+    [ts.SyntaxKind.LessThanEqualsToken]: '<=',
+};
+
+const NATIVE_COMPARISON_INTEGER_KINDS = [ 'int', 'uint', 'Int64' ];
+
+function nativeComparisonOperandIsIdentifier (node) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    return current?.kind === ts.SyntaxKind.Identifier;
+}
+
+// the operand kind a comparison may consume, or undefined: integer kinds, Int64?, and doubles
+// only for `>`; a nullable operand must be an identifier (the null test reads it again)
+function nativeComparisonOperand (csharp, node, symbol) {
+    const kind = nativeArithmeticOperandKind (csharp, node);
+    const base = nativeArithmeticBaseKind (kind);
+    const nullable = nativeArithmeticIsNullableKind (kind);
+    if (kind === 'int?' || kind === 'uint?') {
+        return undefined;
+    }
+    const numeric = NATIVE_COMPARISON_INTEGER_KINDS.includes (base) || ((base === 'double') && (symbol === '>'));
+    if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node))) {
+        return undefined;
+    }
+    return { nullable, text: csharp.printNode (node, 0).trim () };
+}
+
+function nativeComparisonExpression (csharp, node) {
+    const symbol = NATIVE_COMPARISON_SYMBOLS[node.operatorToken?.kind];
+    if (symbol === undefined) {
+        return undefined;
+    }
+    const left = nativeComparisonOperand (csharp, node.left, symbol);
+    const right = left && nativeComparisonOperand (csharp, node.right, symbol);
+    if (right === undefined || right === null) {
+        return undefined;
+    }
+    const L = left.text;
+    const R = right.text;
+    const core = L + ' ' + symbol + ' ' + R;
+    if (!left.nullable && !right.nullable) {
+        return '(' + core + ')';
+    }
+    // the lifted operator is false when either side is null; the helper's answer differs only
+    // for (value, null) under `>`/`>=` and (null, *) under `<`/`<=`
+    if (symbol === '>') {
+        return right.nullable ? '(' + (left.nullable ? L + ' != null && ' : '') + '(' + R + ' == null || ' + core + '))' : '(' + core + ')';
+    }
+    if (symbol === '<') {
+        return left.nullable ? '(' + (right.nullable ? R + ' != null && ' : '') + '(' + L + ' == null || ' + core + '))' : '(' + core + ')';
+    }
+    if (symbol === '>=') {
+        return right.nullable ? '(' + R + ' == null || ' + core + ')' : '(' + core + ')';
+    }
+    return left.nullable ? '(' + L + ' == null || ' + core + ')' : '(' + core + ')';
+}
+
+// `a - b` with an Int64? identifier operand: subtract() throws on a null operand, so the
+// operator is emitted only where a dominating null test proves every nullable operand non-null
+// (the remaining pair is the helper's Int64 branch, the same box)
+function nativeGuardedSubtractExpression (csharp, node) {
+    if (node.operatorToken?.kind !== ts.SyntaxKind.MinusToken || typeof csharp.csharpNullGuardAdmitsRead !== 'function') {
+        return undefined;
+    }
+    const sides = [ node.left, node.right ].map ((side) => {
+        let operand = side;
+        while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            operand = operand.expression;
+        }
+        const kind = nativeArithmeticOperandKind (csharp, operand);
+        if (kind === 'Int64?') {
+            return (operand.kind === ts.SyntaxKind.Identifier) && csharp.csharpNullGuardAdmitsRead (node, operand) ? 'Int64' : undefined;
+        }
+        return NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (kind) ? kind : undefined;
+    });
+    if (sides[0] === undefined || sides[1] === undefined || (sides[0] === 'uint' && sides[1] === 'uint')) {
+        return undefined;
+    }
+    if (sides[0] !== 'Int64' && sides[1] !== 'Int64') {
+        return undefined; // no nullable operand: nativeArithmeticIsProven's decision
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' - ' + csharp.printNode (node.right, 0) + ')';
+}
+
+export function installCsharpNativeComparisons (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._nativeComparisonsPatched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression) {
+            const isComparison = NATIVE_COMPARISON_SYMBOLS[node.operatorToken?.kind] !== undefined;
+            const printerNative = isComparison && (typeof csharp.csharpNativeNumericComparison === 'function')
+                && (csharp.csharpNativeNumericComparison (node, identation) !== undefined);
+            if (!printerNative) {
+                const native = isComparison ? nativeComparisonExpression (csharp, node) : nativeGuardedSubtractExpression (csharp, node);
+                if (native !== undefined) {
+                    return native;
+                }
+            }
+        }
+        return upstream (node, identation);
+    };
+    csharp._nativeComparisonsPatched = true;
+}
