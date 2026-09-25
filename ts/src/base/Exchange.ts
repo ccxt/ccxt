@@ -629,7 +629,7 @@ export class BaseExchange {
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
-        if ((this.safeBool (userConfig, 'sandbox') === true) || (this.safeBool (userConfig, 'testnet') === true)) {
+        if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
             this.setSandboxMode (true);
         }
         // exchange specific libs
@@ -2209,7 +2209,7 @@ export class BaseExchange {
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
         let nonce: Str = this.safeString (params, 'nonce', '0');
-        if (this.safeBool (params, 'isContract') === true) {
+        if (this.safeBool (params, 'isContract', false)) {
             const formattedUint32 = '4294967295';
             const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
             nonce = Precise.stringMod (formattedNonce, formattedUint32);

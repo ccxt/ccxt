@@ -1792,7 +1792,7 @@ export default class bitso extends Exchange {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber (entry, 'fee'),
-                            'percentage': (this.safeBool (entry, 'is_fixed') !== true),
+                            'percentage': (!this.safeBool (entry, 'is_fixed', false)),
                         },
                         'withdraw': {
                             'fee': undefined,

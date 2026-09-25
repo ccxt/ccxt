@@ -442,7 +442,7 @@ export default class bitopro extends Exchange {
     }
 
     override parseMarket (market: Dict): Market {
-        const active = (this.safeBool (market, 'maintain') !== true);
+        const active = (!this.safeBool (market, 'maintain', false));
         const id = this.safeString (market, 'pair');
         if (id === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing id');

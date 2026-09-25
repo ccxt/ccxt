@@ -355,7 +355,7 @@ export default class deepcoin extends deepcoinRest {
         const ask = this.safeNumber (ticker, 'AP1');
         let baseVolume = this.safeNumber (ticker, 'V');
         let quoteVolume = this.safeNumber (ticker, 'T');
-        if (this.safeBool (market, 'inverse') === true) {
+        if (this.safeBool (market, 'inverse', false)) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;

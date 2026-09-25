@@ -874,7 +874,7 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
-        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const isInverse = this.safeBool (market, 'inverse', false);
         let volumeIndex: Str = 'volume';
         if (isInverse) {
             volumeIndex = 'turnover';

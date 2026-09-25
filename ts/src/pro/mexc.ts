@@ -756,7 +756,7 @@ export default class mexc extends mexcRest {
         let volume = this.safeNumber2 (ohlcv, 'v', 'volume');
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((market !== undefined) && (this.safeBool (market, 'spot') !== true) && (volume === undefined)) {
+        if ((market !== undefined) && (!this.safeBool (market, 'spot', false)) && (volume === undefined)) {
             volume = this.safeNumber2 (ohlcv, 'q', 'v');
         }
         return [

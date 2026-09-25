@@ -1304,7 +1304,7 @@ export default class hyperliquid extends Exchange {
             const firstSymbol = this.safeString (symbolsNormalized, 0);
             if (firstSymbol !== undefined) {
                 const market = this.market (firstSymbol);
-                if (this.safeBool (this.safeDict (market, 'info'), 'hip3') === true) {
+                if (this.safeBool (this.safeDict (market, 'info'), 'hip3', false)) {
                     hip3 = true;
                 }
             }
@@ -3541,7 +3541,7 @@ export default class hyperliquid extends Exchange {
         if (tif !== undefined) {
             postOnly = (tif === 'ALO');
         }
-        const isTrigger = (this.safeBool (entry, 'isTrigger') === true);
+        const isTrigger = this.safeBool (entry, 'isTrigger', false);
         const triggerPx = isTrigger ? this.safeNumber (entry, 'triggerPx') : undefined;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318

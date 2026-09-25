@@ -2531,7 +2531,7 @@ export default class nado extends Exchange {
                 code = 'USDT0';
             } else if (code === currencyId) {
                 const market = this.safeMarket (currencyId, undefined, undefined, 'spot');
-                if (this.safeBool (market, 'spot') === true) {
+                if (this.safeBool (market, 'spot', false)) {
                     code = this.safeString (market, 'base', code);
                 }
             }

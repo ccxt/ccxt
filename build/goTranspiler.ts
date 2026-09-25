@@ -1095,6 +1095,29 @@ export function goStringLiteralNativeCompares (content: string, isEqualFn: strin
     return content;
 }
 
+// SafeBool* with a literal bool default never returns nil (exchange_safe.go falls back to it),
+// so its nil-guarded truthiness `C != nil && *C` reads the flag once as `*C`.
+const GO_SAFEBOOL_LITERAL_CALL = 'this\\.SafeBool(?:2|N)?\\((?:[^()]|\\((?:[^()]|\\([^()]*\\))*\\))*, (?:true|false)\\)';
+export function goSafeBoolLiteralDefaultDeref (content: string): string {
+    const guarded = new RegExp ('(' + GO_SAFEBOOL_LITERAL_CALL + ') != nil && \\*(' + GO_SAFEBOOL_LITERAL_CALL + ')', 'g');
+    return content.replace (guarded, (m: string, a: string, b: string) => ((a === b) ? '*' + a : m));
+}
+
+function goSafeBoolLiteralSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    ok (goSafeBoolLiteralDefaultDeref ('if this.SafeBool(this.Options, "a", false) != nil && *this.SafeBool(this.Options, "a", false) {') === 'if *this.SafeBool(this.Options, "a", false) {', 'literal default derefs once');
+    ok (goSafeBoolLiteralDefaultDeref ('(!(this.SafeBool2(GetValue(m, "i"), "a", "b", true) != nil && *this.SafeBool2(GetValue(m, "i"), "a", "b", true)))') === '(!(*this.SafeBool2(GetValue(m, "i"), "a", "b", true)))', 'nested args and SafeBool2');
+    const keep = [
+        'this.SafeBool(p, "a") != nil && *this.SafeBool(p, "a")',
+        'this.SafeBool(p, "a", d) != nil && *this.SafeBool(p, "a", d)',
+        'this.SafeBool(p, "a", false) != nil && *this.SafeBool(q, "a", false)',
+        'this.SafeBool(p, GetValue(k, false)) != nil && *this.SafeBool(p, GetValue(k, false))',
+    ];
+    keep.forEach ((text, index) => ok (goSafeBoolLiteralDefaultDeref (text) === text, 'non-literal default must keep the guard #' + index));
+    return problems;
+}
+
 function goStringLiteralSelfTest (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
@@ -6898,6 +6921,7 @@ ${caseStatements.join('\n')}
         content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goSafeBoolLiteralDefaultDeref (content);
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -8169,7 +8193,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

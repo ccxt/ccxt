@@ -885,9 +885,9 @@ export default class aster extends asterRest {
         const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = (this.safeBool (trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (this.safeBool (trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'm', false)) ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');

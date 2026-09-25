@@ -479,7 +479,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const markets = await this.v4PublicGetMarkets ();

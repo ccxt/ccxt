@@ -7319,7 +7319,7 @@ export default class bybit extends Exchange {
         }
         let query: Dict = params;
         if (symbol !== undefined) {
-            const isLinear = (this.safeBool (market, 'linear') === true);
+            const isLinear = this.safeBool (market, 'linear', false);
             request['category'] = isLinear ? 'linear' : 'inverse';
         } else {
             let type: Str = undefined;
@@ -7523,8 +7523,8 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const openInterest = this.safeNumber2 (interest, 'open_interest', 'openInterest');
         // the openInterest is in the base asset for linear and quote asset for inverse
-        const isLinear = (this.safeBool (market, 'linear') === true);
-        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const isLinear = this.safeBool (market, 'linear', false);
+        const isInverse = this.safeBool (market, 'inverse', false);
         const amount = isLinear ? openInterest : undefined;
         const value = isInverse ? openInterest : undefined;
         return this.safeOpenInterest ({

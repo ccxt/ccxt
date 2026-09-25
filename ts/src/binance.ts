@@ -2906,7 +2906,7 @@ export default class binance extends Exchange {
             if ((this.markets !== undefined) && (symbol in this.markets)) {
                 const market = this.markets[symbol];
                 // begin diff
-                if (isLegacy && (this.safeBool (market, 'spot') === true)) {
+                if (isLegacy && (this.safeBool (market, 'spot', false))) {
                     const settle = isLegacyLinear ? market['quote'] : market['base'];
                     const futuresSymbol = symbol + ':' + settle;
                     if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
@@ -2929,7 +2929,7 @@ export default class binance extends Exchange {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (this.safeBool (market, defaultType) === true) {
+                    if (this.safeBool (market, defaultType, false)) {
                         return market;
                     }
                 }
@@ -3742,7 +3742,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const result: List = [];
@@ -5496,7 +5496,7 @@ export default class binance extends Exchange {
             side = this.safeStringLower (trade, 'side');
         } else {
             if ('isBuyer' in trade) {
-                side = (this.safeBool (trade, 'isBuyer') === true) ? 'buy' : 'sell'; // this is a true side
+                side = (this.safeBool (trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee: FeeString = undefined;
@@ -5507,10 +5507,10 @@ export default class binance extends Exchange {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = (this.safeBool (trade, 'isMaker') === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = (this.safeBool (trade, 'maker') === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'maker', false)) ? 'maker' : 'taker';
         }
         if (('optionSide' in trade) || (marketResolved['option'] === true)) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
@@ -8971,7 +8971,7 @@ export default class binance extends Exchange {
             const currentTimestamp = this.milliseconds ();
             const oneWeek = 7 * 24 * 60 * 60 * 1000;
             if ((currentTimestamp - startTime) >= oneWeek) {
-                if ((endTime === undefined) && (this.safeBool (market, 'linear') === true)) {
+                if ((endTime === undefined) && (this.safeBool (market, 'linear', false))) {
                     endTime = this.sum (startTime, oneWeek);
                     const endTimeValue = (endTime === undefined) ? 0 : endTime;
                     endTime = Math.min (endTimeValue, currentTimestamp);
@@ -8982,7 +8982,7 @@ export default class binance extends Exchange {
             request['endTime'] = endTime;
             paramsPaginate = this.omit (paramsPaginate, [ 'endTime', 'until' ]);
         }
-        const isContractLimit = (type === 'option') || (this.safeBool (market, 'contract') === true);
+        const isContractLimit = (type === 'option') || (this.safeBool (market, 'contract', false));
         // above 1000, returns error
         let limitContract: Int = limit;
         if (limit !== undefined && isContractLimit) {
@@ -9027,13 +9027,13 @@ export default class binance extends Exchange {
                 } else {
                     response = await this.privateGetMyTrades (this.extend (request, paramsPaginate));
                 }
-            } else if (this.safeBool (market, 'linear') === true) {
+            } else if (this.safeBool (market, 'linear', false)) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetUmUserTrades (this.extend (request, paramsPaginate));
                 } else {
                     response = await this.fapiPrivateGetUserTrades (this.extend (request, paramsPaginate));
                 }
-            } else if (this.safeBool (market, 'inverse') === true) {
+            } else if (this.safeBool (market, 'inverse', false)) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetCmUserTrades (this.extend (request, paramsPaginate));
                 } else {
@@ -10789,7 +10789,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
-                if (this.safeBool (market, 'linear') === true) {
+                if (this.safeBool (market, 'linear', false)) {
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -10824,7 +10824,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
-                if (this.safeBool (market, 'inverse') === true) {
+                if (this.safeBool (market, 'inverse', false)) {
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -13133,7 +13133,7 @@ export default class binance extends Exchange {
             }
         } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papiV2' || api === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials ();
-            if ((url.indexOf ('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (this.safeBool (this.options, 'disableFuturesSandboxWarning') !== true)) {
+            if ((url.indexOf ('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool (this.options, 'disableFuturesSandboxWarning', false))) {
                 throw new NotSupported (this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
@@ -13327,7 +13327,7 @@ export default class binance extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && (this.safeBool (this.options, 'hasAlreadyAuthenticatedSuccessfully') === true)) {
+            if ((error === '-2015') && (this.safeBool (this.options, 'hasAlreadyAuthenticatedSuccessfully', false))) {
                 throw new DDoSProtection (this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
@@ -14276,7 +14276,7 @@ export default class binance extends Exchange {
         const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const isInverse = this.safeBool (market, 'inverse', false);
         const baseVolume = isInverse ? undefined : amount;
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (id, market, undefined, 'contract'),
