@@ -2883,12 +2883,12 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan any, symbol any, cos
  * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Mexc) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3000,12 +3000,12 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateSpotOrderAsync(market any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) CreateSpotOrderAsync(market any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSpotOrderBody(ch, market, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar string, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

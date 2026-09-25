@@ -1125,12 +1125,12 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.externalUserId] partner attribution id echoed back on order, fill and trade reads
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Sxbet) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Sxbet) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1141,8 +1141,8 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	if (!ccxt.IsEqual(typeVar, "limit")) && (!ccxt.IsEqual(typeVar, "market")) {
-		panic(ccxt.InvalidOrder(ccxt.Add(this.Id+" createOrder() type must be 'limit' or 'market', got ", typeVar)))
+	if (typeVar != "limit") && (typeVar != "market") {
+		panic(ccxt.InvalidOrder(this.Id + " createOrder() type must be 'limit' or 'market', got " + typeVar))
 	}
 	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price - the implied probability of the requested outcome"))
@@ -1160,7 +1160,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 	var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 	var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
-	var isBuy bool = (ccxt.IsEqual(side, "buy"))
+	var isBuy bool = (side == "buy")
 	// 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
 	// matches the normalize-to-one-book convention used by other prediction venues
 	var isMakerBettingOutcomeOne any = func() any {
@@ -1197,7 +1197,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	var defaultExpirySeconds *int64 = this.SafeInteger(this.Options, "defaultOrderExpirySeconds", 86400)
 	var expiry *int64 = this.SafeInteger(params, "expiry", this.Sum(this.Seconds(), defaultExpirySeconds))
 	var defaultTif string = "IOC"
-	if ccxt.IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		defaultTif = "GTC"
 	}
 	var timeInForce *string = nil
@@ -1207,7 +1207,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	// an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
 	// that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
 	// contradicting the immediate-fill semantics the type promises
-	if (ccxt.IsEqual(typeVar, "market")) && (timeInForce != nil && *timeInForce == "GTC") {
+	if (typeVar == "market") && (timeInForce != nil && *timeInForce == "GTC") {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order"))
 	}
 	var maker any = this.WalletAddress

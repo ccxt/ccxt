@@ -265,12 +265,12 @@ func (this *Poloniex) tradeRequestBody(ch chan any, name string, optionalArgs ..
  * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
  * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CreateOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -284,7 +284,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = this.Market(symbol)
-	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(typeVar)
 	if ccxt.IsEqual(side, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
 	}
@@ -296,7 +296,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   ccxt.ToUpper(side),
-		"type":   ccxt.ToUpper(typeVar),
+		"type":   strings.ToUpper(typeVar),
 	}
 	if (uppercaseType == "MARKET") && (uppercaseSide == "BUY") {
 		var quoteAmount any = nil

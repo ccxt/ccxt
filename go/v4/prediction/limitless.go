@@ -2543,12 +2543,12 @@ func (this *Limitless) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Limitless) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Limitless) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2665,7 +2665,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		"sell": 1,
 	}
 	this.CheckRequiredArgument("createOrder", side, "side")
-	var sideValue *int64 = this.SafeInteger(sides, ccxt.ToLower(side))
+	var sideValue *int64 = this.SafeInteger(sides, strings.ToLower(side))
 	var rank map[string]any = ccxt.SafeMapTyped(accountInfo, "rank")
 	// signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
 	var signatureType any = func() int {
@@ -2700,7 +2700,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var priceString *string = this.NumberToString(price)
 	var makerAmount any = nil
 	var takerAmount any = nil
-	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
+	var isMarket bool = (typeVar == "market")
 	var postOnly any = false
 	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
@@ -2716,7 +2716,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		}())
 	}
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
-	if isMarket && (ccxt.IsEqual(side, "buy")) {
+	if isMarket && (side == "buy") {
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
@@ -2743,7 +2743,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		makerAmount = this.AmountToPredictionPrecision(outcome, amount)
 	} else {
 		var calculatedCost *string = ccxt.Precise.StringMul(amountString, priceString)
-		if ccxt.IsEqual(side, "buy") {
+		if side == "buy" {
 			makerAmount = this.CostToPredictionPrecision(outcome, calculatedCost)
 			takerAmount = this.AmountToPredictionPrecision(outcome, amount)
 		} else {

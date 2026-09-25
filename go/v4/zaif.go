@@ -708,12 +708,12 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zaif) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Zaif) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -724,14 +724,14 @@ func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if !IsEqual(typeVar, "limit") {
+	if typeVar != "limit" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency_pair": market["id"],
 		"action": func() string {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				return "bid"
 			}
 			return "ask"

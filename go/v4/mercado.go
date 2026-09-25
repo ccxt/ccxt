@@ -711,12 +711,12 @@ func (this *Mercado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mercado) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mercado) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -732,10 +732,10 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"coin_pair": market["id"],
 	}
 	var response map[string]any = nil
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
 		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Raw))
 		} else {
@@ -743,7 +743,7 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Raw))
 		}
 	} else {
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount"))
 			}

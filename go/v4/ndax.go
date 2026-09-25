@@ -2005,12 +2005,12 @@ func (this *Ndax) ParseOrder(order any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Ndax) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Ndax) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2030,16 +2030,16 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var orderType any = DerefScalar(this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	if triggerPrice != nil {
-		if IsEqual(typeVar, "market") {
+		if typeVar == "market" {
 			orderType = 3
-		} else if IsEqual(typeVar, "limit") {
+		} else if typeVar == "limit" {
 			orderType = 4
 		}
 	}
 	params = MapTyped(this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"}))
 	var market map[string]any = this.Market(symbol)
 	var orderSide int = func() int {
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			return 0
 		}
 		return 1

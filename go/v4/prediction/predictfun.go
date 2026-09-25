@@ -2204,12 +2204,12 @@ func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBea
  * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2226,14 +2226,14 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, s
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id+" createOrder() could not resolve the on chain token id of ", outcome)))
 	}
 	var strategy string = "LIMIT"
-	if ccxt.IsEqual(typeVar, "market") {
+	if typeVar == "market" {
 		strategy = "MARKET"
 	}
 	var isMarket bool = (strategy == "MARKET")
 	if (!isMarket) && (price == nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a \"price\" argument for a limit order"))
 	}
-	var isBuy bool = (ccxt.IsEqual(side, "buy"))
+	var isBuy bool = (side == "buy")
 	// amounts cross the wire as collateral wei, the venue truncates the price to three
 	// significant digits and the quantity to five, so send what it will actually use
 	// the venue sizes an order from both legs and refuses anything else: a limitless style

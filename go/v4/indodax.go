@@ -1210,12 +1210,12 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Indodax) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Indodax) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1234,8 +1234,8 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	var priceIsRequired bool = false
 	var quantityIsRequired bool = false
-	if IsEqual(typeVar, "market") {
-		if IsEqual(side, "buy") {
+	if typeVar == "market" {
+		if side == "buy" {
 			var quoteAmount any = nil
 			var cost *float64 = this.SafeNumber(params, "cost")
 			params = MapTyped(this.Omit(params, "cost"))
@@ -1254,16 +1254,16 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		} else {
 			quantityIsRequired = true
 		}
-	} else if IsEqual(typeVar, "limit") {
+	} else if typeVar == "limit" {
 		priceIsRequired = true
 		quantityIsRequired = true
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			AddElementToObject(request, market["quoteId"], this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))))
 		}
 	}
 	if priceIsRequired {
 		if price == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
 		request["price"] = price
 	}

@@ -746,12 +746,12 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blockchaincom) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -771,7 +771,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 	var request map[string]any = map[string]any{
 		"ordType":  uppercaseOrderType,
 		"symbol":   market["id"],
-		"side":     ToUpper(side),
+		"side":     strings.ToUpper(side),
 		"orderQty": this.AmountToPrecision(symbol, amount),
 		"clOrdId":  clientOrderId,
 	}

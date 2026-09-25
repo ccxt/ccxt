@@ -1303,12 +1303,12 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount an
  * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Opinion) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Opinion) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	price := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1322,7 +1322,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
 	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
-	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
+	var isMarket bool = (typeVar == "market")
 	var sideStr string = ccxt.ToUpper(side)
 	if price == nil {
 		if !isMarket {

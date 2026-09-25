@@ -1383,12 +1383,12 @@ func (this *Alpaca) GenerateClientOrderId(params any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <-chan any {
+func (this *Alpaca) CreateMarketOrderWithCostAsync(symbol any, side string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) createMarketOrderWithCostBody(ch chan any, symbol any, side any, cost any, optionalArgs ...any) any {
+func (this *Alpaca) createMarketOrderWithCostBody(ch chan any, symbol any, side string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1488,12 +1488,12 @@ func (this *Alpaca) createMarketSellOrderWithCostBody(ch chan any, symbol any, c
  * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Alpaca) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1514,15 +1514,15 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
 	if triggerPrice != nil {
 		var newType string
-		if GetIndexOf(typeVar, "limit") >= 0 {
+		if strings.Index(typeVar, "limit") >= 0 {
 			newType = "stop_limit"
 		} else {
-			panic(NotSupported(Add(Add(this.Id+" createOrder() does not support stop orders for ", typeVar), " orders, only stop_limit orders are supported")))
+			panic(NotSupported(this.Id + " createOrder() does not support stop orders for " + typeVar + " orders, only stop_limit orders are supported"))
 		}
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["type"] = newType
 	}
-	if GetIndexOf(typeVar, "limit") >= 0 {
+	if strings.Index(typeVar, "limit") >= 0 {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 	var cost *string = this.SafeString(params, "cost")

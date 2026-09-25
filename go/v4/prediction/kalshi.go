@@ -2746,12 +2746,12 @@ func (this *Kalshi) ParseOrderStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi has no market orders — every order is a limit order and the price is required
@@ -2767,7 +2767,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
 	var isNo bool = (ccxt.IsEqual(outcomeObj["label"], "NO"))
-	var isBuy bool = (ccxt.IsEqual(side, "buy"))
+	var isBuy bool = (side == "buy")
 	// kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
 	// 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
 	// buy NO @ q == sell YES @ 1-q - flip the book side and the price
@@ -2787,7 +2787,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 			yesPrice = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(price)))
 		}
 	}
-	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
+	var isMarket bool = (typeVar == "market")
 	// accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
 	// `time_in_force` param (handled below) still overrides
 	var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
@@ -2899,7 +2899,7 @@ func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any,
 
 	ccxt.PanicOnError((<-this.CancelOrderAsync(id, outcome)))
 
-	var retRes212615 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params))))
+	var retRes212615 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params))))
 	ch <- ccxt.BoxAbsent(retRes212615)
 	return nil
 }

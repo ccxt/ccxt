@@ -1606,12 +1606,12 @@ func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) a
  * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Upbit) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Upbit) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1625,7 +1625,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
-	var postOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
+	var postOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "smp_type")
 	var test *bool = this.SafeBool(params, "test", false)
@@ -1633,9 +1633,9 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		panic(ExchangeError(this.Id + " createOrder() does not support post_only and selfTradePrevention simultaneously."))
 	}
 	var orderSide string
-	if IsEqual(side, "buy") {
+	if side == "buy" {
 		orderSide = "bid"
-	} else if IsEqual(side, "sell") {
+	} else if side == "sell" {
 		orderSide = "ask"
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder() supports only buy or sell in the side argument."))
@@ -1644,15 +1644,15 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		"market": market["id"],
 		"side":   orderSide,
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		if (price == nil) || IsEqual(amount, nil) {
 			panic(ArgumentsRequired(this.Id + " the limit type order in createOrder() is required price and amount."))
 		}
 		request["ord_type"] = "limit"
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["volume"] = this.AmountToPrecision(symbol, amount)
-	} else if IsEqual(typeVar, "market") {
-		if IsEqual(side, "buy") {
+	} else if typeVar == "market" {
+		if side == "buy" {
 			request["ord_type"] = "price"
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
 			request["price"] = orderPrice
@@ -1669,7 +1669,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	if customType != nil && *customType == "best" {
 		params = MapTyped(this.Omit(params, []any{"ordType", "ord_type"}))
 		request["ord_type"] = "best"
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
 			request["price"] = orderPrice
 		} else {

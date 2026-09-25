@@ -292,6 +292,10 @@ func Contains(v interface{}, substr interface{}) bool {
 	return ccxt.Contains(v, substr)
 }
 
+func StringArg(v interface{}) string {
+	return ccxt.StringArg(v)
+}
+
 func ToString(v interface{}) string {
 	return ccxt.ToString(v)
 }

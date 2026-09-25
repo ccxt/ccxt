@@ -2838,12 +2838,12 @@ func (this *Okx) RequestId() string {
  * @param {boolean} params.test test order, default false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) CreateOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Okx) CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2870,7 +2870,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 		args["instIdCode"] = instIdCode
 	}
 	var ordType *string = this.SafeString(args, "ordType")
-	if (ordType != nil && *ordType == "trigger") || (ordType != nil && *ordType == "conditional") || (ccxt.IsEqual(typeVar, "oco")) || (ccxt.IsEqual(typeVar, "move_order_stop")) || (ccxt.IsEqual(typeVar, "iceberg")) || (ccxt.IsEqual(typeVar, "twap")) {
+	if (ordType != nil && *ordType == "trigger") || (ordType != nil && *ordType == "conditional") || (typeVar == "oco") || (typeVar == "move_order_stop") || (typeVar == "iceberg") || (typeVar == "twap") {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order"))
 	}
 	if (op == nil || *op != "order") && (op == nil || *op != "batch-orders") {
@@ -2934,12 +2934,12 @@ func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) EditOrderWsAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Okx) EditOrderWsAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)

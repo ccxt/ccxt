@@ -5894,12 +5894,12 @@ func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] the clientOrderId of the order
  * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Gate) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Gate) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -10680,7 +10680,7 @@ func (this *Gate) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 		side = "" // side is not used but needs to be present, otherwise crashes in php
 	}
 
-	var retRes836015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, params))))
+	var retRes836015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", StringArg(side), 0, nil, params))))
 	ch <- BoxAbsent(retRes836015)
 	return nil
 }

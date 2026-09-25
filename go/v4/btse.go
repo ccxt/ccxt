@@ -2310,12 +2310,12 @@ func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {string} [params.stopLoss.priceType] *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btse) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Btse) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2365,12 +2365,12 @@ func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btse) CreateSpotOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Btse) CreateSpotOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2380,7 +2380,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	typeVar = ToUpper(typeVar)
+	typeVar = strings.ToUpper(typeVar)
 	var upperSide string = ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
@@ -2391,8 +2391,8 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		request["clOrderId"] = clientOrderId
 		params = MapTyped(this.Omit(params, "clientOrderId"))
 	}
-	var isMarketOrder bool = (IsEqual(typeVar, "MARKET"))
-	var isLimitOrder bool = (IsEqual(typeVar, "LIMIT"))
+	var isMarketOrder bool = (typeVar == "MARKET")
+	var isLimitOrder bool = (typeVar == "LIMIT")
 	var postOnly any = false
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, params)
@@ -2412,15 +2412,15 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	var isStopLossOrder bool = (stopLossPrice != nil)
 	var isConditionalOrder bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder)
 	var isAlgoOrder bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder)
-	if isLimitOrder || (IsEqual(typeVar, "PEG")) || (IsEqual(typeVar, "OCO")) {
+	if isLimitOrder || (typeVar == "PEG") || (typeVar == "OCO") {
 		if price == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for ", typeVar), " orders")))
+			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for " + typeVar + " orders"))
 		}
 	}
 	// market and trailing buys are denominated in the quote currency while
 	// every other combination is denominated in the base currency, the
 	// sizing rules are strict on both sides, verified live
-	var needsQuoteSize bool = (isMarketOrder || (IsEqual(typeVar, "TRAILING"))) && (upperSide == "BUY")
+	var needsQuoteSize bool = (isMarketOrder || (typeVar == "TRAILING")) && (upperSide == "BUY")
 	if needsQuoteSize {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
@@ -2509,7 +2509,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 			params = MapTyped(this.Omit(params, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"}))
 		} else {
 			request["orderType"] = typeVar
-			if IsEqual(typeVar, "OCO") {
+			if typeVar == "OCO" {
 				// the price argument is the limit price of the take profit leg,
 				// the stopPrice param is the limit price of the stop loss leg
 				// and the triggerPrice param is where the stop loss leg fires
@@ -2524,10 +2524,10 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 				var triggerPriceType *string = this.SafeString(params, "triggerPriceType", "last")
 				request["stopLossTriggerPriceType"] = this.EncodeTriggerPriceType(triggerPriceType)
 				params = MapTyped(this.Omit(params, []any{"stopPrice", "triggerPrice", "triggerPriceType"}))
-			} else if IsEqual(typeVar, "PEG") {
+			} else if typeVar == "PEG" {
 				// the required stealth and optional deviation params pass through
 				request["orderPrice"] = this.PriceToPrecision(symbol, price)
-			} else if IsEqual(typeVar, "TRAILING") {
+			} else if typeVar == "TRAILING" {
 				var trailingAmount *string = this.SafeString(params, "trailingAmount")
 				var trailingPercent *string = this.SafeString(params, "trailingPercent")
 				if trailingAmount != nil {
@@ -2587,12 +2587,12 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
  * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btse) CreateContractOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Btse) CreateContractOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2602,7 +2602,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	typeVar = ToUpper(typeVar)
+	typeVar = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":    this.FuturesRequestId(market),
 		"orderSide": ToUpper(side),
@@ -2634,8 +2634,8 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 			request["positionMode"] = "HEDGE"
 		}
 	}
-	var isMarketOrder bool = (IsEqual(typeVar, "MARKET"))
-	var isLimitOrder bool = (IsEqual(typeVar, "LIMIT"))
+	var isMarketOrder bool = (typeVar == "MARKET")
+	var isLimitOrder bool = (typeVar == "LIMIT")
 	var postOnly any = false
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, params)
@@ -2655,9 +2655,9 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	var isStopLossOrder bool = (stopLossPrice != nil)
 	var isConditionalOrder bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder)
 	var isAlgoOrder bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder)
-	if isLimitOrder || (IsEqual(typeVar, "OCO")) {
+	if isLimitOrder || (typeVar == "OCO") {
 		if price == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for ", typeVar), " orders")))
+			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for " + typeVar + " orders"))
 		}
 	}
 	// here we handling with attached take profit and stop loss orders
@@ -2735,7 +2735,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 			params = MapTyped(this.Omit(params, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"}))
 		} else {
 			request["orderType"] = typeVar
-			if IsEqual(typeVar, "OCO") {
+			if typeVar == "OCO" {
 				// the price argument is the limit price of the take profit leg,
 				// the stopPrice param is the limit price of the stop loss leg
 				// and the triggerPrice param is where the stop loss leg fires
@@ -2750,13 +2750,13 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 				var triggerPriceType *string = this.SafeString(params, "triggerPriceType", "mark")
 				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(triggerPriceType)
 				params = MapTyped(this.Omit(params, []any{"stopPrice", "triggerPrice", "triggerPriceType"}))
-			} else if IsEqual(typeVar, "PEG") {
+			} else if typeVar == "PEG" {
 				// the required deviation and stealth params pass through, the
 				// optional price argument becomes a worst-price bound
 				if price != nil {
 					request["orderPrice"] = this.PriceToPrecision(symbol, price)
 				}
-			} else if IsEqual(typeVar, "TRAILING") {
+			} else if typeVar == "TRAILING" {
 				var trailingAmount *string = this.SafeString(params, "trailingAmount")
 				var trailingPercent *string = this.SafeString(params, "trailingPercent")
 				if trailingAmount != nil {

@@ -2612,12 +2612,12 @@ func (this *Whitebit) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Whitebit) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) CreateMarketOrderWithCostAsync(symbol any, side string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) createMarketOrderWithCostBody(ch chan any, symbol any, side any, cost any, optionalArgs ...any) any {
+func (this *Whitebit) createMarketOrderWithCostBody(ch chan any, symbol any, side string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2680,12 +2680,12 @@ func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Whitebit) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2706,7 +2706,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
 	if cost != nil {
-		if (!IsEqual(side, "buy")) || (!IsEqual(typeVar, "market")) {
+		if (side != "buy") || (typeVar != "market") {
 			panic(InvalidOrder(this.Id + " createOrder() cost is only supported for market buy orders"))
 		}
 		request["amount"] = this.CostToPrecision(symbol, cost)
@@ -2724,8 +2724,8 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 		params = this.Omit(params, []any{"clientOrderId"})
 	}
 	var marketType *string = this.SafeString(market, "type")
-	var isLimitOrder bool = (IsEqual(typeVar, "limit"))
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isLimitOrder bool = (typeVar == "limit")
+	var isMarketOrder bool = (typeVar == "market")
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "activation_price"})
 	var isStopOrder bool = (triggerPrice != nil)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
