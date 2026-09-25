@@ -2747,7 +2747,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostApiV3Order(request)).Raw
 	PanicOnError(response)
@@ -2766,7 +2766,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

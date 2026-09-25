@@ -498,7 +498,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Dydx) HandleErrorMessage(client any, message any) any {
+func (this *Dydx) HandleErrorMessage(client any, message any) bool {
 
 	{
 		func(this *Dydx) (ret_ any) {

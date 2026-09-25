@@ -2281,7 +2281,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	ch <- this.ParseOrders(result, market)
 	return nil
 }
-func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

@@ -1184,7 +1184,7 @@ func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	return this.ParseOrder(order, market)
 }
-func (this *Grvt) HandleErrorMessage(client any, response any) any {
+func (this *Grvt) HandleErrorMessage(client any, response any) bool {
 	//
 	//    {
 	//        "jsonrpc": "2.0",

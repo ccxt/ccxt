@@ -723,7 +723,7 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 		"interval":                 interval,
 	}
 }
-func (this *Paradex) HandleErrorMessage(client any, message any) any {
+func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

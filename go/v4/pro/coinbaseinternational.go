@@ -969,7 +969,7 @@ func (this *Coinbaseinternational) HandleFundingRate(client any, message map[str
 		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add(*channel+"::", ccxt.GetValue(fundingRate, "symbol")))
 	}
 }
-func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) any {
+func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {
 	//
 	//    {
 	//        message: 'Failed to subscribe',

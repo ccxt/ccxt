@@ -7600,7 +7600,7 @@ func (this *Binance) editSpotOrderBody(ch chan any, id string, symbol any, typeV
 	if market["spot"] != true {
 		panic(NotSupported(Add(Add(this.Id+" editSpotOrder() does not support ", market["type"]), " orders")))
 	}
-	var payload any = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	var payload map[string]any = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostOrderCancelReplace(payload))
 	PanicOnError(response)
@@ -7648,7 +7648,7 @@ func (this *Binance) editSpotOrderBody(ch chan any, id string, symbol any, typeV
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7799,7 +7799,7 @@ func (this *Binance) EditContractOrderRequest(id any, symbol any, typeVar any, s
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	if (price == nil) && !(InOp(params, "priceMatch")) {
+	if _, ok := params["priceMatch"]; (price == nil) && !ok {
 		panic(ArgumentsRequired(this.Id + " editOrder() and editOrderWs() require a price argument for swap orders"))
 	}
 	var market map[string]any = this.Market(symbol)
@@ -9083,7 +9083,7 @@ func (this *Binance) createOrderBody(ch chan any, symbol string, typeVar string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} request to be sent to the exchange
  */
-func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

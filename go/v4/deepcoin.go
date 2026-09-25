@@ -1119,7 +1119,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
-	var productGroup any = this.GetProductGroupFromMarket(market)
+	var productGroup string = this.GetProductGroupFromMarket(market)
 	request["productGroup"] = productGroup
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketTrades(this.Extend(request, params))).Raw))
@@ -1128,7 +1128,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
 }
-func (this *Deepcoin) GetProductGroupFromMarket(market any) any {
+func (this *Deepcoin) GetProductGroupFromMarket(market any) string {
 	var productGroup string = "Spot"
 	if IsEqual(this.SafeBool(market, "swap"), true) {
 		if IsEqual(this.SafeBool(market, "linear"), true) {
@@ -1984,7 +1984,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar string, side string
 		return this.CreateRegularOrderRequest(symbol, typeVar, side, amount, price, params)
 	}
 }
-func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2096,7 +2096,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	}
 	return this.Extend(request, paramsRequest)
 }
-func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2881,7 +2881,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	if market["spot"] == true {
 		panic(NotSupported(this.Id + " cancelAllOrders() is not supported for spot markets"))
 	}
-	var productGroup any = this.GetProductGroupFromMarket(market)
+	var productGroup string = this.GetProductGroupFromMarket(market)
 	var marginMode *string = this.SafeString(params, "marginMode")
 	var encodedMarginMode int = func() int {
 		if marginMode != nil && *marginMode == "isolated" {
@@ -3875,7 +3875,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol string, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var productGroup any = this.GetProductGroupFromMarket(market)
+	var productGroup string = this.GetProductGroupFromMarket(market)
 	var positionId *string = this.SafeString(params, "positionId")
 	var positionIds []any = SafeListTyped(params, "positionIds")
 	var request map[string]any = map[string]any{

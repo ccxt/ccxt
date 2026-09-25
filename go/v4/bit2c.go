@@ -1235,7 +1235,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Bit2c) IsFiat(code any) any {
+func (this *Bit2c) IsFiat(code any) bool {
 	return (IsEqual(code, "NIS"))
 }
 
@@ -1263,7 +1263,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		panic(NotSupported(this.Id + " fetchDepositAddress() does not support fiat currencies"))
 	}
 	var request map[string]any = map[string]any{

@@ -1387,7 +1387,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		if EvalTruthy(this.IsArchiveOrderClosed(order)) {
+		if this.IsArchiveOrderClosed(order) {
 			closedOrders = append(closedOrders, this.Extend(map[string]any{
 				"status": "closed",
 			}, order))
@@ -3345,7 +3345,7 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Nado) IsArchiveOrderClosed(order any) any {
+func (this *Nado) IsArchiveOrderClosed(order any) bool {
 	var amount *string = this.SafeString(order, "amount")
 	var filled *string = this.SafeString(order, "base_filled")
 	if (amount == nil) || (filled == nil) {
@@ -3473,7 +3473,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		price = this.ParseX18(this.SafeString(order, "price_x18"))
 		status = DerefScalar(this.SafeString(order, "status"))
 		if status == nil {
-			if EvalTruthy(this.IsArchiveOrderClosed(order)) {
+			if this.IsArchiveOrderClosed(order) {
 				status = "closed"
 			}
 		}
@@ -3660,7 +3660,7 @@ func (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) any {
 	if len(encoded) > 24 {
 		panic(BadRequest(this.Id + " createOrder() subaccount must fit in 12 bytes"))
 	}
-	return Add("0x"+address, this.PadHex(encoded, 24, false))
+	return "0x" + address + this.PadHex(encoded, 24, false)
 }
 func (this *Nado) QueryContractsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -3690,9 +3690,9 @@ func (this *Nado) queryContractsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Nado) OrderVerifyingContract(productId any) any {
-	return Add("0x", this.PadHex(this.IntToBase16(productId), 40))
+	return "0x" + this.PadHex(this.IntToBase16(productId), 40)
 }
-func (this *Nado) PadHex(value any, length any, optionalArgs ...any) any {
+func (this *Nado) PadHex(value any, length any, optionalArgs ...any) string {
 	var left bool = GetArgBool(optionalArgs, 0, true)
 	_ = left
 	if IsEqual(length, nil) {
@@ -3820,7 +3820,7 @@ func (this *Nado) SignHash(hash any, privateKey any) any {
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))
-	return Add(Add(Add("0x", this.PadHex(r, 64)), this.PadHex(s, 64)), v)
+	return "0x" + this.PadHex(r, 64) + this.PadHex(s, 64) + v
 }
 func (this *Nado) RemoveMarketSuffix(marketId any) any {
 	if IsEqual(marketId, nil) {

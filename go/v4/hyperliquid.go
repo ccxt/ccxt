@@ -1897,7 +1897,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	return map[string]any{
 		"r": Add("0x", signature["r"]),

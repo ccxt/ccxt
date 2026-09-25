@@ -1655,7 +1655,7 @@ func (this *Derive) HashOrderMessage(order any) any {
 	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
-func (this *Derive) SignOrder(order any, privateKey any) any {
+func (this *Derive) SignOrder(order any, privateKey any) string {
 	var hashOrder any = this.HashOrderMessage(order)
 	return this.SignHash(Slice(hashOrder, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil))
 }
@@ -1667,7 +1667,7 @@ func (this *Derive) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Derive) SignHash(hash any, privateKey string) any {
+func (this *Derive) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
@@ -1675,7 +1675,7 @@ func (this *Derive) SignHash(hash any, privateKey string) any {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Derive) SignMessage(message any, privateKey any) any {
+func (this *Derive) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *Derive) ParseUnits(num *string, optionalArgs ...any) *string {
@@ -1758,7 +1758,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
 	var deriveWalletAddress *string = SafeStringPtr(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0))
 	var paramsDeriveWalletAddress map[string]any = MapTyped(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1))
-	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
+	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"instrument_name":      market["id"],
 		"direction":            orderSide,
@@ -1949,7 +1949,7 @@ func (this *Derive) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
 	var deriveWalletAddress *string = SafeStringPtr(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0))
 	var paramsDeriveWalletAddress map[string]any = MapTyped(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1))
-	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
+	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"instrument_name":      market["id"],
 		"order_id_to_cancel":   id,
@@ -3507,7 +3507,7 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 		}
 		if IsEqual(api, "private") {
 			var now string = strconv.FormatInt(this.Milliseconds(), 10)
-			var signature any = this.SignMessage(now, this.PrivateKey)
+			var signature string = this.SignMessage(now, this.PrivateKey)
 			postHeaders["X-LyraWallet"] = this.SafeString(this.Options, "deriveWalletAddress")
 			postHeaders["X-LyraTimestamp"] = now
 			postHeaders["X-LyraSignature"] = signature

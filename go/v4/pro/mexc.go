@@ -2518,7 +2518,7 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 		}
 	}
 }
-func (this *Mexc) HandleProtobufMessage(client any, message any) any {
+func (this *Mexc) HandleProtobufMessage(client any, message any) bool {
 	// protobuf message decoded
 	//  {
 	//    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

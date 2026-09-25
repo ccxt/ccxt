@@ -782,7 +782,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan any, optionalArgs ...any) a
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
-func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any {
+func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) bool {
 	// hip3 mids
 	// {
 	//     channel: 'allMids',
@@ -821,7 +821,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 	}
 	return true
 }
-func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any) any {
+func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any) bool {
 	//
 	//     {
 	//         "channel": "activeAssetCtx",
@@ -2263,7 +2263,7 @@ func (this *Hyperliquid) RequestId() int64 {
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
-func (this *Hyperliquid) WrapAsPostAction(request any) any {
+func (this *Hyperliquid) WrapAsPostAction(request any) map[string]any {
 	var requestId int64 = this.RequestId()
 	return map[string]any{
 		"requestId": requestId,
