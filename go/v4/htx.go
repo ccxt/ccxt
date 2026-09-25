@@ -4599,9 +4599,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if isUnifiedAccount {
 		panic(NotSupported(this.Id + " fetchBalance() unified account has been deprecated on htx"))
 	}
-	typeVarparamsTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUnified))
-	typeVar := GetValue(typeVarparamsTypeVariable, 0)
-	var paramsType map[string]any = MapTyped(GetValue(typeVarparamsTypeVariable, 1))
+	typeVar, paramsType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUnified)
 	var subTypeOptionparamsSubTypeVariable []any = this.HandleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType")
 	subTypeOption := GetValue(subTypeOptionparamsSubTypeVariable, 0)
 	var paramsSubType map[string]any = MapTyped(GetValue(subTypeOptionparamsSubTypeVariable, 1))
@@ -9192,9 +9190,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var defaultSubType string = "linear"
-	var subTypeOptionparamsSubTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
-	var subTypeOption *string = SafeStringPtr(GetValue(subTypeOptionparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeOptionparamsSubTypeVariable, 1))
+	subTypeOption, paramsSubType := this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	var subType *string = subTypeOption
 	if !IsEqual(symbolsNormalized, nil) {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)

@@ -673,13 +673,9 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	}
 	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false))
 	var depth string = "100"
-	var depthOptionparamsDepthVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "depth", depth)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(depthOptionparamsDepthVariable, 0))
-	var paramsDepth map[string]any = ccxt.MapTyped(ccxt.GetValue(depthOptionparamsDepthVariable, 1))
+	depthOption, paramsDepth := this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	var frequency string = "100ms"
-	var frequencyOptionparamsFrequencyVariable []any = this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency)
-	var frequencyOption *string = ccxt.SafeStringPtr(ccxt.GetValue(frequencyOptionparamsFrequencyVariable, 0))
-	var paramsFrequency map[string]any = ccxt.MapTyped(ccxt.GetValue(frequencyOptionparamsFrequencyVariable, 1))
+	frequencyOption, paramsFrequency := this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency)
 	var channelSuffix string = ""
 	if frequencyOption != nil && *frequencyOption == "100ms" {
 		channelSuffix = "@100ms"
@@ -730,13 +726,9 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
 	var depth string = "100"
-	var depthOptionparamsDepthVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "depth", depth)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(depthOptionparamsDepthVariable, 0))
-	var paramsDepth map[string]any = ccxt.MapTyped(ccxt.GetValue(depthOptionparamsDepthVariable, 1))
+	depthOption, paramsDepth := this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	var frequency string = "100ms"
-	var frequencyOptionparamsFrequencyVariable []any = this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency)
-	var frequencyOption *string = ccxt.SafeStringPtr(ccxt.GetValue(frequencyOptionparamsFrequencyVariable, 0))
-	var paramsFrequency map[string]any = ccxt.MapTyped(ccxt.GetValue(frequencyOptionparamsFrequencyVariable, 1))
+	frequencyOption, paramsFrequency := this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency)
 	var channelSuffix string = ""
 	if frequencyOption != nil && *frequencyOption == "100ms" {
 		channelSuffix = "@100ms"

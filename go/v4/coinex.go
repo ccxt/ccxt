@@ -4135,9 +4135,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var defaultMethodparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition")
-	var defaultMethod *string = SafeStringPtr(GetValue(defaultMethodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(defaultMethodparamsMethodVariable, 1))
+	defaultMethod, paramsMethod := this.HandleOptionStringAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition")
 	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"market_type": "FUTURES",

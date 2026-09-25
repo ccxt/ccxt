@@ -757,9 +757,7 @@ func (this *Krakenfutures) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	}
 	var name string = "balances"
 	var messageHash any = name
-	var accountparamsAccountVariable []any = this.HandleOptionStringAndParams(params, "watchBalance", "account")
-	var account *string = ccxt.SafeStringPtr(ccxt.GetValue(accountparamsAccountVariable, 0))
-	var paramsAccount map[string]any = ccxt.MapTyped(ccxt.GetValue(accountparamsAccountVariable, 1))
+	account, paramsAccount := this.HandleOptionStringAndParams(params, "watchBalance", "account")
 	if account != nil {
 		if (account == nil || *account != "futures") && (account == nil || *account != "flex_futures") {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchBalance account must be either 'futures' or 'flex_futures'"))

@@ -7951,7 +7951,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		postOnly = GetValue(postOnlyparamsProductTypeVariable, 0)
 		paramsProductType = GetValue(postOnlyparamsProductTypeVariable, 1)
 		var timeInForce any = nil
-		var timeInForceparamsProductTypeVariable []any = this.HandleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce")
+		timeInForceparamsProductTypeVariable := TupleSlice(this.HandleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce"))
 		timeInForce = GetValue(timeInForceparamsProductTypeVariable, 0)
 		paramsProductType = GetValue(timeInForceparamsProductTypeVariable, 1)
 		if timeInForce != nil {
@@ -8067,7 +8067,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	postOnly = GetValue(postOnlyparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(postOnlyparamsMarketTypeVariable, 1)
 	var timeInForce any = nil
-	var timeInForceparamsMarketTypeVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce")
+	timeInForceparamsMarketTypeVariable := TupleSlice(this.HandleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce"))
 	timeInForce = GetValue(timeInForceparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(timeInForceparamsMarketTypeVariable, 1)
 	if timeInForce != nil {
@@ -11488,9 +11488,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if useHistoryEndpoint != nil && *useHistoryEndpoint == true {
 		method = SafeStringPtr("privateMixGetV2MixPositionHistoryPosition")
 	} else {
-		var methodparamsPaginateVariable []any = this.HandleOptionStringAndParams(paramsPaginate, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition")
-		method = SafeStringPtr(GetValue(methodparamsPaginateVariable, 0))
-		paramsPaginate = GetValue(methodparamsPaginateVariable, 1)
+		method, paramsPaginate = this.HandleOptionStringAndParams(paramsPaginate, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition")
 	}
 	var market map[string]any = nil
 	if symbols != nil {
@@ -12073,9 +12071,7 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	} else {
 		request["productType"] = productType
 		var method *string = nil
-		var methodparamsProductTypeVariable []any = this.HandleOptionStringAndParams(paramsProductType, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate")
-		method = SafeStringPtr(GetValue(methodparamsProductTypeVariable, 0))
-		paramsProductType = GetValue(methodparamsProductTypeVariable, 1)
+		method, paramsProductType = this.HandleOptionStringAndParams(paramsProductType, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate")
 		if method != nil && *method == "publicMixGetV2MixMarketCurrentFundRate" {
 
 			response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, paramsProductType))).Raw))
@@ -12133,9 +12129,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
 	var method string = "publicMixGetV2MixMarketTickers"
-	var methodOptionparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsProductType, "fetchFundingRates", "method", method)
-	var methodOption *string = SafeStringPtr(GetValue(methodOptionparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodOptionparamsMethodVariable, 1))
+	methodOption, paramsMethod := this.HandleOptionStringAndParams(paramsProductType, "fetchFundingRates", "method", method)
 	var response map[string]any = nil
 	request["productType"] = productType
 	if methodOption != nil && *methodOption == "publicMixGetV2MixMarketTickers" {

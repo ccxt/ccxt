@@ -1828,9 +1828,7 @@ func (this *Aster) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var typeVar any = nil
-	typeMarketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar))
-	typeMarketType := ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a market type"))
 	}
@@ -2259,9 +2257,7 @@ func (this *Aster) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "orders"
 	var typeVar any = nil
-	typeMarketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar))
-	typeMarketType := ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar)
 	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a market type"))
 	}
@@ -2325,9 +2321,7 @@ func (this *Aster) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "myTrades"
 	var typeVar any = nil
-	typeMarketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar))
-	typeMarketType := ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar)
 	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a market type"))
 	}

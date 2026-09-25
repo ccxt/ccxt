@@ -901,9 +901,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		}
 		streamHash += "::" + ccxt.Join(symbolsNormalized, ",")
 	}
-	var watchOrderBookRateOptionparamsRateVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
-	watchOrderBookRateOption := ccxt.GetValue(watchOrderBookRateOptionparamsRateVariable, 0)
-	var paramsRate map[string]any = ccxt.MapTyped(ccxt.GetValue(watchOrderBookRateOptionparamsRateVariable, 1))
+	watchOrderBookRateOption, paramsRate := this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
 	var watchOrderBookRate any = watchOrderBookRateOption
 	var rpiparamsRpiVariable []any = this.HandleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false)
 	var rpi bool = ccxt.GetValueBool(rpiparamsRpiVariable, 0, false)
@@ -1495,9 +1493,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		}
 		streamHash += "::" + ccxt.Join(symbolsNormalized, ",")
 	}
-	var nameparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchTradesForSymbols", "name", "trade")
-	name := ccxt.GetValue(nameparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(nameparamsNameVariable, 1))
+	name, paramsName := this.HandleOptionStringAndParams(params, "watchTradesForSymbols", "name", "trade")
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsName, "callerMethodName"))
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
@@ -1600,9 +1596,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		}
 		streamHash += "::" + ccxt.Join(symbolsNormalized, ",")
 	}
-	var nameparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchTradesForSymbols", "name", "trade")
-	name := ccxt.GetValue(nameparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(nameparamsNameVariable, 1))
+	name, paramsName := this.HandleOptionStringAndParams(params, "watchTradesForSymbols", "name", "trade")
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsName, "callerMethodName"))
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
@@ -2421,9 +2415,7 @@ func (this *Binance) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...
 	var paramsReturnRateLimits map[string]any = ccxt.MapTyped(ccxt.GetValue(returnRateLimitsparamsReturnRateLimitsVariable, 1))
 	payload["returnRateLimits"] = returnRateLimits
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsReturnRateLimits, "test"))
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "fetchTickerWs", "method", "ticker.book")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsOmitted, "fetchTickerWs", "method", "ticker.book")
 	var message map[string]any = map[string]any{
 		"id":     messageHash,
 		"method": method,
@@ -2651,9 +2643,7 @@ func (this *Binance) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var channelNameparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchMarkPrices", "name", "markPrice")
-	channelName := ccxt.GetValue(channelNameparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(channelNameparamsNameVariable, 1))
+	channelName, paramsName := this.HandleOptionStringAndParams(params, "watchMarkPrices", "name", "markPrice")
 
 	newTickers := (<-this.WatchMultiTickerHelperAsync("watchMarkPrices", channelName, symbols, paramsName))
 	ccxt.PanicOnError(newTickers)
@@ -2716,9 +2706,7 @@ func (this *Binance) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.FilterByArray(this.Tickers, "symbol", symbolsNormalized)
 		return nil
 	}
-	var channelNameparamsNameVariable []any = this.HandleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker")
-	channelName := ccxt.GetValue(channelNameparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(channelNameparamsNameVariable, 1))
+	channelName, paramsName := this.HandleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker")
 	if ccxt.IsEqual(channelName, "bookTicker") {
 		panic(ccxt.BadRequest(this.Id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead"))
 	}
@@ -2761,9 +2749,7 @@ func (this *Binance) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var channelNameparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchTickers", "name", "ticker")
-	channelName := ccxt.GetValue(channelNameparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(channelNameparamsNameVariable, 1))
+	channelName, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", "ticker")
 	if ccxt.IsEqual(channelName, "bookTicker") {
 		panic(ccxt.BadRequest(this.Id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead"))
 	}
@@ -2793,9 +2779,7 @@ func (this *Binance) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var channelNameparamsNameVariable []any = this.HandleOptionStringAndParams(params, "watchMarkPrices", "name", "markPrice")
-	channelName := ccxt.GetValue(channelNameparamsNameVariable, 0)
-	var paramsName map[string]any = ccxt.MapTyped(ccxt.GetValue(channelNameparamsNameVariable, 1))
+	channelName, paramsName := this.HandleOptionStringAndParams(params, "watchMarkPrices", "name", "markPrice")
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -2986,9 +2970,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName string, 
 	if isMarkPrice && (userDefaultType == nil || *userDefaultType != "option") {
 		defaultMarket = ccxt.SafeStringPtr("swap")
 	}
-	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket))
-	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket)
 	subType, paramsSubType := this.HandleSubTypeAndParams(methodName, firstMarket, paramsMarketType)
 	// use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
 	var isOptionMarkPrice bool = (isMarkPrice && ccxt.IsEqual(marketType, "option"))
@@ -4158,9 +4140,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	var payload map[string]any = map[string]any{
 		"returnRateLimits": returnRateLimits,
 	}
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsReturnRateLimits, "fetchBalanceWs", "method", "account.status")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsReturnRateLimits, "fetchBalanceWs", "method", "account.status")
 	var message map[string]any = map[string]any{
 		"id":     messageHash,
 		"method": method,
@@ -4326,9 +4306,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any 
 	var returnRateLimits bool = ccxt.GetValueBool(returnRateLimitsparamsReturnRateLimitsVariable, 0, false)
 	var paramsReturnRateLimits map[string]any = ccxt.MapTyped(ccxt.GetValue(returnRateLimitsparamsReturnRateLimitsVariable, 1))
 	payload["returnRateLimits"] = returnRateLimits
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsReturnRateLimits, "fetchPositionsWs", "method", "account.position")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsReturnRateLimits, "fetchPositionsWs", "method", "account.position")
 	var message map[string]any = map[string]any{
 		"id":     messageHash,
 		"method": method,

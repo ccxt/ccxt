@@ -1591,9 +1591,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		request["limit"] = limit
 	}
 	var response any = []any{}
-	var endpointparamsPriceVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price")
-	var endpoint *string = SafeStringPtr(GetValue(endpointparamsPriceVariable, 0))
-	paramsPrice := GetValue(endpointparamsPriceVariable, 1)
+	endpoint, paramsPrice := this.HandleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price")
 	if endpoint != nil && *endpoint == "index" {
 
 		response = (<-this.CommonGetQuoteV1IndexKlines(this.Extend(request, paramsPrice))).Raw

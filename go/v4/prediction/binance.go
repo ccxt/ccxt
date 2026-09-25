@@ -1161,9 +1161,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVarparamsTypeVariable []any = this.HandleOptionStringAndParams(params, "fetchBalance", "type", "SPOT")
-	typeVar := ccxt.GetValue(typeVarparamsTypeVariable, 0)
-	var paramsType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsTypeVariable, 1))
+	typeVar, paramsType := this.HandleOptionStringAndParams(params, "fetchBalance", "type", "SPOT")
 
 	response := (<-this.SapiPrivateGetBalancePaymentOptions(paramsType)).Raw
 	ccxt.PanicOnError(response)
@@ -1974,7 +1972,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName string, optionalArg
 		ch <- cachedWallet
 		return nil
 	}
-	var walletAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleOptionStringAndParams(params, methodName, "walletAddress", this.WalletAddress), 0))
+	var walletAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, methodName, "walletAddress", this.WalletAddress)), 0))
 
 	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetWalletList()).Raw))
 	//

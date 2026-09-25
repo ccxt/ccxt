@@ -508,7 +508,7 @@ func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, a
 		ch <- signer
 		return nil
 	}
-	var libraryPath *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams(params, "loadAccount", "libraryPath"), 0))
+	var libraryPath *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "loadAccount", "libraryPath")), 0))
 	var lighterPrivateKeyIsSet bool = (!IsEqual(privateKey, nil)) && (!IsEqual(privateKey, ""))
 	if lighterPrivateKeyIsSet && (libraryPath != nil) && (!IsEqual(apiKeyIndex, nil)) && (!IsEqual(accountIndex, nil)) {
 		// load lighter library, and create lighter client

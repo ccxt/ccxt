@@ -2310,9 +2310,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	 * @returns {object} request to be sent to the exchange
 	 */
 	var market map[string]any = this.Market(symbol)
-	marketTypeRawparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("createOrderRequest", market, params))
-	marketTypeRaw := GetValue(marketTypeRawparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeRawparamsMarketTypeVariable, 1))
+	marketTypeRaw, paramsMarketType := this.HandleMarketTypeAndParams("createOrderRequest", market, params)
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrderRequest", paramsMarketType)
 	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
 	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))

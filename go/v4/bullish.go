@@ -1942,7 +1942,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var method any = "privateGetV2HistoryOrders"
 	var paramsMethod any = nil
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", method)
+	methodparamsMethodVariable := TupleSlice(this.HandleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", method))
 	method = GetValue(methodparamsMethodVariable, 0)
 	paramsMethod = GetValue(methodparamsMethodVariable, 1)
 	var response any = []any{}
@@ -2331,9 +2331,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar string, si
 	if postOnly {
 		orderType = "POST_ONLY"
 	}
-	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC")
-	timeInForce := GetValue(timeInForceparamsTimeInForceVariable, 0)
-	var paramsTimeInForce map[string]any = MapTyped(GetValue(timeInForceparamsTimeInForceVariable, 1)) // is mandatory
+	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC") // is mandatory
 	AddElementToObject(paramsTimeInForce, "timeInForce", ToUpper(timeInForce))
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2923,7 +2921,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var tradingAccountId any = nil
 	var paramsTradingAccountId any = nil
-	var tradingAccountIdparamsTradingAccountIdVariable []any = this.HandleOptionStringAndParams(params, "loadAccount", "tradingAccountId")
+	tradingAccountIdparamsTradingAccountIdVariable := TupleSlice(this.HandleOptionStringAndParams(params, "loadAccount", "tradingAccountId"))
 	tradingAccountId = GetValue(tradingAccountIdparamsTradingAccountIdVariable, 0)
 	paramsTradingAccountId = GetValue(tradingAccountIdparamsTradingAccountIdVariable, 1)
 	if IsEqual(tradingAccountId, nil) {

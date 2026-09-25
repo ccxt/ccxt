@@ -1911,9 +1911,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	} else {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	var selfTradePreventionparamsSelfTradePreventionVariable []any = this.HandleOptionStringAndParams(paramsOperatorId, "createOrder", "selfTradePrevention")
-	var selfTradePrevention *string = SafeStringPtr(GetValue(selfTradePreventionparamsSelfTradePreventionVariable, 0))
-	paramsSelfTradePrevention := GetValue(selfTradePreventionparamsSelfTradePreventionVariable, 1)
+	selfTradePrevention, paramsSelfTradePrevention := this.HandleOptionStringAndParams(paramsOperatorId, "createOrder", "selfTradePrevention")
 	if selfTradePrevention != nil {
 		if selfTradePrevention != nil && *selfTradePrevention == "EXPIRE_BOTH" {
 			request["selfTradePrevention"] = "cancelBoth"

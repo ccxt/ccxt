@@ -5675,15 +5675,6 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
-	// handleOptionAndParams read as a string; the statically typed ports throw on another type
-	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valuenewParamsVariable []any = this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
-	value := GetValue(valuenewParamsVariable, 0)
-	newParams := GetValue(valuenewParamsVariable, 1)
-	return []any{this.CheckOptionString(methodName, optionName, value), newParams}
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
@@ -5758,7 +5749,7 @@ func (this *BaseExchange) HandleMarginModeAndParams(methodName any, optionalArgs
 	_ = params
 	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultValue
-	return this.HandleOptionStringAndParams(params, methodName, "marginMode", defaultValue)
+	return TupleSlice(this.HandleOptionStringAndParams(params, methodName, "marginMode", defaultValue))
 }
 func (this *BaseExchange) ThrowExactlyMatchedException(exact any, string any, message any) {
 	if IsEqual(string, nil) {

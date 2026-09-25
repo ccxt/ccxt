@@ -2278,9 +2278,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 
 	url := (<-this.GetUrlByMarketTypeAsync(symbolValue, false, "watchLiquidations", params))
 	ccxt.PanicOnError(url)
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(this.CleanParams(params), "watchLiquidations", "method", "allLiquidation")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	paramsMethod := ccxt.GetValue(methodparamsMethodVariable, 1)
+	method, paramsMethod := this.HandleOptionStringAndParams(this.CleanParams(params), "watchLiquidations", "method", "allLiquidation")
 	var messageHash string = "liquidations::" + *symbolValue
 	var topic *string = ccxt.SafeStringPtr(ccxt.Add(*method+".", market["id"]))
 

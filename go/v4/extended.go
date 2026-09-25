@@ -3484,12 +3484,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
 	} else {
 		var paramsBuilderFeeRate any = nil
-		var builderFeeRateparamsBuilderFeeRateVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
-		builderFeeRate = SafeStringPtr(GetValue(builderFeeRateparamsBuilderFeeRateVariable, 0))
-		paramsBuilderFeeRate = GetValue(builderFeeRateparamsBuilderFeeRateVariable, 1)
-		var builderIdparamsBuilderVariable []any = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
-		builderId = SafeStringPtr(GetValue(builderIdparamsBuilderVariable, 0))
-		paramsBuilder = GetValue(builderIdparamsBuilderVariable, 1)
+		builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
+		builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
 	}
 	var totalFee *string = fee
 	if builderFeeRate != nil {

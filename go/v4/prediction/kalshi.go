@@ -2805,12 +2805,8 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, si
 	} else if unifiedTif != nil && *unifiedTif == "GTC" {
 		defaultTif = "good_till_canceled"
 	}
-	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif)
-	var timeInForce *string = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 0))
-	var paramsTimeInForce map[string]any = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 1))
-	var stpparamsSelfTradePreventionTypeVariable []any = this.HandleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross")
-	var stp *string = ccxt.SafeStringPtr(ccxt.GetValue(stpparamsSelfTradePreventionTypeVariable, 0))
-	var paramsSelfTradePreventionType map[string]any = ccxt.MapTyped(ccxt.GetValue(stpparamsSelfTradePreventionTypeVariable, 1))
+	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif)
+	stp, paramsSelfTradePreventionType := this.HandleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross")
 	var request map[string]any = map[string]any{
 		"ticker":                     ticker,
 		"side":                       bookSide,

@@ -3235,9 +3235,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var rpiparamsRpiVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrderBook", "rpi", false)
 	var rpi bool = GetValueBool(rpiparamsRpiVariable, 0, false)
 	var paramsRpi map[string]any = MapTyped(GetValue(rpiparamsRpiVariable, 1))
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsRpi, "fetchOrderBook", "method", "publicGetMarketBooks")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsRpi, "fetchOrderBook", "method", "publicGetMarketBooks")
 	var defaultLimit int = func() int {
 		if method != nil && *method == "publicGetMarketBooksFull" {
 			return 5000
@@ -3773,9 +3771,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		if limit != nil {
 			request["limit"] = limit // default 100
 		}
-		var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
-		var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-		var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+		method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
 		if method != nil && *method == "publicGetMarketTrades" {
 
 			response = (<-this.PublicGetMarketTrades(this.Extend(request, paramsMethod)))
@@ -4286,9 +4282,7 @@ func (this *Okx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	marketTypequeryVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params))
-	marketType := GetValue(marketTypequeryVariable, 0)
-	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
+	marketType, query := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsEqual(marketType, "funding") {
@@ -4540,9 +4534,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	}
 	// position side / hedged options only apply to swap and future orders
 	var isSwapOrFuture bool = (contract != nil && *contract == true) && ((GetValue(market, "swap") == true) || (GetValue(market, "future") == true))
-	var positionSideparamsPositionSideVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "positionSide")
-	var positionSide *string = SafeStringPtr(GetValue(positionSideparamsPositionSideVariable, 0))
-	var paramsPositionSide map[string]any = MapTyped(GetValue(positionSideparamsPositionSideVariable, 1))
+	positionSide, paramsPositionSide := this.HandleOptionStringAndParams(params, "createOrder", "positionSide")
 	var paramsSwapOrFuture any = params
 	if isSwapOrFuture {
 		paramsSwapOrFuture = paramsPositionSide

@@ -911,9 +911,7 @@ func (this *Deepcoin) OrderBookSuffix(market any, methodName string, optionalArg
 	var symbol *string = this.SafeString(market, "symbol")
 	var aggregation *string = nil
 	var paramsAggregation any = nil
-	var aggregationparamsAggregationVariable []any = this.HandleOptionStringAndParams(params, methodName, "aggregation")
-	aggregation = ccxt.SafeStringPtr(ccxt.GetValue(aggregationparamsAggregationVariable, 0))
-	paramsAggregation = ccxt.GetValue(aggregationparamsAggregationVariable, 1)
+	aggregation, paramsAggregation = this.HandleOptionStringAndParams(params, methodName, "aggregation")
 	if aggregation == nil {
 		var precision map[string]any = ccxt.SafeMapTyped(market, "precision")
 		var tickSize *float64 = this.SafeNumber(precision, "price")

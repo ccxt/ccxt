@@ -2988,9 +2988,7 @@ func (this *Hitbtc) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	marketTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("createOrder", market, params))
-	marketType := GetValue(marketTypeparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
 	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))

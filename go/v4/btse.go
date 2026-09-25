@@ -1148,9 +1148,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var period *string = nil
 	var paramsPeriod any = nil
-	var periodparamsPeriodVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingRateHistory", "period")
-	period = SafeStringPtr(GetValue(periodparamsPeriodVariable, 0))
-	paramsPeriod = GetValue(periodparamsPeriodVariable, 1)
+	period, paramsPeriod = this.HandleOptionStringAndParams(params, "fetchFundingRateHistory", "period")
 	if period == nil {
 		period = SafeStringPtr("7D")
 		if since != nil {
@@ -1272,9 +1270,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//
 		response = this.SafeList(walletResponse, "data", []any{})
 	} else {
-		var walletparamsWalletVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@")
-		var wallet *string = SafeStringPtr(GetValue(walletparamsWalletVariable, 0))
-		var paramsWallet map[string]any = MapTyped(GetValue(walletparamsWalletVariable, 1))
+		wallet, paramsWallet := this.HandleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@")
 		var request map[string]any = map[string]any{
 			"wallet": wallet,
 		}
@@ -2612,7 +2608,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar strin
 		hedged = GetValue(hedgedqueryVariable, 0)
 		query = GetValue(hedgedqueryVariable, 1)
 		var marginMode any = "cross"
-		var marginModequeryVariable []any = this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode)
+		marginModequeryVariable := TupleSlice(this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode))
 		marginMode = GetValue(marginModequeryVariable, 0)
 		query = GetValue(marginModequeryVariable, 1)
 		if IsEqual(marginMode, "isolated") {
@@ -4382,9 +4378,7 @@ func (this *Btse) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}
-	var orderTypeparamsOrderTypeVariable []any = this.HandleOptionStringAndParams(params, "closePosition", "type", "market")
-	orderType := GetValue(orderTypeparamsOrderTypeVariable, 0)
-	var paramsOrderType map[string]any = MapTyped(GetValue(orderTypeparamsOrderTypeVariable, 1))
+	orderType, paramsOrderType := this.HandleOptionStringAndParams(params, "closePosition", "type", "market")
 	var typeUpper string = ToUpper(orderType)
 	request["orderType"] = typeUpper
 	if typeUpper == "LIMIT" {

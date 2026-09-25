@@ -188,9 +188,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
 	var market map[string]any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var urlUid any = ""
@@ -245,9 +243,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
 	var market map[string]any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "orderbook"
@@ -497,9 +493,7 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "method", "ticker")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchTicker", "method", "ticker")
 	var market map[string]any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "ticker"

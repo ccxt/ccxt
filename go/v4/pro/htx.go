@@ -1915,16 +1915,14 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return "inverse"
 		}()
 	} else {
-		marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchPositions", market, params))
-		marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
-		var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+		marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchPositions", market, params)
 		typeVar = func() any {
 			if ccxt.IsEqual(marketType, "spot") {
 				return "future"
 			}
 			return marketType
 		}()
-		var subTypeparamsSubTypeVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType)
+		subTypeparamsSubTypeVariable := ccxt.TupleSlice(this.HandleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType))
 		subType = ccxt.GetValue(subTypeparamsSubTypeVariable, 0)
 		paramsSubType = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
 	}
@@ -2156,12 +2154,8 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params))
-	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
-	subTypeparamsSubTypeVariable := ccxt.TupleSlice(this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear"))
-	subType := ccxt.GetValue(subTypeparamsSubTypeVariable, 0)
-	var paramsSubType map[string]any = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear")
 	var isUnifiedAccount *bool = this.SafeBool2(paramsSubType, "isUnifiedAccount", "unified", false)
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsSubType, []any{"isUnifiedAccount", "unified"}))
 	var paramsRequest any = func() any {

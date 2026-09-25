@@ -4576,9 +4576,7 @@ func (this *Mexc) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	// TODO: is the below endpoints suitable for fetchAccounts?
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	marketTypequeryVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchAccounts", nil, params))
-	marketType := GetValue(marketTypequeryVariable, 0)
-	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
+	marketType, query := this.HandleMarketTypeAndParams("fetchAccounts", nil, params)
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -6630,9 +6628,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var fromAccountTypeparamsFromAccountTypeVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchTransfers", "fromAccountType")
-	fromAccountType := GetValue(fromAccountTypeparamsFromAccountTypeVariable, 0)
-	var paramsFromAccountType map[string]any = MapTyped(GetValue(fromAccountTypeparamsFromAccountTypeVariable, 1))
+	fromAccountType, paramsFromAccountType := this.HandleOptionStringAndParams(paramsMarketType, "fetchTransfers", "fromAccountType")
 	var accountTypes map[string]any = map[string]any{
 		"spot":    "SPOT",
 		"swap":    "FUTURES",
@@ -6645,9 +6641,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\""))
 	}
-	var toAccountTypeparamsToAccountTypeVariable []any = this.HandleOptionStringAndParams(paramsFromAccountType, "fetchTransfers", "toAccountType")
-	toAccountType := GetValue(toAccountTypeparamsToAccountTypeVariable, 0)
-	var paramsToAccountType map[string]any = MapTyped(GetValue(toAccountTypeparamsToAccountTypeVariable, 1))
+	toAccountType, paramsToAccountType := this.HandleOptionStringAndParams(paramsFromAccountType, "fetchTransfers", "toAccountType")
 	if !IsEqual(toAccountType, nil) {
 		request["toAccountType"] = this.SafeString(accountTypes, toAccountType, toAccountType)
 	} else {

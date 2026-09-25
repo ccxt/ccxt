@@ -1584,9 +1584,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
-	var accountIdparamsAccountIdVariable []any = this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
-	var accountId *string = SafeStringPtr(GetValue(accountIdparamsAccountIdVariable, 0))
-	var paramsAccountId map[string]any = MapTyped(GetValue(accountIdparamsAccountIdVariable, 1))
+	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 		if market != nil {
@@ -2799,15 +2797,11 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	request["endTime"] = until
-	var flowTypeparamsFlowTypeVariable []any = this.HandleOptionStringAndParams(paramsUntil, methodName, "flowType")
-	flowType := GetValue(flowTypeparamsFlowTypeVariable, 0)
-	var paramsFlowType map[string]any = MapTyped(GetValue(flowTypeparamsFlowTypeVariable, 1))
+	flowType, paramsFlowType := this.HandleOptionStringAndParams(paramsUntil, methodName, "flowType")
 	if !IsEqual(flowType, nil) {
 		request["flowType"] = this.EncodeFlowType(flowType)
 	}
-	var accountTypeparamsAccountTypeVariable []any = this.HandleOptionStringAndParams(paramsFlowType, methodName, "accountType")
-	accountType := GetValue(accountTypeparamsAccountTypeVariable, 0)
-	var paramsAccountType map[string]any = MapTyped(GetValue(accountTypeparamsAccountTypeVariable, 1))
+	accountType, paramsAccountType := this.HandleOptionStringAndParams(paramsFlowType, methodName, "accountType")
 	if !IsEqual(accountType, nil) {
 		request["accountType"] = this.EncodeAccountType(accountType)
 	}
@@ -3708,9 +3702,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var response []any = nil
-	var accountIdparamsAccountIdVariable []any = this.HandleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId")
-	var accountId *string = SafeStringPtr(GetValue(accountIdparamsAccountIdVariable, 0))
-	var paramsAccountId map[string]any = MapTyped(GetValue(accountIdparamsAccountIdVariable, 1))
+	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId")
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
@@ -3788,9 +3780,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 	var response []any = nil
-	var accountIdparamsAccountIdVariable []any = this.HandleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId")
-	var accountId *string = SafeStringPtr(GetValue(accountIdparamsAccountIdVariable, 0))
-	paramsAccountId := GetValue(accountIdparamsAccountIdVariable, 1)
+	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId")
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
@@ -3860,9 +3850,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
-	var accountIdparamsAccountIdVariable []any = this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
-	var accountId *string = SafeStringPtr(GetValue(accountIdparamsAccountIdVariable, 0))
-	var paramsAccountId map[string]any = MapTyped(GetValue(accountIdparamsAccountIdVariable, 1))
+	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

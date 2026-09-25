@@ -2667,9 +2667,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side strin
 	var isBuy bool = (side == "BUY")
 	var randomize *bool = this.SafeBool(params, "randomize", false)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "randomize"))
-	var vaultAddressOptionparamsVaultVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress")
-	vaultAddressOption := GetValue(vaultAddressOptionparamsVaultVariable, 0)
-	var paramsVault map[string]any = MapTyped(GetValue(vaultAddressOptionparamsVaultVariable, 1))
+	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var durationMins float64 = MathFloor(Divide(Divide(duration, 1000), 60)) // convert from ms to minutes
 	var orderObj map[string]any = map[string]any{
@@ -2977,7 +2975,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		}
 	}
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams(params2, "createOrder", "vaultAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "createOrder", "vaultAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3159,7 +3157,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan any, id any, optionalArgs .
 	var market map[string]any = this.Market(symbol)
 	var vaultAddress any = nil
 	var params2 any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams(params, "cancelTwapOrder", "vaultAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params, "cancelTwapOrder", "vaultAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3567,7 +3565,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		"modifies": modifies,
 	}
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams(params2, "editOrder", "vaultAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "editOrder", "vaultAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = MapTyped(GetValue(vaultAddressparams2Variable, 1))
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3897,9 +3895,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOpenOrders", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -5395,7 +5391,7 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address
 			panic(NotSupported(this.Id + " withdraw() only support USDC"))
 		}
 	}
-	var vaultAddressOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams(params, "withdraw", "vaultAddress"), 0))
+	var vaultAddressOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "withdraw", "vaultAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var nonce any = this.IncrementingNonce()
 	var action map[string]any = map[string]any{}
@@ -5821,7 +5817,7 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	}
 	var records any = this.ExtractTypeFromDelta(depositLedger)
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5916,7 +5912,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	}
 	var records any = this.ExtractTypeFromDelta(withdrawalLedger)
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -6257,9 +6253,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any 
 	var userAuxparamsUserVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	userAux := GetValue(userAuxparamsUserVariable, 0)
 	paramsUser := GetValue(userAuxparamsUserVariable, 1)
-	var userparamsAddressVariable []any = this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
-	var user *string = SafeStringPtr(GetValue(userparamsAddressVariable, 0))
-	paramsAddress := GetValue(userparamsAddressVariable, 1)
+	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
 		return []any{user, paramsAddress}
 	}

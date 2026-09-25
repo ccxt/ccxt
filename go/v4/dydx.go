@@ -1051,12 +1051,8 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	return nil
 }
 func (this *Dydx) HandlePublicAddress(methodName any, params any) any {
-	var userAuxparamsUserVariable []any = this.HandleOptionStringAndParams(params, methodName, "user")
-	userAux := GetValue(userAuxparamsUserVariable, 0)
-	paramsUser := GetValue(userAuxparamsUserVariable, 1)
-	var userparamsAddressVariable []any = this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
-	var user *string = SafeStringPtr(GetValue(userparamsAddressVariable, 0))
-	paramsAddress := GetValue(userparamsAddressVariable, 1)
+	userAux, paramsUser := this.HandleOptionStringAndParams(params, methodName, "user")
+	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
 		return []any{user, paramsAddress}
 	}
@@ -1220,9 +1216,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOrders", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
-	var subAccountNumberparamsSubAccountNumberVariable []any = this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0")
-	var subAccountNumber *string = SafeStringPtr(GetValue(subAccountNumberparamsSubAccountNumberVariable, 0))
-	var paramsSubAccountNumber map[string]any = MapTyped(GetValue(subAccountNumberparamsSubAccountNumberVariable, 1))
+	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0")
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -1461,9 +1455,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
-	var subAccountNumberparamsSubAccountNumberVariable []any = this.HandleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0")
-	var subAccountNumber *string = SafeStringPtr(GetValue(subAccountNumberparamsSubAccountNumberVariable, 0))
-	var paramsSubAccountNumber map[string]any = MapTyped(GetValue(subAccountNumberparamsSubAccountNumberVariable, 1))
+	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0")
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2898,9 +2890,7 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress(methodName, paramsOmitted)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
-	var subAccountNumberparamsSubAccountNumberVariable []any = this.HandleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0")
-	var subAccountNumber *string = SafeStringPtr(GetValue(subAccountNumberparamsSubAccountNumberVariable, 0))
-	var paramsSubAccountNumber map[string]any = MapTyped(GetValue(subAccountNumberparamsSubAccountNumberVariable, 1))
+	subAccountNumber, paramsSubAccountNumber := this.HandleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0")
 	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subAccountNumber,

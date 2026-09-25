@@ -9490,9 +9490,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		}()
 	}
 	// unified stp
-	var selfTradePreventionparamsStpVariable []any = this.HandleOptionStringAndParams(paramsPapi, "createOrder", "selfTradePrevention")
-	selfTradePrevention := GetValue(selfTradePreventionparamsStpVariable, 0)
-	var paramsStp map[string]any = MapTyped(GetValue(selfTradePreventionparamsStpVariable, 1))
+	selfTradePrevention, paramsStp := this.HandleOptionStringAndParams(paramsPapi, "createOrder", "selfTradePrevention")
 	if !IsEqual(selfTradePrevention, nil) {
 		var warnOnStpForInverse any = this.HandleOption("createOrder", "warnOnSTPForInverse")
 		if (GetValue(market, "inverse") == true) && (warnOnStpForInverse == true) {
@@ -14688,9 +14686,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var defaultMethod *string = nil
 	var paramsMethod any = nil
-	var defaultMethodparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method")
-	defaultMethod = SafeStringPtr(GetValue(defaultMethodparamsMethodVariable, 0))
-	paramsMethod = GetValue(defaultMethodparamsMethodVariable, 1) // check if there is a key in options|params
+	defaultMethod, paramsMethod = this.HandleOptionStringAndParams(params, "fetchPositions", "method") // check if there is a key in options|params
 	if defaultMethod == nil {
 		// check if .options['fetchPositions'] dict exist at all
 		var options any = this.SafeDict(this.Options, "fetchPositions")

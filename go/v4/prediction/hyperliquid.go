@@ -1546,7 +1546,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar strin
 	if clientOrderId != nil {
 		orderObj["c"] = clientOrderId
 	}
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress"), 0))
+	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
@@ -1720,7 +1720,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		}
 	}
 	cancelAction["cancels"] = cancelReq
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress"), 0))
+	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
@@ -1818,9 +1818,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOpenOrders", params)
 	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsPublicAddressVariable, 1))
-	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
-	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
 	var request map[string]any = map[string]any{
 		"type": method,
 		"user": userAddress,
@@ -2839,9 +2837,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any 
 	var userAuxparamsUserVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	userAux := ccxt.GetValue(userAuxparamsUserVariable, 0)
 	paramsUser := ccxt.GetValue(userAuxparamsUserVariable, 1)
-	var userparamsAddressVariable []any = this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
-	var user *string = ccxt.SafeStringPtr(ccxt.GetValue(userparamsAddressVariable, 0))
-	paramsAddress := ccxt.GetValue(userparamsAddressVariable, 1)
+	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
 		return []any{user, paramsAddress}
 	}

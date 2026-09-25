@@ -197,19 +197,11 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	if ccxt.IsEqual(topicParams, nil) {
 		ccxt.AddElementToObject(params, "params", map[string]any{})
 	}
-	var bookSubscriptionTypeparamsBookSubscriptionTypeVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
-	bookSubscriptionType := ccxt.GetValue(bookSubscriptionTypeparamsBookSubscriptionTypeVariable, 0)
-	var paramsBookSubscriptionType map[string]any = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionTypeparamsBookSubscriptionTypeVariable, 1))
-	var bookSubscriptionType2paramsBookSubscriptionType2Variable []any = this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
-	var bookSubscriptionType2 *string = ccxt.SafeStringPtr(ccxt.GetValue(bookSubscriptionType2paramsBookSubscriptionType2Variable, 0))
-	var paramsBookSubscriptionType2 map[string]any = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionType2paramsBookSubscriptionType2Variable, 1))
+	bookSubscriptionType, paramsBookSubscriptionType := this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
+	bookSubscriptionType2, paramsBookSubscriptionType2 := this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
 	ccxt.AddElementToObject(ccxt.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2)
-	var bookUpdateFrequencyparamsBookUpdateFrequencyVariable []any = this.HandleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency")
-	bookUpdateFrequency := ccxt.GetValue(bookUpdateFrequencyparamsBookUpdateFrequencyVariable, 0)
-	var paramsBookUpdateFrequency map[string]any = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequencyparamsBookUpdateFrequencyVariable, 1))
-	var bookUpdateFrequency2paramsBookUpdateFrequency2Variable []any = this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
-	var bookUpdateFrequency2 *string = ccxt.SafeStringPtr(ccxt.GetValue(bookUpdateFrequency2paramsBookUpdateFrequency2Variable, 0))
-	var paramsBookUpdateFrequency2 map[string]any = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequency2paramsBookUpdateFrequency2Variable, 1))
+	bookUpdateFrequency, paramsBookUpdateFrequency := this.HandleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency")
+	bookUpdateFrequency2, paramsBookUpdateFrequency2 := this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
 	if bookUpdateFrequency2 != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
@@ -268,19 +260,11 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 	if ccxt.IsEqual(topicParams, nil) {
 		ccxt.AddElementToObject(params, "params", map[string]any{})
 	}
-	var bookSubscriptionTypeparamsBookSubscriptionTypeVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
-	bookSubscriptionType := ccxt.GetValue(bookSubscriptionTypeparamsBookSubscriptionTypeVariable, 0)
-	var paramsBookSubscriptionType map[string]any = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionTypeparamsBookSubscriptionTypeVariable, 1))
-	var bookSubscriptionType2paramsBookSubscriptionType2Variable []any = this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
-	var bookSubscriptionType2 *string = ccxt.SafeStringPtr(ccxt.GetValue(bookSubscriptionType2paramsBookSubscriptionType2Variable, 0))
-	var paramsBookSubscriptionType2 map[string]any = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionType2paramsBookSubscriptionType2Variable, 1))
+	bookSubscriptionType, paramsBookSubscriptionType := this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
+	bookSubscriptionType2, paramsBookSubscriptionType2 := this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
 	ccxt.AddElementToObject(ccxt.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2)
-	var bookUpdateFrequencyparamsBookUpdateFrequencyVariable []any = this.HandleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency")
-	bookUpdateFrequency := ccxt.GetValue(bookUpdateFrequencyparamsBookUpdateFrequencyVariable, 0)
-	var paramsBookUpdateFrequency map[string]any = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequencyparamsBookUpdateFrequencyVariable, 1))
-	var bookUpdateFrequency2paramsBookUpdateFrequency2Variable []any = this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
-	var bookUpdateFrequency2 *string = ccxt.SafeStringPtr(ccxt.GetValue(bookUpdateFrequency2paramsBookUpdateFrequency2Variable, 0))
-	var paramsBookUpdateFrequency2 map[string]any = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequency2paramsBookUpdateFrequency2Variable, 1))
+	bookUpdateFrequency, paramsBookUpdateFrequency := this.HandleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency")
+	bookUpdateFrequency2, paramsBookUpdateFrequency2 := this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
 	if bookUpdateFrequency2 != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}

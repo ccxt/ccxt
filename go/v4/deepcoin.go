@@ -1804,9 +1804,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var userIdOptionparamsUserIdVariable []any = this.HandleOptionStringAndParams(params, "transfer", "userId")
-	var userIdOption *string = SafeStringPtr(GetValue(userIdOptionparamsUserIdVariable, 0))
-	var paramsUserId map[string]any = MapTyped(GetValue(userIdOptionparamsUserIdVariable, 1))
+	userIdOption, paramsUserId := this.HandleOptionStringAndParams(params, "transfer", "userId")
 	var userId *string = nil
 	if (userIdOption != nil) && (userIdOption == nil || *userIdOption != "") {
 		userId = userIdOption
@@ -2084,9 +2082,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
 		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
 		request["tdMode"] = marginMode
-		var mrgPositionparamsMrgPositionVariable []any = this.HandleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge")
-		var mrgPosition *string = SafeStringPtr(GetValue(mrgPositionparamsMrgPositionVariable, 0))
-		var paramsMrgPosition map[string]any = MapTyped(GetValue(mrgPositionparamsMrgPositionVariable, 1))
+		mrgPosition, paramsMrgPosition := this.HandleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge")
 		paramsRequest = paramsMrgPosition
 		request["mrgPosition"] = mrgPosition
 		var posSide *string = nil
@@ -2187,9 +2183,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 		}
 	}
 	var mrgPosition string = "merge"
-	var mrgPositionOptionparamsMrgPositionVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition)
-	var mrgPositionOption *string = SafeStringPtr(GetValue(mrgPositionOptionparamsMrgPositionVariable, 0))
-	var paramsMrgPosition map[string]any = MapTyped(GetValue(mrgPositionOptionparamsMrgPositionVariable, 1))
+	mrgPositionOption, paramsMrgPosition := this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition)
 	request["mrgPosition"] = mrgPositionOption
 	return this.Extend(request, paramsMrgPosition)
 }
@@ -3436,9 +3430,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var mrgPosition string = "merge"
-	var mrgPositionOptionparamsMrgPositionVariable []any = this.HandleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition)
-	var mrgPositionOption *string = SafeStringPtr(GetValue(mrgPositionOptionparamsMrgPositionVariable, 0))
-	var paramsMrgPosition map[string]any = MapTyped(GetValue(mrgPositionOptionparamsMrgPositionVariable, 1))
+	mrgPositionOption, paramsMrgPosition := this.HandleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition)
 	if (mrgPositionOption == nil || *mrgPositionOption != "merge") && (mrgPositionOption == nil || *mrgPositionOption != "split") {
 		panic(BadRequest(this.Id + " setLeverage() mrgPosition parameter must be either merge or split"))
 	}

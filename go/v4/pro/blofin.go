@@ -260,9 +260,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var callerMethodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	callerMethodName := ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 0)
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 1))
-	var channelNameparamsChannelVariable []any = this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodName, "channel", "books")
-	channelName := ccxt.GetValue(channelNameparamsChannelVariable, 0)
-	var paramsChannel map[string]any = ccxt.MapTyped(ccxt.GetValue(channelNameparamsChannelVariable, 1))
+	channelName, paramsChannel := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodName, "channel", "books")
 	// due to some problem, temporarily disable other channels
 	if !ccxt.IsEqual(channelName, "books") {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
