@@ -935,8 +935,12 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) any {
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	var symbol *string = nil
+	if (base != nil) && (quote != nil) {
+		symbol = SafeStringPtr(*base + "/" + *quote)
+	}
 	return this.SafeTicker(map[string]any{
-		"symbol":        Add(Add(base, "/"), quote),
+		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "high"),

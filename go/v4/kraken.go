@@ -2284,7 +2284,10 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	var quoteId string = Slice(id, quoteIdStart, quoteIdEnd)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	market = map[string]any{
 		"symbol":  symbol,
 		"base":    base,
@@ -3944,8 +3947,8 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 		AddElementToObject(paramsPaginate, "cursor", true)
 
-		var retRes320419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor"))))
-		ch <- BoxAbsent(retRes320419)
+		var retRes320719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor"))))
+		ch <- BoxAbsent(retRes320719)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4054,8 +4057,8 @@ func (this *Kraken) createDepositAddressBody(ch chan any, code any, optionalArgs
 		"new": "true",
 	}
 
-	var retRes329515 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes329515)
+	var retRes329815 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes329815)
 	return nil
 }
 
@@ -4443,8 +4446,8 @@ func (this *Kraken) transferOutBody(ch chan any, code any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes361615 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "spot", "swap", params))))
-	ch <- BoxAbsent(retRes361615)
+	var retRes361915 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "spot", "swap", params))))
+	ch <- BoxAbsent(retRes361915)
 	return nil
 }
 
