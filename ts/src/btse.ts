@@ -1764,6 +1764,9 @@ export default class btse extends Exchange {
     override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const clientOrderId = this.safeString (params, 'clientOrderId');
+        if ((clientOrderId === undefined) && (id === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires an id argument or a clientOrderId parameter');
+        }
         let orderIdParams: Dict = {};
         if (clientOrderId === undefined) {
             orderIdParams = { 'orderID': id };
@@ -2410,6 +2413,8 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+        } else if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument or a clientOrderId parameter');
         } else {
             request['orderId'] = id;
         }
@@ -2477,6 +2482,8 @@ export default class btse extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrderId'] = clientOrderId;
+        } else if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or a clientOrderId parameter');
         } else {
             request['orderId'] = id;
         }

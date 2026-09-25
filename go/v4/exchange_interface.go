@@ -39,7 +39,7 @@ type IFetchOpenOrders interface {
 	FetchOpenOrdersAsync(optionalArgs ...any) <-chan any
 }
 type IFetchOrder interface {
-	FetchOrderAsync(id string, optionalArgs ...any) <-chan any
+	FetchOrderAsync(id any, optionalArgs ...any) <-chan any
 }
 type IFetchOrderWithClientOrderId interface {
 	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan any
@@ -414,7 +414,7 @@ type IDerivedExchange interface {
 	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan any
-	CancelOrderAsync(id string, optionalArgs ...any) <-chan any
+	CancelOrderAsync(id any, optionalArgs ...any) <-chan any
 	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any
 	FetchOrdersAsync(optionalArgs ...any) <-chan any
