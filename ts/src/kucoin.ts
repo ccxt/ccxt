@@ -2502,7 +2502,7 @@ export default class kucoin extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -2538,7 +2538,7 @@ export default class kucoin extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -2632,7 +2632,7 @@ export default class kucoin extends Exchange {
         const networkId = this.safeString (fee, 'chain');
         const currencyId = this.safeString (fee, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const networkCode = this.networkIdToCode (networkId, currencyResolved['code']);
+        const networkCode = this.networkIdToCode (networkId, this.safeString (currencyResolved, 'code'));
         if (networkCode !== undefined) {
             result['networks'][networkCode] = {
                 'withdraw': minWithdrawFee,
@@ -3597,7 +3597,7 @@ export default class kucoin extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            request['chain'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code')); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         const response = await this.privatePostDepositAddressCreate (this.extend (request, paramsNetworkCode));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -3658,7 +3658,7 @@ export default class kucoin extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, paramsRequest ] = this.handleNetworkCodeAndParams (paramsRequest);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -7674,7 +7674,7 @@ export default class kucoin extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }

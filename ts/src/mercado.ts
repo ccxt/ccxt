@@ -1019,7 +1019,7 @@ export default class mercado extends Exchange {
         const ordersRaw: Dict[] = this.safeList (responseData, 'orders', []);
         const orders = this.parseOrders (ordersRaw, market, since, limit);
         const trades = this.ordersToTrades (orders);
-        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (trades, this.safeString (market, 'symbol'), since, limit) as Trade[];
     }
 
     ordersToTrades (orders: Order[]): Trade[] {

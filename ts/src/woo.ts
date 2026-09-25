@@ -2881,7 +2881,7 @@ export default class woo extends Exchange {
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
-            'network': this.networkCodeToId (networkCode, currency['code']),
+            'network': this.networkCodeToId (networkCode, this.safeString (currency, 'code')),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, paramsNetworkCode));
         //
@@ -3415,7 +3415,7 @@ export default class woo extends Exchange {
         }
         const paramsOmitted: Dict = this.omit (paramsWithdrawTag, 'network');
         request['token'] = currency['id'];
-        request['network'] = this.networkCodeToId (network, currency['code']);
+        request['network'] = this.networkCodeToId (network, this.safeString (currency, 'code'));
         const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, paramsOmitted));
         //
         //     {

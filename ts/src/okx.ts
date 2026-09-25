@@ -2877,7 +2877,7 @@ export default class okx extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     parseBalanceByType (type: Str, response: Dict): Balances {
@@ -5624,7 +5624,7 @@ export default class okx extends Exchange {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
-            const networkCodeResolved = this.networkIdToCode (network, currency['code']);
+            const networkCodeResolved = this.networkIdToCode (network, this.safeString (currency, 'code'));
             const targetNetwork = (networkCodeResolved === undefined) ? {} : this.safeDict (currency['networks'], networkCodeResolved, {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
@@ -7098,7 +7098,7 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         if (type === 'swap') {
             request['instType'] = this.convertToInstrumentType (type);
@@ -8436,7 +8436,7 @@ export default class okx extends Exchange {
         const data: Dict[] = this.safeList (response, 'data', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
     parseSettlement (settlement: Dict, market: Market): Dict {

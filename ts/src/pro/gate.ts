@@ -403,7 +403,7 @@ export default class gate extends gateRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             if (market['swap'] !== true) {
                 throw new NotSupported (this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }

@@ -441,7 +441,7 @@ export default class blockchaincom extends blockchaincomRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const url = this.urls['api']['ws'];
         const message: Dict = {

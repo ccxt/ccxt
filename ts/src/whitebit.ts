@@ -2521,7 +2521,7 @@ export default class whitebit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100); // default 50 max 100
         }

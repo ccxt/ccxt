@@ -435,7 +435,7 @@ export default class coinex extends coinexRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
         await this.authenticate (type);
@@ -960,7 +960,7 @@ export default class coinex extends coinexRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, paramsOmitted, 'spot');
         await this.authenticate (type);

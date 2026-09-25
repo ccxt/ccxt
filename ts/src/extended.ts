@@ -1157,7 +1157,7 @@ export default class extended extends Exchange {
         for (let i = 0; i < histories.length; i++) {
             result.push (this.parseFundingHistory (histories[i], market));
         }
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        const symbol = (market === undefined) ? undefined : this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 

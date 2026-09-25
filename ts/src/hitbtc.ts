@@ -3007,7 +3007,7 @@ export default class hitbtc extends Exchange {
             }
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        const symbolResolved: Str = (market === undefined) ? symbol : market['symbol'];
+        const symbolResolved: Str = (market === undefined) ? symbol : this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as FundingRateHistory[];
     }
 

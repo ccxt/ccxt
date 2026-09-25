@@ -2701,7 +2701,7 @@ export default class bydfi extends Exchange {
         if (paginate === true) {
             const maxLimit = 50;
             const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, paramsPaginate, maxLimit, true);
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', this.safeString (currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {
@@ -2836,7 +2836,7 @@ export default class bydfi extends Exchange {
         if (paginate === true) {
             const maxLimit = 50;
             const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, currency['code'], since, limit, paramsPaginate, maxLimit, true);
+            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, this.safeString (currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {

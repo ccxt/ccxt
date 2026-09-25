@@ -6315,7 +6315,7 @@ export default class bingx extends Exchange {
         };
         const network = this.safeStringUpper (paramsWalletType, 'network');
         if (network !== undefined) {
-            request['network'] = this.networkCodeToId (network, currency['code']);
+            request['network'] = this.networkCodeToId (network, this.safeString (currency, 'code'));
         }
         if (tagWithdrawTag !== undefined) {
             request['addressTag'] = tagWithdrawTag;
