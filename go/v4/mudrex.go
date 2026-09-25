@@ -397,7 +397,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	} else {
 		startTime = Subtract(now, Multiply(duration, requestLimit))
 	}
-	if IsEqual(startTime, nil) {
+	if startTime == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing startTime"))
 	}
 	var endTime any = Add(startTime, Multiply(duration, requestLimit))

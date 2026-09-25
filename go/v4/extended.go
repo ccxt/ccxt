@@ -505,7 +505,7 @@ func (this *Extended) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.Exchange.LoadMarketsAsync(reload, params))
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
-	if (IsEqual(currenciesByNumericId, nil)) || (reload == true) {
+	if ((currenciesByNumericId == nil)) || (reload == true) {
 		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
 	}
 
@@ -3955,11 +3955,11 @@ func (this *Extended) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 			request["orderIds"] = ids
 		}
 	}
-	if IsEqual(clientOrderIds, nil) && (clientOrderId != nil) {
+	if (clientOrderIds == nil) && (clientOrderId != nil) {
 		clientOrderIds = []any{clientOrderId}
 	}
-	var hasClientOrderIds bool = !IsEqual(clientOrderIds, nil)
-	if !IsEqual(clientOrderIds, nil) {
+	var hasClientOrderIds bool = (clientOrderIds != nil)
+	if clientOrderIds != nil {
 		var clientOrderIdsLength int = GetArrayLength(clientOrderIds)
 		if clientOrderIdsLength > 0 {
 			request["externalOrderIds"] = clientOrderIds

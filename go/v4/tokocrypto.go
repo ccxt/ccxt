@@ -1765,7 +1765,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 		data = ArrayTyped(response)
 	} else {
 		var dataList any = this.SafeList(response, "data")
-		if !IsEqual(dataList, nil) {
+		if dataList != nil {
 			data = ArrayTyped(dataList)
 		} else {
 			var dataDict map[string]any = SafeMapTyped(response, "data")
@@ -2132,7 +2132,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol string, typeVar stri
 	}
 	if clientOrderId == nil {
 		var broker any = this.SafeDict(this.Options, "broker")
-		if !IsEqual(broker, nil) {
+		if broker != nil {
 			var brokerId *string = this.SafeString(broker, "marketType")
 			if brokerId != nil {
 				request["clientId"] = *brokerId + this.Uuid22()

@@ -2747,7 +2747,7 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
 		address = this.SafeString(details, "sent_to_address", address)
 		var feeCost *float64 = this.SafeNumber(details, "fee")
 		if feeCost != nil {
-			if !IsEqual(amount, nil) {
+			if amount != nil {
 				amount = Subtract(amount, feeCost)
 			}
 			fee["cost"] = feeCost
@@ -2813,7 +2813,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code string,
 	}
 	var currencyId *string = SafeStringPtr(currency["id"])
 	var account any = this.SafeDict(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
-	if IsEqual(account, nil) {
+	if account == nil {
 		panic(InvalidAddress(this.Id + " createDepositAddress() could not find currency code " + code + " with id = " + *currencyId + " in this.options['coinbaseAccountsByCurrencyId']"))
 	}
 	var request map[string]any = map[string]any{

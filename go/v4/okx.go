@@ -2724,7 +2724,7 @@ func (this *Okx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var types any = []any{"spot", "future", "swap", "option"}
 	var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
-	if !IsEqual(fetchMarketsOption, nil) {
+	if fetchMarketsOption != nil {
 		types = this.SafeList(fetchMarketsOption, "types", types)
 	} else {
 		types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support
@@ -2846,7 +2846,7 @@ func (this *Okx) ParseMarket(market any) any {
 		}
 		if future {
 			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
-			if !IsEqual(expiry, nil) {
+			if expiry != nil {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(symbol, "-"), ymd)
 			}
@@ -2854,7 +2854,7 @@ func (this *Okx) ParseMarket(market any) any {
 			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
 			strikePrice = this.SafeString(market, "stk")
 			optionType = this.SafeString(market, "optType")
-			if !IsEqual(expiry, nil) {
+			if expiry != nil {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(Add(Add(Add(Add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType)
 				optionType = SafeStringPtr(func() string {

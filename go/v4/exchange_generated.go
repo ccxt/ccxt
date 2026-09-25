@@ -761,8 +761,8 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	return []any{wsProxy, wssProxy, wsSocksProxy}
 }
 func (this *BaseExchange) CheckConflictingProxies(proxyAgentSet any, proxyUrlSet any) {
-	var proxyAgentIsSet bool = (!IsEqual(proxyAgentSet, nil)) && (!IsEqual(proxyAgentSet, nil)) && (proxyAgentSet != "")
-	var proxyUrlIsSet bool = (!IsEqual(proxyUrlSet, nil)) && (!IsEqual(proxyUrlSet, nil)) && (proxyUrlSet != "")
+	var proxyAgentIsSet bool = (!IsEqual(proxyAgentSet, nil)) && (proxyAgentSet != "")
+	var proxyUrlIsSet bool = (!IsEqual(proxyUrlSet, nil)) && (proxyUrlSet != "")
 	if proxyAgentIsSet && proxyUrlIsSet {
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy"))
 	}
@@ -855,7 +855,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 				return nil
 			}()
 			var value any = this.SafeValue(entry, key)
-			if (!IsEqual(value, nil)) && (!IsEqual(value, nil)) && (!IsEqual(value, 0)) && (IsGreaterThanOrEqual(value, since)) {
+			if (!IsEqual(value, nil)) && (!IsEqual(value, 0)) && (IsGreaterThanOrEqual(value, since)) {
 				result = append(result, entry)
 			}
 		}
@@ -903,7 +903,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 				return true
 			}()
 			var entryKeyValue any = this.SafeValue(entry, key)
-			var entryKeyGESince bool = (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, 0)) && (since != nil) && (IsGreaterThanOrEqual(entryKeyValue, since))
+			var entryKeyGESince bool = (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, 0)) && (since != nil) && (IsGreaterThanOrEqual(entryKeyValue, since))
 			var secondCondition bool = func() bool {
 				if sinceIsDefined {
 					return entryKeyGESince
@@ -2110,7 +2110,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
 	}
 	var dictionary any = this.SafeDict(methodDict, parentKey)
-	if IsEqual(dictionary, nil) {
+	if dictionary == nil {
 		// if the value is not dictionary but a scalar value (or undefined), return as is
 		return GetValue(methodDict, parentKey)
 	} else {
@@ -4770,7 +4770,7 @@ func (this *BaseExchange) FilterByArray(objects any, key any, optionalArgs ...an
 	_ = indexed
 	var objectsValue []any = this.ToArray(objects)
 	// return all of them if no values were passed
-	if (IsEqual(values, nil)) || (IsEqual(values, nil)) || (values == false) || (IsEqual(values, 0)) || (values == "") {
+	if (IsEqual(values, nil)) || (values == false) || (IsEqual(values, 0)) || (values == "") {
 		// return indexed ? this.indexBy (objects, key) : objects;
 		if indexed == true {
 			return this.IndexBy(objectsValue, key)
@@ -4807,7 +4807,7 @@ func (this *BaseExchange) FilterOutByArray(objects any, key any, optionalArgs ..
 	_ = indexed
 	var objectsValue []any = this.ToArray(objects)
 	// return all of them if no values were passed
-	if (IsEqual(values, nil)) || (IsEqual(values, nil)) || (values == false) || (IsEqual(values, 0)) || (values == "") {
+	if (IsEqual(values, nil)) || (values == false) || (IsEqual(values, 0)) || (values == "") {
 		// return indexed ? this.indexBy (objects, key) : objects;
 		if indexed == true {
 			return this.IndexBy(objectsValue, key)
@@ -5288,7 +5288,7 @@ func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) bool {
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var credentialValue any = GetValue(this, key)
-		var credentialMissing bool = (IsEqual(credentialValue, nil)) || (IsEqual(credentialValue, nil)) || (credentialValue == false) || (credentialValue == "")
+		var credentialMissing bool = (IsEqual(credentialValue, nil)) || (credentialValue == false) || (credentialValue == "")
 		if (this.RequiredCredentials[key] == true) && credentialMissing {
 			if error == true {
 				panic(AuthenticationError(this.Id + " requires \"" + key + "\" credential"))
@@ -5539,7 +5539,7 @@ func (this *BaseExchange) fetchIsolatedBorrowRateBody(ch chan any, symbol string
 	borrowRates := (<-this.FetchIsolatedBorrowRatesAsync(params))
 	PanicOnError(borrowRates)
 	var rate any = this.SafeDict(borrowRates, symbol)
-	if IsEqual(rate, nil) {
+	if rate == nil {
 		panic(ExchangeError(this.Id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol " + symbol))
 	}
 
@@ -5923,7 +5923,7 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan any, symbol string, o
 		ranks := <-this.DerivedExchange.FetchPositionsADLRankAsync([]any{symbolResolved}, params)
 		PanicOnError(ranks)
 		var rank any = this.SafeDict(ranks, 0)
-		if IsEqual(rank, nil) {
+		if rank == nil {
 			panic(NullResponse(this.Id + " fetchPositionsADLRank() could not find a rank for " + *symbolResolved))
 		} else {
 

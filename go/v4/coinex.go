@@ -1902,7 +1902,7 @@ func (this *Coinex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	}
 	var market map[string]any = this.Market(symbol)
 	var limitValue any = limit
-	if IsEqual(limitValue, nil) {
+	if limitValue == nil {
 		limitValue = 20
 	}
 	var request map[string]any = map[string]any{

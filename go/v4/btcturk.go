@@ -798,7 +798,7 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var data any = this.SafeList(response, "data")
 	var dataList []any = []any{}
-	if !IsEqual(data, nil) {
+	if data != nil {
 		dataList = ArrayTyped(data)
 	}
 
@@ -1309,7 +1309,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeList(response, "data")
 	var dataList []any = []any{}
-	if !IsEqual(data, nil) {
+	if data != nil {
 		dataList = ArrayTyped(data)
 	}
 

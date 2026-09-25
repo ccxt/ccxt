@@ -1391,7 +1391,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	// a single-symbol request returns the entry directly in data
 	//
 	var data any = this.SafeList(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		var single map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		data = []any{single}
 	}
@@ -1576,7 +1576,7 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 	//
 	// a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
 	var data any = this.SafeDict(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		var rows []any = SafeListTyped(response, "data")
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
@@ -1661,7 +1661,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var interest any = this.SafeDict(response, "data")
-	if IsEqual(interest, nil) {
+	if interest == nil {
 		var rows []any = SafeListTyped(response, "data")
 		interest = this.SafeDict(rows, 0, map[string]any{})
 	}
@@ -1764,7 +1764,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var data any = this.SafeDict(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		var rows []any = SafeListTyped(response, "data")
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
@@ -2647,7 +2647,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	// here we handling with attached take profit and stop loss orders
 	var takeProfit any = this.SafeDict(query, "takeProfit")
 	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
-	if (!IsEqual(takeProfit, nil)) || ((stopLoss != nil)) {
+	if ((takeProfit != nil)) || ((stopLoss != nil)) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
@@ -4533,7 +4533,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	return nil
 }
 func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

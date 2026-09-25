@@ -760,7 +760,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var data any = this.SafeList(response, "data")
 	var dataList []any = []any{}
-	if !IsEqual(data, nil) {
+	if data != nil {
 		dataList = ArrayTyped(data)
 	}
 

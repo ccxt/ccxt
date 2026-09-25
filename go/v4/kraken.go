@@ -2262,7 +2262,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 		return id
 	}
 	var market any = this.SafeDict(GetValue(this.Options, "delistedMarketsById"), id)
-	if !IsEqual(market, nil) {
+	if market != nil {
 		return market
 	}
 	var baseIdStart int = 0
@@ -2842,7 +2842,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 	}
 	var allTriggerPrices any = DerefScalar(this.SafeStringN(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}))
-	if !IsEqual(allTriggerPrices, nil) {
+	if allTriggerPrices != nil {
 		var offset *string = this.SafeString(paramsOmitted, "offset")
 		paramsOmitted = this.Omit(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
 		if offset != nil {
@@ -3744,7 +3744,7 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
 	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
-	if IsEqual(feeCost, nil) {
+	if feeCost == nil {
 		if typeVar != nil && *typeVar == "deposit" {
 			feeCost = 0
 		}

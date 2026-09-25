@@ -882,7 +882,7 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	}()
 	// Use synthetic mid if no l2Book
 	var mid any = ccxt.DerefScalar(this.SafeNumber(raw, "mid"))
-	if ccxt.IsEqual(mid, nil) && (bid != nil) && (ask != nil) {
+	if (mid == nil) && (bid != nil) && (ask != nil) {
 		mid = ccxt.Divide(this.Sum(bid, ask), 2)
 	}
 	// day volume lives on the parent market's ctx; resolve it from the outcome's parent market
@@ -2575,7 +2575,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 		title = ccxt.SafeStringPtr(*underlying + titleSuffix)
 	}
 	var endValue any = func() any {
-		if !ccxt.IsEqual(expiryMs, nil) {
+		if expiryMs != nil {
 			return expiryMs
 		}
 		return firstExpiry

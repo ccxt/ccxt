@@ -2263,7 +2263,7 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
 		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
-		var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeValue(orderParams, "childOrders"), nil))
+		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (!IsEqual(this.SafeValue(orderParams, "childOrders"), nil))
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
@@ -2542,7 +2542,7 @@ func (this *Modetrade) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if !IsEqual(clientOrderIds, nil) {
+	if clientOrderIds != nil {
 		request["client_order_ids"] = Join(clientOrderIds, ",")
 
 		response = MapTyped(PanicOnError((<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, paramsOmitted))).Raw))
@@ -4103,7 +4103,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

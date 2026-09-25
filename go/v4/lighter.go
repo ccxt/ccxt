@@ -3319,7 +3319,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var rows []any = SafeListTypedDefault(response, "transfers", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first any = this.SafeDict(rows, 0)
-	if (!IsEqual(first, nil)) && (cursor != nil) {
+	if ((first != nil)) && (cursor != nil) {
 		AddElementToObject(GetValue(rows, 0), "cursor", cursor)
 	}
 
@@ -3453,7 +3453,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var data []any = SafeListTypedDefault(response, "deposits", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first any = this.SafeDict(data, 0)
-	if (!IsEqual(first, nil)) && (cursor != nil) {
+	if ((first != nil)) && (cursor != nil) {
 		AddElementToObject(GetValue(data, 0), "cursor", cursor)
 	}
 
@@ -3543,7 +3543,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var data []any = SafeListTypedDefault(response, "withdraws", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first any = this.SafeDict(data, 0)
-	if (!IsEqual(first, nil)) && (cursor != nil) {
+	if ((first != nil)) && (cursor != nil) {
 		AddElementToObject(GetValue(data, 0), "cursor", cursor)
 	}
 
@@ -3805,7 +3805,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var nextCursor *string = this.SafeString(response, "next_cursor")
 	var first any = this.SafeDict(data, 0)
-	if (!IsEqual(first, nil)) && (nextCursor != nil) {
+	if ((first != nil)) && (nextCursor != nil) {
 		AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
 	}
 
@@ -4466,7 +4466,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Lighter) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

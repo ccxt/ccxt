@@ -4960,7 +4960,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var rawFetchMarkets any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
-	if !IsEqual(fetchMarketsOptions, nil) {
+	if fetchMarketsOptions != nil {
 		rawFetchMarkets = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
 	} else {
 		// for backward-compatibility
@@ -5735,7 +5735,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	} else if IsEqual(marginMode, "isolated") {
 		var paramSymbols any = this.SafeList(paramsSubType, "symbols")
 		query = this.Omit(query, "symbols")
-		if !IsEqual(paramSymbols, nil) {
+		if paramSymbols != nil {
 			var symbols any = ""
 			if IsArray(paramSymbols) {
 				var mid any = this.MarketId(GetValue(paramSymbols, 0))
@@ -7709,7 +7709,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 	}
 	if clientOrderId == nil {
 		var broker any = this.SafeDict(this.Options, "broker")
-		if !IsEqual(broker, nil) {
+		if broker != nil {
 			var brokerId *string = this.SafeString(broker, "spot")
 			if brokerId != nil {
 				request["newClientOrderId"] = *brokerId + this.Uuid22()
@@ -9868,11 +9868,11 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["limit"] = limitResolved
 		}
 	}
-	if !IsEqual(until, nil) {
+	if until != nil {
 		request["endTime"] = until
 	}
 	if IsEqual(stock, true) {
-		if IsEqual(until, nil) {
+		if until == nil {
 			until = this.Milliseconds()
 			request["endTime"] = until
 		}
@@ -11141,12 +11141,12 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	}
 	var origClientOrderIdList any = this.SafeList2(params, "origClientOrderIdList", "clientOrderIds")
 	var paramsOmitted map[string]any = func() map[string]any {
-		if !IsEqual(origClientOrderIdList, nil) {
+		if origClientOrderIdList != nil {
 			return MapTyped(this.Omit(params, []any{"clientOrderIds"}))
 		}
 		return params
 	}()
-	if !IsEqual(origClientOrderIdList, nil) {
+	if origClientOrderIdList != nil {
 		request["origClientOrderIdList"] = origClientOrderIdList
 	} else {
 		request["orderidlist"] = ids
@@ -11334,10 +11334,10 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var currentTimestamp int64 = this.Milliseconds()
 		var oneWeek int64 = (7 * 24) * 60 * 60 * 1000
 		if IsGreaterThanOrEqual((Subtract(currentTimestamp, startTime)), oneWeek) {
-			if (IsEqual(endTime, nil)) && (IsEqual(this.SafeBool(market, "linear"), true)) {
+			if ((endTime == nil)) && (IsEqual(this.SafeBool(market, "linear"), true)) {
 				endTime = this.Sum(startTime, oneWeek)
 				var endTimeValue any = func() any {
-					if IsEqual(endTime, nil) {
+					if endTime == nil {
 						return 0
 					}
 					return endTime
@@ -11346,7 +11346,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if !IsEqual(endTime, nil) {
+	if endTime != nil {
 		request["endTime"] = endTime
 		paramsPaginate = this.Omit(paramsPaginate, []any{"endTime", "until"})
 	}
@@ -11381,7 +11381,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		isPortfolioMargin = GetValue(isPortfolioMarginparamsPaginateVariable, 0)
 		paramsPaginate = GetValue(isPortfolioMarginparamsPaginateVariable, 1)
 		if IsEqual(stock, true) {
-			if IsEqual(endTime, nil) {
+			if endTime == nil {
 				endTime = this.Milliseconds()
 				request["endTime"] = endTime
 			}
@@ -14242,7 +14242,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
-	if (IsEqual(leverageBrackets, nil)) || (reload == true) {
+	if ((leverageBrackets == nil)) || (reload == true) {
 		var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
 		var typeVar *string = this.SafeString(params, "type", defaultType)
 		var query map[string]any = MapTyped(this.Omit(params, "type"))
@@ -14688,7 +14688,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if defaultMethod == nil {
 		// check if .options['fetchPositions'] dict exist at all
 		var options any = this.SafeDict(this.Options, "fetchPositions")
-		if IsEqual(options, nil) {
+		if options == nil {
 			// if undefined, for backward compatibility, check if it is a string
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {
@@ -17755,7 +17755,7 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	//
 	var liquidationsList []any = []any{}
 	var rows any = this.SafeList(response, "rows")
-	if !IsEqual(rows, nil) {
+	if rows != nil {
 		liquidationsList = ArrayTyped(rows)
 	} else if IsArray(response) {
 		// linear and inverse return the bare array, margin wraps it in 'rows'

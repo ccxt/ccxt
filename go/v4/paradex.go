@@ -1905,7 +1905,7 @@ func (this *Paradex) getSystemConfigBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var cachedConfig any = this.SafeDict(this.Options, "systemConfig")
-	if !IsEqual(cachedConfig, nil) {
+	if cachedConfig != nil {
 
 		ch <- cachedConfig
 		return nil
@@ -1987,7 +1987,7 @@ func (this *Paradex) retrieveAccountBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var cachedAccount any = this.SafeDict(this.Options, "paradexAccount")
-	if !IsEqual(cachedAccount, nil) {
+	if cachedAccount != nil {
 
 		ch <- cachedAccount
 		return nil
@@ -2766,7 +2766,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
 	var hasOrderIds bool = (!IsEqual(ids, nil)) && (IsArray(ids))
-	var hasClientOrderIds bool = (!IsEqual(clientOrderIds, nil)) && (IsArray(clientOrderIds))
+	var hasClientOrderIds bool = ((clientOrderIds != nil)) && (IsArray(clientOrderIds))
 	if !hasOrderIds && !hasClientOrderIds {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter"))
 	}

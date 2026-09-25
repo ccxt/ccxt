@@ -3920,7 +3920,7 @@ func (this *Lbank) HandleErrors(httpCode any, reason any, url any, method any, h
 		panic(NullResponse(this.Id + " parseBalance() returned empty response"))
 	}
 	var success any = this.SafeValue(response, "result")
-	if (IsEqual(success, "false")) || (IsEqual(success, nil)) || (IsEqual(success, nil)) || (success == false) {
+	if (IsEqual(success, "false")) || (IsEqual(success, nil)) || (success == false) {
 		var errorCode *string = this.SafeString(response, "error_code")
 		var message *string = this.SafeString(map[string]any{
 			"10000": "Internal error",

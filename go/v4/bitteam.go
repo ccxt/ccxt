@@ -2042,7 +2042,7 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 	var bestAskVolume *string = nil
 	var bids any = this.SafeList(ticker, "bids")
 	var asks any = this.SafeList(ticker, "asks")
-	if (!IsEqual(bids, nil)) && (IsArray(bids)) && (!IsEqual(asks, nil)) && (IsArray(asks)) {
+	if ((bids != nil)) && (IsArray(bids)) && ((asks != nil)) && (IsArray(asks)) {
 		var bestBid map[string]any = SafeMapTyped(bids, 0)
 		bestBidPrice = this.SafeString(bestBid, "price")
 		bestBidVolume = this.SafeString(bestBid, "quantity")

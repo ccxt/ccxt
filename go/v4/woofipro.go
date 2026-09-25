@@ -2592,7 +2592,7 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol string, typeVar string
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	var takeProfit any = this.SafeDict(params, "takeProfit")
-	var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeList(params, "childOrders"), nil))
+	var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (!IsEqual(this.SafeList(params, "childOrders"), nil))
 	var response map[string]any = nil
 	if isConditional {
 
@@ -2645,7 +2645,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
 		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
-		var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeList(orderParams, "childOrders"), nil))
+		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (!IsEqual(this.SafeList(orderParams, "childOrders"), nil))
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
@@ -2934,7 +2934,7 @@ func (this *Woofipro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if !IsEqual(clientOrderIds, nil) {
+	if clientOrderIds != nil {
 		request["client_order_ids"] = Join(clientOrderIds, ",")
 
 		response = MapTyped(PanicOnError((<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, paramsOmitted))).Raw))
@@ -3869,7 +3869,7 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	//     }
 	//
 	var rowsList []any = []any{}
-	if !IsEqual(rows, nil) {
+	if rows != nil {
 		rowsList = ArrayTyped(rows)
 	}
 

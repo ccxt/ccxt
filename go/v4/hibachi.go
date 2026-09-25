@@ -720,7 +720,7 @@ func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var trades any = this.SafeList(response, "trades", []any{})
 	var tradesList []any = []any{}
-	if !IsEqual(trades, nil) {
+	if trades != nil {
 		tradesList = ArrayTyped(trades)
 	}
 
@@ -1795,7 +1795,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var trades any = this.SafeList(response, "trades")
 	var tradesList []any = []any{}
-	if !IsEqual(trades, nil) {
+	if trades != nil {
 		tradesList = ArrayTyped(trades)
 	}
 

@@ -560,7 +560,7 @@ func (this *Deepcoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var types any = []any{"spot", "swap"}
 	var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
-	if !IsEqual(fetchMarketsOption, nil) {
+	if fetchMarketsOption != nil {
 		types = this.SafeList(fetchMarketsOption, "types", types)
 	} else {
 		types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support

@@ -982,7 +982,7 @@ func (this *Poloniex) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.Exchange.LoadMarketsAsync(reload, params))
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
-	if (IsEqual(currenciesByNumericId, nil)) || (reload == true) {
+	if ((currenciesByNumericId == nil)) || (reload == true) {
 		this.Options.Store("currenciesByNumericId", this.IndexBy(this.Currencies, "numericId"))
 	}
 

@@ -5343,7 +5343,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode string, optionalAr
 	if marginModeValue == "cross" {
 		leverage = 0
 	}
-	if IsEqual(leverage, nil) {
+	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
 	request["leverage"] = leverage
@@ -5743,7 +5743,7 @@ func (this *Phemex) transferBody(ch chan any, code string, amount any, fromAccou
 	} else if (fromId != nil && *fromId == "future") && (toId != nil && *toId == "spot") {
 		direction = 1
 	}
-	if !IsEqual(direction, nil) {
+	if direction != nil {
 		var request map[string]any = map[string]any{
 			"currency": currency["id"],
 			"moveOp":   direction,

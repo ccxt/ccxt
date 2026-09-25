@@ -1993,7 +1993,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 			var now int64 = this.Milliseconds()
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
 			var numberOfCandles any = maxHistoricalLimit
-			if !IsEqual(limitResolved, nil) && !IsEqual(limitResolved, nil) && (!IsEqual(limitResolved, 0)) {
+			if !IsEqual(limitResolved, nil) && (!IsEqual(limitResolved, 0)) {
 				numberOfCandles = limitResolved
 			}
 			var timeDelta any = Multiply(numberOfCandles, duration)
@@ -3231,7 +3231,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	var clientOrderIds any = this.SafeList(paramsMarketType, "clientOrderIds")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "clientOrderIds"))
-	if !IsEqual(clientOrderIds, nil) {
+	if clientOrderIds != nil {
 		if isSpot {
 			request["origClientOrderIds"] = clientOrderIds
 		} else {

@@ -4825,7 +4825,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp any = DerefScalar(this.SafeInteger(data, "time"))
-	if IsEqual(timestamp, nil) {
+	if timestamp == nil {
 		var nanoseconds *int64 = this.SafeInteger(data, "ts")
 		if nanoseconds != nil {
 			timestamp = this.ParseToInt(Divide(nanoseconds, 1000000))
@@ -8656,7 +8656,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "items", []any{})
 	var tradesList []any = []any{}
-	if !IsEqual(trades, nil) {
+	if trades != nil {
 		tradesList = ArrayTyped(trades)
 	}
 
@@ -8779,7 +8779,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "items", []any{})
 	var tradesList []any = []any{}
-	if !IsEqual(trades, nil) {
+	if trades != nil {
 		tradesList = ArrayTyped(trades)
 	}
 
@@ -8906,7 +8906,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		trades = this.SafeList(response, "data", []any{})
 	}
 	var tradesList []any = []any{}
-	if !IsEqual(trades, nil) {
+	if trades != nil {
 		tradesList = ArrayTyped(trades)
 	}
 
@@ -9023,12 +9023,12 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "orderId")
 	var takerOrMaker *string = this.SafeString(trade, "liquidity")
 	var timestamp any = DerefScalar(this.SafeInteger2(trade, "time", "ts"))
-	if !IsEqual(timestamp, nil) {
+	if timestamp != nil {
 		timestamp = this.ParseToInt(Divide(timestamp, 1000000))
 	} else {
 		timestamp = DerefScalar(this.SafeInteger(trade, "createdAt"))
 		// if it's a historical v1 trade, the exchange returns timestamp in seconds
-		if (InOp(trade, "dealValue")) && (!IsEqual(timestamp, nil)) {
+		if (InOp(trade, "dealValue")) && ((timestamp != nil)) {
 			timestamp = Multiply(timestamp, 1000)
 		}
 	}
@@ -9159,12 +9159,12 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "orderId")
 	var takerOrMaker *string = this.SafeString(trade, "liquidity")
 	var timestamp any = DerefScalar(this.SafeInteger(trade, "ts"))
-	if !IsEqual(timestamp, nil) {
+	if timestamp != nil {
 		timestamp = this.ParseToInt(Divide(timestamp, 1000000))
 	} else {
 		timestamp = DerefScalar(this.SafeInteger(trade, "createdAt"))
 		// if it's a historical v1 trade, the exchange returns timestamp in seconds
-		if (InOp(trade, "dealValue")) && (!IsEqual(timestamp, nil)) {
+		if (InOp(trade, "dealValue")) && ((timestamp != nil)) {
 			timestamp = Multiply(timestamp, 1000)
 		}
 	}
@@ -9552,10 +9552,10 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 			}
 			return "deposit"
 		}()
-		if !IsEqual(timestamp, nil) {
+		if timestamp != nil {
 			timestamp = Multiply(timestamp, 1000)
 		}
-		if !IsEqual(updated, nil) {
+		if updated != nil {
 			updated = Multiply(updated, 1000)
 		}
 	}
@@ -14494,7 +14494,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Kucoin) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, body)
 		return nil
 	}

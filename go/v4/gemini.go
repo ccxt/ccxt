@@ -1057,7 +1057,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 	} else {
 		// use trading-pairs info, if it was fetched
 		var tradingPairs any = this.SafeList(this.Options, "tradingPairs")
-		if !IsEqual(tradingPairs, nil) {
+		if tradingPairs != nil {
 			var indexedTradingPairs map[string]any = this.IndexBy(tradingPairs, 0)
 			for i := 0; i < len(marketIds); i++ {
 				var marketId any = func() any {

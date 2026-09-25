@@ -1590,7 +1590,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 }
 func (this *Blofin) ParseBalanceByType(response any) any {
 	var data any = this.SafeList(response, "data")
-	if (!IsEqual(data, nil)) && IsArray(data) {
+	if ((data != nil)) && IsArray(data) {
 		return this.ParseFundingBalance(response)
 	} else {
 		return this.ParseBalance(response)

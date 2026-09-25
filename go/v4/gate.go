@@ -2953,7 +2953,7 @@ func (this *Gate) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var apiBackup any = this.SafeDict(this.Urls, "apiBackup")
-	if !IsEqual(apiBackup, nil) {
+	if apiBackup != nil {
 
 		ch <- map[string]any{}
 		return nil
@@ -4045,7 +4045,7 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	//     }
 	//
 	var timestamp any = DerefScalar(this.SafeInteger(response, "current"))
-	if IsEqual(timestamp, nil) {
+	if timestamp == nil {
 		panic(ExchangeError(this.Id + " method() missing timestamp"))
 	}
 	if GetValue(market, "spot") != true {
@@ -4729,7 +4729,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		return mathMin(limit, maxLimit)
 	}()
 	var until any = DerefScalar(this.SafeInteger(paramsRequest, "until"))
-	if !IsEqual(until, nil) {
+	if until != nil {
 		until = this.ParseToInt(Divide(until, 1000))
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsRequest, "until"))
@@ -4740,13 +4740,13 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		var toTimestamp any = this.Sum(GetValue(request, "from"), distance)
 		var currentTimestamp int64 = this.Seconds()
 		var to any = mathMin(toTimestamp, currentTimestamp)
-		if !IsEqual(until, nil) {
+		if until != nil {
 			AddElementToObject(request, "to", mathMin(to, until))
 		} else {
 			AddElementToObject(request, "to", to)
 		}
 	} else {
-		if !IsEqual(until, nil) {
+		if until != nil {
 			AddElementToObject(request, "to", until)
 		}
 		AddElementToObject(request, "limit", limitValue)
@@ -6240,7 +6240,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			}
 		}
 		var textIsRequired *bool = this.SafeBool(query, "textIsRequired", false)
-		if !IsEqual(clientOrderId, nil) {
+		if clientOrderId != nil {
 			// user-defined, must follow the rules if not empty
 			//     prefixed with t-
 			//     no longer than 28 bytes without t- prefix
@@ -6321,7 +6321,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			if !IsEqual(timeInForce, nil) {
 				AddElementToObject(GetValue(request, "initial"), "tif", timeInForce)
 			}
-			if !IsEqual(clientOrderId, nil) {
+			if clientOrderId != nil {
 				AddElementToObject(GetValue(request, "initial"), "text", clientOrderId)
 			}
 		} else {
@@ -6374,7 +6374,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					"rule":       rule,
 					"expiration": expiration,
 				})
-				if !IsEqual(clientOrderId, nil) {
+				if clientOrderId != nil {
 					AddElementToObject(GetValue(request, "trigger"), "text", clientOrderId)
 				}
 			}
@@ -6970,14 +6970,14 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"is_stop_order", "stop", "trigger"}))
 	var clientOrderId any = DerefScalar(this.SafeString2(paramsOmitted, "text", "clientOrderId"))
 	var orderId any = id
-	if !IsEqual(clientOrderId, nil) {
+	if clientOrderId != nil {
 		if GetValue(clientOrderId, 0) != "t" {
 			clientOrderId = Add("t-", clientOrderId)
 		}
 		orderId = clientOrderId
 	}
 	var paramsOrder map[string]any = func() map[string]any {
-		if !IsEqual(clientOrderId, nil) {
+		if clientOrderId != nil {
 			return MapTyped(this.Omit(paramsOmitted, []any{"text", "clientOrderId"}))
 		}
 		return paramsOmitted
