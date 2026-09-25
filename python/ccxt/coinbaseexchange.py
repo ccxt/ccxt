@@ -2101,7 +2101,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
+    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:

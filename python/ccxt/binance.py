@@ -9634,7 +9634,7 @@ class binance(Exchange, ImplicitAPI):
         }
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode, currency['code'])
+            request['network'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         # has support for the 'network' parameter
         response = self.sapiGetCapitalDepositAddress(self.extend(request, paramsNetworkCode))
         #
@@ -9950,7 +9950,7 @@ class binance(Exchange, ImplicitAPI):
             request['addressTag'] = tagWithdrawTag
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode, currency['code'])
+            request['network'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         request['amount'] = self.currency_to_precision(currency['code'], amount, networkCode)
         response = self.sapiPostCapitalWithdrawApply(self.extend(request, paramsNetworkCode))
         #     { id: '9a67628b16ba4988ae20d329333f16bc' }
@@ -12505,7 +12505,7 @@ class binance(Exchange, ImplicitAPI):
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):
@@ -12522,7 +12522,7 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_number(config, 'cost', 1)
 
-    def request(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
+    def request(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if api == 'private':

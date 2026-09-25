@@ -990,7 +990,7 @@ class BaseExchange(SyncExchange):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    async def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
+    async def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
@@ -1033,7 +1033,7 @@ class BaseExchange(SyncExchange):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    async def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
+    async def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         return await self.fetch2(path, api, method, params, headers, body, config)
 
     async def load_accounts(self, reload=False, params: dict = {}):

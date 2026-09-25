@@ -1263,7 +1263,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = messageHash + ':' + market['symbol']
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         url = self.urls['api']['ws']['public']
         request = {
             'method': 'subscribe',

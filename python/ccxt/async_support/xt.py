@@ -1971,7 +1971,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 's')
-        marketType = market['type'] if (market is not None) else None
+        marketType = self.safe_string(market, 'type') if (market is not None) else None
         hasSpotKeys = ('cv' in ticker) or ('aq' in ticker)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
@@ -2286,7 +2286,7 @@ class xt(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string_2(trade, 's', 'symbol')
-        marketType = market['type'] if (market is not None) else None
+        marketType = self.safe_string(market, 'type') if (market is not None) else None
         hasSpotKeys = ('b' in trade) or ('bizType' in trade) or ('oi' in trade)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
@@ -4572,7 +4572,7 @@ class xt(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     async def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
         """

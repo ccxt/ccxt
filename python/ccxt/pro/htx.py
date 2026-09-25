@@ -822,7 +822,7 @@ class htx(ccxt.async_support.htx):
             type = self.safe_string(params, 'type', type)
             subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
             subType = self.safe_string(params, 'subType', subType)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         paramsRequest = params if (symbol is not None) else self.omit(params, ['type', 'subType'])
         linear = (subType == 'linear')
         swap = (type == 'swap')

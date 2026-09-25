@@ -2805,7 +2805,7 @@ class okx(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_balance_by_type(self, type: Str, response: dict) -> Balances:
         if type == 'funding':
@@ -5337,7 +5337,7 @@ class okx(Exchange, ImplicitAPI):
         if fee is None:
             currencies = self.fetch_currencies()
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
-            networkCodeResolved = self.network_id_to_code(network, currency['code'])
+            networkCodeResolved = self.network_id_to_code(network, self.safe_string(currency, 'code'))
             targetNetwork = {} if (networkCodeResolved is None) else self.safe_dict(currency['networks'], networkCodeResolved, {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
@@ -6710,7 +6710,7 @@ class okx(Exchange, ImplicitAPI):
                 else:
                     request['ctType'] = 'inverse'
                     request['ccy'] = market['baseId']
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         if type == 'swap':
             request['instType'] = self.convert_to_instrument_type(type)
@@ -7942,7 +7942,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_settlement(self, settlement: dict, market: Market) -> dict:
         #

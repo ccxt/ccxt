@@ -520,7 +520,7 @@ class nado(ccxt.async_support.nado):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
             productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'watchOrders', 'subaccount', 'default')
@@ -591,7 +591,7 @@ class nado(ccxt.async_support.nado):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
             productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'watchMyTrades', 'subaccount', 'default')

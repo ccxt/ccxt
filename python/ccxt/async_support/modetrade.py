@@ -1026,7 +1026,7 @@ class modetrade(Exchange, ImplicitAPI):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since

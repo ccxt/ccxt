@@ -1046,7 +1046,7 @@ class mexc(ccxt.async_support.mexc):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
             messageHash = messageHash + ':' + symbolResolved
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
@@ -1223,7 +1223,7 @@ class mexc(ccxt.async_support.mexc):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
             messageHash = messageHash + ':' + symbolResolved
         type, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)

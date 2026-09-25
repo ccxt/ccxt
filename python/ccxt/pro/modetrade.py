@@ -673,7 +673,7 @@ class modetrade(ccxt.async_support.modetrade):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
         request = {
             'event': 'subscribe',
@@ -711,7 +711,7 @@ class modetrade(ccxt.async_support.modetrade):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
         request = {
             'event': 'subscribe',

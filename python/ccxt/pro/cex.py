@@ -512,7 +512,7 @@ class cex(ccxt.async_support.cex):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, subscriptionHash, request)
-        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(orders, self.safe_string(market, 'symbol'), since, limit)
 
     def handle_transaction(self, client: Client, message: dict):
         data = self.safe_dict(message, 'data')

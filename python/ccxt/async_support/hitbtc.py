@@ -2839,7 +2839,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     'datetime': datetime,
                 })
         sorted = self.sort_by(rates, 'timestamp')
-        symbolResolved = symbol if (market is None) else market['symbol']
+        symbolResolved = symbol if (market is None) else self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:

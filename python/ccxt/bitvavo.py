@@ -2577,7 +2577,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_number(config, 'cost', 1)

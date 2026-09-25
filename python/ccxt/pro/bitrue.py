@@ -199,7 +199,7 @@ class bitrue(ccxt.async_support.bitrue):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         url = await self.authenticate()
         messageHash = 'orders'
         message = {

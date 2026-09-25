@@ -1826,7 +1826,7 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
-        networkCode = self.network_id_to_code(networkId, currencyResolved['code'])
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currencyResolved, 'code'))
         networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),
