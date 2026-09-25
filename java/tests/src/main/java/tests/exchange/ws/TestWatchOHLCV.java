@@ -43,7 +43,7 @@ public class TestWatchOHLCV extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, chosenTimeframeKey, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;

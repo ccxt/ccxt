@@ -902,7 +902,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
      * @param {string} [params.price] *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

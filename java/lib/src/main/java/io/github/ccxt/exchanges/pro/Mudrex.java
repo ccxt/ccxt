@@ -162,7 +162,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     }
 
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
