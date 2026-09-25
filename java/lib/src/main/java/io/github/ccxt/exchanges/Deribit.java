@@ -1945,9 +1945,9 @@ public class Deribit extends DeribitApi
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long now = this.milliseconds();
             // at max, it provides 5000 bars, but we set generous default here
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
-            Object limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? null : Math.max((since - 1L), 0);
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
+            Long limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
+            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? null : Math.max((since - 1L), 0);
             if (java.util.Objects.equals(since, null))
             {
                 request.put("start_timestamp", Helpers.subtract(now, Helpers.multiply(Helpers.multiply((Helpers.subtract(windowLimit, 1)), duration), 1000)));
@@ -1991,7 +1991,7 @@ public class Deribit extends DeribitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.convertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), sinceResolved, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -4008,7 +4008,7 @@ public class Deribit extends DeribitApi
             Long duration = (((long) this.parseTimeframe(eachItemDuration)) * 1000L);
             Long now = this.milliseconds();
             Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (now - month) : since;
+            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? (now - month) : since;
             Object time = (((java.util.Objects.equals(since, null)))) ? now : (since + month);
             Map<String, Object> request = Helpers.newMap(
                 "instrument_name", market.get("id"),
@@ -4062,7 +4062,7 @@ public class Deribit extends DeribitApi
                 Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
                 ((List<Object>)rates).add(rate);
             }
-            return this.filterBySymbolSinceLimit(rates, symbol, Helpers.toLongOrNull(sinceResolved), limit, false);
+            return this.filterBySymbolSinceLimit(rates, symbol, sinceResolved, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }

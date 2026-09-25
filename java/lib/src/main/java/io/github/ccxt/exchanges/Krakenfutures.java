@@ -1112,8 +1112,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))
             );
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "price");
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? 2000 : Math.min(limit, 2000);
-            Object limitResolved = null;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 2000L : Math.min(limit, 2000);
+            Long limitResolved = null;
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)))
             {
                 limitResolved = windowLimit;
@@ -1148,7 +1148,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             List<Object> candles = (List<Object>) this.safeList(response, "candles", (Object) null);
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

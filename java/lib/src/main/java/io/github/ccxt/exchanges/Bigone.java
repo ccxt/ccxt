@@ -1533,12 +1533,12 @@ public class Bigone extends BigoneApi
             Boolean untilIsDefined = (!java.util.Objects.equals(until, null));
             Boolean sinceIsDefined = (!java.util.Objects.equals(since, null));
             // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
-            Integer defaultLimit = 100;
+            Long defaultLimit = 100L;
             if (Boolean.TRUE.equals(sinceIsDefined) && Boolean.TRUE.equals(untilIsDefined))
             {
-                defaultLimit = 500;
+                defaultLimit = 500L;
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
             Map<String, Object> request = Helpers.newMap(
                 "asset_pair_name", market.get("id"),
                 "period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
@@ -1586,7 +1586,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

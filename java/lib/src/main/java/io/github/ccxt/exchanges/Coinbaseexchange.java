@@ -1584,8 +1584,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object until = this.safeValue2(paramsPaginate, "until", "end");
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-            Object cappedLimit = (((java.util.Objects.equals(limit, null)))) ? 300 : Math.min(300, limit);
-            Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
+            Long cappedLimit = (((java.util.Objects.equals(limit, null)))) ? 300L : Math.min(300, limit);
+            Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start", this.iso8601(since));
@@ -1612,7 +1612,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

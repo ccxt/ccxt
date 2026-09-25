@@ -1747,7 +1747,7 @@ public class Phemex extends PhemexApi
             }
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
             request.put("limit", Helpers.mathMin(limitResolved, maxLimit));
-            Object sinceSeconds = null;
+            Long sinceSeconds = null;
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(market.get("linear"), true)) || Boolean.TRUE.equals(isStableSettled))
             {
@@ -1803,12 +1803,12 @@ public class Phemex extends PhemexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             // the from/to endpoint works in seconds and the parser receives that value
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (Boolean.TRUE.equals(usesSpecialFromToEndpoint))
             {
                 sinceResolved = sinceSeconds;
             }
-            return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), userLimit, false);
+            return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), sinceResolved, userLimit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

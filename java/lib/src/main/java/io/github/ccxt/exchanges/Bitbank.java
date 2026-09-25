@@ -730,8 +730,8 @@ public class Bitbank extends BitbankApi
         return BaseExchange.supplyAsync(() -> {
 
             // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
-            Object limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
+            Long limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(this.milliseconds(), Helpers.multiply((((long) duration) * 1000L), windowLimit)) : since;
             if (java.util.Objects.equals(this.markets, null))
@@ -767,7 +767,7 @@ public class Bitbank extends BitbankApi
             List<Object> candlestick = (List<Object>) this.safeList(data, "candlestick", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(candlestick, 0, new HashMap<String, Object>() {{}});
             List<Object> ohlcv = (List<Object>) this.safeList(first, "ohlcv", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

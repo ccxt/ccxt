@@ -1898,7 +1898,7 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxHistoricalLimit = 100;
+            Long maxHistoricalLimit = 100L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -1907,7 +1907,7 @@ public class Weex extends WeexApi
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "historical", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, Helpers.toLongOrNull(maxHistoricalLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, maxHistoricalLimit)).join();
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             List<Object> historicalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false);
@@ -1924,7 +1924,7 @@ public class Weex extends WeexApi
             Map<String, Object> paramsOmitted = this.omit(paramsHistorical, new ArrayList<Object>(Arrays.asList("historical", "until", "price")));
             List<Object> response = null;
             // hardcap threshold
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
             if (Boolean.TRUE.equals(historical))
             {
                 if (!java.util.Objects.equals(priceType, null))
@@ -1937,7 +1937,7 @@ public class Weex extends WeexApi
                 {
                     Long now = this.milliseconds();
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    Object numberOfCandles = maxHistoricalLimit;
+                    Long numberOfCandles = maxHistoricalLimit;
                     if (!java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, null) && !Helpers.isEqual(limitResolved, 0))
                     {
                         numberOfCandles = limitResolved;
@@ -1979,7 +1979,7 @@ public class Weex extends WeexApi
                     response = (this.contractGetCapiV3MarketKlines(this.extend(request, paramsOmitted))).join();
                 }
             }
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

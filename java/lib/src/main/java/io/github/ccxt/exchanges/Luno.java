@@ -1626,13 +1626,13 @@ public class Luno extends LunoApi
 
             // by default without entry number or limit number, return most recent entry
             Object entryValue = (((java.util.Objects.equals(entry, null)))) ? -1 : entry;
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 1 : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1L : limit;
             List<String> since = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "min_row", entryValue );
                 put( "max_row", Luno.this.sum(entryValue, limitValue) );
             }};
-            return (this.fetchLedger(code, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limitValue), this.extend(request, parameters))).join();
+            return (this.fetchLedger(code, Helpers.toLongOrNull(since), limitValue, this.extend(request, parameters))).join();
         });
 
     }

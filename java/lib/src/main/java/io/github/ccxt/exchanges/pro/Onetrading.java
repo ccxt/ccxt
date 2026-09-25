@@ -347,16 +347,16 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscribeHash, request)).join();
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            trades = this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), false);
+            trades = this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, false);
             Integer numTrades = Helpers.getArrayLength(trades);
             if ((numTrades != null && numTrades == 0))
             {
-                return (this.watchMyTrades(Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), parameters)).join();
+                return (this.watchMyTrades(Helpers.toStringArg(symbolResolved), since, limitResolved, parameters)).join();
             }
             return trades;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -541,16 +541,16 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             Object orders = (this.watch(url, messageHash, request, subscribeHash, request)).join();
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            orders = this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), false);
+            orders = this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, false);
             Integer numOrders = Helpers.getArrayLength(orders);
             if ((numOrders != null && numOrders == 0))
             {
-                return (this.watchOrders(Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), parameters)).join();
+                return (this.watchOrders(Helpers.toStringArg(symbolResolved), since, limitResolved, parameters)).join();
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

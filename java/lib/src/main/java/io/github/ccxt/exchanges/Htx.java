@@ -4082,8 +4082,8 @@ public class Htx extends HtxApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             Long untilSeconds = (((!java.util.Objects.equals(until, null)))) ? this.parseToInt(Helpers.divide(until, 1000)) : null;
             Boolean isContract = (java.util.Objects.equals(market.get("contract"), true));
-            Object contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000; // only used for from/to calculation
-            Object rangeLimit = limit;
+            Long contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000L; // only used for from/to calculation
+            Long rangeLimit = limit;
             if (Boolean.TRUE.equals(isContract))
             {
                 rangeLimit = contractLimit;
@@ -4226,7 +4226,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(rangeLimit), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, rangeLimit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

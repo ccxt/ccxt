@@ -983,10 +983,10 @@ public class Independentreserve extends IndependentreserveApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long pageIndex = this.safeInteger(parameters, "pageIndex", 1);
-            Object limitResolved = java.util.Objects.requireNonNullElse(limit, 50L);
+            Long limitResolved = java.util.Objects.requireNonNullElse(limit, 50L);
             if (java.util.Objects.equals(limitResolved, null))
             {
-                limitResolved = 50;
+                limitResolved = 50L;
             }
             Map<String, Object> request = Helpers.newMap(
                 "pageIndex", pageIndex,
@@ -999,7 +999,7 @@ public class Independentreserve extends IndependentreserveApi
                 market = this.market(symbol);
             }
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

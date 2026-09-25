@@ -9501,7 +9501,7 @@ public class Bitget extends BitgetApi
             {
                 request.put("startTime", since);
             }
-            Object sinceDefault = null;
+            Long sinceDefault = null;
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -9584,7 +9584,7 @@ public class Bitget extends BitgetApi
                     response = (this.privateMixGetV2MixOrderOrdersPending(this.extend(request, paramsMarginMode))).join();
                 }
             }
-            Object sinceResolved = (((java.util.Objects.equals(sinceDefault, null)))) ? since : sinceDefault;
+            Long sinceResolved = (((java.util.Objects.equals(sinceDefault, null)))) ? since : sinceDefault;
             //
             // spot
             //
@@ -9848,20 +9848,20 @@ public class Bitget extends BitgetApi
                 {
                     result = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 }
-                return this.parseOrders(result, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+                return this.parseOrders(result, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
             } else if (java.util.Objects.equals(type, "spot"))
             {
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(trigger, true)))
                 {
                     List<Object> resultList = (List<Object>) this.safeList(data, "orderList", new ArrayList<Object>(Arrays.asList()));
-                    return this.parseOrders(resultList, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+                    return this.parseOrders(resultList, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
                 }
             } else
             {
                 List<Object> result = (List<Object>) this.safeList(data, "entrustedList", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(result, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+                return this.parseOrders(result, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
             }
-            return this.parseOrders(data, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -10030,7 +10030,7 @@ public class Bitget extends BitgetApi
             {
                 request.put("startTime", since);
             }
-            Object sinceDefault = null;
+            Long sinceDefault = null;
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -10106,7 +10106,7 @@ public class Bitget extends BitgetApi
                     response = (this.privateMixGetV2MixOrderOrdersHistory(this.extend(request, paramsUTA))).join();
                 }
             }
-            Object sinceResolved = (((java.util.Objects.equals(sinceDefault, null)))) ? since : sinceDefault;
+            Long sinceResolved = (((java.util.Objects.equals(sinceDefault, null)))) ? since : sinceDefault;
             //
             // spot
             //
@@ -10290,18 +10290,18 @@ public class Bitget extends BitgetApi
             {
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(trigger, true)))
                 {
-                    return this.parseOrders(this.safeList(data, "orderList", (Object) null), market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+                    return this.parseOrders(this.safeList(data, "orderList", (Object) null), market, sinceResolved, limit, new HashMap<String, Object>() {{}});
                 }
             } else
             {
-                return this.parseOrders(this.safeList(data, "entrustedList", (Object) null), market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+                return this.parseOrders(this.safeList(data, "entrustedList", (Object) null), market, sinceResolved, limit, new HashMap<String, Object>() {{}});
             }
             if ((response instanceof String))
             {
                 response = Helpers.parseJson(response);
             }
             List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

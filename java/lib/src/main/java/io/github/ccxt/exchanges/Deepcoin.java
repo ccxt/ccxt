@@ -871,7 +871,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxLimit = 300;
+            Long maxLimit = 300L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -880,7 +880,7 @@ public class Deepcoin extends DeepcoinApi
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "calculateUntil", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, maxLimit)).join();
             }
             Map<String, Object> market = this.market(symbol);
             String price = this.safeString(paramsPaginate, "price");
@@ -908,7 +908,7 @@ public class Deepcoin extends DeepcoinApi
                     // the exchange do not have a since param for this endpoint
                     // we calculate until (after) for correct pagination
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                    Object numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
+                    Long numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
                     Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));
                     if (!java.util.Objects.equals(until, null))
                     {
