@@ -218,8 +218,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             List<Object> channelparamsChannelVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
             String channel = (String) ((List<Object>) channelparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelparamsChannelVariable).get(1);
-            Integer interval = 500;
-            List<Object> intervalOptionparamsIntervalVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", Helpers.toLongOrNull(interval));
+            Long interval = 500L;
+            List<Object> intervalOptionparamsIntervalVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", interval);
             Long intervalOption = (Long) ((List<Object>) intervalOptionparamsIntervalVariable).get(0);
             Map<String, Object> paramsInterval = (Map<String, Object>) ((List<Object>) intervalOptionparamsIntervalVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))

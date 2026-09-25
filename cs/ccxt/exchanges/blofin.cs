@@ -1446,7 +1446,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(entry, market));
     }
 
-    public virtual object parseBalanceByType(object response)
+    public virtual object parseBalanceByType(IDictionary<string, object> response)
     {
         List<object> data = this.safeList(response, "data");
         if (((data != null)) && ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -1521,7 +1521,7 @@ public partial class blofin : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual object parseFundingBalance(object response)
+    public virtual object parseFundingBalance(IDictionary<string, object> response)
     {
         //
         //  {

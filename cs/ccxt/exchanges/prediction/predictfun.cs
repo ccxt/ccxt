@@ -1919,7 +1919,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {string} the JWT
      */
-    public async virtual Task<string?> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (((this.walletAddress == null)) || ((this.privateKey == null)))
@@ -1979,7 +1979,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {object} a dictionary with the order hash and the signature
      */
-    public virtual object signPredictfunOrder(object order, object isNegRisk, object isYieldBearing)
+    public virtual object signPredictfunOrder(IDictionary<string, object> order, object isNegRisk, object isYieldBearing)
     {
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
@@ -2662,7 +2662,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOrdersHelper(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrdersHelper(object outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
@@ -3028,7 +3028,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
      * @returns {object} the transaction receipt when buying, and the list of receipts when selling - a neg risk market needs two
      */
-    public async virtual Task<object> approve(object outcome = null, object parameters = null)
+    public async virtual Task<object> approve(object outcome = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.privateKey == null))
@@ -3280,7 +3280,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} message the raw rejection
      * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
      */
-    public virtual void handleSubscriptionError(WebSocketClient client, object message, object subscription)
+    public virtual void handleSubscriptionError(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         IDictionary<string, object> rawError = this.safeDict(message, "error", new Dictionary<string, object>() {});
         var error = new ExchangeError(((this.id + " subscribe request rejected ") + this.json(rawError)));
@@ -3320,7 +3320,7 @@ public partial class predictfun : PredictionExchange
      * @param {Client} client the websocket client
      * @param {object} subscription the subscription the acknowledged request id belongs to
      */
-    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
@@ -3886,7 +3886,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} event the raw event
      * @param {object} order the order the same event was parsed into
      */
-    public virtual void handleWalletEventTrade(WebSocketClient client, object eventVar, object order)
+    public virtual void handleWalletEventTrade(WebSocketClient client, IDictionary<string, object> eventVar, object order)
     {
         IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseWalletEventTrade(eventVar, order));
         if ((this.myTrades == null))
@@ -3912,7 +3912,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} details the event's details block
      * @returns {object} the outcome object, or a stub when the market is not cached
      */
-    public virtual object walletEventOutcome(object details)
+    public virtual object walletEventOutcome(IDictionary<string, object> details)
     {
         string? marketId = this.safeString(details, "marketId");
         Int64? outcomeIndex = this.safeInteger(details, "outcomeIndex");
@@ -3960,7 +3960,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} event the raw event
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public virtual object parseWalletEventOrder(object eventVar)
+    public virtual object parseWalletEventOrder(IDictionary<string, object> eventVar)
     {
         //
         //     {
@@ -4078,7 +4078,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} order the order the same event was parsed into
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public virtual object parseWalletEventTrade(object eventVar, object order)
+    public virtual object parseWalletEventTrade(IDictionary<string, object> eventVar, object order)
     {
         IDictionary<string, object> fill = this.safeDict(eventVar, "fill", new Dictionary<string, object>() {});
         // the fill is quoted in wei while the details block is quoted in units, so only these three

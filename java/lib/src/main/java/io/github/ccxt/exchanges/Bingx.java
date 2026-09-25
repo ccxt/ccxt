@@ -5757,13 +5757,13 @@ public class Bingx extends BingxApi
             {
                 request.put("toAccount", toId);
             }
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("fromAccount", "toAccount")));
             if (!java.util.Objects.equals(since, null))
@@ -7591,7 +7591,7 @@ public class Bingx extends BingxApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public void setSandboxMode(Object enable)

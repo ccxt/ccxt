@@ -207,7 +207,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return Helpers.getArrayLength(cache);
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(delta, "i", "u"));
         List<Object> obAsks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));

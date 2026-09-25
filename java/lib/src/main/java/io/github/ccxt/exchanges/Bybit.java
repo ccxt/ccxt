@@ -3880,10 +3880,10 @@ public class Bybit extends BybitApi
                 put( "symbol", market.get("id") );
             }};
             // default is 200 when requested with `since`
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (java.util.Objects.equals(limitResolved, null))
             {
-                limitResolved = 200;
+                limitResolved = 200L;
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3978,7 +3978,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> ohlcvs = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -4171,7 +4171,7 @@ public class Bybit extends BybitApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 200L, true)).join();
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
             Map<String, Object> request = Helpers.newMap(
                 "limit", limitResolved
             );
@@ -4245,7 +4245,7 @@ public class Bybit extends BybitApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbolValue, since, Helpers.toLongOrNull(limitResolved), false);
+            return this.filterBySymbolSinceLimit(sorted, symbolValue, since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }

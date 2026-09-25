@@ -3426,7 +3426,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4305,7 +4305,7 @@ public partial class mexc : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", data },             { "symbol", symbol },             { "maker", this.safeNumber(data, "makerCommission") },             { "taker", this.safeNumber(data, "takerCommission") },             { "percentage", null },             { "tierBased", null },         });
     }
 
-    public virtual object customParseBalance(object response, object marketType)
+    public virtual object customParseBalance(IDictionary<string, object> response, object marketType)
     {
         //
         // spot
@@ -4435,7 +4435,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public virtual object parseBalanceHelper(object entry)
+    public virtual object parseBalanceHelper(IDictionary<string, object> entry)
     {
         Dictionary<string, object> account = this.account();
         account["used"] = this.safeString(entry, "locked");

@@ -2249,7 +2249,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger2(response, "data", "ts"));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2375,7 +2375,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTradingLimits(this.safeDict(response, "data", new Dictionary<string, object>() {})));
     }
 
-    public virtual Dictionary<string, object> parseTradingLimits(object limits, string? symbol = null, object parameters = null)
+    public virtual Dictionary<string, object> parseTradingLimits(IDictionary<string, object> limits, string? symbol = null, IDictionary<string, object>? parameters = null)
     {
         //
         //   {                                "symbol": "aidocbtc",
@@ -4954,7 +4954,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual object parseMarginBalanceHelper(object balance, object code, object result)
+    public virtual object parseMarginBalanceHelper(object balance, object code, IDictionary<string, object> result)
     {
         object account = null;
         if (inOp(result, code))
@@ -7773,7 +7773,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
     }
 
-    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10536,7 +10536,7 @@ public partial class htx : Exchange
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

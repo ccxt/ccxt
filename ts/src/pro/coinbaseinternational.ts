@@ -710,7 +710,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             orderbook['symbol'] = symbol;
         } else {
             const changes = this.safeList (message, 'changes', []);
-            this.handleDeltas (orderbook, changes);
+            this.handleBookDeltas (orderbook, changes);
         }
         orderbook['nonce'] = this.safeInteger (message, 'sequence');
         orderbook['datetime'] = datetime;
@@ -721,7 +721,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         const rawSide = this.safeStringLower (delta, 0);
         let side: Str = 'asks';
         if (rawSide === 'buy') {
@@ -733,9 +733,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
+            this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 

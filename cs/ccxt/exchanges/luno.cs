@@ -1505,7 +1505,7 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
-    public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         // by default without entry number or limit number, return most recent entry
         parameters ??= new Dictionary<string, object>();

@@ -814,7 +814,7 @@ public partial class lighter : Exchange
         return true;
     }
 
-    public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? strAccountIndex = this.numberToString(accountIndex);
@@ -844,7 +844,7 @@ public partial class lighter : Exchange
         return response;
     }
 
-    public async virtual Task<object> changeApiKey(object parameters = null)
+    public async virtual Task<object> changeApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> apiKeyIndexparamsApiKeyIndexVariable = (IList<object>)this.handleApiKeyIndex(parameters, "changeApiKey", "apiKeyIndex", "api_key_index");

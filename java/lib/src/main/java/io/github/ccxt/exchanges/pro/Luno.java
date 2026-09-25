@@ -280,7 +280,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         } else
         {
             io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            this.handleDelta(ob, message);
+            this.handleBookDelta(ob, message);
             Helpers.addElementToObject(ob, "timestamp", timestamp);
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
@@ -328,7 +328,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         return result;
     }
 
-    public void handleDelta(Object orderbook, Object message)
+    public void handleBookDelta(Object orderbook, Object message)
     {
         //
         //  create

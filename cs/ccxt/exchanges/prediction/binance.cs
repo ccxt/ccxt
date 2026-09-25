@@ -1816,7 +1816,7 @@ public partial class binance : PredictionExchange
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    public async virtual Task<Dictionary<string, object>> FetchQuote(object request, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchQuote(IDictionary<string, object> request, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.sapiPrivatePostTradeGetQuote(this.extend(request, parameters));

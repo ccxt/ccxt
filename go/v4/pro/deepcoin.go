@@ -1024,12 +1024,12 @@ func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook 
 	var currentTimestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 	if (currentTimestamp != nil) && (timestamp != nil && *timestamp > *currentTimestamp) {
 		var response []any = ccxt.SafeListTypedDefault(message, "r", []any{})
-		this.HandleDeltas(orderbook, response)
+		this.HandleBookDeltas(orderbook, response)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 }
-func (this *Deepcoin) HandleDelta(orderbook any, entry any) {
+func (this *Deepcoin) HandleBookDelta(orderbook any, entry any) {
 	var data map[string]any = ccxt.SafeMapTyped(entry, "d")
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")

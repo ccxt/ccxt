@@ -1869,7 +1869,7 @@ public class Delta extends DeltaApi
                 put( "resolution", Delta.this.safeString(Delta.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object limitValue = 2000;
+            Long limitValue = 2000L;
             if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0))
             {
                 limitValue = limit; // max 2000
@@ -1919,7 +1919,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitValue), false);
+            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitValue, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

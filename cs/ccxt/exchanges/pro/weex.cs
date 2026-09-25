@@ -87,7 +87,7 @@ public partial class weex : ccxt.weex
         return this.numberToString(requestId);
     }
 
-    public async virtual Task<object> subscribePublic(object messageHashes, object channels, object isContract = null, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublic(object messageHashes, object channels, object isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -116,7 +116,7 @@ public partial class weex : ccxt.weex
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string? channel, object isContract = null, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string? channel, object isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -354,7 +354,7 @@ public partial class weex : ccxt.weex
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1396,7 +1396,7 @@ public partial class weex : ccxt.weex
         client.resolve(trades, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(object trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -2146,7 +2146,7 @@ public partial class weex : ccxt.weex
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         // same as REST api
         return this.parsePosition(position, market);

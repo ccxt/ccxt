@@ -88,7 +88,7 @@ public partial class kucoin : ccxt.kucoin
         });
     }
 
-    public async virtual Task<object> negotiate(object privateChannel, object isFuturesMethod = null, object parameters = null)
+    public async virtual Task<object> negotiate(object privateChannel, object isFuturesMethod = null, IDictionary<string, object>? parameters = null)
     {
         isFuturesMethod ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -116,7 +116,7 @@ public partial class kucoin : ccxt.kucoin
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> negotiateHelper(object privateChannel, object connectId, object parameters = null)
+    public async virtual Task<object> negotiateHelper(object privateChannel, object connectId, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = null;
@@ -224,7 +224,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivateUta(IList<object> messageHashes, object subscribeHash, object channel, object symbol = null, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePrivateUta(IList<object> messageHashes, object subscribeHash, object channel, object symbol = null, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -545,7 +545,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> subscribePublicMultipleUta(IList<object> messageHashes, object channel, IList<object> symbols, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublicMultipleUta(IList<object> messageHashes, object channel, IList<object> symbols, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -581,7 +581,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
 
-    public async virtual Task<ccxt.Tickers> WatchUtaTickers(IList<object> symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchUtaTickers(IList<object> symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1903,7 +1903,7 @@ public partial class kucoin : ccxt.kucoin
                 return;
             }
         }
-        this.handleDelta(this.getOrderBook(this.orderbooks, symbol), data);
+        this.handleBookDelta(this.getOrderBook(this.orderbooks, symbol), data);
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
@@ -1969,7 +1969,7 @@ public partial class kucoin : ccxt.kucoin
                 return;
             }
         }
-        this.handleDelta(this.getOrderBook(this.orderbooks, symbol), data);
+        this.handleBookDelta(this.getOrderBook(this.orderbooks, symbol), data);
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
@@ -2003,7 +2003,7 @@ public partial class kucoin : ccxt.kucoin
         return getArrayLength(cache);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if ((timestamp == null))

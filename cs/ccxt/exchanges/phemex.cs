@@ -2358,7 +2358,7 @@ public partial class phemex : Exchange
         }, marketResolved);
     }
 
-    public virtual object parseSpotBalance(object response)
+    public virtual object parseSpotBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -2415,7 +2415,7 @@ public partial class phemex : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual object parseSwapBalance(object response)
+    public virtual object parseSwapBalance(IDictionary<string, object> response)
     {
         // usdt
         //   {

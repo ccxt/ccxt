@@ -867,7 +867,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} [params.rpcUrl] overrides the chain's default RPC endpoint (see options.chains)
      * @returns {object} a dict with the raw response and the transfer sessionId
      */
-    public async virtual Task<object> approve(object parameters = null)
+    public async virtual Task<object> approve(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1207,7 +1207,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} response the raw DELETE /orders-v3 response
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public virtual object parseSxbetCancelResponse(object response)
+    public virtual object parseSxbetCancelResponse(IDictionary<string, object> response)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> result = new List<object>() {};
@@ -2107,7 +2107,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} snapshot the raw snapshot data
      * @returns {object} the best-odds shaped dict
      */
-    public virtual object parseSxbetSnapshotBestOdds(object snapshot)
+    public virtual object parseSxbetSnapshotBestOdds(IDictionary<string, object> snapshot)
     {
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
         List<object> oneLevels = this.safeList(snapshot, "outcomeOne", new List<object>() {});
@@ -2207,7 +2207,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} rowsByHash best-odds rows indexed by market hash
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public virtual object parseSxbetTickersByHash(object outcomesList, object rowsByHash)
+    public virtual object parseSxbetTickersByHash(object outcomesList, IDictionary<string, object> rowsByHash)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         int outcomesLength = getArrayLength(outcomesList);

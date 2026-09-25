@@ -689,7 +689,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTradingLimits(this.safeDict(response, "data", new Dictionary<string, object>() {})));
     }
 
-    public virtual Dictionary<string, object> parseTradingLimits(object limits, string? symbol = null, object parameters = null)
+    public virtual Dictionary<string, object> parseTradingLimits(IDictionary<string, object> limits, string? symbol = null, IDictionary<string, object>? parameters = null)
     {
         //
         //   {                                  symbol: "aidocbtc",

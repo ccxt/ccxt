@@ -2693,7 +2693,7 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchTopics(object url, object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object topics, object parameters = null, object subExtension = null)
+    public async virtual Task<object> unWatchTopics(object url, object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object topics, object parameters = null, IDictionary<string, object>? subExtension = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtension ??= new Dictionary<string, object>();
@@ -2714,7 +2714,7 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension));
     }
 
-    public async virtual Task<object> authenticate(string? url, object parameters = null)
+    public async virtual Task<object> authenticate(string? url, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

@@ -195,11 +195,11 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        this.handleDelta(storedOrderBook, delta);
+        this.handleBookDelta(storedOrderBook, delta);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeTimestamp(delta, "timestamp");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -649,7 +649,7 @@ public partial class bitstamp : ccxt.bitstamp
         client.resolve(stored, channel);
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(object trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1092,7 +1092,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1155,7 +1155,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public async virtual Task<object> subscribePrivate(object subscription, object messageHash, object parameters = null)
+    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -1173,7 +1173,7 @@ public partial class bitstamp : ccxt.bitstamp
                 { "auth", (this.options.ContainsKey("wsSessionToken") ? this.options["wsSessionToken"] : null) },
             } },
         };
-        ((IDictionary<string,object>)subscription)["messageHash"] = messageHashValue;
+        subscription["messageHash"] = messageHashValue;
         return await this.watch(url, messageHashValue, this.extend(request, parameters), messageHashValue, subscription);
     }
 }

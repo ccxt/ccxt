@@ -549,7 +549,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Helpers.addElementToObject(this.orderbooks, legacySymbol, ob);
             }
             io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(legacySymbol);
-            this.handleDeltas(legacyOrderbook, list);
+            this.handleBookDeltas(legacyOrderbook, list);
             Helpers.addElementToObject(legacyOrderbook, "timestamp", legacyTimestamp);
             Helpers.addElementToObject(legacyOrderbook, "datetime", this.iso8601(legacyTimestamp));
             String legacyMessageHash = (("orderbook" + ":") + legacySymbol);
@@ -607,7 +607,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         //
         //    {
@@ -629,11 +629,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
     }
 
-    public void handleDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(Object orderbook, Object deltas)
     {
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
     }
 

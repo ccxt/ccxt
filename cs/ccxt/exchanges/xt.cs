@@ -5936,7 +5936,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         object symbol = ((market != null)) ? (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) : null;
         return new Dictionary<string, object>() {
@@ -6082,7 +6082,7 @@ public partial class xt : Exchange
      * @param {object} entry a single entry from a position/list response
      * @param {object} breakBySymbolSide the result of indexPositionBreakList()
      */
-    public virtual object mergePositionBreakInfo(object entry, object breakBySymbolSide)
+    public virtual object mergePositionBreakInfo(object entry, IDictionary<string, object> breakBySymbolSide)
     {
         object marketId = this.safeString(entry, "symbol");
         string? key = ((string)add(add(marketId, "_"), this.safeString(entry, "positionSide")));

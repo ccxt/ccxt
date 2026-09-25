@@ -242,7 +242,7 @@ class luno extends \ccxt\async\luno {
             $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
         } else {
             $ob = $this->orderbooks[$symbol];
-            $this->handle_delta($ob, $message);
+            $this->handle_book_delta($ob, $message);
             $ob['timestamp'] = $timestamp;
             $ob['datetime'] = $this->iso8601($timestamp);
         }
@@ -285,7 +285,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function handle_delta(mixed $orderbook, mixed $message) {
+    public function handle_book_delta(mixed $orderbook, mixed $message) {
         //
         //  create
         //     {

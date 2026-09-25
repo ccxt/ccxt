@@ -854,7 +854,7 @@ public class Indodax extends IndodaxApi
                 put( "tf", selectedTimeframe );
                 put( "symbol", market.get("id") );
             }};
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000)))))));
@@ -876,7 +876,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

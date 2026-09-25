@@ -3163,19 +3163,19 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual Dictionary<string, object> signParams(object parameters = null)
+    public virtual Dictionary<string, object> signParams(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if ((defaultRecvWindow != null))
         {
-            ((IDictionary<string,object>)parameters)["recvWindow"] = defaultRecvWindow;
+            parameters["recvWindow"] = defaultRecvWindow;
         }
         Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
         if ((recvWindow != null))
         {
-            ((IDictionary<string,object>)parameters)["recvWindow"] = recvWindow;
+            parameters["recvWindow"] = recvWindow;
         }
         Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
             { "timestamp", this.nonce() },
@@ -3294,7 +3294,7 @@ public partial class binance : ccxt.binance
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, object parameters = null)
+    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, IDictionary<string, object>? parameters = null)
     {
         string? marketTypeVar = marketType;
         marketTypeVar ??= "margin";
@@ -3395,7 +3395,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task renewListenToken(object parameters = null)
+    public async virtual Task renewListenToken(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "margin");
@@ -3419,7 +3419,7 @@ public partial class binance : ccxt.binance
         await this.ensureUserDataStreamWsSubscribeListenToken(type, renewParams);
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
@@ -3550,7 +3550,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         parameters ??= new Dictionary<string, object>();

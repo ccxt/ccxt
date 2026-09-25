@@ -842,10 +842,10 @@ class backpack(ccxt.async_support.backpack):
             return
         elif (deltaNonce is not None) and (nonce > deltaNonce):
             return
-        self.handle_delta(storedOrderBook, data)
+        self.handle_book_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)

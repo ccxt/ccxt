@@ -404,7 +404,7 @@ public partial class bittrade : ccxt.bittrade
         client.resolve(orderbook, messageHash);
     }
 
-    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? messageHash = this.safeString(subscription, "messageHash");
         try

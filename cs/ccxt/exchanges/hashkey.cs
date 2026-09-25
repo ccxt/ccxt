@@ -2014,7 +2014,7 @@ public partial class hashkey : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual object parseSwapBalance(object balance)
+    public virtual object parseSwapBalance(IDictionary<string, object> balance)
     {
         //
         //     {
@@ -2828,7 +2828,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3410,7 +3410,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.accountId] account id to fetch the orders from
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOpenSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOpenSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3464,7 +3464,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.accountId] account id to fetch the orders from
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOpenSwapOrders(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOpenSwapOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchOpenSwapOrders";
@@ -4713,7 +4713,7 @@ public partial class hashkey : Exchange
         };
     }
 
-    public virtual string? customUrlencode(object parameters = null)
+    public virtual string? customUrlencode(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string result = this.urlencode(parameters);

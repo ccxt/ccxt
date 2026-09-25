@@ -964,11 +964,11 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(fees, true));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(object response, object useKeyAsId = null)
+    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response, object useKeyAsId = null)
     {
         useKeyAsId ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -1274,7 +1274,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1298,7 +1298,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchClosedOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchClosedOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

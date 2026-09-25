@@ -249,8 +249,8 @@ impl KucoinCore {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_asks" => { self.handle_bid_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_contract_ticker" => { self.handle_contract_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -2432,7 +2432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return;
             }
         }
-        self.handle_delta(get_value(&self.orderbooks, &symbol), data);
+        self.handle_book_delta(get_value(&self.orderbooks, &symbol), data);
         client.resolve(&[get_value(&self.orderbooks, &symbol), messageHash]);
 }
 
@@ -2501,7 +2501,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return;
             }
         }
-        self.handle_delta(get_value(&self.orderbooks, &symbol), data);
+        self.handle_book_delta(get_value(&self.orderbooks, &symbol), data);
         client.resolve(&[get_value(&self.orderbooks, &symbol), messageHash]);
 }
 
@@ -2535,7 +2535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut timestamp: Value = self.safe_integer_product_k(delta.clone(), "M", Value::Float(0.000001), &[]);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer2(delta.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]);

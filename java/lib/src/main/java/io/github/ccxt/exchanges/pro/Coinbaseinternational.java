@@ -845,7 +845,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         } else
         {
             List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(orderbook, changes);
+            this.handleBookDeltas(orderbook, changes);
         }
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "sequence"));
         Helpers.addElementToObject(orderbook, "datetime", datetime);
@@ -857,7 +857,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         String rawSide = this.safeStringLower(delta, 0);
         String side = "asks";
@@ -871,11 +871,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
-    public void handleDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(Object orderbook, Object deltas)
     {
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
     }
 

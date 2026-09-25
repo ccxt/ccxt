@@ -2663,13 +2663,13 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Integer maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100 : 500;
+            Long maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100L : 500L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3769,7 +3769,7 @@ public class Modetrade extends ModetradeApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)

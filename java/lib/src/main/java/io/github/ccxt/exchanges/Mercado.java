@@ -1086,7 +1086,7 @@ public class Mercado extends MercadoApi
                 put( "symbol", ((market.get("base") + "-") + market.get("quote")) );
             }};
             // set some default limit, as it's required if user doesn't provide it
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
@@ -1100,7 +1100,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
             // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
-            return this.parseTradingViewOHLCV(response, market, java.util.Objects.requireNonNullElse(timeframe, "15m"), since, Helpers.toLongOrNull(limitResolved));
+            return this.parseTradingViewOHLCV(response, market, java.util.Objects.requireNonNullElse(timeframe, "15m"), since, limitResolved);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1231,7 +1231,7 @@ public class Mercado extends MercadoApi
     public Long nonce()
     {
         // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

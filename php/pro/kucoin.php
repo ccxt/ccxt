@@ -1825,7 +1825,7 @@ class kucoin extends \ccxt\async\kucoin {
                 return;
             }
         }
-        $this->handle_delta($this->orderbooks[$symbol], $data);
+        $this->handle_book_delta($this->orderbooks[$symbol], $data);
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
 
@@ -1884,7 +1884,7 @@ class kucoin extends \ccxt\async\kucoin {
                 return;
             }
         }
-        $this->handle_delta($this->orderbooks[$symbol], $data);
+        $this->handle_book_delta($this->orderbooks[$symbol], $data);
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
 
@@ -1912,7 +1912,7 @@ class kucoin extends \ccxt\async\kucoin {
         return count($cache);
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->safe_integer_product($delta, 'M', 0.000001);
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_2($delta, 'time', 'timestamp');
