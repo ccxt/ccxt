@@ -548,7 +548,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($newTickers, 'tickers');
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -1344,7 +1344,7 @@ class toobit extends \ccxt\async\toobit {
         $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
     }
 
-    public function get_user_stream_url() {
+    public function get_user_stream_url(): string {
         return $this->urls['api']['ws']['common'] . '/api/v1/ws/' . $this->options['ws']['listenKey'];
     }
 

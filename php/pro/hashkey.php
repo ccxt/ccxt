@@ -81,7 +81,7 @@ class hashkey extends \ccxt\async\hashkey {
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }
 
-    public function get_private_url(mixed $listenKey) {
+    public function get_private_url(mixed $listenKey): string {
         return $this->urls['api']['ws']['private'] . '/' . $listenKey;
     }
 
@@ -728,7 +728,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve($parsed, $messageHash . ':' . $symbol);
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null): array {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 's');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($position, 'E');

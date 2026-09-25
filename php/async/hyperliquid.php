@@ -1982,7 +1982,7 @@ class hyperliquid extends Exchange {
         return Async\await($this->privatePostExchange($request));
     }
 
-    public function initialize_client() {
+    public function initialize_client(): PromiseInterface {
         return Async\async(self::do_initialize_client(...))();
     }
 
@@ -1995,7 +1995,7 @@ class hyperliquid extends Exchange {
         return true;
     }
 
-    public function handle_builder_fee_approval() {
+    public function handle_builder_fee_approval(): PromiseInterface {
         return Async\async(self::do_handle_builder_fee_approval(...))();
     }
 

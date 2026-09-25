@@ -1189,7 +1189,7 @@ class gate extends \ccxt\async\gate {
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+            $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -2315,7 +2315,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function get_type_by_market(array $market) {
+    public function get_type_by_market(array $market): ?string {
         if ($market === null) {
             return null;
         }
@@ -2338,7 +2338,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function get_market_type_by_url(string $url) {
+    public function get_market_type_by_url(string $url): string {
         $findBy = array(
             'op-' => 'option',
             'delivery' => 'future',

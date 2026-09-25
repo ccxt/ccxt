@@ -3159,7 +3159,7 @@ class htx extends Exchange {
         //
         $typeId = $this->safe_string($account, 'type');
         $accountsById = $this->safe_dict($this->options, 'accountsById', array());
-        $type = $this->safe_value($accountsById, $typeId, $typeId);
+        $type = $this->safe_string($accountsById, $typeId, $typeId);
         return array(
             'info' => $account,
             'id' => $this->safe_string($account, 'id'),
@@ -3354,7 +3354,7 @@ class htx extends Exchange {
         if ($keysLength === 0) {
             throw new ExchangeError($this->id . ' networkIdToCode() - markets need to be loaded at first');
         }
-        $networkTitle = $this->safe_value($this->options['networkNamesByChainIds'], $networkId, $networkId);
+        $networkTitle = $this->safe_string($this->options['networkNamesByChainIds'], $networkId, $networkId);
         return parent::network_id_to_code($networkTitle, $currencyCode);
     }
 
@@ -3375,7 +3375,7 @@ class htx extends Exchange {
             return $uniqueNetworkIds[$networkCode];
         } else {
             $networkTitle = parent::network_code_to_id($networkCode, $currencyCode);
-            return $this->safe_value($uniqueNetworkIds, $networkTitle, $networkTitle);
+            return $this->safe_string($uniqueNetworkIds, $networkTitle, $networkTitle);
         }
     }
 
@@ -6120,7 +6120,7 @@ class htx extends Exchange {
         return $this->parse_cancel_orders($data);
     }
 
-    public function parse_cancel_orders(mixed $orders) {
+    public function parse_cancel_orders(?array $orders) {
         //
         //    {
         //        "success": [

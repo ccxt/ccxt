@@ -371,7 +371,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -2100,7 +2100,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function authenticate(?string $subscriptionHash, $params = array()) {
+    public function authenticate(?string $subscriptionHash, $params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($subscriptionHash, $params);
     }
 

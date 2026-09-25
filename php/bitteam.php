@@ -1398,7 +1398,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_value_to_pricision(array $valueObject, string $valueKey, mixed $preciseObject, string $precisionKey) {
+    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey) {
         $valueRawString = $this->safe_string($valueObject, $valueKey);
         $precisionRawString = $this->safe_string($preciseObject, $precisionKey);
         if ($valueRawString === null || $precisionRawString === null) {

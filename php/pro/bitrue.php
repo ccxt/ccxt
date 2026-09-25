@@ -889,7 +889,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 

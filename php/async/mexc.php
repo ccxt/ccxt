@@ -2566,7 +2566,7 @@ class mexc extends Exchange {
         return $order;
     }
 
-    public function create_swap_order(mixed $market, mixed $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_swap_order(mixed $market, mixed $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_swap_order(...))($market, $type, $side, $amount, $price, $marginMode, $params);
     }
 

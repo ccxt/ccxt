@@ -2012,7 +2012,7 @@ class deribit extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $priceString,
-            'triggerPrice' => $this->safe_value($order, 'stop_price'),
+            'triggerPrice' => $this->safe_number($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $averageString,

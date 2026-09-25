@@ -1044,7 +1044,7 @@ class onetrading extends \ccxt\async\onetrading {
         // update balance
         $balanceKeys = array( 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' );
         for ($i = 0; $i < count($balanceKeys); $i++) {
-            $newBalance = $this->safe_value($update, $balanceKeys[$i]);
+            $newBalance = $this->safe_dict($update, $balanceKeys[$i]);
             if ($newBalance !== null) {
                 $this->update_balance($newBalance);
             }

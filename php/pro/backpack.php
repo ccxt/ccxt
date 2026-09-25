@@ -1224,7 +1224,7 @@ class backpack extends \ccxt\async\backpack {
         ), $market);
     }
 
-    public function parse_ws_order_status(?string $status, ?array $market = null) {
+    public function parse_ws_order_status(?string $status, ?array $market = null): ?string {
         $statuses = array(
             'New' => 'open',
             'Filled' => 'closed',
@@ -1237,7 +1237,7 @@ class backpack extends \ccxt\async\backpack {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_side(?string $side) {
+    public function parse_ws_order_side(?string $side): ?string {
         $sides = array(
             'Bid' => 'buy',
             'Ask' => 'sell',

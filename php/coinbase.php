@@ -2969,7 +2969,7 @@ class coinbase extends Exchange {
         ), $currency);
     }
 
-    public function find_account_id(?string $code, $params = array()) {
+    public function find_account_id(?string $code, $params = array()): ?string {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5491,7 +5491,7 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $advancedTrade = $this->options['advanced'];
+        $advancedTrade = $this->safe_bool($this->options, 'advanced');
         if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && ($advancedTrade !== true)) {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }

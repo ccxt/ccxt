@@ -801,7 +801,7 @@ class weex extends \ccxt\async\weex {
         $firstEntry = $this->safe_dict($data, 0, array());
         $interval = $this->safe_string($firstEntry, 'i');
         $timeframe = $this->find_timeframe($interval);
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);

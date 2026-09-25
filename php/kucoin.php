@@ -2206,7 +2206,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function load_migration_status(bool $force = false) {
+    public function load_migration_status(bool $force = false): bool {
         /**
          * @param {boolean} $force load account state for non hf
          * loads the migration status for the account (hf or not)
@@ -6846,7 +6846,7 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->options['fetchMyTradesMethod'];
+        $method = $this->safe_string($this->options, 'fetchMyTradesMethod');
         $parseResponseData = false;
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);

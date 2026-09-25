@@ -3689,7 +3689,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(array $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $this->safe_dict($contracts, $i);

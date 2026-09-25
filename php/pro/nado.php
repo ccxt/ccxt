@@ -1338,7 +1338,7 @@ class nado extends \ccxt\async\nado {
         return Async\await($this->watch($url, $unsubscribeHash, $request, $unsubscribeHash, $subscription));
     }
 
-    public function un_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null) {
+    public function un_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null): PromiseInterface {
         $url = $this->urls['api']['ws']['subscriptions'];
         $client = $this->client($url);
         $results = array();

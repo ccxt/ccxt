@@ -1901,7 +1901,7 @@ class hyperliquid extends Exchange {
         return $this->privatePostExchange($request);
     }
 
-    public function initialize_client() {
+    public function initialize_client(): bool {
         try {
             array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (Exception $e) {
@@ -1910,7 +1910,7 @@ class hyperliquid extends Exchange {
         return true;
     }
 
-    public function handle_builder_fee_approval() {
+    public function handle_builder_fee_approval(): bool {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
         if ($approvedBuilderFee === true) {

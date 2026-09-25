@@ -1326,7 +1326,7 @@ class lbank extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         // from spotPrivatePostUserInfo
         $toBtc = $this->safe_value($data, 'toBtc');
         if ($toBtc !== null) {

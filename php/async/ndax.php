@@ -1386,7 +1386,7 @@ class ndax extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'Trade' => 'trade',
             'Deposit' => 'transaction',

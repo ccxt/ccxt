@@ -70,7 +70,7 @@ class xt extends \ccxt\async\xt {
         ));
     }
 
-    public function get_listen_key(bool $isContract) {
+    public function get_listen_key(bool $isContract): PromiseInterface {
         return Async\async(self::do_get_listen_key(...))($isContract);
     }
 
@@ -798,7 +798,7 @@ class xt extends \ccxt\async\xt {
         return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchFundingRate', 'fund_rate', $market, null, $params));
     }
 
-    public function handle_funding_rate(Client $client, array $message) {
+    public function handle_funding_rate(Client $client, array $message): array {
         //
         //     {
         //         "topic": "fund_rate",
@@ -867,7 +867,7 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function handle_position(mixed $client, array $message) {
+    public function handle_position(Client $client, array $message) {
         //
         //    {
         //      topic: 'position',
@@ -919,7 +919,7 @@ class xt extends \ccxt\async\xt {
         $client->resolve(array( $position ), 'position::contract');
     }
 
-    public function handle_ticker(Client $client, array $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         // spot
         //
@@ -1001,7 +1001,7 @@ class xt extends \ccxt\async\xt {
         return $message;
     }
 
-    public function handle_tickers(Client $client, array $message) {
+    public function handle_tickers(Client $client, array $message): array {
         //
         // spot
         //
@@ -1104,7 +1104,7 @@ class xt extends \ccxt\async\xt {
         return $message;
     }
 
-    public function handle_ohlcv(Client $client, array $message) {
+    public function handle_ohlcv(Client $client, array $message): array {
         //
         // spot
         //
@@ -1168,7 +1168,7 @@ class xt extends \ccxt\async\xt {
         return $message;
     }
 
-    public function handle_trade(Client $client, array $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         // spot
         //
@@ -1483,7 +1483,7 @@ class xt extends \ccxt\async\xt {
         ), $market);
     }
 
-    public function handle_order(Client $client, array $message) {
+    public function handle_order(Client $client, array $message): array {
         //
         // spot
         //

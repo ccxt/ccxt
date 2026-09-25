@@ -868,7 +868,7 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength) {
+    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
         if ($ids === null) {
             return array();
         }

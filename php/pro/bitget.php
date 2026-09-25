@@ -722,7 +722,7 @@ class bitget extends \ccxt\async\bitget {
         if ($timeframe === null) {
             return;
         }
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);

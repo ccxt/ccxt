@@ -387,7 +387,7 @@ class bittrade extends \ccxt\async\bittrade {
         try {
             $symbol = $this->safe_string($subscription, 'symbol');
             $limit = $this->safe_integer($subscription, 'limit');
-            $params = $this->safe_value($subscription, 'params');
+            $params = $this->safe_dict($subscription, 'params');
             $api = $this->safe_string($this->options, 'api', 'api');
             $hostname = array( 'hostname' => $this->hostname );
             $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);

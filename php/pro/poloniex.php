@@ -696,7 +696,7 @@ class poloniex extends \ccxt\async\poloniex {
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $stored = ($timeframe === null) ? null : $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = ($timeframe === null) ? null : $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);

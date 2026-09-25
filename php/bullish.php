@@ -2495,7 +2495,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function parse_balance_for_single_currency(mixed $response, ?string $code): array {
+    public function parse_balance_for_single_currency(array $response, ?string $code): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'availableQuantity');

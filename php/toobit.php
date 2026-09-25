@@ -1520,7 +1520,7 @@ class toobit extends Exchange {
         return $this->parse_bids_asks_custom($response, $symbols);
     }
 
-    public function parse_bids_asks_custom(mixed $tickers, ?array $symbols = null, $params = array()): array {
+    public function parse_bids_asks_custom(array $tickers, ?array $symbols = null, $params = array()): array {
         $results = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $parsedTicker = $this->parse_bid_ask_custom($tickers[$i]);

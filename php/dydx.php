@@ -1226,7 +1226,7 @@ class dydx extends Exchange {
 
     public function sign_onboarding_action(): array {
         $message = array( 'action' => 'dYdX Chain Onboarding' );
-        $chainId = $this->options['chainId'];
+        $chainId = $this->safe_integer($this->options, 'chainId');
         $domain = array(
             'chainId' => $chainId,
             'name' => 'dYdX Chain',
@@ -1267,7 +1267,7 @@ class dydx extends Exchange {
         return $credentials;
     }
 
-    public function fetch_dydx_account() {
+    public function fetch_dydx_account(): array {
         // required in js
         $this->load_dydx_protos();
         $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
@@ -1522,7 +1522,7 @@ class dydx extends Exchange {
         $orderRequestRes = $this->create_order_request($symbol, $type, $side, $amount, $price, $newParams);
         $orderId = $orderRequestRes[0];
         $orderRequest = $orderRequestRes[1];
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $orderRequest, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
@@ -1629,7 +1629,7 @@ class dydx extends Exchange {
             'typeUrl' => '/dydxprotocol.clob.MsgCancelOrder',
             'value' => $cancelPayload,
         );
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
@@ -1699,7 +1699,7 @@ class dydx extends Exchange {
             'typeUrl' => '/dydxprotocol.clob.MsgBatchCancel',
             'value' => $cancelPayload,
         );
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
@@ -1853,7 +1853,7 @@ class dydx extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): mixed {
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): array {
         $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
         $request = array(
             'txBytes' => $txBytes,
@@ -1978,7 +1978,7 @@ class dydx extends Exchange {
             );
         }
         $txFee = $this->estimate_tx_fee($signingPayload, '', $account);
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null, $txFee);
         $request = array(
             'tx' => $signedTx,
@@ -2165,7 +2165,7 @@ class dydx extends Exchange {
             'value' => $payload,
         );
         $txFee = $this->estimate_tx_fee($signingPayload, $tag, $account);
-        $chainName = $this->options['chainName'];
+        $chainName = $this->safe_string($this->options, 'chainName');
         $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, $tag, $chainName, $account, null, $txFee);
         $request = array(
             'tx' => $signedTx,

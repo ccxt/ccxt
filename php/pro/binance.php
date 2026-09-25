@@ -298,7 +298,7 @@ class binance extends \ccxt\async\binance {
         return 'market';
     }
 
-    public function get_private_ws_url(?string $type, ?string $listenKey) {
+    public function get_private_ws_url(?string $type, ?string $listenKey): string {
         if ($type === 'future') {
             return $this->get_ws_url($type, 'private') . '?$listenKey=' . $listenKey;
         }
@@ -502,7 +502,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve(array( $liquidation ), 'liquidations::' . $symbol);
     }
 
-    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(array $liquidation, ?array $market = null) {
         //
         // future
         //    {
@@ -657,7 +657,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit);
     }
 
-    public function handle_my_liquidation(Client $client, mixed $message) {
+    public function handle_my_liquidation(Client $client, array $message) {
         //
         //    {
         //        "s":"BTCUSDT",              // Symbol
@@ -1221,7 +1221,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "result": null,
@@ -2609,7 +2609,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function parse_ws_ticker(mixed $message, mixed $marketType) {
+    public function parse_ws_ticker(mixed $message, mixed $marketType): array {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2984,7 +2984,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_user_data_stream_subscribe(Client $client, mixed $message) {
+    public function handle_user_data_stream_subscribe(Client $client, array $message) {
         //
         //   {
         //     "id": 1,
@@ -3849,7 +3849,7 @@ class binance extends \ccxt\async\binance {
         return array( $type, $subType, $params );
     }
 
-    public function get_market_type(mixed $method, mixed $market, $params = array()) {
+    public function get_market_type(mixed $method, mixed $market, $params = array()): string {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -5337,7 +5337,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($newPositions, $accountType . ':positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(?array $position, ?array $market = null) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -5766,7 +5766,7 @@ class binance extends \ccxt\async\binance {
                 if ($fee !== null) {
                     $parsed['fee'] = $fee;
                 }
-                $fees = $this->safe_value($order, 'fees');
+                $fees = $this->safe_list($order, 'fees');
                 if ($fees !== null) {
                     $parsed['fees'] = $fees;
                 }
@@ -5790,7 +5790,7 @@ class binance extends \ccxt\async\binance {
         $this->handle_positions($client, $message);
     }
 
-    public function handle_options_account_update(Client $client, mixed $message) {
+    public function handle_options_account_update(Client $client, array $message) {
         //
         // BALANCE_POSITION_UPDATE (options user data stream)
         //
@@ -5866,7 +5866,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($newPositions, $accountType . ':positions');
     }
 
-    public function handle_ws_error(Client $client, mixed $message) {
+    public function handle_ws_error(Client $client, array $message) {
         //
         //    {
         //        "error": {
@@ -5912,7 +5912,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_event_stream_terminated(Client $client, mixed $message) {
+    public function handle_event_stream_terminated(Client $client, array $message) {
         //
         //    {
         //        e: 'eventStreamTerminated',

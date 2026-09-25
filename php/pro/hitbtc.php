@@ -478,7 +478,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
@@ -848,7 +848,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+            $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -1358,7 +1358,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $messageHash = $this->safe_string($message, 'method');
-        $params = $this->safe_value($message, 'params');
+        $params = $this->safe_list($message, 'params');
         $balance = $this->parse_balance($params);
         $this->balance = $this->deep_extend($this->balance, $balance);
         $client->resolve($this->balance, $messageHash);

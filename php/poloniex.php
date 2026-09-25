@@ -2800,7 +2800,7 @@ class poloniex extends Exchange {
         return array( $request, $params, $currency, $networkEntry );
     }
 
-    public function parse_deposit_address_special(mixed $response, mixed $currency, mixed $networkEntry): array {
+    public function parse_deposit_address_special(array $response, mixed $currency, array $networkEntry): array {
         $address = $this->safe_string($response, 'address');
         if ($address === null) {
             $address = $this->safe_string($response, $networkEntry['id']);

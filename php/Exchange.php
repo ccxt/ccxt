@@ -8989,7 +8989,7 @@ class BaseExchange {
         return $newDict;
     }
 
-    public function handle_until_option(string $key, array $request, array $params, $multiplier = 1) {
+    public function handle_until_option(string $key, array $request, array $params, float $multiplier = 1) {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->parse_to_int($until * $multiplier);
