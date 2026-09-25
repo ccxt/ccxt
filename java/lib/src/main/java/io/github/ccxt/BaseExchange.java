@@ -7341,10 +7341,10 @@ public Object describe()
             }
         }
         Object result = new ArrayList<Object>(Arrays.asList());
-        Object feeValues = Helpers.objectValues(reduced);
+        Object feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < ((List<?>)feeValues).size(); i++)
         {
-            Object reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
+            Object reducedFeeValues = new ArrayList<Object>(((Map<String, Object>)(feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i))).values());
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -12257,7 +12257,7 @@ public Object describe()
                 ((Map<String, Object>)uniqueResult).put((String)id, entry);
             }
         }
-        Object values = Helpers.objectValues(uniqueResult);
+        Object values = new ArrayList<Object>(uniqueResult.values());
         return values;
     }
 

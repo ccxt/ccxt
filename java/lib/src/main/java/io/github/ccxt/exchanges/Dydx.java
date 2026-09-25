@@ -778,7 +778,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
-            Object markets = Helpers.objectValues(data);
+            Object markets = new ArrayList<Object>(data.values());
             return this.parseMarkets(markets);
         });
 

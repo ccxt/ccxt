@@ -975,7 +975,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
+            Object marketList = new ArrayList<Object>(watchOrderBookSubscriptions.values());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "depth.subscribe" );
                 put( "params", new HashMap<String, Object>() {{

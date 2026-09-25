@@ -4003,7 +4003,7 @@ final Object finalClientOrderId = clientOrderId;
                     }
                 }
             }
-            Object deduplicated = Helpers.objectValues(deduplicatedByOid);
+            Object deduplicated = new ArrayList<Object>(deduplicatedByOid.values());
             return this.parseOrders(deduplicated, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

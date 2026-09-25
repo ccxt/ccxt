@@ -592,7 +592,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             Map<String, Object> coins = (Map<String, Object>) this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
-            Object values = Helpers.objectValues(coins);
+            Object values = new ArrayList<Object>(coins.values());
             return this.parseCurrencies(values);
         });
 
