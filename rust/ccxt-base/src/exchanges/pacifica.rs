@@ -4897,7 +4897,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut cost: Value = self.safe_string_k(config, "cost", &[Value::Str("1".into())]);
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        let mut cost: Value = (match config.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("1".into()) });
         let mut costNumber: Value = self.parse_number(cost, &[]);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if costNumber.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64) {

@@ -505,7 +505,7 @@ impl BitrueCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market, "symbol", &[]);
         }
         let mut url: Value = self.authenticate(&[]).await;
         let mut messageHash: Value = Value::Str("orders".into());
