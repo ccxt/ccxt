@@ -1764,7 +1764,7 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1800,7 +1800,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	var baseIds []string = ObjectKeys(rates)
 	var result []any = []any{}
 	for i := 0; i < len(baseIds); i++ {
-		var baseId string = GetValue(baseIds, i).(string)
+		var baseId string = baseIds[i]
 		var base *string = this.SafeCurrencyCode(baseId)
 		if base == nil {
 			continue
@@ -2602,7 +2602,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	}
 	// we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
 	for i := 0; i < len(ratesIds); i++ {
-		var currencyId string = GetValue(ratesIds, i).(string)
+		var currencyId string = ratesIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code == nil) || !(func() bool {
 			if code == nil {
@@ -2705,7 +2705,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 	var baseIds []string = ObjectKeys(rates)
 	var delimiter string = "-"
 	for i := 0; i < len(baseIds); i++ {
-		var baseId string = GetValue(baseIds, i).(string)
+		var baseId string = baseIds[i]
 		var marketId *string = SafeStringPtr(Add(baseId+delimiter, quoteId))
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol *string = SafeStringPtr(market["symbol"])
@@ -6706,7 +6706,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			var isCloudAPiKey bool = (GetIndexOf(this.ApiKey, "organizations/") >= 0) || (StartsWith(this.Secret, "-----BEGIN"))
 			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
-			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || (this.SafeBool(this.Options, "v2CloudAPiKey", false) != nil && *this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
+			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
 			if isCloudAPiKey || isV2CloudAPiKey {
 				if isCloudAPiKey && StartsWith(this.ApiKey, "-----BEGIN") {
 					panic(ArgumentsRequired(this.Id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key"))

@@ -1106,7 +1106,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["base_amount"] = this.ParseToInt(Precise.StringMul(amountStr, amountScale))
 	request["avg_execution_price"] = this.ParseToInt(Precise.StringMul(priceStr, priceScale))
 	request["trigger_price"] = this.ParseToInt(Precise.StringMul(triggerPriceStr, priceScale))
-	if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
+	if *this.SafeBool(this.Options, "builderFee", true) {
 		request["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
 		request["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		request["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
@@ -1240,7 +1240,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol a
 			"api_key_index": apiKeyIndex,
 			"account_index": accountIndex,
 		}
-		if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
+		if *this.SafeBool(this.Options, "builderFee", true) {
 			signingPayload["integrator_account_index"] = GetValue(order, "integrator_account_index")
 			signingPayload["integrator_taker_fee"] = GetValue(order, "integrator_taker_fee")
 			signingPayload["integrator_maker_fee"] = GetValue(order, "integrator_maker_fee")
@@ -1382,7 +1382,7 @@ func (this *Lighter) editOrderBody(ch chan any, id string, symbol any, typeVar a
 		"api_key_index": apiKeyIndex,
 		"account_index": accountIndex,
 	}
-	if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
+	if *this.SafeBool(this.Options, "builderFee", true) {
 		signRaw["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
 		signRaw["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		signRaw["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")

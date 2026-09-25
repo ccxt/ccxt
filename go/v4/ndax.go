@@ -791,7 +791,7 @@ func (this *Ndax) ParseCurrency(rawCurrency any) any {
 		"type":      typeVar,
 		"precision": this.SafeNumber(rawCurrency, "TickSize"),
 		"info":      rawCurrency,
-		"active":    (!IsEqual(this.SafeBool(rawCurrency, "IsDisabled"), true)),
+		"active":    (!(*this.SafeBool(rawCurrency, "IsDisabled", false))),
 		"deposit":   this.SafeBool(rawCurrency, "DepositEnabled"),
 		"withdraw":  this.SafeBool(rawCurrency, "WithdrawEnabled"),
 		"fee":       nil,

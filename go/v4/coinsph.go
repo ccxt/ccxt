@@ -1122,7 +1122,7 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var ids []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var market map[string]any = this.Market(GetValue(symbols, i))
+			var market map[string]any = this.Market(symbols[i])
 			var id *string = SafeStringPtr(market["id"])
 			ids = append(ids, id)
 		}
@@ -2827,7 +2827,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	var remainingQuery any = query
 	var keys []string = ObjectKeys(query)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		if IsArray(GetValue(query, key)) {
 			if i != 0 {
 				encodedArrayParams = Add(encodedArrayParams, "&")

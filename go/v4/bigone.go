@@ -640,7 +640,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 	}
 	var chainLength int = len(chains)
 	var typeVar string
-	if IsEqual(this.SafeBool(rawCurrency, "is_fiat"), true) {
+	if *this.SafeBool(rawCurrency, "is_fiat", false) {
 		typeVar = "fiat"
 	} else if chainLength == 0 {
 		if EvalTruthy(this.IsLeveragedCurrency(id)) {
@@ -1251,7 +1251,7 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 	var bidsAsksKeys []string = ObjectKeys(bidsAsks)
 	var result []any = []any{}
 	for i := 0; i < len(bidsAsksKeys); i++ {
-		var price string = GetValue(bidsAsksKeys, i).(string)
+		var price string = bidsAsksKeys[i]
 		var amount any = GetValue(bidsAsks, price)
 		result = append(result, []any{this.ParseNumber(price), this.ParseNumber(amount)})
 	}

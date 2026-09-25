@@ -361,7 +361,7 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 		args = append(args, market["id"])
 	}
@@ -409,7 +409,7 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	// watchTickers
 	var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 	for i := 0; i < len(messageHashes); i++ {
-		var currentMessageHash string = ccxt.GetValue(messageHashes, i).(string)
+		var currentMessageHash string = messageHashes[i]
 		if (strings.Index(currentMessageHash, "tickers") >= 0) && (ccxt.GetIndexOf(currentMessageHash, symbol) >= 0) {
 			// Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
 			// the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
@@ -1025,7 +1025,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		} else {
 			var keys []string = ccxt.ObjectKeys(balanceDict)
 			for j := 0; j < len(keys); j++ {
-				var currencyId string = ccxt.GetValue(keys, j).(string)
+				var currencyId string = keys[j]
 				var rawBalance map[string]any = ccxt.SafeMapTyped(balanceDict, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()

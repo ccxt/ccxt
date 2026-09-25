@@ -746,7 +746,7 @@ func (this *Bullish) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}

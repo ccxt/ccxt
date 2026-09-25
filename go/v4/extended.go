@@ -519,7 +519,7 @@ func (this *Extended) IndexByStringifiedNumericId(input any) any {
 	}
 	var keys []string = ObjectKeys(input)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var item any = GetValue(input, key)
 		var numericIdString *string = this.SafeString(item, "numericId")
 		if numericIdString == nil {
@@ -1003,7 +1003,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			marketIds = append(marketIds, market["id"])
 		}
 		request["market"] = marketIds

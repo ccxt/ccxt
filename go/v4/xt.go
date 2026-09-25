@@ -1448,7 +1448,7 @@ func (this *Xt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1821,7 +1821,7 @@ func (this *Xt) ParseMarket(market any) any {
 	if contract {
 		isActive = DerefScalar(this.SafeBool(market, "isOpenApi", false))
 	} else {
-		if (state != nil && *state == "ONLINE") && (IsEqual(this.SafeBool(market, "tradingEnabled"), true)) && (IsEqual(this.SafeBool(market, "openapiEnabled"), true)) {
+		if (state != nil && *state == "ONLINE") && (*this.SafeBool(market, "tradingEnabled", false)) && (*this.SafeBool(market, "openapiEnabled", false)) {
 			isActive = true
 		}
 	}
@@ -6266,7 +6266,7 @@ func (this *Xt) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var matchesSubType any = func() any {
 			if isInverse {

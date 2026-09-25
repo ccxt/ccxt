@@ -1516,16 +1516,16 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 		takerOrMaker = "taker"
 	} else {
-		var isTaker bool = (IsEqual(this.SafeBool(trade, "is_taker"), true))
-		var isBuyer bool = (IsEqual(this.SafeBool(trade, "is_buyer"), true))
+		var isTaker *bool = this.SafeBool(trade, "is_taker", false)
+		var isBuyer *bool = this.SafeBool(trade, "is_buyer", false)
 		takerOrMaker = func() string {
-			if isTaker {
+			if isTaker != nil && *isTaker {
 				return "taker"
 			}
 			return "maker"
 		}()
 		side = func() string {
-			if isBuyer {
+			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
@@ -2923,7 +2923,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		"nonce":        GetValue(GetValue(order, "signature"), "nonce"),
 		"expiration":   GetValue(GetValue(order, "signature"), "expiration"),
 	}
-	if (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) && (this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
+	if (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) && (*this.SafeBool(this.Options, "builderFee", true)) {
 		returnValue["builder"] = GetValue(order, "builder")
 		returnValue["builderFee"] = this.ParseToInt(Multiply(this.ConvertToBigIntCustom(this.FeeAmountMultiplier()), ParseFloat(GetValue(order, "builder_fee")))) // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
 	}
@@ -3060,7 +3060,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["base"] = []any{}
 		request["quote"] = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			if market["contract"] != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
@@ -3902,9 +3902,9 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	}()
 	if firstLeg != nil {
 		size = this.SafeString(firstLeg, "size")
-		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
+		var isBuyingAsset *bool = this.SafeBool(firstLeg, "is_buying_asset", false)
 		side = SafeStringPtr(func() string {
-			if isBuyingAsset {
+			if isBuyingAsset != nil && *isBuyingAsset {
 				return "buy"
 			}
 			return "sell"

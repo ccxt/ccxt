@@ -220,7 +220,7 @@ func (this *Paymium) ParseBalance(response any) any {
 	}
 	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(currencies); i++ {
-		var code string = GetValue(currencies, i).(string)
+		var code string = currencies[i]
 		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
 		var free string = "balance_" + *currencyId

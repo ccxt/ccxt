@@ -1060,7 +1060,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var quoteIds []any = []any{}
 		var marketSymbols []string = this.Symbols
 		for i := 0; i < len(marketSymbols); i++ {
-			var market map[string]any = this.Market(GetValue(marketSymbols, i))
+			var market map[string]any = this.Market(marketSymbols[i])
 			var quoteId *string = SafeStringPtr(market["quoteId"])
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)

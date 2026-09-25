@@ -1719,7 +1719,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var symbols []string = this.Symbols
 	if !IsEqual(symbols, nil) {
 		for i := 0; i < len(symbols); i++ {
-			var symbol string = GetValue(symbols, i).(string)
+			var symbol string = symbols[i]
 			result[symbol] = map[string]any{
 				"info":       response,
 				"symbol":     symbol,

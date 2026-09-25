@@ -430,7 +430,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(pairs)
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var market map[string]any = SafeMapTyped(pairs, key)
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
@@ -596,7 +596,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var networks map[string]any = map[string]any{}
 	var networkIds []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(networkIds); j++ {
-		var networkId string = GetValue(networkIds, j).(string)
+		var networkId string = networkIds[j]
 		var networkEntry map[string]any = SafeMapTyped(rawNetworks, networkId)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -677,7 +677,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var orderbook map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
@@ -846,7 +846,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(tickers)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var ticker any = GetValue(tickers, key)
 		var marketId *string = this.SafeString(ticker, "symbol", key)
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
@@ -1212,7 +1212,7 @@ func (this *Hollaex) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(currenciesById)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(response, currencyId+"_available")
@@ -2423,7 +2423,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var keys []string = ObjectKeys(withdrawalFees)
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
-			var key *string = SafeStringPtr(GetValue(keys, i))
+			var key *string = SafeStringPtr(keys[i])
 			var value map[string]any = SafeMapTyped(withdrawalFees, key)
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)

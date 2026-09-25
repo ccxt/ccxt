@@ -134,7 +134,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("recentlyTrade.H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
@@ -305,7 +305,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		return limit
 	}()
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limitValue)+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
@@ -959,7 +959,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -1015,7 +1015,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 	}
 	var symbolsArray []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(symbolsArray); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", ccxt.GetValue(symbolsArray, i)))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", symbolsArray[i]))
 		client.(ccxt.ClientInterface).Resolve(orders, currentMessageHash)
 	}
 	var messageHash string = "orders"
@@ -1324,8 +1324,8 @@ func (this *Apex) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
-		if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
+		var key string = keys[i]
+		if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return

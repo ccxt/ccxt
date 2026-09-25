@@ -1188,7 +1188,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var symbol string = ccxt.GetValue(keys, i).(string)
+			var symbol string = keys[i]
 			var symbolMessageHash string = messageHash + ":" + symbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
@@ -1690,7 +1690,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(holdingKeys); i++ {
-			var key string = ccxt.GetValue(holdingKeys, i).(string)
+			var key string = holdingKeys[i]
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount map[string]any = this.Account()
 			newAccount["total"] = this.SafeString(holding, key)
@@ -1710,7 +1710,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(futuresKeys); i++ {
-			var key string = ccxt.GetValue(futuresKeys, i).(string)
+			var key string = futuresKeys[i]
 			var symbol *string = this.SafeSymbol(key)
 			var newAccount map[string]any = this.Account()
 			var future map[string]any = ccxt.SafeMapTyped(futures, key)
@@ -1737,7 +1737,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(flexFuturesKeys); i++ {
-			var key string = ccxt.GetValue(flexFuturesKeys, i).(string)
+			var key string = flexFuturesKeys[i]
 			var flexFuture map[string]any = ccxt.SafeMapTyped(flexFutureCurrencies, key)
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount map[string]any = this.Account()
@@ -1803,7 +1803,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	}
 	var tradeSymbolKeys []string = ccxt.ObjectKeys(tradeSymbols)
 	for i := 0; i < len(tradeSymbolKeys); i++ {
-		var symbol string = ccxt.GetValue(tradeSymbolKeys, i).(string)
+		var symbol string = tradeSymbolKeys[i]
 		var messageHash string = "myTrades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
@@ -1884,9 +1884,9 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName string,
 	var messageHashes []any = []any{}
 	var rawSubs []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var messageHash string = this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i)))
+		var messageHash string = this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i]))
 		messageHashes = append(messageHashes, messageHash)
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		if !this.SubscriptionExistsForHash(url, messageHash) {
 			rawSubs = append(rawSubs, market["id"])
 		}

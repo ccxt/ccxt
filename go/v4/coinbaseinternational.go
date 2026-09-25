@@ -482,7 +482,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 	for i := 0; i < len(accounts); i++ {
 		var account map[string]any = SafeMapTyped(accounts, i)
 		var info map[string]any = SafeMapTyped(account, "info")
-		if IsEqual(this.SafeBool(info, "is_default"), true) {
+		if *this.SafeBool(info, "is_default", false) {
 			var portfolioId *string = this.SafeString(info, "portfolio_id")
 			this.Options.Store("portfolio", portfolioId)
 

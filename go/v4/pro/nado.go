@@ -189,7 +189,7 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, ccxt.Add("trade:", market["symbol"]))
 	}
@@ -235,7 +235,7 @@ func (this *Nado) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, ccxt.Add("trade:", market["symbol"]))
 	}
@@ -341,7 +341,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
 		markets = append(markets, market)
@@ -389,7 +389,7 @@ func (this *Nado) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", market["symbol"]))
 	}
@@ -2154,7 +2154,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 func (this *Nado) HandlePosition(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
-	if !(this.SafeBool(market, "contract", false) != nil && *this.SafeBool(market, "contract", false)) {
+	if !(*this.SafeBool(market, "contract", false)) {
 		return
 	}
 	var position any = this.ParseWsPosition(message, market)
@@ -2235,7 +2235,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) any {
 	var marketIds []string = ccxt.ObjectKeys(bbos)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var bbo map[string]any = ccxt.MapTyped(this.SafeDict(bbos, marketId, map[string]any{}))
 		var bid *string = this.SafeString(bbo, "bid")
@@ -2260,7 +2260,7 @@ func (this *Nado) HandleAllBidsAsks(client any, message map[string]any) {
 	var tickers any = this.ParseWsAllBidsAsks(message)
 	var symbols []string = ccxt.ObjectKeys(tickers)
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = ccxt.GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var ticker any = ccxt.GetValue(tickers, symbol)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		this.Tickers.Store(symbol, ticker)
@@ -2299,7 +2299,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	if (maxTimestamp != nil) && (lastMaxTimestamp != nil) && (maxTimestamp != lastMaxTimestamp && (maxTimestamp == nil || lastMaxTimestamp == nil || *maxTimestamp != *lastMaxTimestamp)) {
 		var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptions); i++ {
-			var subscriptionHash string = ccxt.GetValue(subscriptions, i).(string)
+			var subscriptionHash string = subscriptions[i]
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			var streamType *string = this.SafeString(subscription, "streamType")
 			var subscriptionSymbol *string = this.SafeString(subscription, "symbol")
@@ -2384,7 +2384,7 @@ func (this *Nado) HandleUnsubscription(client any, message any) {
 	}
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var unsubscribeHash string = ccxt.GetValue(subscriptions, i).(string)
+		var unsubscribeHash string = subscriptions[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if subscriptionId != id && (subscriptionId == nil || id == nil || *subscriptionId != *id) {

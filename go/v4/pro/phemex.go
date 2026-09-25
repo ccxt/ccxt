@@ -646,7 +646,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbolsNormalized, i)))
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", symbolsNormalized[i]))
 	}
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
@@ -1138,7 +1138,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var market string = ccxt.GetValue(keys, i).(string)
+		var market string = keys[i]
 		var hash string = channel + ":" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
@@ -1443,7 +1443,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders"+":", ccxt.GetValue(keys, i)))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders"+":", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, currentMessageHash)
 	}
 	// resolve generic subscription (spot or swap)

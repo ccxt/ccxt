@@ -3726,7 +3726,7 @@ func (this *Bitget) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -3806,7 +3806,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 				var entry map[string]any = SafeMapTyped(data, j)
 				var entrySymbol *string = this.SafeString(entry, "symbol")
 				var entryBorrowable *bool = this.SafeBool(entry, "isBorrowable", true)
-				if (entryBorrowable != nil && *entryBorrowable == true) && (this.SafeBool(entry, "isCrossBorrowable", true) != nil && *this.SafeBool(entry, "isCrossBorrowable", true)) {
+				if (entryBorrowable != nil && *entryBorrowable == true) && (*this.SafeBool(entry, "isCrossBorrowable", true)) {
 					crossKeys = append(crossKeys, entrySymbol)
 				}
 				var isolatedBase *bool = this.SafeBool(entry, "isIsolatedBaseBorrowable", true)

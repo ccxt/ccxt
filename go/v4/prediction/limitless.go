@@ -609,7 +609,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	var outcomes []any = []any{}
 	var tokenEntries []string = ccxt.ObjectKeys(tokens)
 	for i := 0; i < len(tokenEntries); i++ {
-		var outcomeLabel string = ccxt.GetValue(tokenEntries, i).(string)
+		var outcomeLabel string = tokenEntries[i]
 		var tokenData any = tokens[outcomeLabel]
 		var tokenId any = tokenData
 		var outcomeHandle any = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
@@ -3812,7 +3812,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var eventKeys []string = ccxt.ObjectKeys(eventGroups)
 	var eventKeysLength int = len(eventKeys)
 	for i := 0; i < eventKeysLength; i++ {
-		var g any = ccxt.GetValue(eventGroups, ccxt.GetValue(eventKeys, i))
+		var g any = ccxt.GetValue(eventGroups, eventKeys[i])
 		var ev any = this.ParseEvent(g)
 		result = append(result, ev)
 	}

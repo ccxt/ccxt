@@ -2312,7 +2312,7 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 	var enableUnifiedMargin *bool = this.SafeBool(this.Options, "enableUnifiedMargin")
 	var enableUnifiedAccount *bool = this.SafeBool(this.Options, "enableUnifiedAccount")
 	if (enableUnifiedMargin == nil) || (enableUnifiedAccount == nil) {
-		if this.SafeBool(this.Options, "enableDemoTrading", false) != nil && *this.SafeBool(this.Options, "enableDemoTrading", false) {
+		if *this.SafeBool(this.Options, "enableDemoTrading", false) {
 			// info endpoint is not available in demo trading
 			// so we're assuming UTA is enabled
 			this.Options.Store("enableUnifiedMargin", false)
@@ -2711,7 +2711,7 @@ func (this *Bybit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		ch <- map[string]any{}
 		return nil
 	}
-	if this.SafeBool(this.Options, "enableDemoTrading", false) != nil && *this.SafeBool(this.Options, "enableDemoTrading", false) {
+	if *this.SafeBool(this.Options, "enableDemoTrading", false) {
 
 		ch <- map[string]any{}
 		return nil
@@ -2839,7 +2839,7 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -3677,7 +3677,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		// we can't use marketSymbols here due to the conflicting ids between markets
 		var currentType any = nil
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = SafeStringPtr(GetValue(symbols, i))
+			var symbol *string = SafeStringPtr(symbols[i])
 			// using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
 			// infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
 			var isExchangeSpecificSymbol bool = (func() int {
@@ -5454,7 +5454,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var isStopLossOrder bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitOrder bool = (this.SafeString(params, "takeProfitPrice") != nil)
 	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount))
-	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (this.SafeBool(params, "tradingStopEndpoint", false) != nil && *this.SafeBool(params, "tradingStopEndpoint", false))
+	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (*this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
 	if (isTrailingOrder || (switchToOco == true)) && (market["spot"] != true) {
 		defaultMethod = "privatePostV5PositionTradingStop"
@@ -5526,7 +5526,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var isMarket bool = (lowerCaseType == "market")
 	var isLimit bool = (lowerCaseType == "limit")
 	var isBuy bool = (IsEqual(side, "buy"))
-	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (this.SafeBool(params, "tradingStopEndpoint", false) != nil && *this.SafeBool(params, "tradingStopEndpoint", false))
+	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (*this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
 	if isTrailingOrder || (switchToOco == true) {
 		defaultMethod = "privatePostV5PositionTradingStop"
@@ -9182,9 +9182,9 @@ func (this *Bybit) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	}
 	var query any = params
 	if symbol != nil {
-		var isLinear bool = (IsEqual(this.SafeBool(market, "linear"), true))
+		var isLinear *bool = this.SafeBool(market, "linear", false)
 		request["category"] = func() string {
-			if isLinear {
+			if isLinear != nil && *isLinear {
 				return "linear"
 			}
 			return "inverse"
@@ -9456,16 +9456,16 @@ func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(interest, "timestamp")
 	var openInterest *float64 = this.SafeNumber2(interest, "open_interest", "openInterest")
 	// the openInterest is in the base asset for linear and quote asset for inverse
-	var isLinear bool = (IsEqual(this.SafeBool(market, "linear"), true))
-	var isInverse bool = (IsEqual(this.SafeBool(market, "inverse"), true))
+	var isLinear *bool = this.SafeBool(market, "linear", false)
+	var isInverse *bool = this.SafeBool(market, "inverse", false)
 	var amount *float64 = func() *float64 {
-		if isLinear {
+		if isLinear != nil && *isLinear {
 			return openInterest
 		}
 		return nil
 	}()
 	var value *float64 = func() *float64 {
-		if isInverse {
+		if isInverse != nil && *isInverse {
 			return openInterest
 		}
 		return nil
@@ -11271,7 +11271,7 @@ func (this *Bybit) ParseLeverageTiers(response any, optionalArgs ...any) any {
 	var grouped map[string]any = this.GroupBy(filteredResults, idKey)
 	var keys []string = ObjectKeys(grouped)
 	for i := 0; i < len(keys); i++ {
-		var marketId string = GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		var entry any = grouped[marketId]
 		for j := 0; j < GetArrayLength(entry); j++ {
 			var id *int64 = this.SafeInteger(GetValue(entry, j), "id")

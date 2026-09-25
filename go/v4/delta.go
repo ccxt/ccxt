@@ -806,7 +806,7 @@ func (this *Delta) IndexByStringifiedNumericId(input any) any {
 	}
 	var keys []string = ObjectKeys(input)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var item any = GetValue(input, key)
 		var numericIdString *string = this.SafeString(item, "numericId")
 		if numericIdString == nil {

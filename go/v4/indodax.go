@@ -521,7 +521,7 @@ func (this *Indodax) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(free)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(free, currencyId)
@@ -768,7 +768,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(tickers)
 	var parsedTickers map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market map[string]any = this.SafeMarket(marketId)
@@ -1141,7 +1141,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(rawOrders)
 	var exchangeOrders []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var marketOrders any = GetValue(rawOrders, marketId)
 		market = this.SafeMarket(marketId)
 		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
@@ -1810,7 +1810,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		"info": data,
 	}
 	for i := 0; i < len(addressKeys); i++ {
-		var marketId string = GetValue(addressKeys, i).(string)
+		var marketId string = addressKeys[i]
 		var code *string = this.SafeCurrencyCode(marketId)
 		var address *string = this.SafeString(addresses, marketId)
 		if (address != nil) && ((codes == nil) || (this.InArray(code, codes))) {
@@ -1833,7 +1833,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 					}
 					var networkIds []string = strings.Split(*networkId, ",")
 					for j := 0; j < len(networkIds); j++ {
-						var _netIdTmp *string = this.NetworkIdToCode(GetValue(networkIds, j), code)
+						var _netIdTmp *string = this.NetworkIdToCode(networkIds[j], code)
 						if _netIdTmp != nil {
 							AppendToArray(&network, strings.ToUpper(*_netIdTmp))
 						}

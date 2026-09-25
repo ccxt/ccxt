@@ -640,7 +640,7 @@ func (this *Coinone) ParseBalance(response any) any {
 	var balances map[string]any = MapTyped(this.Omit(response, []any{"errorCode", "result", "normalWallets"}))
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1593,7 +1593,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var keys []string = ObjectKeys(walletAddress)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value *string = this.SafeString(walletAddress, key)
 		if (value == nil) || (value != nil && *value == "") || (value != nil && *value == "-1") {
 			continue

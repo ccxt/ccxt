@@ -2732,7 +2732,7 @@ func (this *Myriad) HexToDecimalString(hexValue any) any {
 	var digits string = "0123456789abcdef"
 	var result any = "0"
 	for i := 0; i < n; i++ {
-		var v int = ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i))
+		var v int = ccxt.GetIndexOf(digits, chars[i])
 		if v > -1 {
 			var mul *string = ccxt.Precise.StringMul(result, "16")
 			var digit *string = this.NumberToString(v)
@@ -4210,7 +4210,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan any, url any) any {
 		ch <- ccxt.PanicOnError((<-this.Watch(url, "centrifugoConnected", connectMsg, "connect")))
 		return nil
 	}
-	if this.SafeBool(this.Options, "wsConnected", false) != nil && *this.SafeBool(this.Options, "wsConnected", false) {
+	if *this.SafeBool(this.Options, "wsConnected", false) {
 
 		// the connect reply already arrived on this connection — safe to subscribe immediately
 		return nil
@@ -4267,7 +4267,7 @@ func (this *Myriad) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line *string = ccxt.SafeStringPtr(ccxt.GetValue(lines, i))
+			var line *string = ccxt.SafeStringPtr(lines[i])
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -4432,7 +4432,7 @@ func (this *Myriad) HandleOrderBook(client any, data any) {
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
-		var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(updatedSymbols, k))
+		var sym *string = ccxt.SafeStringPtr(updatedSymbols[k])
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, sym), "orderbook::"+*sym)
 	}
 }

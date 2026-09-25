@@ -2718,7 +2718,7 @@ func (this *Okx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -4514,7 +4514,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var trailingPrice *string = this.SafeString2(params, "trailingPrice", "callbackSpread")
 	var isTrailingPriceOrder bool = (trailingPrice != nil)
 	var trigger bool = (!IsEqual(triggerPrice, nil)) || (IsEqual(typeVar, "trigger"))
-	var isReduceOnly bool = (IsEqual(this.SafeBool(params, "reduceOnly", false), true)) || (closeFraction != nil)
+	var isReduceOnly bool = (*this.SafeBool(params, "reduceOnly", false)) || (closeFraction != nil)
 	var defaultMarginMode *string = this.SafeString2(this.Options, "defaultMarginMode", "marginMode", "cross")
 	var marginMode *string = this.SafeString2(params, "marginMode", "tdMode") // cross or isolated, tdMode not omitted so as to be extended into the request
 	var margin any = false
@@ -7962,7 +7962,7 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var entry *string = SafeStringPtr(GetValue(symbols, i))
+			var entry *string = SafeStringPtr(symbols[i])
 			var market map[string]any = this.Market(entry)
 			marketIds = append(marketIds, market["id"])
 		}
@@ -8841,12 +8841,12 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
 	if !IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			var marketInfo map[string]any = SafeMapTyped(market, "info")
 			var ruleType *string = this.SafeString(marketInfo, "ruleType")
 			var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
 			if (market["swap"] != true) && !isExtendedPerpetual {
-				panic(BadRequest(Add(Add(this.Id+" fetchFundingRates() symbols must be swap markets or XPERP futures, ", GetValue(symbolsNormalized, i)), " is not")))
+				panic(BadRequest(Add(Add(this.Id+" fetchFundingRates() symbols must be swap markets or XPERP futures, ", symbolsNormalized[i]), " is not")))
 			}
 		}
 	}
@@ -9414,7 +9414,7 @@ func (this *Okx) ParseBorrowRateHistories(response []any, codes any, since any, 
 	}
 	var keys []string = ObjectKeys(borrowRateHistories)
 	for i := 0; i < len(keys); i++ {
-		var code string = GetValue(keys, i).(string)
+		var code string = keys[i]
 		borrowRateHistories[code] = this.FilterByCurrencySinceLimit(borrowRateHistories[code], code, since, limit)
 	}
 	return borrowRateHistories
@@ -10560,7 +10560,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 	}
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
-		var code string = GetValue(depositWithdrawCodes, i).(string)
+		var code string = depositWithdrawCodes[i]
 		var currency map[string]any = this.Currency(code)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}

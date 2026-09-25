@@ -449,13 +449,13 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var messageHash string = ccxt.GetValue(subscriptions, i).(string)
+		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "myTrades:") == 0 {
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
@@ -632,13 +632,13 @@ func (this *Extended) HandleOrders(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", ccxt.GetValue(keys, i)))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var messageHash string = ccxt.GetValue(subscriptions, i).(string)
+		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "orders:") == 0 {
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
@@ -1043,7 +1043,7 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 func (this *Extended) FindSubscription(client any, name string) any {
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), key)
 		var subscriptionName *string = this.SafeString(subscription, "name")
 		if subscriptionName != nil && *subscriptionName == name {

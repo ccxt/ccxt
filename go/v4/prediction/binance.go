@@ -716,7 +716,7 @@ func (this *Binance) ParseEvent(rawTopic any) any {
 			return nil
 		}(), rawTopic)
 		marketsList = append(marketsList, parsed)
-		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
+		if *this.SafeBool(parsed, "active", false) {
 			anyActive = true
 		}
 	}

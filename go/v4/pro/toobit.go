@@ -241,7 +241,7 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, "trade::"+symbol)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
@@ -558,7 +558,7 @@ func (this *Toobit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, "ticker::"+symbol)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
@@ -715,7 +715,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, "orderBook::"+symbol+"::"+*channel)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
@@ -1223,9 +1223,9 @@ func (this *Toobit) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(trade, "s")
 	var ts *string = this.SafeString(trade, "t")
-	var isMaker bool = (ccxt.IsEqual(this.SafeBool(trade, "m"), true))
+	var isMaker *bool = this.SafeBool(trade, "m", false)
 	var takerOrMaker string = "taker"
-	if isMaker {
+	if isMaker != nil && *isMaker {
 		takerOrMaker = "maker"
 	}
 	return this.SafeTrade(map[string]any{
@@ -1569,7 +1569,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 						var client ccxt.ClientInterface = this.Client(url)
 						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 						for i := 0; i < len(messageHashes); i++ {
-							var messageHash string = ccxt.GetValue(messageHashes, i).(string)
+							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", nil)

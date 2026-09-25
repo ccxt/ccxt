@@ -1624,7 +1624,7 @@ func (this *Lbank) ParseBalance(response any) any {
 		var free map[string]any = SafeMapTyped(data, "free")
 		var currencies []string = ObjectKeys(free)
 		for i := 0; i < len(currencies); i++ {
-			var currencyId string = GetValue(currencies, i).(string)
+			var currencyId string = currencies[i]
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
 			account["used"] = this.SafeString(used, currencyId)

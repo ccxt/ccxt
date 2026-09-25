@@ -311,7 +311,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 		}
 		var symbols []string = ccxt.ObjectKeys(storesForSymbols)
 		for i := 0; i < len(symbols); i++ {
-			var symbol string = ccxt.GetValue(symbols, i).(string)
+			var symbol string = symbols[i]
 			var stored any = storesForSymbols[symbol]
 			var messageHash string = "trades:" + symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -683,7 +683,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = this.Market(symbol)

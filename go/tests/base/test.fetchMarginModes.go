@@ -21,7 +21,7 @@ func testFetchMarginModesBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 	var marginModeKeys []string = ObjectKeys(marginModes)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol)
 	for i := 0; i < len(marginModeKeys); i++ {
-		var marginMode any = GetValue(marginModes, GetValue(marginModeKeys, i))
+		var marginMode any = GetValue(marginModes, marginModeKeys[i])
 		AssertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol)
 		TestMarginMode(exchange, skippedProperties, method, marginMode)
 	}

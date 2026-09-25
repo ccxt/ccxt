@@ -1030,7 +1030,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule map[string]any = SafeMapTyped(schedulesByUid, uid)
@@ -3571,7 +3571,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var balance any = balances[currencyId]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code == nil {

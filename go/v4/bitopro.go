@@ -500,7 +500,7 @@ func (this *Bitopro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bitopro) ParseMarket(market any) any {
-	var active bool = (!IsEqual(this.SafeBool(market, "maintain"), true))
+	var active bool = (!(*this.SafeBool(market, "maintain", false)))
 	var id *string = this.SafeString(market, "pair")
 	if id == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing id"))
@@ -996,7 +996,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var taker *float64 = this.SafeNumber(first, "takerFee")
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       first,
 			"symbol":     symbol,
@@ -1476,7 +1476,7 @@ func (this *Bitopro) ParseCancelOrders(data any) any {
 	var dataKeys []string = ObjectKeys(data)
 	var orders []any = []any{}
 	for i := 0; i < len(dataKeys); i++ {
-		var marketId string = GetValue(dataKeys, i).(string)
+		var marketId string = dataKeys[i]
 		var orderIds any = GetValue(data, marketId)
 		for j := 0; j < GetArrayLength(orderIds); j++ {
 			orders = append(orders, this.SafeOrder(map[string]any{

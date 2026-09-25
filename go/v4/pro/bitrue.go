@@ -490,14 +490,14 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	}
 	var symbols []string = ccxt.ObjectKeys(markets)
 	for i := 0; i < len(symbols); i++ {
-		var candidate any = ccxt.GetValue(markets, ccxt.GetValue(symbols, i))
-		if !ccxt.IsEqual(this.SafeBool(candidate, "swap"), true) {
+		var candidate any = ccxt.GetValue(markets, symbols[i])
+		if !(*this.SafeBool(candidate, "swap", false)) {
 			continue
 		}
 		var baseId *string = this.SafeStringLower(candidate, "baseId")
 		var quoteId *string = this.SafeStringLower(candidate, "quoteId")
 		if (baseId == nil) || (quoteId == nil) {
-			panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id+" findSwapMarketByWsBaseQuote() market ", ccxt.GetValue(symbols, i)), " has no baseId or quoteId")))
+			panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id+" findSwapMarketByWsBaseQuote() market ", symbols[i]), " has no baseId or quoteId")))
 		}
 		if *baseId+*quoteId == wsBaseQuote {
 			return candidate

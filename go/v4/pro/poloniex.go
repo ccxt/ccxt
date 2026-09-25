@@ -672,7 +672,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbolsNormalized, i)))
+			messageHashes = append(messageHashes, ccxt.Add(name+"::", symbolsNormalized[i]))
 		}
 	}
 

@@ -179,9 +179,9 @@ func (this *testMainClass) CheckIfSpecificTestIsChosen(methodArgv any) {
 		var possibleMethodNames []string = Split(methodArgv, ",") // i.e. `test.ts binance fetchBalance,fetchDeposits`
 		if len(possibleMethodNames) >= 1 {
 			for i := 0; i < len(testFileNames); i++ {
-				var testFileName string = GetValue(testFileNames, i).(string)
+				var testFileName string = testFileNames[i]
 				for j := 0; j < len(possibleMethodNames); j++ {
-					var methodName string = GetValue(possibleMethodNames, j).(string)
+					var methodName string = possibleMethodNames[j]
 					methodName = strings.Replace(methodName, "()", "", 1)
 					if IsEqual(testFileName, methodName) {
 						AppendToArray(&this.OnlySpecificTests, testFileName)
@@ -218,7 +218,7 @@ func (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange) {
 	var reqCreds any = GetExchangeProp(exchange, "re"+"quiredCredentials") // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
 	var objkeys []string = ObjectKeys(reqCreds)
 	for i := 0; i < len(objkeys); i++ {
-		var credential string = GetValue(objkeys, i).(string)
+		var credential string = objkeys[i]
 		var isRequired any = GetValue(reqCreds, credential)
 		if (isRequired == true) && (IsEqual(GetExchangeProp(exchange, credential), nil)) {
 			var fullKey any = Add(Add(exchangeId, "_"), credential)
@@ -255,7 +255,7 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 	if !IsEqual(exchangeSettings, nil) {
 		var settingKeys []string = ObjectKeys(exchangeSettings)
 		for i := 0; i < len(settingKeys); i++ {
-			var key string = GetValue(settingKeys, i).(string)
+			var key string = settingKeys[i]
 			var settingValue any = GetValue(exchangeSettings, key)
 			var settingIsEmpty bool = (IsEqual(settingValue, nil)) || (IsEqual(settingValue, nil)) || (settingValue == "") || (settingValue == false) || (IsEqual(settingValue, 0))
 			if !settingIsEmpty {
@@ -414,7 +414,7 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	}
 	var objectNames []string = ObjectKeys(objectSkips)
 	for i := 0; i < len(objectNames); i++ {
-		var objectName string = GetValue(objectNames, i).(string)
+		var objectName string = objectNames[i]
 		var objectMethods any = objectSkips[objectName]
 		if EvalTruthy(exchange.InArray(methodName, objectMethods)) {
 			// if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
@@ -673,7 +673,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	var testNames []string = ObjectKeys(tests)
 	var promises []any = []any{}
 	for i := 0; i < len(testNames); i++ {
-		var testName string = GetValue(testNames, i).(string)
+		var testName string = testNames[i]
 		var testArgs any = GetValue(tests, testName)
 		promises = append(promises, this.TestSafeAsync(testName, exchange, testArgs, isPublicTest))
 	}
@@ -684,7 +684,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
 	var failedMethods []any = []any{}
 	for i := 0; i < len(testNames); i++ {
-		var testName string = GetValue(testNames, i).(string)
+		var testName string = testNames[i]
 		var testReturnedValue any = GetValue(results, i)
 		if testReturnedValue != true {
 			failedMethods = append(failedMethods, testName)
@@ -772,7 +772,7 @@ func (this *testMainClass) GetMarketsFromExchange(exchange ccxt.ICoreExchange, o
 	var markets any = exchange.GetMarkets()
 	var keys []string = ObjectKeys(markets)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var market any = GetValue(markets, key)
 		if (spot == true) && (IsEqual(GetValue(market, "spot"), true)) {
 			AddElementToObject(res, GetValue(market, "symbol"), market)
@@ -946,7 +946,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	var candidates []any = []any{}
 	var tickerSymbols []string = ObjectKeys(tickers)
 	for i := 0; i < len(tickerSymbols); i++ {
-		var tickerSymbol string = GetValue(tickerSymbols, i).(string)
+		var tickerSymbol string = tickerSymbols[i]
 		var market any = exchange.SafeDict(exchange.GetMarkets(), tickerSymbol)
 		if !IsEqual(market, nil) {
 			// exchanges keep returning tickers for delisted markets, and those
@@ -1123,7 +1123,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 		var pinFound bool = false
 		var pinnedKeys []string = ObjectKeys(exchange.GetMarkets())
 		for i := 0; i < len(pinnedKeys); i++ {
-			var pinnedMarket any = GetValue(exchange.GetMarkets(), GetValue(pinnedKeys, i))
+			var pinnedMarket any = GetValue(exchange.GetMarkets(), pinnedKeys[i])
 			var pinnedOutcomes any = exchange.SafeList(pinnedMarket, "outcomes", []any{})
 			for j := 0; j < GetArrayLength(pinnedOutcomes); j++ {
 				if IsEqual(exchange.SafeString(GetValue(pinnedOutcomes, j), "outcome"), outcomeSymbol) {
@@ -1143,7 +1143,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 	if IsEqual(outcomeSymbol, nil) {
 		var marketKeys []string = ObjectKeys(exchange.GetMarkets())
 		for i := 0; i < len(marketKeys); i++ {
-			var market any = GetValue(exchange.GetMarkets(), GetValue(marketKeys, i))
+			var market any = GetValue(exchange.GetMarkets(), marketKeys[i])
 			var outcomesList any = exchange.SafeList(market, "outcomes", []any{})
 			var outcomesListLength int = GetArrayLength(outcomesList)
 			if outcomesListLength > 0 {
@@ -1952,7 +1952,7 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 	var res any = ""
 	for i := 0; i < len(urlParts); i++ {
 		if i > 2 {
-			var current string = GetValue(urlParts, i).(string)
+			var current string = urlParts[i]
 			if strings.Index(current, "?") > -1 {
 				// handle urls like this: /v1/account/accounts?AccessK
 				var currentParts []string = strings.Split(current, "?")
@@ -1970,7 +1970,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 	var result map[string]any = map[string]any{}
 	var parts []string = Split(url, "&")
 	for i := 0; i < len(parts); i++ {
-		var part string = GetValue(parts, i).(string)
+		var part string = parts[i]
 		var keyValue []string = strings.Split(part, "=")
 		var keysLength int = len(keyValue)
 		if keysLength != 2 {
@@ -2028,7 +2028,7 @@ func (this *testMainClass) IsVacantValue(exchange ccxt.ICoreExchange, value any)
 	if EvalTruthy(exchange.IsDictionary(value)) {
 		var keys []string = ObjectKeys(value)
 		for i := 0; i < len(keys); i++ {
-			if !EvalTruthy(this.IsVacantValue(exchange, GetValue(value, GetValue(keys, i)))) {
+			if !EvalTruthy(this.IsVacantValue(exchange, GetValue(value, keys[i]))) {
 				return false
 			}
 		}
@@ -2042,7 +2042,7 @@ func (this *testMainClass) CountSignificantKeys(exchange ccxt.ICoreExchange, tar
 	var keys []string = ObjectKeys(target)
 	var count any = 0
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		if !EvalTruthy((exchange.InArray(key, otherKeys))) && EvalTruthy(this.IsVacantValue(exchange, GetValue(target, key))) {
 			continue
 		}
@@ -2092,7 +2092,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		this.AssertStaticError((storedKeysLength == newKeysLength), "output length mismatch", storedOutput, newOutput)
 		// iterate over the keys
 		for i := 0; i < len(storedOutputKeys); i++ {
-			var key string = GetValue(storedOutputKeys, i).(string)
+			var key string = storedOutputKeys[i]
 			if EvalTruthy(exchange.InArray(key, skipKeys)) {
 				continue
 			}
@@ -2457,7 +2457,7 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan any, exchange ccxt.
 				}()
 				var storedHeaderKeys []string = ObjectKeys(storedHeaders)
 				for i := 0; i < len(storedHeaderKeys); i++ {
-					var headerKey string = GetValue(storedHeaderKeys, i).(string)
+					var headerKey string = storedHeaderKeys[i]
 					var storedHeaderValue any = GetValue(storedHeaders, headerKey)
 					var sentHeaderValue any = ccxt.DerefScalar(exchange.SafeString(sentHeaders, headerKey))
 					this.AssertStaticError(IsEqual(sentHeaderValue, storedHeaderValue), "header mismatch for "+headerKey, storedHeaderValue, sentHeaderValue)
@@ -2748,7 +2748,7 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan any, exchangeNam
 	}()
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
-		var method string = GetValue(methodsNames, i).(string)
+		var method string = methodsNames[i]
 		var results any = GetValue(methods, method)
 		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
@@ -2960,7 +2960,7 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 	var methods any = exchange.SafeValue(exchangeData, "methods", map[string]any{})
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
-		var method string = GetValue(methodsNames, i).(string)
+		var method string = methodsNames[i]
 		var results any = GetValue(methods, method)
 		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
@@ -3050,7 +3050,7 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 	exchange.ExtendExchangeOptions(options)
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
-		var method string = GetValue(methodsNames, i).(string)
+		var method string = methodsNames[i]
 		var results any = GetValue(methods, method)
 		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
@@ -3112,7 +3112,7 @@ func (this *testMainClass) GetNumberOfTestsFromExchange(exchange ccxt.ICoreExcha
 	var methods any = GetValue(exchangeData, "methods")
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
-		var method string = GetValue(methodsNames, i).(string)
+		var method string = methodsNames[i]
 		var results any = GetValue(methods, method)
 		var resultsLength int = GetArrayLength(results)
 		sum = exchange.Sum(sum, resultsLength)
@@ -3213,7 +3213,7 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 		Dump(Add("[INFO:MAIN] Testing only: ", testName))
 	}
 	for i := 0; i < len(exchanges); i++ {
-		var exchangeName string = GetValue(exchanges, i).(string)
+		var exchangeName string = exchanges[i]
 		var exchangeData any = GetValue(staticData, exchangeName)
 		var disabled any = this.CheckIfExchangeIsDisabled(exchangeName, exchangeData)
 		if disabled == true {

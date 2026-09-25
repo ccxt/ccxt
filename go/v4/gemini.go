@@ -1032,7 +1032,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			}())
 		}
 	}
-	if this.SafeBool(options, "fetchDetailsForAllSymbols", false) != nil && *this.SafeBool(options, "fetchDetailsForAllSymbols", false) {
+	if *this.SafeBool(options, "fetchDetailsForAllSymbols", false) {
 		var promises []any = []any{}
 		for i := 0; i < len(marketIds); i++ {
 			var marketId any = func() any {
@@ -1816,7 +1816,7 @@ func (this *Gemini) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1965,10 +1965,10 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = this.SafeString(order, "remaining_amount")
 	var filled *string = this.SafeString(order, "executed_amount")
 	var status string = "closed"
-	if IsEqual(this.SafeBool(order, "is_live"), true) {
+	if *this.SafeBool(order, "is_live", false) {
 		status = "open"
 	}
-	if IsEqual(this.SafeBool(order, "is_cancelled"), true) {
+	if *this.SafeBool(order, "is_cancelled", false) {
 		status = "canceled"
 	}
 	var price *string = this.SafeString(order, "price")

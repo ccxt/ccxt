@@ -1662,7 +1662,7 @@ func (this *Woo) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 			if ccxt.IsEqual(symbolsNormalized, nil) {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "positions::"+symbol)
 		}
 	} else {
@@ -1773,7 +1773,7 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 	var cache any = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(postitionsIds); i++ {
-		var marketId string = ccxt.GetValue(postitionsIds, i).(string)
+		var marketId string = postitionsIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var rawPosition any = rawPositions[marketId]
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition, market))
@@ -1855,7 +1855,7 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()

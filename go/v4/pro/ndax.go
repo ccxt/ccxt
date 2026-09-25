@@ -236,7 +236,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	}
 	var symbols []string = ccxt.ObjectKeys(updates)
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = ccxt.GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
@@ -344,7 +344,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var keys []string = ccxt.ObjectKeys(this.Timeframes)
 		for j := 0; j < len(keys); j++ {
-			var timeframe string = ccxt.GetValue(keys, j).(string)
+			var timeframe string = keys[j]
 			var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 			var duration int64 = ccxt.ParseInt(interval) * 1000
 			var timestamp *int64 = this.SafeInteger(ohlcv, 0)
@@ -447,10 +447,10 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	var name string = "SubscribeTicker"
 	var marketIds []string = ccxt.ObjectKeys(updates)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var timeframes []string = ccxt.ObjectKeys(updates[marketId])
 		for j := 0; j < len(timeframes); j++ {
-			var timeframe string = ccxt.GetValue(timeframes, j).(string)
+			var timeframe string = timeframes[j]
 			var messageHash string = name + ":" + timeframe + ":" + marketId
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])

@@ -129,7 +129,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	}
 	var currencyIds []string = ccxt.ObjectKeys(freeBalance)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = ccxt.GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(freeBalance, currencyId)
 		account["used"] = this.SafeString(usedBalance, currencyId)
@@ -186,7 +186,7 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	if !ccxt.IsEqual(client, nil) {
 		var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptionKeys); i++ {
-			var subscriptionKey string = ccxt.GetValue(subscriptionKeys, i).(string)
+			var subscriptionKey string = subscriptionKeys[i]
 			if subscriptionKey == subscriptionHash {
 				continue
 			}

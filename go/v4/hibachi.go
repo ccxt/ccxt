@@ -956,7 +956,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,

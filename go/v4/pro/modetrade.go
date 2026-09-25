@@ -1276,7 +1276,7 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if (!ccxt.IsEqual(symbolsNormalized, nil)) && !this.IsEmpty(symbolsNormalized) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "positions::"+symbol)
 		}
 	} else {
@@ -1552,7 +1552,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()

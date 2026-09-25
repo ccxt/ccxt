@@ -359,7 +359,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var marketIds []string = ObjectKeys(markets)
 	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = SafeMapTyped(markets, marketId)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
@@ -929,7 +929,7 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":   response,
 			"symbol": symbol,

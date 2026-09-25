@@ -3162,7 +3162,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol string, typeVar string, 
 		if qtyType != nil && *qtyType == "ByQuote" {
 			var cost any = DerefScalar(this.SafeNumber(orderParams, "cost"))
 			orderParams = this.Omit(orderParams, "cost")
-			if IsEqual(this.SafeBool(this.Options, "createOrderByQuoteRequiresPrice"), true) {
+			if *this.SafeBool(this.Options, "createOrderByQuoteRequiresPrice", false) {
 				if price != nil {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
@@ -3189,7 +3189,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol string, typeVar string, 
 		orderParams = this.Omit(orderParams, "hedged")
 		var posSide *string = this.SafeStringLower(orderParams, "posSide")
 		// a hedged reduceOnly order without posSide closes the opposite side
-		var flipSide bool = (posSide == nil) && (hedged != nil && *hedged == true) && (IsEqual(this.SafeBool(orderParams, "reduceOnly"), true))
+		var flipSide bool = (posSide == nil) && (hedged != nil && *hedged == true) && (*this.SafeBool(orderParams, "reduceOnly", false))
 		var oppositeSide string = func() string {
 			if side == "buy" {
 				return "sell"

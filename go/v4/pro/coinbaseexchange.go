@@ -138,7 +138,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 	var messageHashes []any = []any{}
 	var productIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		market = this.Market(symbol)
 		productIds = append(productIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", market["symbol"]))
@@ -928,7 +928,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					var keys []string = ccxt.ObjectKeys(order)
 					// update the reference
 					for i := 0; i < len(keys); i++ {
-						var key string = ccxt.GetValue(keys, i).(string)
+						var key string = keys[i]
 						if !ccxt.IsEqual(order[key], nil) {
 							ccxt.AddElementToObject(previousOrder, key, order[key])
 						}

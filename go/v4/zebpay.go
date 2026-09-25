@@ -557,16 +557,16 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 		}()
 		var networkId *string = this.SafeString(chain, "chainId")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
-		var depositAllowed bool = IsEqual(this.SafeBool(chain, "isDepositEnabled"), true)
+		var depositAllowed *bool = this.SafeBool(chain, "isDepositEnabled", false)
 		deposit = func() any {
-			if depositAllowed {
+			if depositAllowed != nil && *depositAllowed {
 				return depositAllowed
 			}
 			return deposit
 		}()
-		var withdrawAllowed bool = IsEqual(this.SafeBool(chain, "isWithdrawEnabled"), true)
+		var withdrawAllowed *bool = this.SafeBool(chain, "isWithdrawEnabled", false)
 		withdraw = func() any {
-			if withdrawAllowed {
+			if withdrawAllowed != nil && *withdrawAllowed {
 				return withdrawAllowed
 			}
 			return withdraw
@@ -603,7 +603,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 				"info":      chain,
 				"id":        networkId,
 				"network":   networkCode,
-				"active":    depositAllowed && withdrawAllowed,
+				"active":    (depositAllowed != nil && *depositAllowed) && (withdrawAllowed != nil && *withdrawAllowed),
 				"deposit":   depositAllowed,
 				"withdraw":  withdrawAllowed,
 				"fee":       this.ParseNumber(withdrawFeeString),
@@ -626,7 +626,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 		"code":      code,
 		"id":        currencyId,
 		"name":      name,
-		"active":    (deposit == true) && (withdraw == true),
+		"active":    EvalTruthy(deposit) && EvalTruthy(withdraw),
 		"deposit":   deposit,
 		"withdraw":  withdraw,
 		"fee":       this.ParseNumber(minWithdrawFeeString),

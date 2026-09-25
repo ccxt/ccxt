@@ -642,7 +642,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 						"id":        networkId,
 						"network":   networkCode,
 						"active":    nil,
-						"deposit":   (!IsEqual(this.SafeBool(chain, "depositDisable"), true)),
+						"deposit":   (!(*this.SafeBool(chain, "depositDisable", false))),
 						"withdraw":  this.SafeBool(token, "withdrawEnable"),
 						"fee":       this.SafeNumber(token, "minFee"),
 						"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(token, "decimals"))),

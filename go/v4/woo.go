@@ -1019,7 +1019,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1445,7 +1445,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1563,7 +1563,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var tokensById map[string]any = this.GroupBy(tokenRows, "balance_token")
 	var currencyIds []string = ObjectKeys(tokensById)
 	for i := 0; i < len(currencyIds); i++ {
-		var id string = GetValue(currencyIds, i).(string)
+		var id string = currencyIds[i]
 		var customCurrency map[string]any = map[string]any{
 			"_coin_id":        id,
 			"_tokens_by_id":   tokensById[id],
@@ -1587,7 +1587,7 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 	var keys []string = ObjectKeys(chainsByNetworkId)
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(keys); j++ {
-		var networkId string = GetValue(keys, j).(string)
+		var networkId string = keys[j]
 		var tokenEntry map[string]any = MapTyped(this.SafeDict(tokensByNetworkId, networkId, map[string]any{}))
 		var networkEntry map[string]any = MapTyped(this.SafeDict(chainsByNetworkId, networkId, map[string]any{}))
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
@@ -4950,11 +4950,11 @@ func (this *Woo) setLeverageBody(ch chan any, leverage int64, optionalArgs ...an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if (symbol == nil) || (IsEqual(this.SafeBool(market, "spot"), true)) {
+	if (symbol == nil) || (*this.SafeBool(market, "spot", false)) {
 
 		ch <- PanicOnError((<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw)
 		return nil
-	} else if IsEqual(this.SafeBool(market, "swap"), true) {
+	} else if *this.SafeBool(market, "swap", false) {
 		request["symbol"] = this.SafeString(market, "id")
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
@@ -5801,7 +5801,7 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 	var networks map[string]any = MapTyped(currencyItem["networks"])
 	var networkKeys []string = ObjectKeys(networks)
 	for i := 0; i < len(networkKeys); i++ {
-		var network string = GetValue(networkKeys, i).(string)
+		var network string = networkKeys[i]
 		if network == "ETH" {
 			return network
 		}

@@ -26,7 +26,7 @@ func testFetchLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	var tierKeys []string = ObjectKeys(tiers)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol)
 	for i := 0; i < len(tierKeys); i++ {
-		var tiersForSymbol any = GetValue(tiers, GetValue(tierKeys, i))
+		var tiersForSymbol any = GetValue(tiers, tierKeys[i])
 		AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol)
 		for j := 0; j < GetArrayLength(tiersForSymbol); j++ {
 			TestLeverageTier(exchange, skippedProperties, method, GetValue(tiersForSymbol, j))

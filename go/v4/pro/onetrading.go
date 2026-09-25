@@ -1250,11 +1250,11 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var properties []any = []any{}
 	var marketIds []string = ccxt.ObjectKeys(subscription)
 	for i := 0; i < len(marketIds); i++ {
-		var marketIdtimeframes []string = ccxt.ObjectKeys(ccxt.GetValue(subscription, ccxt.GetValue(marketIds, i)))
+		var marketIdtimeframes []string = ccxt.ObjectKeys(ccxt.GetValue(subscription, marketIds[i]))
 		for ii := 0; ii < len(marketIdtimeframes); ii++ {
 			var marketTimeframeId any = this.SafeDict(timeframes, timeframe)
 			var property map[string]any = map[string]any{
-				"instrument_code":  ccxt.GetValue(marketIds, i),
+				"instrument_code":  marketIds[i],
 				"time_granularity": marketTimeframeId,
 			}
 			properties = append(properties, property)
@@ -1346,7 +1346,7 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 	}
 	var keys []string = ccxt.ObjectKeys(timeframesResolved)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		if ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframesResolved, key), "unit"), ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframesResolved, key), "period"), ccxt.GetValue(timeframe, "period")) {
 			return ccxt.SafeStringPtr(key)
 		}

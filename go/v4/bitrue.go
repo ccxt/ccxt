@@ -1060,7 +1060,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1428,7 +1428,7 @@ func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString2(ticker, "lastPrice", "last")
 	var timestamp *int64 = this.SafeInteger(ticker, "time")
 	var percentage *string = nil
-	if IsEqual(this.SafeBool(market, "swap"), true) {
+	if *this.SafeBool(market, "swap", false) {
 		percentage = Precise.StringMul(this.SafeString(ticker, "rose"), "100")
 	} else {
 		percentage = this.SafeString(ticker, "priceChangePercent")
@@ -3948,7 +3948,7 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if (error != nil && *error == "-2015") && (this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false) != nil && *this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
+		if (error != nil && *error == "-2015") && (*this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
 			panic(DDoSProtection(Add(this.Id+" temporary banned: ", body)))
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

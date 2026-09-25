@@ -1710,7 +1710,7 @@ func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) any {
 	var transactionOmitted map[string]any = MapTyped(this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"}))
 	var ids []string = ObjectKeys(transactionOmitted)
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		if strings.Index(id, "_") < 0 {
 			var value *int64 = this.SafeInteger(transactionOmitted, id)
 			if (value != nil) && (value == nil || *value != 0) {
@@ -1795,7 +1795,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if market == nil {
 		var keys []string = ObjectKeys(trade)
 		for i := 0; i < len(keys); i++ {
-			var currentKey string = GetValue(keys, i).(string)
+			var currentKey string = keys[i]
 			if (currentKey != "order_id") && (strings.Index(currentKey, "_") >= 0) {
 				rawMarketId = DerefScalar(currentKey)
 				marketResolved = this.SafeMarket(rawMarketId, marketResolved, "_")
@@ -2311,7 +2311,7 @@ func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) ma
 	var currencies map[string]any = this.IndexBy(response, "currency")
 	var ids []string = ObjectKeys(currencies)
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		var fees map[string]any = SafeMapTyped(response, i)
 		var code *string = this.SafeCurrencyCode(id)
 		if (codes != nil) && !this.InArray(code, codes) {
@@ -3345,8 +3345,8 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var market any = nil
 		var keys []string = ObjectKeys(item)
 		for i := 0; i < len(keys); i++ {
-			if GetIndexOf(GetValue(keys, i), "_") >= 0 {
-				var marketId string = Replace(GetValue(keys, i), "_", "")
+			if GetIndexOf(keys[i], "_") >= 0 {
+				var marketId string = Replace(keys[i], "_", "")
 				market = this.SafeMarket(marketId, market)
 			}
 		}
@@ -3913,7 +3913,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		} else if !IsEqual(error, nil) {
 			var keys []string = ObjectKeys(error)
 			for i := 0; i < len(keys); i++ {
-				var key string = GetValue(keys, i).(string)
+				var key string = keys[i]
 				var value any = this.SafeValue(error, key)
 				if IsArray(value) {
 					errors = this.ArrayConcat(errors, value)

@@ -130,7 +130,7 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName string, cha
 	var messageHashes []any = []any{methodName}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		args = append(args, market["id"])
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
@@ -426,7 +426,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	var marketIds []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
@@ -504,7 +504,7 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	var marketIds []any = []any{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		subMessageHashes = append(subMessageHashes, ccxt.Add(name+"@", market["id"]))
 	}
@@ -709,7 +709,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var channels []any = []any{}
 	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; i < len(intervals); i++ {
-		var interval string = ccxt.GetValue(intervals, i).(string)
+		var interval string = intervals[i]
 		channels = append(channels, map[string]any{
 			"name":     name,
 			"interval": []any{interval},
@@ -827,7 +827,7 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	var channels []any = []any{}
 	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; i < len(intervals); i++ {
-		var interval string = ccxt.GetValue(intervals, i).(string)
+		var interval string = intervals[i]
 		channels = append(channels, map[string]any{
 			"name":     name,
 			"interval": []any{interval},
@@ -927,7 +927,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var marketIds []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
@@ -1007,7 +1007,7 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	var marketIds []any = []any{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		subMessageHashes = append(subMessageHashes, ccxt.Add(name+"@", market["id"]))
 	}
@@ -1249,7 +1249,7 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
 	// which unsubscribe request it belongs to, so settle every pending unsubscription
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), key)) {
 			continue
 		}
@@ -2371,7 +2371,7 @@ func (this *Bitvavo) HandleSubscriptionStatus(client any, message map[string]any
 	}
 	var names []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(names); i++ {
-		var name string = ccxt.GetValue(names, i).(string)
+		var name string = names[i]
 		var method any = this.SafeValue(methods, name)
 		if !ccxt.IsEqual(method, nil) {
 			var subscription any = this.SafeValue(subscriptions, name)

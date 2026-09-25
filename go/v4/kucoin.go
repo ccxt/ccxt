@@ -2180,7 +2180,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
 	var credentialsSet bool = this.CheckRequiredCredentials(false)
-	var requestMarginables bool = credentialsSet && (this.SafeBool(paramsRequest, "marginables", true) != nil && *this.SafeBool(paramsRequest, "marginables", true))
+	var requestMarginables bool = credentialsSet && (*this.SafeBool(paramsRequest, "marginables", true))
 	paramsRequest = this.Omit(paramsRequest, "marginables")
 	var fetchContractMarkets bool = false
 	if this.InArray("swap", types) || this.InArray("future", types) || this.InArray("contract", types) {
@@ -2329,7 +2329,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			_, ok := isolatedById[*id]
 			return ok
 		}())
-		var isMarginable bool = (this.SafeBool(market, "isMarginEnabled", false) != nil && *this.SafeBool(market, "isMarginEnabled", false)) || hasCrossMargin || hasIsolatedMargin
+		var isMarginable bool = (*this.SafeBool(market, "isMarginEnabled", false)) || hasCrossMargin || hasIsolatedMargin
 		result = append(result, map[string]any{
 			"id":       id,
 			"symbol":   *base + "/" + *quote,
@@ -2390,7 +2390,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var contractMarkets []any = SafeListTypedDefault(responses, contractIndex, []any{})
 		result = this.ArrayConcat(result, contractMarkets)
 	}
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -2775,7 +2775,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 			"info":    market,
 		})
 	}
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -3392,7 +3392,7 @@ func (this *Kucoin) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) any {
 		// uta spot sends a ratio under this name and uta swap sends a percentage.
 		// An unresolved market has no `spot` key at all, so read it the way okx
 		// does and leave the value alone rather than scaling on a guess.
-		if this.SafeBool(marketResolved, "spot", false) != nil && *this.SafeBool(marketResolved, "spot", false) {
+		if *this.SafeBool(marketResolved, "spot", false) {
 			percentage = Precise.StringMul(percentage, "100")
 		}
 	}
@@ -11699,7 +11699,7 @@ func (this *Kucoin) ParseBorrowRateHistories(response []any, codes any, since an
 	}
 	var keys []string = ObjectKeys(borrowRateHistories)
 	for i := 0; i < len(keys); i++ {
-		var code string = GetValue(keys, i).(string)
+		var code string = keys[i]
 		borrowRateHistories[code] = this.FilterByCurrencySinceLimit(borrowRateHistories[code], code, since, limit)
 	}
 	return borrowRateHistories

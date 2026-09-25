@@ -1000,7 +1000,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 
 			state := (<-this.FetchSxbetProxyAsync())
 			ccxt.PanicOnError(state)
-			if this.SafeBool(state, "deployed", false) != nil && *this.SafeBool(state, "deployed", false) {
+			if *this.SafeBool(state, "deployed", false) {
 				break
 			}
 		}
@@ -2911,7 +2911,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan any, url any) any {
 		ch <- ccxt.PanicOnError((<-this.Watch(url, "centrifugoConnected", connectMsg, "connect")))
 		return nil
 	}
-	if this.SafeBool(this.Options, "wsConnected", false) != nil && *this.SafeBool(this.Options, "wsConnected", false) {
+	if *this.SafeBool(this.Options, "wsConnected", false) {
 
 		// the connect reply already arrived on the current connection - safe to subscribe immediately
 		return nil
@@ -2967,7 +2967,7 @@ func (this *Sxbet) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line *string = ccxt.SafeStringPtr(ccxt.GetValue(lines, i))
+			var line *string = ccxt.SafeStringPtr(lines[i])
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -3171,7 +3171,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) any {
 	var timestamp int64 = this.Milliseconds()
 	var watchedSymsLength int = len(watchedSyms)
 	for i := 0; i < watchedSymsLength; i++ {
-		var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(watchedSyms, i))
+		var sym *string = ccxt.SafeStringPtr(watchedSyms[i])
 		if this.SafeString(watchedBooks, sym) != marketHash && (this.SafeString(watchedBooks, sym) == nil || marketHash == nil || *this.SafeString(watchedBooks, sym) != *marketHash) {
 			continue
 		}
@@ -3315,7 +3315,7 @@ func (this *Sxbet) HandleTicker(client any, rows any) {
 		}
 		var watchedSymsLength int = len(watchedSyms)
 		for j := 0; j < watchedSymsLength; j++ {
-			var sym *string = ccxt.SafeStringPtr(ccxt.GetValue(watchedSyms, j))
+			var sym *string = ccxt.SafeStringPtr(watchedSyms[j])
 			if this.SafeString(watchedTickers, sym) != marketHash && (this.SafeString(watchedTickers, sym) == nil || marketHash == nil || *this.SafeString(watchedTickers, sym) != *marketHash) {
 				continue
 			}

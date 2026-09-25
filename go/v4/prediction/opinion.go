@@ -2369,7 +2369,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any)
 	var marketKeys []string = ccxt.ObjectKeys(this.Markets)
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market map[string]any = ccxt.SafeMapTyped(this.Markets, ccxt.GetValue(marketKeys, i))
+		var market map[string]any = ccxt.SafeMapTyped(this.Markets, marketKeys[i])
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes any = this.SafeList(market, "outcomes", []any{})

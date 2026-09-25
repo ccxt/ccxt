@@ -2165,7 +2165,7 @@ func (this *Gate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -2352,7 +2352,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var result []any = []any{}
 	var swapSettlementCurrencies any = this.GetSettlementCurrencies("swap", "fetchMarkets")
-	if IsEqual(this.SafeBool(this.Options, "sandboxMode"), true) {
+	if *this.SafeBool(this.Options, "sandboxMode", false) {
 		swapSettlementCurrencies = []any{"usdt"} // gate sandbox only has usdt-margined swaps
 	}
 	for c := 0; c < GetArrayLength(swapSettlementCurrencies); c++ {
@@ -2384,7 +2384,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "sandboxMode"), true) {
+	if *this.SafeBool(this.Options, "sandboxMode", false) {
 
 		ch <- []any{} // right now sandbox does not have inverse swaps
 		return nil
@@ -3025,8 +3025,8 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 				"id":        networkId,
 				"network":   networkCode,
 				"active":    nil,
-				"deposit":   !IsEqual(this.SafeBool(chain, "deposit_disabled"), true),
-				"withdraw":  !IsEqual(this.SafeBool(chain, "withdraw_disabled"), true),
+				"deposit":   !(*this.SafeBool(chain, "deposit_disabled", false)),
+				"withdraw":  !(*this.SafeBool(chain, "withdraw_disabled", false)),
 				"fee":       nil,
 				"precision": this.ParseNumber("0.0001"),
 				"limits": map[string]any{
@@ -3047,9 +3047,9 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 		"code":      code,
 		"name":      this.SafeString(rawCurrency, "name"),
 		"type":      typeVar,
-		"active":    !IsEqual(this.SafeBool(rawCurrency, "delisted"), true),
-		"deposit":   !IsEqual(this.SafeBool(rawCurrency, "deposit_disabled"), true),
-		"withdraw":  !IsEqual(this.SafeBool(rawCurrency, "withdraw_disabled"), true),
+		"active":    !(*this.SafeBool(rawCurrency, "delisted", false)),
+		"deposit":   !(*this.SafeBool(rawCurrency, "deposit_disabled", false)),
+		"withdraw":  !(*this.SafeBool(rawCurrency, "withdraw_disabled", false)),
 		"fee":       nil,
 		"networks":  networks,
 		"precision": this.ParseNumber("0.0001"),
@@ -3554,7 +3554,7 @@ func (this *Gate) ParseTradingFees(response any) any {
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		result[symbol] = this.ParseTradingFee(response, market)
 	}
@@ -3666,7 +3666,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		} else {
 			var networkIds []string = ObjectKeys(withdrawFixOnChains)
 			for j := 0; j < len(networkIds); j++ {
-				var networkId string = GetValue(networkIds, j).(string)
+				var networkId string = networkIds[j]
 				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(withdrawFees, networkCode, this.ParseNumber(withdrawFixOnChains[networkId]))
@@ -3770,7 +3770,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	if withdrawFixOnChains != nil {
 		var chainKeys []string = ObjectKeys(withdrawFixOnChains)
 		for i := 0; i < len(chainKeys); i++ {
-			var chainKey string = GetValue(chainKeys, i).(string)
+			var chainKey string = chainKeys[i]
 			var currencyId *string = this.SafeString(fee, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId, currency)
 			var networkCode *string = this.NetworkIdToCode(chainKey, code)
@@ -4627,7 +4627,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		// so it can follow the existent flow
 		var keys []string = ObjectKeys(balances)
 		for i := 0; i < len(keys); i++ {
-			var currencyId string = GetValue(keys, i).(string)
+			var currencyId string = keys[i]
 			var content any = balances[currencyId]
 			AddElementToObject(content, "currency", currencyId)
 			flatBalances = append(flatBalances, content)
@@ -10666,7 +10666,7 @@ func (this *Gate) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	var response any = nil
 	var isUnified *bool = this.SafeBool(params, "unified")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "unified"))
-	if IsEqual(this.SafeBool(market, "spot"), true) {
+	if *this.SafeBool(market, "spot", false) {
 		request["currency_pair"] = this.SafeString(market, "id")
 		if isUnified != nil && *isUnified == true {
 

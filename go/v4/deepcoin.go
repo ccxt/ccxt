@@ -776,7 +776,7 @@ func (this *Deepcoin) SetMarkets(markets any, optionalArgs ...any) any {
 	var result any = this.Exchange.SetMarkets(markets, currencies)
 	var symbols []string = ObjectKeys(result)
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market any = GetValue(result, symbol)
 		if (!IsEqual(market, nil)) && (GetValue(market, "swap") == true) {
 			var additionalId string = *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
@@ -1130,8 +1130,8 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 }
 func (this *Deepcoin) GetProductGroupFromMarket(market any) string {
 	var productGroup string = "Spot"
-	if IsEqual(this.SafeBool(market, "swap"), true) {
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+	if *this.SafeBool(market, "swap", false) {
+		if *this.SafeBool(market, "linear", false) {
 			productGroup = "SwapU"
 		} else {
 			productGroup = "Swap"

@@ -1026,7 +1026,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchOrderBookForSymbols", "uta", false)
 	var paramsCursor any = paramsUta
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchOrderBookForSymbols", market, uta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(ccxt.GetValue(instTypeparamsInstTypeVariable, 0))
@@ -1292,7 +1292,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchTradesForSymbols", market, uta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(ccxt.GetValue(instTypeparamsInstTypeVariable, 0))
@@ -2186,7 +2186,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
-		var symbol string = ccxt.GetValue(keys, i).(string)
+		var symbol string = keys[i]
 		var innerMessageHash string = messageHash + ":" + symbol
 		if channel != nil && *channel == "orders-crossed" {
 			innerMessageHash = innerMessageHash + ":cross"

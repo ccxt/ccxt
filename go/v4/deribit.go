@@ -1866,7 +1866,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"code"}))
 	if !IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			if (code != nil) && !IsEqual(code, market["base"]) {
 				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
 			}
@@ -2366,7 +2366,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var parsedFees map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       market,
@@ -2545,7 +2545,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var filledString *string = this.SafeString(order, "filled_amount")
 	var amount *string = this.SafeString(order, "amount")
 	var cost *string = Precise.StringMul(filledString, averageString)
-	if IsEqual(this.SafeBool(marketResolved, "inverse"), true) {
+	if *this.SafeBool(marketResolved, "inverse", false) {
 		if averageString == nil || *averageString != "0" {
 			cost = Precise.StringDiv(amount, averageString)
 		}

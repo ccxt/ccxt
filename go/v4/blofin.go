@@ -3402,7 +3402,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var symbolsList []string = symbolsNormalized
 	var instIds any = ""
 	for i := 0; i < len(symbolsList); i++ {
-		var entry string = GetValue(symbolsList, i).(string)
+		var entry string = symbolsList[i]
 		var entryMarket map[string]any = this.Market(entry)
 		if i > 0 {
 			instIds = Add(Add(instIds, ","), entryMarket["id"])

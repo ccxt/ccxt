@@ -2583,7 +2583,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+query)
 		}
 		for i := 0; i < len(paramKeys); i++ {
-			var key string = GetValue(paramKeys, i).(string)
+			var key string = paramKeys[i]
 			var value *string = this.SafeString(paramsOmitted, key)
 			if value != nil {
 				signatureQuery += key + "=" + *value

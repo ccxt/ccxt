@@ -486,10 +486,10 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		if isSpot {
-			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 		}
-		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(symbolsNormalized, i)))
+		messageHashes = append(messageHashes, ccxt.Add("bidask:", symbolsNormalized[i]))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var request map[string]any = map[string]any{
@@ -864,7 +864,7 @@ func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	var volume *float64 = this.SafeNumber2(ohlcv, "v", "volume")
 	// MEXC swap websocket klines publish contracts volume in `q`,
 	// while spot/protobuf uses `v`/`volume`.
-	if (market != nil) && (!ccxt.IsEqual(this.SafeBool(market, "spot"), true)) && (volume == nil) {
+	if (market != nil) && (!(*this.SafeBool(market, "spot", false))) && (volume == nil) {
 		volume = this.SafeNumber2(ohlcv, "q", "v")
 	}
 	return []any{this.SafeTimestamp2(ohlcv, "t", "windowStart"), this.SafeNumber2(ohlcv, "o", "openingPrice"), this.SafeNumber2(ohlcv, "h", "highestPrice"), this.SafeNumber2(ohlcv, "l", "lowestPrice"), this.SafeNumber2(ohlcv, "c", "closingPrice"), volume}
@@ -2121,10 +2121,10 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		if isSpot {
-			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 		}
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(symbolsNormalized, i)))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", symbolsNormalized[i]))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var request map[string]any = map[string]any{
@@ -2298,7 +2298,7 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 				// unWatchTickers
 				var symbols []string = ccxt.ObjectKeys(this.Tickers)
 				for j := 0; j < len(symbols); j++ {
-					ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, j))
+					ccxt.Remove(this.Tickers, symbols[j])
 				}
 			} else if ccxt.InOp(this.Tickers, symbol) {
 				ccxt.Remove(this.Tickers, symbol)

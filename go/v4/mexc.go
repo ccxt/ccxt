@@ -1399,9 +1399,9 @@ func (this *Mexc) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//
 		//     {"success":true,"code":"0","data":"1648124374985"}
 		//
-		var success bool = (IsEqual(this.SafeBool(response, "success"), true))
+		var success *bool = this.SafeBool(response, "success", false)
 		status = func() any {
-			if success {
+			if success != nil && *success {
 				return "ok"
 			}
 			return this.Json(response)
@@ -1608,7 +1608,7 @@ func (this *Mexc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -2217,9 +2217,9 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 				"cost":     this.SafeString(trade, "fee"),
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 			}
-			var isTaker bool = (IsEqual(this.SafeBool2(trade, "isTaker", "taker"), true))
+			var isTaker *bool = this.SafeBool2(trade, "isTaker", "taker", false)
 			takerOrMaker = SafeStringPtr(func() string {
-				if isTaker {
+				if isTaker != nil && *isTaker {
 					return "taker"
 				}
 				return "maker"
@@ -2265,7 +2265,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if IsEqual(id, nil) && (this.SafeBool(this.Options, "useCcxtTradeId", true) != nil && *this.SafeBool(this.Options, "useCcxtTradeId", true)) {
+	if IsEqual(id, nil) && (*this.SafeBool(this.Options, "useCcxtTradeId", true)) {
 		id = this.CreateCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker)
 	}
 	return this.SafeTrade(map[string]any{

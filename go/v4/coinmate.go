@@ -598,7 +598,7 @@ func (this *Coinmate) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var account map[string]any = this.Account()
@@ -782,8 +782,8 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(data)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var market map[string]any = this.Market(GetValue(keys, i))
-		var ticker map[string]any = MapTyped(this.ParseTicker(this.SafeValue(data, GetValue(keys, i)), market))
+		var market map[string]any = this.Market(keys[i])
+		var ticker map[string]any = MapTyped(this.ParseTicker(this.SafeValue(data, keys[i]), market))
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 

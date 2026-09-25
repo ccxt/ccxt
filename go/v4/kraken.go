@@ -696,7 +696,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{}
 	promises = append(promises, EndpointRaw(this.PublicGetAssetPairs(params)))
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
 
@@ -754,7 +754,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(markets)
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var id string = GetValue(keys, i).(string)
+		var id string = keys[i]
 		var isSynthetic bool = false
 		if strings.Index(id, ":BTNL") >= 0 {
 			isSynthetic = true
@@ -1335,7 +1335,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			if market["active"] == true {
 				marketIds = append(marketIds, market["id"])
@@ -1349,7 +1349,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
@@ -1630,7 +1630,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(ledger)
 	var items []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = ledger[key]
 		AddElementToObject(value, "id", key)
 		items = append(items, value)
@@ -1675,7 +1675,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 	var keys []string = ObjectKeys(result)
 	var items []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = result[key]
 		AddElementToObject(value, "id", key)
 		items = append(items, value)
@@ -1949,7 +1949,7 @@ func (this *Kraken) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var account map[string]any = this.Account()
@@ -3047,7 +3047,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id string, optionalArgs ..
 		var rawTrades any = this.SafeValue(response, "result")
 		var ids []string = ObjectKeys(rawTrades)
 		for i := 0; i < len(ids); i++ {
-			AddElementToObject(GetValue(rawTrades, GetValue(ids, i)), "id", GetValue(ids, i))
+			AddElementToObject(GetValue(rawTrades, ids[i]), "id", ids[i])
 		}
 		var trades any = this.ParseTrades(rawTrades, nil, since, limit)
 		var tradesFilteredBySymbol any = this.FilterBySymbol(trades, symbolResolved)
@@ -3093,7 +3093,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(result)
 	for i := 0; i < len(orderIds); i++ {
-		var id string = GetValue(orderIds, i).(string)
+		var id string = orderIds[i]
 		var item any = result[id]
 		var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
@@ -3187,7 +3187,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var trades map[string]any = MapTyped(this.SafeDict(tradesResult, "trades", map[string]any{}))
 	var ids []string = ObjectKeys(trades)
 	for i := 0; i < len(ids); i++ {
-		AddElementToObject(GetValue(trades, GetValue(ids, i)), "id", GetValue(ids, i))
+		AddElementToObject(GetValue(trades, ids[i]), "id", ids[i])
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3521,7 +3521,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(open)
 	for i := 0; i < len(orderIds); i++ {
-		var id string = GetValue(orderIds, i).(string)
+		var id string = orderIds[i]
 		var item any = open[id]
 		orders = append(orders, this.Extend(map[string]any{
 			"id": id,
@@ -3636,7 +3636,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(closed)
 	for i := 0; i < len(orderIds); i++ {
-		var id string = GetValue(orderIds, i).(string)
+		var id string = orderIds[i]
 		var item any = closed[id]
 		orders = append(orders, this.Extend(map[string]any{
 			"id": id,

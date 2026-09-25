@@ -1061,7 +1061,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -1644,7 +1644,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
-		var symbol string = ccxt.GetValue(keys, i).(string)
+		var symbol string = keys[i]
 		var innerMessageHash string = messageHash + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
@@ -1714,7 +1714,7 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription map[s
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	var symbols []string = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; i < len(symbols); i++ {
-		ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
+		ccxt.Remove(this.Tickers, symbols[i])
 	}
 }
 func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription map[string]any) {
@@ -1834,8 +1834,8 @@ func (this *Pacifica) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
-		if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
+		var key string = keys[i]
+		if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return

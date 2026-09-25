@@ -3220,7 +3220,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -3892,7 +3892,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	var codesValue any = this.MarketCodes(codes)
 	var responseKeys []string = ObjectKeys(response)
 	for i := 0; i < len(responseKeys); i++ {
-		var currencyId string = GetValue(responseKeys, i).(string)
+		var currencyId string = responseKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var feeInfo any = GetValue(response, currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {

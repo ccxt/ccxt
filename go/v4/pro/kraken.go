@@ -1067,7 +1067,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbols []string = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
 		if !ccxt.IsEqual(symbols, nil) {
 			for i := 0; i < len(symbols); i++ {
-				var symbol string = ccxt.GetValue(symbols, i).(string)
+				var symbol string = symbols[i]
 				var market map[string]any = this.Market(symbol)
 				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
@@ -1543,7 +1543,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", ccxt.GetValue(keys, i)))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", keys[i]))
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		}
 	}
@@ -1714,7 +1714,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		client.(ccxt.ClientInterface).Resolve(this.Orders, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", ccxt.GetValue(keys, i)))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", keys[i]))
 			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		}
 	}
@@ -1818,9 +1818,9 @@ func (this *Kraken) watchMultiHelperBody(ch chan any, unifiedName string, channe
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var eventTrigger *string = this.SafeString(params, "event_trigger")
 		if eventTrigger != nil {
-			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i))))
+			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(symbolsNormalized[i])))
 		} else {
-			messageHashes = append(messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i))))
+			messageHashes = append(messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i])))
 		}
 	}
 	var request map[string]any = map[string]any{

@@ -1942,7 +1942,7 @@ func (this *Digifinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if IsEqual(this.SafeBool(market, "swap"), true) {
+	if *this.SafeBool(market, "swap", false) {
 		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 	} else {
 		return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 5), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1)}
@@ -5350,7 +5350,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 	}
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
-		var code string = GetValue(depositWithdrawCodes, i).(string)
+		var code string = depositWithdrawCodes[i]
 		var currency map[string]any = this.Currency(code)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}

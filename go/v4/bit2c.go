@@ -354,7 +354,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
-		var code string = GetValue(codes, i).(string)
+		var code string = codes[i]
 		var account map[string]any = this.Account()
 		var currency map[string]any = this.Currency(code)
 		var uppercase string = ToUpper(currency["id"])
@@ -694,7 +694,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(fees)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var marketId string = GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		var symbol *string = this.SafeSymbol(marketId)
 		var fee map[string]any = SafeMapTyped(fees, marketId)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
@@ -1116,7 +1116,7 @@ func (this *Bit2c) RemoveCommaFromValue(str any) any {
 	var newString any = ""
 	var strParts []string = Split(str, ",")
 	for i := 0; i < len(strParts); i++ {
-		newString = Add(newString, GetValue(strParts, i))
+		newString = Add(newString, strParts[i])
 	}
 	return newString
 }

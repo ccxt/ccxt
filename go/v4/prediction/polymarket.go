@@ -798,7 +798,7 @@ func (this *Polymarket) TagToSlug(tag any) string {
 	var slug string = ""
 	var pendingSep bool = false
 	for i := 0; i < len(chars); i++ {
-		var ch string = ccxt.GetValue(chars, i).(string)
+		var ch string = chars[i]
 		if strings.Index(allowed, ch) >= 0 {
 			if pendingSep && (slug != "") {
 				slug = slug + "-"
@@ -1938,7 +1938,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var bucketKeys []string = ccxt.ObjectKeys(buckets)
 	var unsortedCandles []any = []any{}
 	for i := 0; i < len(bucketKeys); i++ {
-		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, ccxt.GetValue(bucketKeys, i)))
+		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, bucketKeys[i]))
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
@@ -3952,7 +3952,7 @@ func (this *Polymarket) EthChecksumAddress(address any) string {
 	var upperNibbles string = "89abcdef"
 	var result string = ""
 	for i := 0; i < len(addrChars); i++ {
-		var ch string = ccxt.GetValue(addrChars, i).(string)
+		var ch string = addrChars[i]
 		if ccxt.GetIndexOf(upperNibbles, ccxt.GetValue(hashChars, i)) >= 0 {
 			result = result + strings.ToUpper(ch)
 		} else {
@@ -4288,7 +4288,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	for k := 0; k < len(updatedSymbols); k++ {
-		var outcome string = ccxt.GetValue(updatedSymbols, k).(string)
+		var outcome string = updatedSymbols[k]
 		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)

@@ -666,7 +666,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var keys []string = ObjectKeys(data)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var parts []string = strings.Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {

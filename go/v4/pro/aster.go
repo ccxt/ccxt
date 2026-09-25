@@ -894,7 +894,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		"id":     1,
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = this.SafeStringLower(market, "id")
 		if marketId == nil {
@@ -962,7 +962,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@aggTrade"))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trade:", market["symbol"]))
@@ -1128,14 +1128,14 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if ccxt.InOp(trade, "m") {
 		if side == nil {
 			side = ccxt.SafeStringPtr(func() string {
-				if ccxt.IsEqual(this.SafeBool(trade, "m"), true) {
+				if *this.SafeBool(trade, "m", false) {
 					return "sell"
 				}
 				return "buy"
 			}()) // this is reversed intentionally
 		}
 		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if ccxt.IsEqual(this.SafeBool(trade, "m"), true) {
+			if *this.SafeBool(trade, "m", false) {
 				return "maker"
 			}
 			return "taker"
@@ -1284,7 +1284,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		limitResolved = limit
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), ccxt.ToString(limitResolved)))
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", market["symbol"]))
@@ -1350,7 +1350,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		limit = 20
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), limit))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:orderbook:", market["symbol"]))
@@ -1804,7 +1804,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 						var client ccxt.ClientInterface = this.Client(url)
 						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 						for i := 0; i < len(messageHashes); i++ {
-							var messageHash string = ccxt.GetValue(messageHashes, i).(string)
+							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(ccxt.GetValue(this.Options, "listenKey"), typeVar, nil)
@@ -2059,7 +2059,7 @@ func (this *Aster) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, messageHash+"::"+symbol)
 		}
 	}

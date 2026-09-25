@@ -882,15 +882,15 @@ func (this *Bingx) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	// for linear swap, (T) is the opening time
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var isSpot bool = (ccxt.IsEqual(this.SafeBool(market, "spot"), true))
-	var isInverse bool = (ccxt.IsEqual(this.SafeBool(market, "inverse"), true))
+	var isSpot *bool = this.SafeBool(market, "spot", false)
+	var isInverse *bool = this.SafeBool(market, "inverse", false)
 	var timestamp string = "T"
-	if isSpot {
+	if isSpot != nil && *isSpot {
 		timestamp = "t"
 	}
-	if ccxt.IsEqual(this.SafeBool(market, "swap"), true) {
+	if *this.SafeBool(market, "swap", false) {
 		timestamp = func() string {
-			if isInverse {
+			if isInverse != nil && *isInverse {
 				return "t"
 			}
 			return "T"
@@ -1793,7 +1793,7 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 							var client ccxt.ClientInterface = this.Client(url)
 							var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 							for j := 0; j < len(messageHashes); j++ {
-								var messageHash string = ccxt.GetValue(messageHashes, j).(string)
+								var messageHash string = messageHashes[j]
 								client.(ccxt.ClientInterface).Reject(error, messageHash)
 							}
 						}

@@ -1568,7 +1568,7 @@ func (this *Bingx) ParseMarket(market any) any {
 	var isActive bool = false
 	if (this.SafeString(market, "apiStateOpen") != nil && *this.SafeString(market, "apiStateOpen") == "true") && (this.SafeString(market, "apiStateClose") != nil && *this.SafeString(market, "apiStateClose") == "true") {
 		isActive = true // swap active
-	} else if (IsEqual(this.SafeBool(market, "apiStateSell"), true)) && (IsEqual(this.SafeBool(market, "apiStateBuy"), true)) && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
+	} else if (*this.SafeBool(market, "apiStateSell", false)) && (*this.SafeBool(market, "apiStateBuy", false)) && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // spot active
 	} else if checkIsInverse && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // inverse swap active
@@ -6819,7 +6819,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
-			var networkCode *string = SafeStringPtr(GetValue(networkCodes, i))
+			var networkCode *string = SafeStringPtr(networkCodes[i])
 			var network map[string]any = SafeMapTyped(networks, networkCode)
 			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
@@ -6871,7 +6871,7 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	var depositWithdrawFees map[string]any = map[string]any{}
 	var responseCodes []string = ObjectKeys(response)
 	for i := 0; i < len(responseCodes); i++ {
-		var code string = GetValue(responseCodes, i).(string)
+		var code string = responseCodes[i]
 		if (codes == nil) || (this.InArray(code, codes)) {
 			var entry map[string]any = SafeMapTyped(response, code)
 			depositWithdrawFees[code] = this.ParseDepositWithdrawFee(entry)

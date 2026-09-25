@@ -73,7 +73,7 @@ func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) an
 	var ids map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(currencyValues)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var currency map[string]any = MapTyped(GetValue(currencyValues, key))
 		var code any = currency["code"]
 		if !(InOp(ids, code)) {

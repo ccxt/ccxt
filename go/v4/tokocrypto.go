@@ -869,7 +869,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp":1659492212507
 	//     }
 	//
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1197,7 +1197,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		if InOp(trade, "isBuyer") {
 			side = SafeStringPtr(func() string {
-				if IsEqual(this.SafeBool(trade, "isBuyer"), true) {
+				if *this.SafeBool(trade, "isBuyer", false) {
 					return "buy"
 				}
 				return "sell"
@@ -1213,7 +1213,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "isMaker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "isMaker"), true) {
+			if *this.SafeBool(trade, "isMaker", false) {
 				return "maker"
 			}
 			return "taker"
@@ -1221,7 +1221,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "maker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "maker"), true) {
+			if *this.SafeBool(trade, "maker", false) {
 				return "maker"
 			}
 			return "taker"
@@ -3247,7 +3247,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if (error != nil && *error == "-2015") && (IsEqual(this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
+		if (error != nil && *error == "-2015") && (*this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
 			panic(DDoSProtection(Add(this.Id+" ", body)))
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

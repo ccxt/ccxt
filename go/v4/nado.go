@@ -2541,7 +2541,7 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var tickers []string = ObjectKeys(response)
 	var rates []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker string = GetValue(tickers, i).(string)
+		var ticker string = tickers[i]
 		rates = append(rates, this.SafeDict(response, ticker, map[string]any{}))
 	}
 
@@ -2660,7 +2660,7 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	var tickers []string = ObjectKeys(response)
 	var interests []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker string = GetValue(tickers, i).(string)
+		var ticker string = tickers[i]
 		interests = append(interests, this.SafeDict(response, ticker, map[string]any{}))
 	}
 
@@ -3190,7 +3190,7 @@ func (this *Nado) ParseBalance(response any) any {
 			code = SafeStringPtr("USDT0")
 		} else if code == currencyId || (code != nil && currencyId != nil && *code == *currencyId) {
 			var market map[string]any = this.SafeMarket(currencyId, nil, nil, "spot")
-			if IsEqual(this.SafeBool(market, "spot"), true) {
+			if *this.SafeBool(market, "spot", false) {
 				code = this.SafeString(market, "base", code)
 			}
 		}

@@ -882,7 +882,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	var ids []string = ObjectKeys(response)
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		if strings.HasSuffix(id, "_BQX") {
 			continue
 		}
@@ -1102,7 +1102,7 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
 		"id":        currencyId,
 		"precision": this.SafeNumber(entry, "precision_transfer"),
 		"name":      this.SafeString(entry, "full_name"),
-		"active":    !IsEqual(this.SafeBool(entry, "delisted"), true),
+		"active":    !(*this.SafeBool(entry, "delisted", false)),
 		"deposit":   this.SafeBool(entry, "payin_enabled"),
 		"withdraw":  this.SafeBool(entry, "payout_enabled"),
 		"networks":  networks,
@@ -1410,7 +1410,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var marketId string = GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var entry map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
@@ -1517,7 +1517,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var trades []any = []any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var marketInner map[string]any = this.Market(marketId)
 		var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
 		var parsed any = this.ParseTrades(rawTrades, marketInner)
@@ -2015,7 +2015,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var orderbook map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		var symbol *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
@@ -3584,7 +3584,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var contracts []string = ObjectKeys(response)
 	var rates []any = []any{}
 	for i := 0; i < len(contracts); i++ {
-		var marketId string = GetValue(contracts, i).(string)
+		var marketId string = contracts[i]
 		var marketInner map[string]any = this.SafeMarket(marketId)
 		var fundingRateData []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(fundingRateData); j++ {
@@ -3966,7 +3966,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	var results []any = []any{}
 	var markets []string = ObjectKeys(response)
 	for i := 0; i < len(markets); i++ {
-		var marketId string = GetValue(markets, i).(string)
+		var marketId string = markets[i]
 		var marketInner map[string]any = this.SafeMarket(marketId)
 		var openInterest map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		results = append(results, this.ParseOpenInterest(openInterest, marketInner))

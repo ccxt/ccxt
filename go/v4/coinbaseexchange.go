@@ -1239,7 +1239,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 	var marketIds []string = ObjectKeys(response)
 	var delimiter string = "-"
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var entry []any = SafeListTyped(response, marketId)
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)

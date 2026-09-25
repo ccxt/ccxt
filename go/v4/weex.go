@@ -1150,7 +1150,7 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -3927,7 +3927,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	var isReduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-	var isEntryTrigger bool = !(this.SafeBool(order, "reduceOnly", true) != nil && *this.SafeBool(order, "reduceOnly", true))
+	var isEntryTrigger bool = !(*this.SafeBool(order, "reduceOnly", true))
 	var takeProfitPrice any = nil
 	var stopLossPrice any = nil
 	if !isEntryTrigger {

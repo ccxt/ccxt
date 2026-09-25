@@ -3278,7 +3278,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 	if symbol == nil {
-		if IsEqual(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol"), true) {
+		if EvalTruthy(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol", false)) {
 			panic(ExchangeError(this.Id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set " + this.Id + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message."))
 		}
 	} else {
@@ -3662,7 +3662,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else {
 		requestParams = MapTyped(this.Omit(params, omitKeys))
 	}
-	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (market["swap"] == true) {
+	if (*this.SafeBool(this.Options, "builderFee", false)) && (market["swap"] == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
 		request["feeRate"] = this.SafeString(this.Options, "builderRate")
 	}
@@ -5493,7 +5493,7 @@ func (this *Aster) EncodeValuesWithJson(values any) string {
 	var encodedString string = ""
 	var keys []string = ObjectKeys(values)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = GetValue(values, key)
 		var isObj bool = IsArray(value) || this.IsDictionary(value)
 		var valueJsonified string = func() string {
@@ -5511,7 +5511,7 @@ func (this *Aster) CapitalizeKeys(dict any) any {
 	var capitalized map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(dict)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = GetValue(dict, key)
 		var capitalizedKey string = this.Capitalize(key)
 		capitalized[capitalizedKey] = value

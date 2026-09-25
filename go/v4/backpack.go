@@ -793,7 +793,7 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1815,7 +1815,7 @@ func (this *Backpack) ParseBalance(response any) any {
 	var balanceKeys []string = ObjectKeys(response)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
-		var id string = GetValue(balanceKeys, i).(string)
+		var id string = balanceKeys[i]
 		var code *string = this.SafeCurrencyCode(id)
 		var balance map[string]any = SafeMapTyped(response, id)
 		var account map[string]any = this.Account()

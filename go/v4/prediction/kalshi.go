@@ -3331,7 +3331,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan any, optionalArgs ...a
 		var parts []string = strings.Split(*seriesParam, ",")
 		var partsLength int = len(parts)
 		for pi := 0; pi < partsLength; pi++ {
-			collected = append(collected, ccxt.GetValue(parts, pi))
+			collected = append(collected, parts[pi])
 		}
 	}
 	// deduplicate preserving order

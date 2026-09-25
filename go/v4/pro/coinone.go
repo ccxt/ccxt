@@ -470,8 +470,8 @@ func (this *Coinone) HandleMessage(client any, message any) {
 		}
 		var keys []string = ccxt.ObjectKeys(methods)
 		for i := 0; i < len(keys); i++ {
-			var key string = ccxt.GetValue(keys, i).(string)
-			if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
+			var key string = keys[i]
+			if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
 				var method any = methods[key]
 				ccxt.CallDynamically(method, client, message)
 				return

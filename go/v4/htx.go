@@ -2494,7 +2494,7 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -2507,8 +2507,8 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var promises any = []any{}
 	var keys []string = ObjectKeys(types)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
-		if IsEqual(this.SafeBool(types, key), true) {
+		var key string = keys[i]
+		if *this.SafeBool(types, key, false) {
 			if key == "spot" {
 				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("spot", nil, paramsTypes))
 			} else if key == "linear" {
@@ -3781,7 +3781,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["start_time"] = since
 		}
 		request, paramsUntil = this.HandleUntilOption("end_time", request, paramsMarketType)
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+		if *this.SafeBool(market, "linear", false) {
 			request["contract_code"] = this.SafeString(market, "id")
 			if limit != nil {
 				request["limit"] = limit // default 100, max 500
@@ -3789,7 +3789,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.ContractPrivateGetV5TradeOrderDetails(this.Extend(request, paramsUntil)))
 			PanicOnError(response)
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
 			if limit != nil {
 				request["page_size"] = limit // default 100, max 500
 			}
@@ -4819,7 +4819,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				}
 				var subCodes []string = ObjectKeys(subResult)
 				for j := 0; j < len(subCodes); j++ {
-					var subCode string = GetValue(subCodes, j).(string)
+					var subCode string = subCodes[j]
 					result = this.MergeBalanceAccount(result, subCode, subResult[subCode])
 				}
 			}
@@ -4945,7 +4945,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 				request["client_order_id"] = clientOrderId
 			}
 		}
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+		if *this.SafeBool(market, "linear", false) {
 			if isAlgo == true {
 				if trigger != nil && *trigger == true {
 					request["type"] = "trigger"
@@ -4977,7 +4977,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 				response = (<-this.ContractPrivateGetV5TradeOrder(this.Extend(request, paramsMarginMode)))
 				PanicOnError(response)
 			}
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
 			if marketType != nil && *marketType == "future" {
 				request["symbol"] = this.SafeString(market, "settleId")
 
@@ -5538,7 +5538,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(this.Id + " fetchCanceledOrders() requires a symbol argument for " + *marketType + " orders"))
 		}
 		var request map[string]any = map[string]any{}
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+		if *this.SafeBool(market, "linear", false) {
 			var trigger *bool = this.SafeBool2(paramsMarketType, "stop", "trigger")
 			var stopLossTakeProfit *bool = this.SafeBool(paramsMarketType, "stopLossTakeProfit")
 			var stopLoss *bool = this.SafeBool(paramsMarketType, "stopLoss")
@@ -7135,22 +7135,22 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsEqual(this.SafeBool(market, "spot"), true) {
+	if *this.SafeBool(market, "spot", false) {
 
 		response = (<-this.PrivatePostOrderBatchOrders(ordersRequests))
 		PanicOnError(response)
 	} else {
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+		if *this.SafeBool(market, "linear", false) {
 
 			response = (<-this.ContractPrivatePostV5TradeBatchOrders(ordersRequests))
 			PanicOnError(response)
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
 			request["orders_data"] = ordersRequests
-			if IsEqual(this.SafeBool(market, "swap"), true) {
+			if *this.SafeBool(market, "swap", false) {
 
 				response = (<-this.ContractPrivatePostSwapApiV1SwapBatchorder(request)).Raw
 				PanicOnError(response)
-			} else if IsEqual(this.SafeBool(market, "future"), true) {
+			} else if *this.SafeBool(market, "future", false) {
 
 				response = (<-this.ContractPrivatePostApiV1ContractBatchorder(request)).Raw
 				PanicOnError(response)
@@ -7222,7 +7222,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	//
 	//
 	var result any = nil
-	if IsEqual(this.SafeBool(market, "spot"), true) {
+	if *this.SafeBool(market, "spot", false) {
 		result = this.SafeList(response, "data", []any{})
 	} else {
 		var data any = this.SafeValue(response, "data")
@@ -7312,7 +7312,7 @@ func (this *Htx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 				query = this.Omit(query, []any{"client_order_id", "clientOrderId"})
 			}
 		}
-		if IsEqual(this.SafeBool(market, "future"), true) {
+		if *this.SafeBool(market, "future", false) {
 			request["symbol"] = this.SafeString(market, "settleId")
 		} else {
 			request["contract_code"] = this.SafeString(market, "id")
@@ -7338,8 +7338,8 @@ func (this *Htx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 				response = (<-this.ContractPrivatePostV5TradeCancelOrder(this.Extend(request, query)))
 				PanicOnError(response)
 			}
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
-			if IsEqual(this.SafeBool(market, "swap"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
+			if *this.SafeBool(market, "swap", false) {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancel(this.Extend(request, query))).Raw
@@ -7357,7 +7357,7 @@ func (this *Htx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 					response = (<-this.ContractPrivatePostSwapApiV1SwapCancel(this.Extend(request, query))).Raw
 					PanicOnError(response)
 				}
-			} else if IsEqual(this.SafeBool(market, "future"), true) {
+			} else if *this.SafeBool(market, "future", false) {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostApiV1ContractTriggerCancel(this.Extend(request, query))).Raw
@@ -7514,19 +7514,19 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		var clientOrderIds any = this.SafeValue2(query, "client_order_id", "clientOrderId")
 		clientOrderIds = this.SafeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds)
 		query = this.Omit(query, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
-		if !IsEqual(this.SafeBool(market, "linear"), true) {
+		if !(*this.SafeBool(market, "linear", false)) {
 			if IsEqual(clientOrderIds, nil) {
 				request["order_id"] = Join(ids, ",")
 			} else {
 				request["client_order_id"] = clientOrderIds
 			}
 		}
-		if IsEqual(this.SafeBool(market, "future"), true) {
+		if *this.SafeBool(market, "future", false) {
 			request["symbol"] = this.SafeString(market, "settleId")
 		} else {
 			request["contract_code"] = this.SafeString(market, "id")
 		}
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+		if *this.SafeBool(market, "linear", false) {
 			if IsEqual(clientOrderIds, nil) {
 				request["order_id"] = ids
 			} else {
@@ -7539,8 +7539,8 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 
 			response = (<-this.ContractPrivatePostV5TradeCancelBatchOrders(this.Extend(request, query)))
 			PanicOnError(response)
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
-			if IsEqual(this.SafeBool(market, "swap"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
+			if *this.SafeBool(market, "swap", false) {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancel(this.Extend(request, query))).Raw
@@ -7554,7 +7554,7 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 					response = (<-this.ContractPrivatePostSwapApiV1SwapCancel(this.Extend(request, query))).Raw
 					PanicOnError(response)
 				}
-			} else if IsEqual(this.SafeBool(market, "future"), true) {
+			} else if *this.SafeBool(market, "future", false) {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostApiV1ContractTriggerCancel(this.Extend(request, query))).Raw
@@ -7646,7 +7646,7 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	//         "ts": 1780822053167
 	//     }
 	//
-	if (IsEqual(this.SafeBool(market, "linear"), true)) && (trigger == nil || *trigger != true) && (stopLossTakeProfit == nil || *stopLossTakeProfit != true) {
+	if (*this.SafeBool(market, "linear", false)) && (trigger == nil || *trigger != true) && (stopLossTakeProfit == nil || *stopLossTakeProfit != true) {
 
 		ch <- this.ParseCancelOrders(response)
 		return nil
@@ -7818,7 +7818,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 		}
-		if IsEqual(this.SafeBool(market, "future"), true) {
+		if *this.SafeBool(market, "future", false) {
 			request["symbol"] = this.SafeString(market, "settleId")
 		}
 		request["contract_code"] = this.SafeString(market, "id")
@@ -7826,12 +7826,12 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		var stopLossTakeProfit *bool = this.SafeBool(paramsMarketType, "stopLossTakeProfit")
 		var trailing *bool = this.SafeBool(paramsMarketType, "trailing", false)
 		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger"}))
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+		if *this.SafeBool(market, "linear", false) {
 
 			response = (<-this.ContractPrivatePostV5TradeCancelAllOrders(this.Extend(request, paramsOmitted)))
 			PanicOnError(response)
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
-			if IsEqual(this.SafeBool(market, "swap"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
+			if *this.SafeBool(market, "swap", false) {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancelall(this.Extend(request, paramsOmitted))).Raw
@@ -7849,7 +7849,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 					response = (<-this.ContractPrivatePostSwapApiV1SwapCancelall(this.Extend(request, paramsOmitted))).Raw
 					PanicOnError(response)
 				}
-			} else if IsEqual(this.SafeBool(market, "future"), true) {
+			} else if *this.SafeBool(market, "future", false) {
 				if trigger != nil && *trigger == true {
 
 					response = (<-this.ContractPrivatePostApiV1ContractTriggerCancelall(this.Extend(request, paramsOmitted))).Raw
@@ -7881,7 +7881,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		//         "ts": "1683435723755"
 		//     }
 		//
-		if (IsEqual(this.SafeBool(market, "linear"), true)) && ((trigger == nil || *trigger != true) && (trailing == nil || *trailing != true) && (stopLossTakeProfit == nil || *stopLossTakeProfit != true)) {
+		if (*this.SafeBool(market, "linear", false)) && ((trigger == nil || *trigger != true) && (trailing == nil || *trailing != true) && (stopLossTakeProfit == nil || *stopLossTakeProfit != true)) {
 
 			ch <- this.ParseCancelOrders(response)
 			return nil

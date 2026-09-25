@@ -369,7 +369,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 	if channel != nil && *channel == "market_stats:all" {
 		var marketIds []string = ccxt.ObjectKeys(data)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId string = ccxt.GetValue(marketIds, i).(string)
+			var marketId string = marketIds[i]
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 			var ticker any = this.ParseTicker(data[marketId], market)
@@ -504,7 +504,7 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, this.GetMessageHash("ticker"))
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, this.GetMessageHash("ticker", symbol))
 		}
 	}
@@ -1017,7 +1017,7 @@ func (this *Lighter) HandleMyTrades(client any, message any) bool {
 	var stored any = this.MyTrades
 	var messageHash string = this.GetMessageHash("myTrades")
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var trades []any = ccxt.SafeListTyped(data, marketId)
 		var tradesLength int = len(trades)
@@ -1400,7 +1400,7 @@ func (this *Lighter) HandleBalance(client any, message any) bool {
 		var assets map[string]any = ccxt.SafeMapTyped(message, "assets")
 		var assetIds []string = ccxt.ObjectKeys(assets)
 		for i := 0; i < len(assetIds); i++ {
-			var assetId string = ccxt.GetValue(assetIds, i).(string)
+			var assetId string = assetIds[i]
 			var asset map[string]any = ccxt.SafeMapTyped(assets, assetId)
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
@@ -1733,7 +1733,7 @@ func (this *Lighter) HandleOrders(client any, message any) bool {
 	var stored any = this.Orders
 	var messageHash string = this.GetMessageHash("orders")
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
@@ -1779,7 +1779,7 @@ func (this *Lighter) HandleErrorMessage(client any, message any) bool {
 						if id != nil {
 							var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 							for i := 0; i < len(subscriptionKeys); i++ {
-								var subscriptionHash string = ccxt.GetValue(subscriptionKeys, i).(string)
+								var subscriptionHash string = subscriptionKeys[i]
 								var subscriptionId *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
 								var subscription *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "subscription")
 								if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {
@@ -1964,7 +1964,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		// so handleErrorMessage rejects every future on the socket
 		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptionHashes); i++ {
-			var subscriptionHash string = ccxt.GetValue(subscriptionHashes, i).(string)
+			var subscriptionHash string = subscriptionHashes[i]
 			if strings.HasPrefix(subscriptionHash, "ticker") {
 				var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")

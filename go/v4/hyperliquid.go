@@ -556,7 +556,7 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 			var parts []string = strings.Split(*name, "U")
 			var nameWithoutU any = ""
 			for j := 0; j < len(parts); j++ {
-				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
+				nameWithoutU = Add(nameWithoutU, parts[j])
 			}
 			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
 			if code != nil {
@@ -1443,7 +1443,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
 			var market map[string]any = this.Market(firstSymbol)
-			if IsEqual(this.SafeBool(this.SafeDict(market, "info"), "hip3"), true) {
+			if EvalTruthy(this.SafeBool(this.SafeDict(market, "info"), "hip3", false)) {
 				hip3 = true
 			}
 		}
@@ -2123,7 +2123,7 @@ func (this *Hyperliquid) setRefBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	if this.SafeBool(this.Options, "refSet", false) != nil && *this.SafeBool(this.Options, "refSet", false) {
+	if *this.SafeBool(this.Options, "refSet", false) {
 
 		ch <- true
 		return nil
@@ -2980,12 +2980,12 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		"orders":   orderReq,
 		"grouping": grouping,
 	}
-	if this.SafeBool(this.Options, "approvedBuilderFee", false) != nil && *this.SafeBool(this.Options, "approvedBuilderFee", false) {
+	if *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 		var builder string = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"
 		var wallet *string = this.SafeStringLower(this.Options, "builder", strings.ToLower(builder))
 		// when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
 		var feeInt any = DerefScalar(this.SafeInteger(this.Options, "feeInt", 10))
-		if !(this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
+		if !(*this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}
 		orderAction["builder"] = map[string]any{
@@ -3033,7 +3033,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.SafeBool(params, "twap", false) != nil && *this.SafeBool(params, "twap", false) {
+	if *this.SafeBool(params, "twap", false) {
 
 		var retRes249119 map[string]any = MapTyped(PanicOnError((<-this.CancelTwapOrderAsync(id, symbol, this.Omit(params, "twap")))))
 		ch <- BoxAbsent(retRes249119)
@@ -4410,9 +4410,9 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	if tif != nil {
 		postOnly = (tif != nil && *tif == "ALO")
 	}
-	var isTrigger bool = (IsEqual(this.SafeBool(entry, "isTrigger"), true))
+	var isTrigger *bool = this.SafeBool(entry, "isTrigger", false)
 	var triggerPx any = func() any {
-		if isTrigger {
+		if isTrigger != nil && *isTrigger {
 			return this.SafeNumber(entry, "triggerPx")
 		}
 		return nil

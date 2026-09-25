@@ -762,7 +762,7 @@ func (this *Whitebit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1122,7 +1122,7 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 	var withdrawFees map[string]any = map[string]any{}
 	var depositFees map[string]any = map[string]any{}
 	for i := 0; i < len(currenciesIds); i++ {
-		var currency string = GetValue(currenciesIds, i).(string)
+		var currency string = currenciesIds[i]
 		var data map[string]any = SafeMapTyped(response, currency)
 		var code *string = this.SafeCurrencyCode(currency)
 		var withdraw map[string]any = SafeMapTyped(data, "withdraw")
@@ -1267,7 +1267,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	var codesValue any = this.MarketCodes(codes)
 	var currencyIds []string = ObjectKeys(response)
 	for i := 0; i < len(currencyIds); i++ {
-		var entry string = GetValue(currencyIds, i).(string)
+		var entry string = currencyIds[i]
 		var splitEntry []string = strings.Split(entry, " ")
 		var currencyId *string = SafeStringPtr(GetValue(splitEntry, 0))
 		var feeInfo any = GetValue(response, entry)
@@ -1319,7 +1319,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	}
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
-		var code string = GetValue(depositWithdrawCodes, i).(string)
+		var code string = depositWithdrawCodes[i]
 		var currency map[string]any = this.Currency(code)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
@@ -1370,7 +1370,7 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = MapTyped(this.SafeDict(response, market["baseId"], map[string]any{}))
 		var makerFee *string = this.SafeString(fee, "maker_fee")
@@ -1468,7 +1468,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 	}
 	var marketIds []string = ObjectKeys(markets)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market any = GetValue(markets, marketId)
 		var marketSymbol *string = this.SafeString(market, "symbol")
 		if (IsEqual(market, nil)) || (marketSymbol == nil) || (marketSymbol != nil && *marketSymbol == "") {
@@ -1611,7 +1611,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 	var result map[string]any = map[string]any{}
 	var currencyKeys []string = ObjectKeys(currenciesData)
 	for i := 0; i < len(currencyKeys); i++ {
-		var code string = GetValue(currencyKeys, i).(string)
+		var code string = currencyKeys[i]
 		var currency any = GetValue(currenciesData, code)
 		if IsEqual(currency, nil) {
 			continue
@@ -1623,7 +1623,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		var feeData any = nil
 		var feeKeys []string = ObjectKeys(feesData)
 		for j := 0; j < len(feeKeys); j++ {
-			var feeKey string = GetValue(feeKeys, j).(string)
+			var feeKey string = feeKeys[j]
 			var fee any = this.SafeDict(feesData, feeKey)
 			if ((fee != nil)) && (this.SafeString(fee, "ticker") != nil && *this.SafeString(fee, "ticker") == code) {
 				feeData = fee
@@ -1975,7 +1975,7 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 				// Search for order in executed orders response (object format)
 				var marketIds []string = ObjectKeys(response)
 				for i := 0; i < len(marketIds); i++ {
-					var marketId string = GetValue(marketIds, i).(string)
+					var marketId string = marketIds[i]
 					var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 					var marketOrders []any = SafeListTyped(response, marketId)
 					for j := 0; j < len(marketOrders); j++ {
@@ -2036,7 +2036,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var onlyContractSymbols bool = true
 	if !IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			if market["contract"] != true {
 				onlyContractSymbols = false
@@ -2130,7 +2130,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(response)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var ticker map[string]any = MapTyped(this.ParseTicker(GetValue(response, marketId), market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
@@ -2338,7 +2338,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var results []any = []any{}
 		var keys []string = ObjectKeys(response)
 		for i := 0; i < len(keys); i++ {
-			var marketId string = GetValue(keys, i).(string)
+			var marketId string = keys[i]
 			var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 			var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
 			var parsed any = this.ParseTrades(rawTrades, marketNew, since, limit)
@@ -3124,7 +3124,7 @@ func (this *Whitebit) ParseBalance(response any) any {
 	var balanceKeys []string = ObjectKeys(response)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
-		var id string = GetValue(balanceKeys, i).(string)
+		var id string = balanceKeys[i]
 		var code *string = this.SafeCurrencyCode(id)
 		var balance any = GetValue(response, id)
 		if !IsEqual(balance, nil) && this.IsDictionary(balance) {
@@ -3351,7 +3351,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var marketIds []string = ObjectKeys(response)
 	var results any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {

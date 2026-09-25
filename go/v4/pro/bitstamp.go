@@ -1101,7 +1101,7 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		if func() int {
 			if channel == nil {
 				return -1

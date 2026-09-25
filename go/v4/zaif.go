@@ -420,7 +420,7 @@ func (this *Zaif) ParseBalance(response any) any {
 	var funds map[string]any = SafeMapTyped(balances, "funds")
 	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance *string = this.SafeString(funds, currencyId)
 		var account map[string]any = this.Account()

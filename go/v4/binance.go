@@ -4358,7 +4358,7 @@ func (this *Binance) Market(symbol any) map[string]any {
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
 			var market any = GetValue(this.Markets, symbol)
 			// begin diff
-			if isLegacy && (IsEqual(this.SafeBool(market, "spot"), true)) {
+			if isLegacy && (*this.SafeBool(market, "spot", false)) {
 				var settle any = func() any {
 					if isLegacyLinear {
 						return GetValue(market, "quote")
@@ -4385,7 +4385,7 @@ func (this *Binance) Market(symbol any) map[string]any {
 			// end diff
 			for i := 0; i < GetArrayLength(markets); i++ {
 				var market any = GetValue(markets, i)
-				if IsEqual(this.SafeBool(market, defaultType), true) {
+				if *this.SafeBool(market, defaultType, false) {
 					return MarketTyped(market)
 				}
 			}
@@ -4697,7 +4697,7 @@ func (this *Binance) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	// demotrading does not support sapi endpoints
-	if this.SafeBool(this.Options, "enableDemoTrading", false) != nil && *this.SafeBool(this.Options, "enableDemoTrading", false) {
+	if *this.SafeBool(this.Options, "enableDemoTrading", false) {
 
 		ch <- map[string]any{}
 		return nil
@@ -5273,7 +5273,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -7266,7 +7266,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		if InOp(trade, "isBuyer") {
 			side = SafeStringPtr(func() string {
-				if IsEqual(this.SafeBool(trade, "isBuyer"), true) {
+				if *this.SafeBool(trade, "isBuyer", false) {
 					return "buy"
 				}
 				return "sell"
@@ -7282,7 +7282,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "isMaker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "isMaker"), true) {
+			if *this.SafeBool(trade, "isMaker", false) {
 				return "maker"
 			}
 			return "taker"
@@ -7290,7 +7290,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "maker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "maker"), true) {
+			if *this.SafeBool(trade, "maker", false) {
 				return "maker"
 			}
 			return "taker"
@@ -11281,7 +11281,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var currentTimestamp int64 = this.Milliseconds()
 		var oneWeek int64 = (7 * 24) * 60 * 60 * 1000
 		if IsGreaterThanOrEqual((Subtract(currentTimestamp, startTime)), oneWeek) {
-			if ((endTime == nil)) && (IsEqual(this.SafeBool(market, "linear"), true)) {
+			if ((endTime == nil)) && (*this.SafeBool(market, "linear", false)) {
 				endTime = this.Sum(startTime, oneWeek)
 				var endTimeValue any = func() any {
 					if endTime == nil {
@@ -11297,7 +11297,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = endTime
 		paramsPaginate = this.Omit(paramsPaginate, []any{"endTime", "until"})
 	}
-	var isContractLimit bool = (typeVar != nil && *typeVar == "option") || (IsEqual(this.SafeBool(market, "contract"), true))
+	var isContractLimit bool = (typeVar != nil && *typeVar == "option") || (*this.SafeBool(market, "contract", false))
 	// above 1000, returns error
 	var limitContract any = limit
 	if (limit != nil) && isContractLimit {
@@ -11352,7 +11352,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				response = (<-this.PrivateGetMyTrades(this.Extend(request, paramsPaginate))).Raw
 				PanicOnError(response)
 			}
-		} else if IsEqual(this.SafeBool(market, "linear"), true) {
+		} else if *this.SafeBool(market, "linear", false) {
 			if isPortfolioMargin == true {
 
 				response = (<-this.PapiGetUmUserTrades(this.Extend(request, paramsPaginate))).Raw
@@ -11362,7 +11362,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				response = (<-this.FapiPrivateGetUserTrades(this.Extend(request, paramsPaginate))).Raw
 				PanicOnError(response)
 			}
-		} else if IsEqual(this.SafeBool(market, "inverse"), true) {
+		} else if *this.SafeBool(market, "inverse", false) {
 			if isPortfolioMargin == true {
 
 				response = (<-this.PapiGetCmUserTrades(this.Extend(request, paramsPaginate))).Raw
@@ -13204,7 +13204,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = GetValue(symbols, i).(string)
 			var market any = GetValue(markets, symbol)
-			if IsEqual(this.SafeBool(market, "linear"), true) {
+			if *this.SafeBool(market, "linear", false) {
 				result[symbol] = map[string]any{
 					"info": map[string]any{
 						"feeTier": feeTier,
@@ -13241,7 +13241,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = GetValue(symbols, i).(string)
 			var market any = GetValue(markets, symbol)
-			if IsEqual(this.SafeBool(market, "inverse"), true) {
+			if *this.SafeBool(market, "inverse", false) {
 				result[symbol] = map[string]any{
 					"info": map[string]any{
 						"feeTier": feeTier,
@@ -15896,7 +15896,7 @@ func (this *Binance) GetNetworkCodeByNetworkUrl(currencyCode any, optionalArgs .
 	var networks map[string]any = SafeMapTyped(currency, "networks")
 	var networkCodes []string = ObjectKeys(networks)
 	for i := 0; i < len(networkCodes); i++ {
-		var currentNetworkCode string = GetValue(networkCodes, i).(string)
+		var currentNetworkCode string = networkCodes[i]
 		var info map[string]any = SafeMapTyped(networks[currentNetworkCode], "info")
 		var siteUrl *string = this.SafeString(info, "contractAddressUrl")
 		// check if url matches the field's value
@@ -15970,7 +15970,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 		}
 	} else if ((api == "private")) || ((api == "eapiPrivate")) || (((api == "sapi")) && (path != "system/status")) || ((api == "sapiV2")) || ((api == "sapiV3")) || ((api == "sapiV4")) || ((api == "dapiPrivate")) || ((api == "dapiPrivateV2")) || ((api == "fapiPrivate")) || ((api == "fapiPrivateV2")) || ((api == "fapiPrivateV3")) || (((api == "papiV2")) || ((api == "papi")) && (path != "ping")) {
 		this.CheckRequiredCredentials()
-		if (GetIndexOf(url, "testnet.binancefuture.com") > -1) && this.IsSandboxModeEnabled && (!IsEqual(this.SafeBool(this.Options, "disableFuturesSandboxWarning"), true)) {
+		if (GetIndexOf(url, "testnet.binancefuture.com") > -1) && this.IsSandboxModeEnabled && (!(*this.SafeBool(this.Options, "disableFuturesSandboxWarning", false))) {
 			panic(NotSupported(this.Id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead."))
 		}
 		if (method == "POST") && ((path == "order") || (path == "sor/order")) {
@@ -16208,7 +16208,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if (error != nil && *error == "-2015") && (IsEqual(this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
+		if (error != nil && *error == "-2015") && (*this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
 			panic(DDoSProtection(Add(this.Id+" ", body)))
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
@@ -17440,9 +17440,9 @@ func (this *Binance) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var value *float64 = this.SafeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd")
 	// Inverse returns the number of contracts different from the base or quote volume in this case
 	// compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-	var isInverse bool = (IsEqual(this.SafeBool(market, "inverse"), true))
+	var isInverse *bool = this.SafeBool(market, "inverse", false)
 	var baseVolume *float64 = func() *float64 {
-		if isInverse {
+		if isInverse != nil && *isInverse {
 			return nil
 		}
 		return amount

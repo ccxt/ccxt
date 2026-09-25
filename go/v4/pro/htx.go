@@ -2119,7 +2119,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 	}
 	var marginModes []string = ccxt.ObjectKeys(positionsByMarginMode)
 	for i := 0; i < len(marginModes); i++ {
-		var marginMode string = ccxt.GetValue(marginModes, i).(string)
+		var marginMode string = marginModes[i]
 		var marginModePositions any = this.SafeList(positionsByMarginMode, marginMode, []any{})
 		var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
 		for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {

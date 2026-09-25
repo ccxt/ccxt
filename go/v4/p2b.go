@@ -1000,7 +1000,7 @@ func (this *P2b) ParseBalance(response any) any {
 	}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var currencyId string = GetValue(keys, i).(string)
+		var currencyId string = keys[i]
 		var balance map[string]any = SafeMapTyped(response, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var used *string = this.SafeString(balance, "freeze")
@@ -1501,7 +1501,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var orders []any = []any{}
 	var keys []string = ObjectKeys(result)
 	for i := 0; i < len(keys); i++ {
-		var marketId string = GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		var marketOrders any = result[marketId]
 		var parsedOrders any = this.ParseOrders(marketOrders, market, sinceResolved, limit)
 		orders = this.ArrayConcat(orders, parsedOrders)

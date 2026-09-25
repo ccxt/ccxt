@@ -222,7 +222,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(intervalOption)))
@@ -403,7 +403,7 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var limitRaw *int64 = this.SafeInteger(params, "limit", 50) // 50, 200, 500, 1000
@@ -703,7 +703,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
@@ -972,7 +972,7 @@ func (this *Grvt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), market["id"]))
 			messageHashes = append(messageHashes, ccxt.Add("positions::", market["symbol"]))

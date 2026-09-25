@@ -1158,7 +1158,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, prefix+":"+symbol)
 	}
 
@@ -1294,7 +1294,7 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var channel any = ccxt.Add(messageType, ".trades")
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trades:"+symbol)
 	}
 	var url any = this.GetUrlByMarket(market)
@@ -1341,7 +1341,7 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		subMessageHashes = append(subMessageHashes, "trades:"+symbol)
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
 	}
@@ -1519,7 +1519,7 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var symbol string = ccxt.GetValue(keys, i).(string)
+		var symbol string = keys[i]
 		var timeframe any = marketIds[symbol]
 		var interval *string = this.FindTimeframe(timeframe)
 		var hash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles"+":", interval), ":"), symbol))
@@ -1641,7 +1641,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var market string = ccxt.GetValue(keys, i).(string)
+		var market string = keys[i]
 		var hash string = "myTrades:" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
@@ -2225,7 +2225,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(hashPrefix+":", ccxt.GetValue(keys, i)))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(hashPrefix+":", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, hashPrefix)
@@ -2639,7 +2639,7 @@ func (this *Gate) HandleUnSubscribe(client any, message any) {
 	var id *string = this.SafeString(message, "id")
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var messageHash string = ccxt.GetValue(keys, i).(string)
+		var messageHash string = keys[i]
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}
@@ -2815,9 +2815,9 @@ func (this *Gate) HandleMessage(client any, message any) {
 }
 func (this *Gate) GetUrlByMarket(market any) any {
 	var baseUrl any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), ccxt.GetValue(market, "type"))
-	if ccxt.IsEqual(this.SafeBool(market, "contract"), true) {
+	if *this.SafeBool(market, "contract", false) {
 		return func() any {
-			if ccxt.IsEqual(this.SafeBool(market, "linear"), true) {
+			if *this.SafeBool(market, "linear", false) {
 				return ccxt.GetValue(baseUrl, "usdt")
 			}
 			return ccxt.GetValue(baseUrl, "btc")
@@ -2862,7 +2862,7 @@ func (this *Gate) GetMarketTypeByUrl(url any) any {
 	}
 	var keys []string = ccxt.ObjectKeys(findBy)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = findBy[key]
 		if ccxt.GetIndexOf(url, key) >= 0 {
 			return value

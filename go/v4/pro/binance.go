@@ -452,9 +452,9 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 		messageHashes = append(messageHashes, "liquidations")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			subscriptionHashes = append(subscriptionHashes, ccxt.Add(market["lowercaseId"], "@forceOrder"))
-			messageHashes = append(messageHashes, ccxt.Add("liquidations::", ccxt.GetValue(symbolsNormalized, i)))
+			messageHashes = append(messageHashes, ccxt.Add("liquidations::", symbolsNormalized[i]))
 		}
 		streamHash += "::" + strings.Join(symbolsNormalized, ",")
 	}
@@ -712,7 +712,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 	var messageHashes []any = []any{"myLiquidations"}
 	if !this.IsEmpty(symbolsNormalized) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "myLiquidations::"+symbol)
 		}
 	}
@@ -911,7 +911,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var subParams []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, "orderbook::"+symbol)
 		var subscriptionHash any = ccxt.Add(ccxt.Add(market["lowercaseId"], "@"), name)
@@ -996,7 +996,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		subMessageHashes = append(subMessageHashes, "orderbook::"+symbol)
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+symbol)
@@ -1514,7 +1514,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		// handleTrade filters to the correct symbol via the 's' field
 		var seenUnderlyings map[string]any = map[string]any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			messageHashes = append(messageHashes, "trade::"+symbol)
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
@@ -1527,7 +1527,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		}
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			messageHashes = append(messageHashes, "trade::"+symbol)
 			var rawHash any = ccxt.Add(ccxt.Add(market["lowercaseId"], "@"), name)
@@ -1618,7 +1618,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		// handleTrade filters to the correct symbol via the 's' field
 		var seenUnderlyings map[string]any = map[string]any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			subMessageHashes = append(subMessageHashes, "trade::"+symbol)
 			messageHashes = append(messageHashes, "unsubscribe:trade:"+symbol)
@@ -1632,7 +1632,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		}
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			subMessageHashes = append(subMessageHashes, "trade::"+symbol)
 			messageHashes = append(messageHashes, "unsubscribe:trade:"+symbol)
@@ -1865,14 +1865,14 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if ccxt.InOp(trade, "m") {
 		if side == nil {
 			side = ccxt.SafeStringPtr(func() string {
-				if ccxt.IsEqual(this.SafeBool(trade, "m"), true) {
+				if *this.SafeBool(trade, "m", false) {
 					return "sell"
 				}
 				return "buy"
 			}()) // this is reversed intentionally
 		}
 		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if ccxt.IsEqual(this.SafeBool(trade, "m"), true) {
+			if *this.SafeBool(trade, "m", false) {
 				return "maker"
 			}
 			return "taker"
@@ -2904,9 +2904,9 @@ func (this *Binance) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		var stockStreams []any = []any{}
 		var stockMessageHashes []any = []any{}
 		for i := 0; i < len(stockSymbols); i++ {
-			var stockTicker any = this.GetStockTickerFromSymbol(ccxt.GetValue(stockSymbols, i))
+			var stockTicker any = this.GetStockTickerFromSymbol(stockSymbols[i])
 			stockStreams = append(stockStreams, ccxt.Add(stockTicker, "@quote"))
-			stockMessageHashes = append(stockMessageHashes, ccxt.Add("stock:quote:", ccxt.GetValue(stockSymbols, i)))
+			stockMessageHashes = append(stockMessageHashes, ccxt.Add("stock:quote:", stockSymbols[i]))
 		}
 
 		stockResult := (<-this.WatchStockMarketStreamAsync(stockStreams, stockMessageHashes, paramsStock))
@@ -3017,7 +3017,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName string, 
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
 		var seenUnderlyings map[string]any = map[string]any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(unifiedPrefix, ":"), channelName), "@"), symbol))
 			if isUnsubscribe == true {
@@ -3971,7 +3971,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 						var client ccxt.ClientInterface = this.Client(url)
 						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 						for i := 0; i < len(messageHashes); i++ {
-							var messageHash string = ccxt.GetValue(messageHashes, i).(string)
+							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
@@ -4039,7 +4039,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 		var clientSubscriptions map[string]any = ccxt.SafeMapTyped(client, "subscriptions")
 		var subscriptionKeys []string = ccxt.ObjectKeys(clientSubscriptions)
 		for j := 0; j < len(subscriptionKeys); j++ {
-			var subscribeType string = ccxt.GetValue(subscriptionKeys, j).(string)
+			var subscribeType string = subscriptionKeys[j]
 			if typeVar != nil && *typeVar == subscribeType {
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, delayParams)
 
@@ -6919,7 +6919,7 @@ func (this *Binance) HandleWsError(client any, message any) {
 						// public endpoint stores messageHash in subscriptions
 						var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 						for i := 0; i < len(subscriptionKeys); i++ {
-							var subscriptionHash string = ccxt.GetValue(subscriptionKeys, i).(string)
+							var subscriptionHash string = subscriptionKeys[i]
 							var subscriptionId *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
 							var subscription *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "subscription")
 							if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {

@@ -1064,7 +1064,7 @@ func (this *Predictfun) ParseEvent(rawTopic any) any {
 			return nil
 		}(), rawTopic)
 		marketsList = append(marketsList, parsed)
-		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
+		if *this.SafeBool(parsed, "active", false) {
 			anyActive = true
 		}
 	}
@@ -1123,7 +1123,7 @@ func (this *Predictfun) StripPriceFormatting(text any) any {
 	var charsLength int = len(chars)
 	var stripped string = ""
 	for i := 0; i < charsLength; i++ {
-		var ch *string = ccxt.SafeStringPtr(ccxt.GetValue(chars, i))
+		var ch *string = ccxt.SafeStringPtr(chars[i])
 		var keep bool = true
 		if ch != nil && *ch == "$" {
 			keep = false
@@ -3937,7 +3937,7 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
 	var futures []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
-		var future *string = ccxt.SafeStringPtr(ccxt.GetValue(futures, i))
+		var future *string = ccxt.SafeStringPtr(futures[i])
 		if (func() int {
 			if future == nil {
 				return -1
@@ -4078,7 +4078,7 @@ func (this *Predictfun) OutcomesByMarketId(marketId any) any {
 	var handles []string = ccxt.ObjectKeys(cached)
 	var handlesLength int = len(handles)
 	for i := 0; i < handlesLength; i++ {
-		var outcomeObj any = ccxt.GetValue(cached, ccxt.GetValue(handles, i))
+		var outcomeObj any = ccxt.GetValue(cached, handles[i])
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		if ccxt.IsEqual(this.SafeString(info, "marketId"), marketId) {
 			result = append(result, outcomeObj)
@@ -4599,7 +4599,7 @@ func (this *Predictfun) HandleMessage(client any, message any) {
 			this.HandleSubscriptionError(client, message, subscription)
 			return
 		}
-		if this.SafeBool(subscription, "unsubscribe", false) != nil && *this.SafeBool(subscription, "unsubscribe", false) {
+		if *this.SafeBool(subscription, "unsubscribe", false) {
 			this.HandleUnSubscription(client, subscription)
 		}
 		return

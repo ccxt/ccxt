@@ -589,7 +589,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var hashSymbol string = ccxt.GetValue(keys, i).(string)
+			var hashSymbol string = keys[i]
 			var symbolMessageHash string = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
@@ -730,7 +730,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var hashSymbol string = ccxt.GetValue(keys, i).(string)
+			var hashSymbol string = keys[i]
 			var symbolMessageHash string = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 		}
@@ -834,7 +834,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		var parsed any = this.ParseBalance(data)
 		var parsedKeys []string = ccxt.ObjectKeys(parsed)
 		for i := 0; i < len(parsedKeys); i++ {
-			var parsedKey string = ccxt.GetValue(parsedKeys, i).(string)
+			var parsedKey string = parsedKeys[i]
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), parsedKey, ccxt.GetValue(parsed, parsedKey))
 		}
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))

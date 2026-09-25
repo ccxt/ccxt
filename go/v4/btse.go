@@ -741,7 +741,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1324,7 +1324,7 @@ func (this *Btse) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(totals)
 	for i := 0; i < len(codes); i++ {
-		var code string = GetValue(codes, i).(string)
+		var code string = codes[i]
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(totals, code)
 		account["free"] = this.SafeString(frees, code)
@@ -1430,7 +1430,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	// previous tier's maxNotional for every subsequent tier
 	var symbolKeys []string = ObjectKeys(result)
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbolKey string = GetValue(symbolKeys, i).(string)
+		var symbolKey string = symbolKeys[i]
 		var tiersList any = result[symbolKey]
 		for j := 0; j < GetArrayLength(tiersList); j++ {
 			if j == 0 {
