@@ -17410,3 +17410,129 @@ export function installCsharpNativeIntProducts (transpiler) {
     csharp.printCustomBinaryExpressionIfAny = (node, identation) => nativeIntLiteralProduct (csharp, node) ?? upstream (node, identation);
     csharp._nativeIntProductsPatched = true;
 }
+
+// ===== identifier-key reads on a non-null dictionary local =====
+// `getValue (d, k)` -> `(d.ContainsKey(k) ? d[k] : null)` where d is a local declared
+// Dictionary/IDictionary<string, object> that is never null and k a string local: the
+// GetValue(IDictionary, string) twin's own branches. A key not proven non-null keeps the
+// twin's null test: `(k != null && d.ContainsKey(k) ? d[k] : null)`.
+function dictKeyNameIsRebound (block, name) {
+    let rebound = false;
+    const walk = (n) => {
+        if (rebound) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name) {
+            const parent = n.parent;
+            rebound = (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                || ((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) && parent.operand === n)
+                || parent?.kind === ts.SyntaxKind.BindingElement
+                || parent?.kind === ts.SyntaxKind.ArrayLiteralExpression
+                || parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment;
+        }
+        n.forEachChild (walk);
+    };
+    walk (block);
+    return rebound;
+}
+
+// the identifier `const`/`let` declaration a read resolves to, with the C# type it was
+// declared with and the block that holds it; undefined for anything else
+function dictKeyLocal (csharp, node) {
+    const declaration = resolveReference (csharp, node);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.name.text !== node.text) {
+        return undefined;
+    }
+    if (declaration.getStart () >= node.getStart ()) {
+        return undefined;
+    }
+    const list = declaration.parent;
+    const statement = list?.parent;
+    if (list?.kind !== ts.SyntaxKind.VariableDeclarationList || statement?.kind !== ts.SyntaxKind.VariableStatement || statement.parent === undefined) {
+        return undefined;
+    }
+    const type = referenceDeclaredCSharpType (csharp, node);
+    return (type === undefined) ? undefined : { declaration, type, block: statement.parent };
+}
+
+// initializers whose C# value is a dictionary object, never null: an object literal
+// (`new Dictionary<string, object>()`), the hand-written groupBy/indexBy (return their own
+// new dictionary), and safeDict with an object-literal default (returns the value or the default)
+function dictNeverNullInitializer (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return true;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name?.text;
+    if (name === 'groupBy' || name === 'indexBy') {
+        return true;
+    }
+    return name === 'safeDict' && node.arguments.length === 3 && node.arguments[2].kind === ts.SyntaxKind.ObjectLiteralExpression;
+}
+
+function dictIdentKeyRead (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const fileName = (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/') || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const receiver = node.expression;
+    const key = node.argumentExpression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || key?.kind !== ts.SyntaxKind.Identifier || key.text === 'undefined' || receiver.text === key.text) {
+        return undefined;
+    }
+    const parent = node.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === node && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+        || parent?.kind === ts.SyntaxKind.DeleteExpression
+        || parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+        return undefined;
+    }
+    const dict = dictKeyLocal (csharp, receiver);
+    if (dict === undefined || TYPED_DICT_RECEIVER_TYPES.indexOf (dict.type) < 0) {
+        return undefined;
+    }
+    if (!dictNeverNullInitializer (dict.declaration.initializer) || dictKeyNameIsRebound (dict.block, receiver.text)) {
+        return undefined;
+    }
+    const k = dictKeyLocal (csharp, key);
+    if (k === undefined || (k.type !== 'string' && k.type !== 'string?')) {
+        return undefined;
+    }
+    const d = receiver.text;
+    // a declared `string` is only an annotation: the bare form needs a dominating null test
+    const keyNonNull = !dictKeyNameIsRebound (k.block, key.text)
+        && typeof csharp.csharpNullGuardAdmitsRead === 'function' && csharp.csharpNullGuardAdmitsRead (node, key);
+    return keyNonNull
+        ? `(${d}.ContainsKey(${key.text}) ? ${d}[${key.text}] : null)`
+        : `(${key.text} != null && ${d}.ContainsKey(${key.text}) ? ${d}[${key.text}] : null)`;
+}
+
+export function installCsharpDictIdentKeyReads (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printElementAccessExpression !== 'function' || csharp._dictIdentKeyReadsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        let read;
+        try {
+            read = dictIdentKeyRead (csharp, node);
+        } catch (e) {
+            read = undefined;
+        }
+        return read ?? upstream (node, identation);
+    };
+    csharp._dictIdentKeyReadsPatched = true;
+}
