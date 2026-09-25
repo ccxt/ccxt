@@ -1102,7 +1102,7 @@ public class Modetrade extends ModetradeApi
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
             }
             final Object finalPrecision = precision;
-            ((Map<String, Object>)resultingNetworks).put((String)networkId, new HashMap<String, Object>() {{
+            resultingNetworks.put((String)networkId, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkId );
     put( "limits", new HashMap<String, Object>() {{
@@ -1124,7 +1124,7 @@ public class Modetrade extends ModetradeApi
 }});
         }
         final Object finalMinPrecision = minPrecision;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", currencyId );
             put( "code", code );
@@ -1145,7 +1145,7 @@ public class Modetrade extends ModetradeApi
                 }} );
             }} );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKey, Object feeAmountKey)
@@ -1219,7 +1219,7 @@ public class Modetrade extends ModetradeApi
         }
         final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
@@ -1233,7 +1233,7 @@ public class Modetrade extends ModetradeApi
             put( "type", null );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1266,7 +1266,7 @@ public class Modetrade extends ModetradeApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
             //
@@ -1555,11 +1555,11 @@ public class Modetrade extends ModetradeApi
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_t", since);
+                request.put("start_t", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -1702,21 +1702,21 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_t", since);
+                request.put("start_t", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end_t", until);
+                request.put("end_t", until);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 500));
+                request.put("size", Helpers.mathMin(limit, 500));
             }
             Map<String, Object> response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
             //
@@ -1820,7 +1820,7 @@ public class Modetrade extends ModetradeApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                    result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Modetrade.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -1873,7 +1873,7 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(limit, null))
             {
                 limit = Helpers.mathMin(limit, 1000);
-                ((Map<String, Object>)request).put("max_level", limit);
+                request.put("max_level", limit);
             }
             Map<String, Object> response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
             //
@@ -1951,7 +1951,7 @@ public class Modetrade extends ModetradeApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Helpers.mathMin(limit, 1000));
             }
             Map<String, Object> response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -2088,7 +2088,7 @@ public class Modetrade extends ModetradeApi
         final String finalStatus = status;
         final Double finalTakeProfitPrice = takeProfitPrice;
         final Double finalStopLossPrice = stopLossPrice;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -2117,7 +2117,7 @@ public class Modetrade extends ModetradeApi
                 put( "currency", feeCurrency );
             }} );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -2237,47 +2237,47 @@ public class Modetrade extends ModetradeApi
         {
             typeKey = "type";
         }
-        ((Map<String, Object>)request).put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        request.put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Boolean.TRUE.equals(isConditional))
         {
             if (postOnly)
             {
-                ((Map<String, Object>)request).put("order_type", "POST_ONLY");
+                request.put("order_type", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "fok"))
             {
-                ((Map<String, Object>)request).put("order_type", "FOK");
+                request.put("order_type", "FOK");
             } else if (java.util.Objects.equals(timeInForce, "ioc"))
             {
-                ((Map<String, Object>)request).put("order_type", "IOC");
+                request.put("order_type", "IOC");
             }
         }
         if (java.util.Objects.equals(reduceOnly, true))
         {
-            ((Map<String, Object>)request).put("reduce_only", reduceOnly);
+            request.put("reduce_only", reduceOnly);
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
+            request.put((String)priceKey, this.priceToPrecision(symbol, price));
         }
         if (Boolean.TRUE.equals(isMarket) && !Boolean.TRUE.equals(isConditional))
         {
-            ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
+            request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
         } else if (!java.util.Objects.equals(algoType, "POSITIONAL_TP_SL"))
         {
-            ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
+            request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
         }
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+            request.put("client_order_id", clientOrderId);
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
-            ((Map<String, Object>)request).put("algo_type", "STOP");
+            request.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
+            request.put("algo_type", "STOP");
         } else if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
-            ((Map<String, Object>)request).put("algo_type", "TP_SL");
+            request.put("algo_type", "TP_SL");
             Map<String, Object> outterOrder = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "reduce_only", false );
@@ -2316,7 +2316,7 @@ public class Modetrade extends ModetradeApi
                 }};
                 ((List<Object>)childOrders).add(takeProfitOrder);
             }
-            ((Map<String, Object>)request).put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
+            request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"))));
         return (Map<String, Object>) (this.extend(request, parameters));
@@ -2375,7 +2375,7 @@ public class Modetrade extends ModetradeApi
                 response = (this.v1PrivatePostOrder(request)).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)data).put("timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
@@ -2536,7 +2536,7 @@ public class Modetrade extends ModetradeApi
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
             String orderQtyKey = "order_quantity";
@@ -2551,11 +2551,11 @@ public class Modetrade extends ModetradeApi
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
+                request.put((String)priceKey, this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
+                request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Map<String, Object> response = null;
@@ -2564,10 +2564,10 @@ public class Modetrade extends ModetradeApi
                 response = (this.v1PrivatePutAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 if (!java.util.Objects.equals(side, null))
                 {
-                    ((Map<String, Object>)request).put("side", ((String)side).toUpperCase());
+                    request.put("side", ((String)side).toUpperCase());
                 }
                 String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(parameters, "timeInForce");
@@ -2575,22 +2575,22 @@ public class Modetrade extends ModetradeApi
                 boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
                 if (postOnly)
                 {
-                    ((Map<String, Object>)request).put("order_type", "POST_ONLY");
+                    request.put("order_type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))
                 {
-                    ((Map<String, Object>)request).put("order_type", "FOK");
+                    request.put("order_type", "FOK");
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))
                 {
-                    ((Map<String, Object>)request).put("order_type", "IOC");
+                    request.put("order_type", "IOC");
                 } else
                 {
-                    ((Map<String, Object>)request).put("order_type", orderType);
+                    request.put("order_type", orderType);
                 }
                 String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                    request.put("client_order_id", clientOrderId);
                 }
                 // request['side'] = side.toUpperCase ();
                 // request['symbol'] = market['id'];
@@ -2606,7 +2606,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)data).put("timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -2683,24 +2683,24 @@ public class Modetrade extends ModetradeApi
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
-                    ((Map<String, Object>)request).put("client_order_id", clientOrderIdExchangeSpecific);
+                    request.put("client_order_id", clientOrderIdExchangeSpecific);
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                     response = (this.v1PrivateDeleteAlgoClientOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("order_id", id);
+                    request.put("order_id", id);
                     response = (this.v1PrivateDeleteAlgoOrder(this.extend(request, parameters))).join();
                 }
             } else
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
-                    ((Map<String, Object>)request).put("client_order_id", clientOrderIdExchangeSpecific);
+                    request.put("client_order_id", clientOrderIdExchangeSpecific);
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                     response = (this.v1PrivateDeleteClientOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("order_id", id);
+                    request.put("order_id", id);
                     response = (this.v1PrivateDeleteOrder(this.extend(request, parameters))).join();
                 }
             }
@@ -2725,10 +2725,10 @@ public class Modetrade extends ModetradeApi
             }};
             if (Boolean.TRUE.equals(isByClientOrder))
             {
-                ((Map<String, Object>)extendParams).put("client_order_id", clientOrderIdExchangeSpecific);
+                extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
             } else
             {
-                ((Map<String, Object>)extendParams).put("id", id);
+                extendParams.put("id", id);
             }
             if (java.util.Objects.equals(trigger, true))
             {
@@ -2786,11 +2786,11 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
-                ((Map<String, Object>)request).put("client_order_ids", String.join(",", (List<String>)clientOrderIds));
+                request.put("client_order_ids", String.join(",", (List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("order_ids", String.join(",", (List<String>)ids));
+                request.put("order_ids", String.join(",", (List<String>)ids));
                 response = (this.v1PrivateDeleteBatchOrder(this.extend(request, parameters))).join();
             }
             //
@@ -2803,9 +2803,9 @@ public class Modetrade extends ModetradeApi
             // }
             //
             final Map<String, Object> finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2854,7 +2854,7 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object response = null;
             if (java.util.Objects.equals(trigger, true))
@@ -2880,9 +2880,9 @@ public class Modetrade extends ModetradeApi
             // }
             //
             final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2942,22 +2942,22 @@ public class Modetrade extends ModetradeApi
             {
                 if (!java.util.Objects.equals(clientOrderId, null) && !java.util.Objects.equals(clientOrderId, ""))
                 {
-                    ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                    request.put("client_order_id", clientOrderId);
                     response = (this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("oid", id);
+                    request.put("oid", id);
                     response = (this.v1PrivateGetAlgoOrderOid(this.extend(request, parameters))).join();
                 }
             } else
             {
                 if ((!java.util.Objects.equals(clientOrderId, null)) && (!java.util.Objects.equals(clientOrderId, "")))
                 {
-                    ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                    request.put("client_order_id", clientOrderId);
                     response = (this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("oid", id);
+                    request.put("oid", id);
                     response = (this.v1PrivateGetOrderOid(this.extend(request, parameters))).join();
                 }
             }
@@ -3061,22 +3061,22 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_t", since);
+                request.put("start_t", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, maxLimit));
+                request.put("size", Helpers.mathMin(limit, maxLimit));
             } else
             {
-                ((Map<String, Object>)request).put("size", maxLimit);
+                request.put("size", maxLimit);
             }
             if (java.util.Objects.equals(isTrigger, true))
             {
-                ((Map<String, Object>)request).put("algo_type", "STOP");
+                request.put("algo_type", "STOP");
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -3376,18 +3376,18 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_t", since);
+                request.put("start_t", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             } else
             {
-                ((Map<String, Object>)request).put("size", 500);
+                request.put("size", 500);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -3454,11 +3454,11 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
-            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
+            account.put("total", this.safeString(balance, "holding"));
+            account.put("used", this.safeString(balance, "frozen"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3535,21 +3535,21 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("token", ((Map<String, Object>)currency).get("id"));
+                request.put("token", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_t", since);
+                request.put("start_t", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             String transactionType = this.safeString(parameters, "type");
             parameters = this.omit(parameters, "type");
             if (!java.util.Objects.equals(transactionType, null))
             {
-                ((Map<String, Object>)request).put("type", transactionType);
+                request.put("type", transactionType);
             }
             Map<String, Object> response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
             //
@@ -4257,7 +4257,7 @@ public class Modetrade extends ModetradeApi
         final Map<String, Object> finalMarket = market;
         final String finalSize = size;
         final String finalSide = side;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Modetrade.this.safeString(finalMarket, "symbol") );
@@ -4286,7 +4286,7 @@ public class Modetrade extends ModetradeApi
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {

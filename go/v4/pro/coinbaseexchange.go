@@ -729,7 +729,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	ccxt.AddElementToObject(parsed, "order", this.SafeString(trade, idKey))
 	market = this.Market(ccxt.GetValue(parsed, "symbol"))
-	var feeCurrency *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "quote"))
+	var feeCurrency *string = ccxt.SafeStringPtr(market["quote"])
 	var feeCost *string = nil
 	if (!ccxt.IsEqual(ccxt.GetValue(parsed, "cost"), nil)) && (!ccxt.IsEqual(feeRate, nil)) {
 		var cost *string = this.SafeString(parsed, "cost")

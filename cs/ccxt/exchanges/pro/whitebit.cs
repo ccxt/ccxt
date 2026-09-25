@@ -366,7 +366,7 @@ public partial class whitebit : ccxt.whitebit
         for (int i = 0; i < messageHashes.Count; i++)
         {
             string? currentMessageHash = ((string)messageHashes[i]);
-            if (getIndexOf(currentMessageHash, "tickers") >= 0 && getIndexOf(currentMessageHash, symbol) >= 0)
+            if ((currentMessageHash?.IndexOf("tickers", StringComparison.Ordinal) ?? -1) >= 0 && (currentMessageHash?.IndexOf(symbol, StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'

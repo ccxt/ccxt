@@ -665,9 +665,9 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        orders.append(order);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
         messageHash = ("orders:" + ((Map<String, Object>)order).get("symbol"));
@@ -728,7 +728,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             return;
         }
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, "order", new HashMap<String, Object>() {{}});
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -739,7 +739,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             return;
         }
-        Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+        myTrades.append(trade);
         String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
@@ -798,7 +798,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             type = "limit";
         }
         final String finalType = type;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Alpaca.this.safeString(trade, "i") );
             put( "info", trade );
             put( "timestamp", Alpaca.this.parse8601(datetime) );
@@ -812,7 +812,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             put( "amount", Alpaca.this.safeString(trade, "filled_qty") );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {

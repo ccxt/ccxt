@@ -1080,7 +1080,7 @@ public partial class bitfinex : ccxt.bitfinex
         for (int i = 0; i < messageHashes.Count; i++)
         {
             object messageHash = messageHashes[i];
-            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
             this.cleanUnsubscription(client, subHash, messageHash);
         }
         this.cleanCache(subscription);
@@ -1366,10 +1366,10 @@ public partial class bitfinex : ccxt.bitfinex
         }
         string? remaining = Precise.stringAbs(this.safeString(order, 6));
         string? type = this.safeString(order, 8, "");
-        if (getIndexOf(type, "LIMIT") > -1)
+        if ((type?.IndexOf("LIMIT", StringComparison.Ordinal) ?? -1) > -1)
         {
             type = "limit";
-        } else if (getIndexOf(type, "MARKET") > -1)
+        } else if ((type?.IndexOf("MARKET", StringComparison.Ordinal) ?? -1) > -1)
         {
             type = "market";
         }

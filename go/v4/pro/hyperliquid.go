@@ -156,7 +156,7 @@ func (this *Hyperliquid) createOrderWsBody(ch chan any, symbol any, typeVar any,
 	globalParams := ccxt.GetValue(orderglobalParamsVariable, 1)
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.CreateOrdersWsAsync([]any{order}, globalParams))))
-	var ordersLength int = ccxt.GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	if ordersLength == 0 {
 
 		// not sure why but it is happening sometimes
@@ -1097,7 +1097,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
@@ -1671,12 +1671,12 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}())
-		var parts []string = ccxt.Split(messageHash, "::")
+		var parts []string = strings.Split(*messageHash, "::")
 		var symbolsString *string = this.SafeString(parts, 2)
 		if symbolsString == nil {
 			continue
 		}
-		var symbols []string = ccxt.Split(symbolsString, ",")
+		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)

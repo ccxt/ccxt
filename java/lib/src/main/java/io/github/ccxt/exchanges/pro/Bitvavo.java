@@ -753,7 +753,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(marketIdsByInterval.containsKey(interval)))
                 {
-                    ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
+                    marketIdsByInterval.put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
@@ -873,7 +873,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(marketIdsByInterval.containsKey(interval)))
                 {
-                    ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
+                    marketIdsByInterval.put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
@@ -1299,7 +1299,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             return;
         }
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(response, symbol);
-        ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(response, "nonce"));
+        snapshot.put("nonce", this.safeInteger(response, "nonce"));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
@@ -1735,7 +1735,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             parameters = (Map<String, Object>) ((List<Object>) operatorIdparametersVariable).get(1);
             if (!java.util.Objects.equals(operatorId, null))
             {
-                ((Map<String, Object>)request).put("operatorId", this.parseToInt(operatorId));
+                request.put("operatorId", this.parseToInt(operatorId));
             } else
             {
                 throw new ArgumentsRequired((this.id + " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
@@ -1744,7 +1744,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", ((Map<String, Object>)market).get("id"));
             }
             return (this.watchRequest("privateCancelOrders", (Map<String, Object>) (this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1896,8 +1896,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
             Long messageHash = this.requestId();
             String messageHashStr = String.valueOf(messageHash);
-            ((Map<String, Object>)request).put("action", action);
-            ((Map<String, Object>)request).put("requestId", messageHash);
+            request.put("action", action);
+            request.put("requestId", messageHash);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             return (this.watch(url, messageHashStr, request, messageHashStr, null)).join();
         });
@@ -1929,7 +1929,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", ((Map<String, Object>)market).get("id"));
             }
             Object orders = (this.watchRequest("privateGetOrdersOpen", (Map<String, Object>) (this.extend(request, parameters)))).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
@@ -2629,8 +2629,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         client.resolve(this.orders, messageHash);
     }
 
@@ -2661,8 +2661,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
-        Object tradesArray = this.myTrades;
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
 

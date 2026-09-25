@@ -638,7 +638,7 @@ func (this *Dydx) ParseMarket(market any) any {
 	if marketId == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
-	var parts []string = Split(marketId, "-")
+	var parts []string = strings.Split(*marketId, "-")
 	var baseName *string = this.SafeString(parts, 0)
 	var baseId *string = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -1374,7 +1374,7 @@ func (this *Dydx) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	if side == nil || *side != "long" {
@@ -1455,7 +1455,7 @@ func (this *Dydx) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

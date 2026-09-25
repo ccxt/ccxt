@@ -1621,7 +1621,7 @@ public partial class bitstamp : Exchange
         for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)ids[i]);
-            if (getIndexOf(id, "_") < 0)
+            if ((id?.IndexOf("_", StringComparison.Ordinal) ?? -1) < 0)
             {
                 Int64? value = this.safeInteger(transaction, id);
                 if (((value != null)) && ((value != 0)))
@@ -1714,7 +1714,7 @@ public partial class bitstamp : Exchange
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currentKey = ((string)keys[i]);
-                if (currentKey != "order_id" && getIndexOf(currentKey, "_") >= 0)
+                if (currentKey != "order_id" && (currentKey?.IndexOf("_", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     rawMarketId = currentKey;
                     market = this.safeMarket(rawMarketId, market, "_");

@@ -2104,27 +2104,27 @@ public partial class bingx : ccxt.bingx
             return;
         }
         string? dataType = this.safeString(message, "dataType", "");
-        if (getIndexOf(dataType, "@depth") >= 0)
+        if ((dataType?.IndexOf("@depth", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(dataType, "@ticker") >= 0)
+        if ((dataType?.IndexOf("@ticker", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleTicker(client, message);
             return;
         }
-        if (getIndexOf(dataType, "@trade") >= 0)
+        if ((dataType?.IndexOf("@trade", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleTrades(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(dataType, "@kline") >= 0)
+        if ((dataType?.IndexOf("@kline", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOHLCV(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(dataType, "executionReport") >= 0)
+        if ((dataType?.IndexOf("executionReport", StringComparison.Ordinal) ?? -1) >= 0)
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? type = this.safeString(data, "x");
@@ -2192,7 +2192,7 @@ public partial class bingx : ccxt.bingx
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             object unsubHash = messageHashes[i];
-            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

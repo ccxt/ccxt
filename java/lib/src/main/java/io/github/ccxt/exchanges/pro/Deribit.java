@@ -729,7 +729,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         List<Object> trades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
-        Object cachedTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -740,9 +740,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
             Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-            Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
+            cachedTrades.append(trade);
             Object symbol = ((Map<String, Object>)trade).get("symbol");
-            ((Map<String, Object>)marketIds).put((String)((String)symbol), true);
+            marketIds.put((String)((String)symbol), true);
         }
         client.resolve(cachedTrades, channel);
     }
@@ -947,8 +947,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         {
             ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 1), Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 2))));
         }
-        ((Map<String, Object>)data).put("bids", cleanedBids);
-        ((Map<String, Object>)data).put("asks", cleanedAsks);
+        data.put("bids", cleanedBids);
+        data.put("asks", cleanedAsks);
         return data;
     }
 
@@ -1095,10 +1095,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data);
             orders = new ArrayList<Object>(Arrays.asList(order));
         }
-        Object cachedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{(orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i))});
+            cachedOrders.append((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)));
         }
         client.resolve(this.orders, channel);
     }

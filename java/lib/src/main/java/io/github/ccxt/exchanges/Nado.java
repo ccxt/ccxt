@@ -548,11 +548,11 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(requestId, null))
             {
-                ((Map<String, Object>)placeOrder).put("id", requestId);
+                placeOrder.put("id", requestId);
             }
             if (!java.util.Objects.equals(spotLeverage, null))
             {
-                ((Map<String, Object>)placeOrder).put("spot_leverage", spotLeverage);
+                placeOrder.put("spot_leverage", spotLeverage);
             }
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -575,13 +575,13 @@ public class Nado extends NadoApi
                 }
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + directionSuffix), triggerPriceX18);
+                priceRequirement.put((String)("oracle_price_" + directionSuffix), triggerPriceX18);
                 Map<String, Object> trigger = new HashMap<String, Object>() {{
                     put( "price_trigger", new HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
                     }} );
                 }};
-                ((Map<String, Object>)placeOrder).put("trigger", trigger);
+                placeOrder.put("trigger", trigger);
             } else if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
             {
                 String oracleSide = "";
@@ -601,25 +601,25 @@ public class Nado extends NadoApi
                 }
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + oracleSide), triggerPriceX18);
+                priceRequirement.put((String)("oracle_price_" + oracleSide), triggerPriceX18);
                 Map<String, Object> trigger = new HashMap<String, Object>() {{
                     put( "price_trigger", new HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
                     }} );
                 }};
-                ((Map<String, Object>)placeOrder).put("trigger", trigger);
+                placeOrder.put("trigger", trigger);
             }
             String appendix = this.safeString(parameters, "appendix");
             if (java.util.Objects.equals(appendix, null))
             {
                 appendix = this.createOrderAppendix(isTriggerOrder, parameters);
             }
-            ((Map<String, Object>)order).put("appendix", appendix);
+            order.put("appendix", appendix);
             Map<String, Object> contracts = (this.queryContracts()).join();
             String chainId = this.safeString(contracts, "chain_id");
             Object signature = this.signOrder((Map<String, Object>) (order), productId, chainId);
-            ((Map<String, Object>)placeOrder).put("order", order);
-            ((Map<String, Object>)placeOrder).put("signature", signature);
+            placeOrder.put("order", order);
+            placeOrder.put("signature", signature);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
@@ -839,11 +839,11 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(requestId, null))
             {
-                ((Map<String, Object>)placeOrder).put("id", requestId);
+                placeOrder.put("id", requestId);
             }
             if (!java.util.Objects.equals(spotLeverage, null))
             {
-                ((Map<String, Object>)placeOrder).put("spot_leverage", spotLeverage);
+                placeOrder.put("spot_leverage", spotLeverage);
             }
             Map<String, Object> cancelAndPlace = new HashMap<String, Object>() {{
                 put( "cancel_tx", cancelTx );
@@ -1038,7 +1038,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(requestId, null))
             {
-                ((Map<String, Object>)cancelProductOrders).put("id", requestId);
+                cancelProductOrders.put("id", requestId);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cancel_product_orders", cancelProductOrders );
@@ -1188,14 +1188,14 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(requiredUnfilledAmountRaw, null))
             {
-                ((Map<String, Object>)cancelOrders).put("required_unfilled_amount", requiredUnfilledAmountRaw);
+                cancelOrders.put("required_unfilled_amount", requiredUnfilledAmountRaw);
             } else if (!java.util.Objects.equals(requiredUnfilledAmount, null))
             {
-                ((Map<String, Object>)cancelOrders).put("required_unfilled_amount", this.convertToX18(requiredUnfilledAmount));
+                cancelOrders.put("required_unfilled_amount", this.convertToX18(requiredUnfilledAmount));
             }
             if (!java.util.Objects.equals(requestId, null))
             {
-                ((Map<String, Object>)cancelOrders).put("id", requestId);
+                cancelOrders.put("id", requestId);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cancel_orders", cancelOrders );
@@ -1342,13 +1342,13 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 500));
+                request.put("limit", Helpers.mathMin(limit, 500));
             }
             Map<String, Object> contracts = (this.queryContracts()).join();
             String chainId = this.safeString(contracts, "chain_id");
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
             Object signature = this.signFetchTriggerOrders((Map<String, Object>) (tx), chainId, endpointAddress);
-            ((Map<String, Object>)request).put("signature", signature);
+            request.put("signature", signature);
             Map<String, Object> response = (this.triggerPrivatePostQuery(this.extend(request, parameters))).join();
             //
             // {
@@ -1557,14 +1557,14 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)ordersRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
+                ordersRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
             }
             List<Object> ordersRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (ordersRequest), (Map<String, Object>) (parameters), 0.001);
             ordersRequest = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)ordersRequest).put("limit", Helpers.mathMin(limit, 500));
+                ordersRequest.put("limit", Helpers.mathMin(limit, 500));
             }
             final Map<String, Object> finalOrdersRequest = ordersRequest;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1746,14 +1746,14 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)matchesRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
+                matchesRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
             }
             List<Object> matchesRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (matchesRequest), (Map<String, Object>) (parameters), 0.001);
             matchesRequest = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)matchesRequest).put("limit", Helpers.mathMin(limit, 500));
+                matchesRequest.put("limit", Helpers.mathMin(limit, 500));
             }
             final Map<String, Object> finalMatchesRequest = matchesRequest;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2000,7 +2000,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                ((Map<String, Object>)eventsRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)currency).get("id")))));
+                eventsRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)currency).get("id")))));
             }
             List<Object> eventsRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (eventsRequest), (Map<String, Object>) (parameters), 0.001);
             eventsRequest = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(0);
@@ -2305,7 +2305,7 @@ public class Nado extends NadoApi
                 String pairProductId = this.safeString(rawPair, "product_id");
                 if (!java.util.Objects.equals(pairProductId, null))
                 {
-                    ((Map<String, Object>)pairsById).put((String)pairProductId, rawPair);
+                    pairsById.put((String)pairProductId, rawPair);
                 }
             }
             Map<String, Object> assetsById = new HashMap<String, Object>() {{}};
@@ -2315,7 +2315,7 @@ public class Nado extends NadoApi
                 String assetProductId = this.safeString(rawAsset, "product_id");
                 if (!java.util.Objects.equals(assetProductId, null))
                 {
-                    ((Map<String, Object>)assetsById).put((String)assetProductId, rawAsset);
+                    assetsById.put((String)assetProductId, rawAsset);
                 }
             }
             Map<String, Object> assetsByCode = new HashMap<String, Object>() {{}};
@@ -2331,7 +2331,7 @@ public class Nado extends NadoApi
                 Map<String, Object> previous = (Map<String, Object>) this.safeDict(assetsByCode, assetCode);
                 if (java.util.Objects.equals(previous, null))
                 {
-                    ((Map<String, Object>)assetsByCode).put((String)assetCode, rawAsset);
+                    assetsByCode.put((String)assetCode, rawAsset);
                 } else
                 {
                     Boolean previousDeposit = (Boolean) this.safeBool(previous, "can_deposit", false);
@@ -2340,7 +2340,7 @@ public class Nado extends NadoApi
                     Boolean currentWithdraw = (Boolean) this.safeBool(rawAsset, "can_withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(currentDeposit, true)) || (java.util.Objects.equals(currentWithdraw, true))))
                     {
-                        ((Map<String, Object>)assetsByCode).put((String)assetCode, rawAsset);
+                        assetsByCode.put((String)assetCode, rawAsset);
                     }
                 }
             }
@@ -2494,14 +2494,14 @@ public class Nado extends NadoApi
                 Boolean canWithdraw = (Boolean) this.safeBool(currency, "can_withdraw", false);
                 if (java.util.Objects.equals(previous, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, parsed);
+                    result.put((String)code, parsed);
                 } else
                 {
                     Boolean previousDeposit = (Boolean) this.safeBool(previous, "deposit", false);
                     Boolean previousWithdraw = (Boolean) this.safeBool(previous, "withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(canDeposit, true)) || (java.util.Objects.equals(canWithdraw, true))))
                     {
-                        ((Map<String, Object>)result).put((String)code, parsed);
+                        result.put((String)code, parsed);
                     }
                 }
             }
@@ -3059,7 +3059,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 500));
+                request.put("limit", Helpers.mathMin(limit, 500));
             }
             List<Object> response = (this.archiveV2PublicGetTrades(this.extend(request, parameters))).join();
             //
@@ -3317,7 +3317,7 @@ public class Nado extends NadoApi
         final Object finalParsedAmount = parsedAmount;
         final Object finalParsedCost = parsedCost;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Nado.this.iso8601(timestamp) );
@@ -3331,7 +3331,7 @@ public class Nado extends NadoApi
             put( "amount", finalParsedAmount );
             put( "cost", finalParsedCost );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -3505,7 +3505,7 @@ public class Nado extends NadoApi
         String id = this.safeString(rawCurrency, "product_id");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode((String) (this.removeMarketSuffix(currencyId)));
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Nado.this.safeString(rawCurrency, "name") );
             put( "code", code );
@@ -3527,7 +3527,7 @@ public class Nado extends NadoApi
                 }} );
             }} );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -3570,12 +3570,12 @@ public class Nado extends NadoApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(rawBalance, "balance", new HashMap<String, Object>() {{}});
             String amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("total", amount);
+            account.put("total", amount);
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
-            ((Map<String, Object>)account).put("free", amount);
+            account.put("free", amount);
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3707,7 +3707,7 @@ public class Nado extends NadoApi
         final Double finalEntryPrice = entryPrice;
         final Object finalMarkPrice = markPrice;
         final Double finalNotional = notional;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -3732,7 +3732,7 @@ public class Nado extends NadoApi
             put( "marginMode", null );
             put( "marginRatio", null );
             put( "percentage", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -3957,7 +3957,7 @@ public class Nado extends NadoApi
         final Object finalRemaining = remaining;
         final String finalStatus = status;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", finalId );
             put( "clientOrderId", null );
@@ -3981,7 +3981,7 @@ public class Nado extends NadoApi
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {

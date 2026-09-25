@@ -403,8 +403,8 @@ public partial class cex : Exchange
         //            ...
         //
         List<object> responses = await promiseAll(promises);
-        List<object> dataCurrencies = this.safeList(getValue(responses, 0), "data", new List<object>() {});
-        IDictionary<string, object> dataNetworks = this.safeDict(getValue(responses, 1), "data", new Dictionary<string, object>() {});
+        List<object> dataCurrencies = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
+        IDictionary<string, object> dataNetworks = this.safeDict((responses != null && 1 < responses.Count ? responses[1] : null), "data", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
         Dictionary<string, object> data = this.deepExtend(currenciesIndexed, dataNetworks);
         return this.parseCurrencies(this.toArray(data));
@@ -1287,7 +1287,7 @@ public partial class cex : Exchange
             { "orderId", parseInt(id) },
         };
         List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToOrder(getValue(result, 0));
+        return ccxt.BaseExchange.ToOrder((result != null && 0 < result.Count ? result[0] : null));
     }
 
     /**
@@ -1311,7 +1311,7 @@ public partial class cex : Exchange
             { "orderId", parseInt(id) },
         };
         List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToOrder(getValue(result, 0));
+        return ccxt.BaseExchange.ToOrder((result != null && 0 < result.Count ? result[0] : null));
     }
 
     public virtual string? parseOrderStatus(string? status)

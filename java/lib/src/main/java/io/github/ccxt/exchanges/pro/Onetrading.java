@@ -702,8 +702,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object order = this.parseTradingOrder((Map<String, Object>) (message));
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         client.resolve(this.orders, ("orders:" + ((Map<String, Object>)order).get("symbol")));
         client.resolve(this.orders, "orders");
     }
@@ -797,7 +797,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String datetime = this.safeString(order, "time");
         String marketId = this.safeString(order, "instrument_code");
         String symbol = this.safeSymbol(marketId, market, "_");
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Onetrading.this.safeString(order, "order_id") );
             put( "clientOrderId", Onetrading.this.safeString(order, "client_id") );
             put( "info", order );
@@ -819,7 +819,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             put( "status", Onetrading.this.parseTradingOrderStatus(Onetrading.this.safeString(order, "status")) );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseTradingOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -913,12 +913,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             return;
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)));
             String symbol = this.safeString(order, "symbol", "");
-            Helpers.callDynamically(orders, "append", new Object[]{order});
+            orders.append(order);
             client.resolve(this.orders, ("orders:" + symbol));
             List<Object> rawTrades = (List<Object>) this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
@@ -1167,7 +1167,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         String symbol = null;
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> update = (Map<String, Object>) this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         String updateType = this.safeString(update, "type");
         if (java.util.Objects.equals(updateType, "ORDER_REJECTED") || java.util.Objects.equals(updateType, "ORDER_CLOSED") || java.util.Objects.equals(updateType, "STOP_ORDER_TRIGGERED"))
@@ -1192,12 +1192,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 put( "timestamp", Onetrading.this.parse8601(datetime) );
                 put( "datetime", datetime );
             }};
-            Helpers.callDynamically(orders, "append", new Object[]{orderObject});
+            orders.append(orderObject);
         } else
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(update);
             symbol = this.safeString(parsed, "symbol", "");
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
         }
         client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
@@ -1217,8 +1217,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
-            Object myTrades = this.myTrades;
-            Helpers.callDynamically(myTrades, "append", new Object[]{parsed});
+            io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+            myTrades.append(parsed);
             client.resolve(this.myTrades, ("myTrades:" + symbol));
             client.resolve(this.myTrades, "myTrades");
         }
@@ -1247,8 +1247,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String currencyId = this.safeString(balance, "currency_code");
         String code = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("free", this.safeString(balance, "new_available"));
-        ((Map<String, Object>)account).put("used", this.safeString(balance, "new_locked"));
+        account.put("free", this.safeString(balance, "new_available"));
+        account.put("used", this.safeString(balance, "new_locked"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(this.balance, code, account);
@@ -1624,7 +1624,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((Map<String, Object>)subscription).put((String)marketId, true);
             }
-            ((Map<String, Object>)request).put("type", type);
+            request.put("type", type);
             Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
         });

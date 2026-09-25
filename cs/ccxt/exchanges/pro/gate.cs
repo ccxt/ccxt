@@ -493,7 +493,7 @@ public partial class gate : ccxt.gate
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = this.getUrlByMarket(market);
-        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
+        bool isEuUrl = (url?.IndexOf("gateeu", StringComparison.Ordinal) ?? -1) >= 0;
         bool isNonEuSpot = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEuUrl;
         string intervalDefault = "100ms";
         if (isNonEuSpot)
@@ -568,7 +568,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
-        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
+        bool isEuUrl = (url?.IndexOf("gateeu", StringComparison.Ordinal) ?? -1) >= 0;
         bool isNonEuSpot = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEuUrl;
         string intervalDefault = "100ms";
         if (isNonEuSpot)
@@ -1134,14 +1134,14 @@ public partial class gate : ccxt.gate
         }
         symbols = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbols);
-        Dictionary<string, object> market = this.market(getValue(symbols, 0));
+        Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         object messageType = this.getTypeByMarket(market);
         string? channel = ((string)add(messageType, ".trades"));
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             subMessageHashes.Add(("trades:" + symbol));
             messageHashes.Add(("unsubscribe:trades:" + symbol));
         }
@@ -1928,7 +1928,7 @@ public partial class gate : ccxt.gate
         //
         List<object> orders = this.safeList(message, "result", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
-        bool isTrigger = (getIndexOf(channel, "autoorders") >= 0) || (getIndexOf(channel, "priceorders") >= 0);
+        bool isTrigger = ((channel?.IndexOf("autoorders", StringComparison.Ordinal) ?? -1) >= 0) || ((channel?.IndexOf("priceorders", StringComparison.Ordinal) ?? -1) >= 0);
         string hashPrefix = "orders";
         if (isTrigger)
         {
@@ -2052,7 +2052,7 @@ public partial class gate : ccxt.gate
             {
                 throw new BadRequest ((this.id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
             }
-            messageHash = ("myLiquidations::" + (getValue(symbols, 0)));
+            messageHash = ("myLiquidations::" + ((symbols != null && 0 < symbols.Count ? symbols[0] : null)));
             payload.Add((market.ContainsKey("id") ? market["id"] : null));
         }
         string channel = (typeId + ".liquidates");
@@ -2364,7 +2364,7 @@ public partial class gate : ccxt.gate
                 for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = messageHashes[j];
-                    string? subHash = ((string)getValue(subMessageHashes, j));
+                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);

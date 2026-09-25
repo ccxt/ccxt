@@ -663,7 +663,7 @@ public partial class bitget : ccxt.bitget
         string? instType = null;
         object messageHash = null;
         List<object> values = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
-        object uta = getValue(values, 0);
+        object uta = (values != null && 0 < values.Count ? values[0] : null);
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
         instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
@@ -1280,7 +1280,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         List<object> values = this.handleOptionBoolAndParams(parameters, "watchTrades", "uta", false);
-        object uta = getValue(values, 0);
+        object uta = (values != null && 0 < values.Count ? values[0] : null);
         string channelTopic = "trade";
         if (isTrue(uta))
         {
@@ -2610,7 +2610,7 @@ public partial class bitget : ccxt.bitget
         string? instType = this.safeStringLower(arg, "instType");
         for (int i = 0; i < length; i++)
         {
-            object trade = getValue(data, i);
+            object trade = (data != null && i < data.Count ? data[i] : null);
             IDictionary<string, object> market = null;
             if (instType == "uta")
             {
@@ -3202,11 +3202,11 @@ public partial class bitget : ccxt.bitget
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
-        if (getIndexOf(topic, "candle") >= 0)
+        if ((topic?.IndexOf("candle", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOHLCV(client, message);
         }
-        if (getIndexOf(topic, "books") >= 0)
+        if ((topic?.IndexOf("books", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrderBook(client, message);
         }
@@ -3432,20 +3432,20 @@ public partial class bitget : ccxt.bitget
         {
             IDictionary<string, object> arg = this.safeDict(argsList, i);
             string? channel = this.safeString2(arg, "channel", "topic", "");
-            if (getIndexOf(channel, "books") >= 0)
+            if ((channel?.IndexOf("books", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client, message);
-            } else if ((getIndexOf(channel, "trade") >= 0) || (getIndexOf(channel, "publicTrade") >= 0))
+            } else if (((channel?.IndexOf("trade", StringComparison.Ordinal) ?? -1) >= 0) || ((channel?.IndexOf("publicTrade", StringComparison.Ordinal) ?? -1) >= 0))
             {
                 this.handleTradesUnSubscription(client, message);
-            } else if (getIndexOf(channel, "ticker") >= 0)
+            } else if ((channel?.IndexOf("ticker", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleTickerUnSubscription(client, message);
-            } else if (getIndexOf(channel, "candle") >= 0)
+            } else if ((channel?.IndexOf("candle", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleOHLCVUnSubscription(client, message);
-            } else if (getIndexOf(channel, "kline") >= 0)
+            } else if ((channel?.IndexOf("kline", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleOHLCVUnSubscription(client, message);
             }

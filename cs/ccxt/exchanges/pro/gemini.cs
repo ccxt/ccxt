@@ -360,7 +360,7 @@ public partial class gemini : ccxt.gemini
         //
         string? type = this.safeString(message, "type", "");
         string? timeframeId = ((type == null) ? null : type.Substring(Math.Min(8, type.Length)));
-        int timeframeEndIndex = getIndexOf(timeframeId, "_");
+        int timeframeEndIndex = (timeframeId?.IndexOf("_", StringComparison.Ordinal) ?? -1);
         timeframeId = slice(timeframeId, 0, timeframeEndIndex);
         string marketId = this.safeString(message, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -967,7 +967,7 @@ public partial class gemini : ccxt.gemini
             { "heartbeat", this.handleHeartbeat },
         };
         string? type = this.safeString(message, "type", "");
-        if (getIndexOf(type, "candles") >= 0)
+        if ((type?.IndexOf("candles", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOHLCV(client, message);
             return;

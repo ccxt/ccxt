@@ -1065,7 +1065,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Woo) ParseMarket(market any) any {
 	var marketId *string = this.SafeString(market, "symbol", "")
-	var parts []string = Split(marketId, "_")
+	var parts []string = strings.Split(*marketId, "_")
 	var first *string = this.SafeString(parts, 0)
 	var marketType any = nil
 	var spot bool = false
@@ -1261,7 +1261,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString2(trade, "executed_price", "executedPrice")
 	var amount *string = this.SafeString2(trade, "executed_quantity", "executedQuantity")
 	var order_id *string = this.SafeString2(trade, "order_id", "orderId")
@@ -2646,7 +2646,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity") // This is base amount
 	var cost *string = this.SafeString(order, "amount")     // This is quote amount
@@ -4204,7 +4204,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{

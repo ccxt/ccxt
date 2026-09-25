@@ -295,11 +295,11 @@ public partial class predictfun : PredictionExchange
         List<object> markets = new List<object>() {};
         for (int ei = 0; ei < eventsLength; ei++)
         {
-            IList<object> eventMarkets = (IList<object>)(this.safeList(getValue(events, ei), "markets", new List<object>() {}));
+            IList<object> eventMarkets = (IList<object>)(this.safeList((events != null && ei < events.Count ? events[ei] : null), "markets", new List<object>() {}));
             int eventMarketsLength = (eventMarkets?.Count ?? 0);
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
-                markets.Add(getValue(eventMarkets, mi));
+                markets.Add((eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null));
             }
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(markets);
@@ -597,7 +597,7 @@ public partial class predictfun : PredictionExchange
             int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = getValue(parsedMarkets, mi);
+                object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
                 // prediction market rows are keyed by the unified 'market' handle
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
@@ -744,7 +744,7 @@ public partial class predictfun : PredictionExchange
             int rawMarketsLength = (rawMarkets?.Count ?? 0);
             for (int mi = 0; mi < rawMarketsLength; mi++)
             {
-                object rawMarket = getValue(rawMarkets, mi);
+                object rawMarket = (rawMarkets != null && mi < rawMarkets.Count ? rawMarkets[mi] : null);
                 string? marketSlug = this.safeString(rawMarket, "categorySlug");
                 if ((marketSlug != null))
                 {
@@ -768,7 +768,7 @@ public partial class predictfun : PredictionExchange
         int orphanSlugsLength = (orphanSlugs?.Count ?? 0);
         for (int i = 0; i < orphanSlugsLength; i++)
         {
-            string? orphanSlug = ((string)getValue(orphanSlugs, i));
+            string? orphanSlug = ((string)(orphanSlugs != null && i < orphanSlugs.Count ? orphanSlugs[i] : null));
             if (!(((orphanSlug != null) && (seenSlugs?.ContainsKey(orphanSlug) == true))))
             {
                 seenSlugs[(string)orphanSlug] = true;
@@ -981,7 +981,7 @@ public partial class predictfun : PredictionExchange
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            Dictionary<string, object> parsed = this.parseTopicMarket(getValue(rawMarkets, i), rawTopic);
+            Dictionary<string, object> parsed = this.parseTopicMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null), rawTopic);
             marketsList.Add(parsed);
             if ((this.safeBool(parsed, "active", false) == true))
             {
@@ -1222,7 +1222,7 @@ public partial class predictfun : PredictionExchange
         int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
-            object rawOutcome = getValue(rawOutcomes, oi);
+            object rawOutcome = (rawOutcomes != null && oi < rawOutcomes.Count ? rawOutcomes[oi] : null);
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
@@ -1513,7 +1513,7 @@ public partial class predictfun : PredictionExchange
         bool outcomeFound = false;
         for (int i = 0; i < rawOutcomesLength; i++)
         {
-            object candidate = getValue(rawOutcomes, i);
+            object candidate = (rawOutcomes != null && i < rawOutcomes.Count ? rawOutcomes[i] : null);
             if ((this.safeInteger(candidate, "indexSet") == indexSet))
             {
                 rawOutcome = candidate;
@@ -1604,7 +1604,7 @@ public partial class predictfun : PredictionExchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             IDictionary<string, object> taker = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
             string? takerSigner = this.safeStringLower(taker, "signer");
             if ((takerSigner == wallet))
@@ -1622,7 +1622,7 @@ public partial class predictfun : PredictionExchange
             int makersLength = makers.Count;
             for (int j = 0; j < makersLength; j++)
             {
-                object maker = getValue(makers, j);
+                object maker = (makers != null && j < makers.Count ? makers[j] : null);
                 string? makerSigner = this.safeStringLower(maker, "signer");
                 if ((makerSigner == wallet))
                 {
@@ -1736,7 +1736,7 @@ public partial class predictfun : PredictionExchange
                 };
                 for (int j = 0; j < makersLength; j++)
                 {
-                    object maker = getValue(makers, j);
+                    object maker = (makers != null && j < makers.Count ? makers[j] : null);
                     IDictionary<string, object> makerOutcome = this.safeDict(maker, "outcome", new Dictionary<string, object>() {});
                     Int64? makerIndexSet = this.safeInteger(makerOutcome, "indexSet");
                     if ((makerIndexSet == outcomeIndexSet))
@@ -2314,7 +2314,7 @@ public partial class predictfun : PredictionExchange
         IList<object> wantedOutcomes = this.toArray(outcomes);
         for (int i = 0; i < outcomesLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(wantedOutcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((wantedOutcomes != null && i < wantedOutcomes.Count ? wantedOutcomes[i] : null));
             string? wantedId = this.safeString(outcomeObj, "outcomeId", "");
             wanted[(string)wantedId] = true;
         }
@@ -2322,7 +2322,7 @@ public partial class predictfun : PredictionExchange
         int parsedLength = (parsed?.Count ?? 0);
         for (int i = 0; i < parsedLength; i++)
         {
-            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(parsed, i));
+            IDictionary<string, object> position = ((IDictionary<string, object>)(parsed != null && i < parsed.Count ? parsed[i] : null));
             string? outcomeId = this.safeString(position, "outcomeId");
             if (((outcomeId != null)) && (((outcomeId != null) && wanted.ContainsKey(outcomeId))))
             {
@@ -2525,7 +2525,7 @@ public partial class predictfun : PredictionExchange
         for (int i = 0; i < removedLength; i++)
         {
             rows.Add(this.extend(response, new Dictionary<string, object>() {
-                { "orderHash", getValue(removed, i) },
+                { "orderHash", (removed != null && i < removed.Count ? removed[i] : null) },
                 { "status", "CANCELLED" },
             }));
         }
@@ -2535,7 +2535,7 @@ public partial class predictfun : PredictionExchange
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
             rows.Add(this.extend(response, new Dictionary<string, object>() {
-                { "orderHash", getValue(noop, i) },
+                { "orderHash", (noop != null && i < noop.Count ? noop[i] : null) },
             }));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(rows, outcomeObj));
@@ -3093,7 +3093,7 @@ public partial class predictfun : PredictionExchange
             int operatorsLength = (operators?.Count ?? 0);
             for (int i = 0; i < operatorsLength; i++)
             {
-                object operatorAddress = getValue(operators, i);
+                object operatorAddress = (operators != null && i < operators.Count ? operators[i] : null);
                 if ((operatorAddress == null))
                 {
                     throw new ArgumentsRequired (((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;
@@ -3330,7 +3330,7 @@ public partial class predictfun : PredictionExchange
         bool isWalletTopic = ((this.safeString(subscription, "topic") == "walletEvents"));
         for (int i = 0; i < messageHashesLength; i++)
         {
-            this.cleanUnsubscription(client, getValue(subMessageHashes, i), getValue(messageHashes, i), isWalletTopic);
+            this.cleanUnsubscription(client, (subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null), (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null), isWalletTopic);
         }
         this.cleanCache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
@@ -3350,7 +3350,7 @@ public partial class predictfun : PredictionExchange
         int subMessageHashesLength = subMessageHashes.Count;
         for (int i = 0; i < subMessageHashesLength; i++)
         {
-            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
             if ((subHash == "orders") || (subHash == "myTrades"))
             {
                 this.cleanCache(new Dictionary<string, object>() {
@@ -3536,8 +3536,8 @@ public partial class predictfun : PredictionExchange
         int futuresLength = futures.Count;
         for (int i = 0; i < futuresLength; i++)
         {
-            string? future = ((string)getValue(futures, i));
-            if (((getIndexOf(future, "orders::") == 0)) || ((getIndexOf(future, "myTrades::") == 0)))
+            string? future = ((string)(futures != null && i < futures.Count ? futures[i] : null));
+            if ((((future?.IndexOf("orders::", StringComparison.Ordinal) ?? -1) == 0)) || (((future?.IndexOf("myTrades::", StringComparison.Ordinal) ?? -1) == 0)))
             {
                 hashes.Add(future);
             }
@@ -3666,7 +3666,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = getValue(cached, getValue(handles, i));
+            object outcomeObj = getValue(cached, (handles != null && i < handles.Count ? handles[i] : null));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if (isEqual(this.safeString(info, "marketId"), marketId))
             {

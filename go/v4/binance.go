@@ -5017,7 +5017,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets []any = []any{}
 	this.Options.Store("crossMarginPairsData", []any{})
 	this.Options.Store("isolatedMarginPairsData", []any{})
-	for i := 0; i < GetArrayLength(results); i++ {
+	for i := 0; i < len(results); i++ {
 		var res any = this.SafeValue(results, i)
 		if (fetchMargins != nil && *fetchMargins == true) && IsArray(res) {
 			var keysList []string = ObjectKeys(this.IndexBy(res, "symbol"))
@@ -5300,7 +5300,7 @@ func (this *Binance) ParseMarket(market any) any {
 	if id == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing id"))
 	}
-	var optionParts []string = Split(id, "-")
+	var optionParts []string = strings.Split(*id, "-")
 	var optionBase *string = this.SafeString(optionParts, 0)
 	var lowercaseId *string = this.SafeStringLower(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseAsset", optionBase)
@@ -6946,7 +6946,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing marketId"))
 	}
 	if price != nil && *price == "index" {
-		var parts []string = Split(marketId, "_")
+		var parts []string = strings.Split(*marketId, "_")
 		var pair *string = this.SafeString(parts, 0)
 		request["pair"] = pair // Index price takes this argument instead of symbol
 	} else {
@@ -12303,7 +12303,7 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var toAccount any = nil
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	if typeVar != nil {
-		var parts []string = Split(typeVar, "_")
+		var parts []string = strings.Split(*typeVar, "_")
 		fromAccount = DerefScalar(this.SafeString(parts, 0))
 		toAccount = DerefScalar(this.SafeString(parts, 1))
 		fromAccount = DerefScalar(this.SafeString(accountsById, fromAccount, fromAccount))
@@ -12825,7 +12825,7 @@ func (this *Binance) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan a
 func (this *Binance) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -13531,7 +13531,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 		request["symbol"] = GetValue(market, "id")
 	}
 	var subType *string = nil
@@ -14381,7 +14381,7 @@ func (this *Binance) FetchLeverageTiersAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -14684,7 +14684,7 @@ func (this *Binance) ParseOptionPosition(position any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "swap"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "quantity")
 	if side == nil || *side != "long" {
@@ -14742,7 +14742,7 @@ func (this *Binance) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -15464,7 +15464,7 @@ func (this *Binance) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -17552,7 +17552,7 @@ func (this *Binance) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{}
 	if GetValue(market, "option") == true {
 		request["underlyingAsset"] = market["baseId"]
-		if IsEqual(GetValue(market, "expiry"), nil) {
+		if IsEqual(market["expiry"], nil) {
 			panic(NotSupported(Add(this.Id+" fetchOpenInterest does not support ", symbol)))
 		}
 		request["expiration"] = this.Yymmdd(market["expiry"])
@@ -18108,14 +18108,14 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// this method should not be called directly, use loadTradingLimits () instead
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
 	var markets []any = ListTyped(PanicOnError((<-this.FetchMarketsAsync())))
 	var tradingLimits map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
+	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
 		var symbol *string = this.SafeString(market, "symbol")
 		if IsEqual(market, nil) {

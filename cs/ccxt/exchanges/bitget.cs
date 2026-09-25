@@ -7524,7 +7524,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> marginParams = this.handleMarginModeAndParams("createOrder", parameters);
-        object marginMode = getValue(marginParams, 0);
+        object marginMode = (marginParams != null && 0 < marginParams.Count ? marginParams[0] : null);
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         double? stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
@@ -8128,7 +8128,7 @@ public partial class bitget : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             List<object> marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-            object currentMarginMode = getValue(marginResult, 0);
+            object currentMarginMode = (marginResult != null && 0 < marginResult.Count ? marginResult[0] : null);
             if ((currentMarginMode != null))
             {
                 if ((marginMode == null))
@@ -8216,7 +8216,7 @@ public partial class bitget : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             List<object> marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-            object currentMarginMode = getValue(marginResult, 0);
+            object currentMarginMode = (marginResult != null && 0 < marginResult.Count ? marginResult[0] : null);
             if ((currentMarginMode != null))
             {
                 if ((marginMode == null))
@@ -10564,7 +10564,7 @@ public partial class bitget : Exchange
             before = this.parseNumber(Precise.stringSub(balanceString, amountRaw)); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
         string direction = "in";
-        if (getIndexOf(amountRaw, "-") >= 0)
+        if ((amountRaw?.IndexOf("-", StringComparison.Ordinal) ?? -1) >= 0)
         {
             direction = "out";
         }
@@ -13952,7 +13952,7 @@ public partial class bitget : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }

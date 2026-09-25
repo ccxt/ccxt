@@ -1146,7 +1146,7 @@ public partial class bithumb : Exchange
                 List<object> marketIdsChunk = new List<object>() {};
                 for (int i = 0; i < marketIdsLength; i++)
                 {
-                    marketIdsChunk.Add(getValue(marketIds, i));
+                    marketIdsChunk.Add((marketIds != null && i < marketIds.Count ? marketIds[i] : null));
                     int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
                     bool isLastMarketId = (isEqual(i, ((marketIdsLength - 1))));
                     if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
@@ -1194,7 +1194,7 @@ public partial class bithumb : Exchange
             int responsesLength = (responses?.Count ?? 0);
             for (int i = 0; i < responsesLength; i++)
             {
-                object response = getValue(responses, i);
+                object response = (responses != null && i < responses.Count ? responses[i] : null);
                 if (isTrue(this.isDictionary(response)) && (inOp(response, "data")) && (!isEqual(getValue(response, "data"), null)))
                 {
                     response = getValue(response, "data");
@@ -1256,7 +1256,7 @@ public partial class bithumb : Exchange
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
                 for (int i = 0; i < (symbols?.Count ?? 0); i++)
                 {
-                    string? symbol = ((string)getValue(symbols, i));
+                    string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                     Dictionary<string, object> market = this.market(symbol);
                     string? quoteId = this.safeString(market, "quoteId");
                     if (((quoteId != null)) && (((quoteId != null) && quoteCurrencies.ContainsKey(quoteId))))
@@ -1831,7 +1831,7 @@ public partial class bithumb : Exchange
             ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
+        Dictionary<string, object> market = this.market((orderSymbols != null && 0 < orderSymbols.Count ? orderSymbols[0] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "batch_orders", ordersRequests },
         };

@@ -128,7 +128,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             // not sure why but it is happening sometimes
             return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {}));
         }
-        object parsedOrder = getValue(orders, 0);
+        object parsedOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
         return ccxt.BaseExchange.ToOrder(parsedOrder);
     }
 
@@ -1670,7 +1670,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (channel == "error")
         {
             string? ret_msg = this.safeString(message, "data", "");
-            if (getIndexOf(ret_msg, "Already subscribed") >= 0)
+            if ((ret_msg?.IndexOf("Already subscribed", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // a duplicate subscribe is harmless - the server-side subscription is intact
                 // and data keeps flowing; rejecting all pending futures here would poison the

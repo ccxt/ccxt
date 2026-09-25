@@ -631,7 +631,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 		defaultMarketId = *baseId + "/" + *quoteId
 	}
 	market = MapTyped(this.SafeMarket(defaultMarketId, market, "/"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

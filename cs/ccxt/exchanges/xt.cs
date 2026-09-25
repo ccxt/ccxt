@@ -1416,8 +1416,8 @@ public partial class xt : Exchange
         }
         List<object> promisesUnresolved = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapAndFutureMarkets(parameters)};
         List<object> promises = await promiseAll(promisesUnresolved);
-        object spotMarkets = getValue(promises, 0);
-        object swapAndFutureMarkets = getValue(promises, 1);
+        object spotMarkets = (promises != null && 0 < promises.Count ? promises[0] : null);
+        object swapAndFutureMarkets = (promises != null && 1 < promises.Count ? promises[1] : null);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarkets, swapAndFutureMarkets));
     }
 
@@ -1548,7 +1548,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        List<object> swapAndFutureMarkets = this.arrayConcat(this.safeList(getValue(markets, 0), "result", new List<object>() {}), this.safeList(getValue(markets, 1), "result", new List<object>() {}));
+        List<object> swapAndFutureMarkets = this.arrayConcat(this.safeList((markets != null && 0 < markets.Count ? markets[0] : null), "result", new List<object>() {}), this.safeList((markets != null && 1 < markets.Count ? markets[1] : null), "result", new List<object>() {}));
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(swapAndFutureMarkets));
     }
 
@@ -2205,7 +2205,7 @@ public partial class xt : Exchange
         if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? type = null;
@@ -2311,7 +2311,7 @@ public partial class xt : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         string? type = null;
         string? subType = null;
@@ -6341,7 +6341,7 @@ public partial class xt : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
@@ -6846,7 +6846,7 @@ public partial class xt : Exchange
                 {
                     throw new NullResponse ((this.id + " sign() returned empty body")) ;
                 }
-                if (getIndexOf(payload, "future") > -1)
+                if ((payload?.IndexOf("future", StringComparison.Ordinal) ?? -1) > -1)
                 {
                     ((IDictionary<string,object>)body)["clientMedia"] = id;
                     if ((body == null))

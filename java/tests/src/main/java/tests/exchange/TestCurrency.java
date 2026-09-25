@@ -33,14 +33,14 @@ public class TestCurrency extends BaseTest {
         String currencyType = exchange.safeString(entry, "type");
         if (java.util.Objects.equals(isNative, true))
         {
-            ((Map<String, Object>)format).put("info", new HashMap<String, Object>() {{}});
+            format.put("info", new HashMap<String, Object>() {{}});
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-            ((Map<String, Object>)format).put("withdraw", true); // withdraw enabled
-            ((Map<String, Object>)format).put("deposit", true); // deposit enabled
-            ((Map<String, Object>)format).put("precision", exchange.parseNumber("0.0001")); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-            ((Map<String, Object>)format).put("fee", exchange.parseNumber("0.001"));
-            ((Map<String, Object>)format).put("networks", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)format).put("limits", new HashMap<String, Object>() {{
+            format.put("withdraw", true); // withdraw enabled
+            format.put("deposit", true); // deposit enabled
+            format.put("precision", exchange.parseNumber("0.0001")); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
+            format.put("fee", exchange.parseNumber("0.001"));
+            format.put("networks", new HashMap<String, Object>() {{}});
+            format.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", exchange.parseNumber("0.01") );
             put( "max", exchange.parseNumber("1000") );
@@ -50,7 +50,7 @@ public class TestCurrency extends BaseTest {
             put( "max", exchange.parseNumber("1000") );
         }} );
     }});
-            ((Map<String, Object>)format).put("type", "crypto"); // crypto, fiat, leverage, other
+            format.put("type", "crypto"); // crypto, fiat, leverage, other
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("fiat", "crypto", "leveraged", "other", null))); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "depositForNonCrypto")))
@@ -86,7 +86,7 @@ public class TestCurrency extends BaseTest {
             if (((String)message).indexOf("\"id\" key") >= 0)
             {
                 // @ts-ignore
-                ((Map<String, Object>)format).put("id", 123);
+                format.put("id", 123);
                 TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
             } else
             {

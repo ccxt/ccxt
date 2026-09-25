@@ -828,7 +828,7 @@ public partial class polymarket : PredictionExchange
             for (int ti = 0; ti < requestedTagsLength; ti++)
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
-                singleTagParams["tags"] = new List<object>() {getValue(requestedTags, ti)};
+                singleTagParams["tags"] = new List<object>() {(requestedTags != null && ti < requestedTags.Count ? requestedTags[ti] : null)};
                 List<object> tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
                 for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
                 {
@@ -871,7 +871,7 @@ public partial class polymarket : PredictionExchange
         List<object> allRawEvents = new List<object>() {};
         for (int fi = 0; fi < firstPageLength; fi++)
         {
-            allRawEvents.Add(getValue(firstPage, fi));
+            allRawEvents.Add((firstPage != null && fi < firstPage.Count ? firstPage[fi] : null));
         }
         if (isGreaterThanOrEqual(firstPageLength, pageSize))
         {
@@ -1064,7 +1064,7 @@ public partial class polymarket : PredictionExchange
             for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
             {
                 object outcomeLabel = outcomeLabels[oi];
-                object clobTokenId = getValue(clobTokenIds, oi);
+                object clobTokenId = (clobTokenIds != null && oi < clobTokenIds.Count ? clobTokenIds[oi] : null);
                 double? outcomePrice = this.safeNumber(outcomePrices, oi);
                 if (((clobTokenId == null)) || (isEqual(clobTokenId, "")))
                 {
@@ -1406,7 +1406,7 @@ public partial class polymarket : PredictionExchange
         List<object> targets = new List<object>() {};
         for (int oi = 0; oi < (outcomes?.Count ?? 0); oi++)
         {
-            targets.Add(getValue(outcomes, oi));
+            targets.Add((outcomes != null && oi < outcomes.Count ? outcomes[oi] : null));
         }
         Dictionary<string, object> outcomesByTokenId = new Dictionary<string, object>() {};
         List<object> tokenIds = new List<object>() {};
@@ -1440,9 +1440,9 @@ public partial class polymarket : PredictionExchange
             }
             List<object> promises = new List<object> {this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)};
             List<object> responses = await promiseAll(promises);
-            object booksResponse = getValue(responses, 0);
-            object midpoints = getValue(responses, 1);
-            object lastTradesResponse = getValue(responses, 2);
+            object booksResponse = (responses != null && 0 < responses.Count ? responses[0] : null);
+            object midpoints = (responses != null && 1 < responses.Count ? responses[1] : null);
+            object lastTradesResponse = (responses != null && 2 < responses.Count ? responses[2] : null);
             bool booksIsArray = ((booksResponse is IList<object>) || (booksResponse.GetType().IsGenericType && booksResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object books = booksIsArray ? booksResponse : new List<object>() {};
             bool lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
@@ -2478,8 +2478,8 @@ public partial class polymarket : PredictionExchange
             for (int i = 0; i < (response?.Count ?? 0); i++)
             {
                 // request echo first so the response's real orderID/status win on overlap
-                Dictionary<string, object> enriched = this.extend(getValue(requests, i), response[i]);
-                Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, ((object)getValue(outcomes, i)));
+                Dictionary<string, object> enriched = this.extend((requests != null && i < requests.Count ? requests[i] : null), response[i]);
+                Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, ((object)(outcomes != null && i < outcomes.Count ? outcomes[i] : null)));
                 parsedItem["info"] = response[i]; // keep info the raw exchange response
                 result.Add(parsedItem);
             }
@@ -3223,7 +3223,7 @@ public partial class polymarket : PredictionExchange
         List<object> parsedTags = new List<object>() {};
         for (int ti = 0; ti < rawTagsLength; ti++)
         {
-            string? tagLabel = this.safeString2(getValue(rawTags, ti), "label", "slug");
+            string? tagLabel = this.safeString2((rawTags != null && ti < rawTags.Count ? rawTags[ti] : null), "label", "slug");
             if ((tagLabel != null))
             {
                 parsedTags.Add(tagLabel);
@@ -3476,7 +3476,7 @@ public partial class polymarket : PredictionExchange
         for (int i = 0; i < (addrChars?.Count ?? 0); i++)
         {
             string? ch = ((string)addrChars[i]);
-            if (upperNibbles.IndexOf(((string)getValue(hashChars, i)), StringComparison.Ordinal) >= 0)
+            if (upperNibbles.IndexOf(((string)(hashChars != null && i < hashChars.Count ? hashChars[i] : null)), StringComparison.Ordinal) >= 0)
             {
                 result = (result + ch.ToUpper());
             } else

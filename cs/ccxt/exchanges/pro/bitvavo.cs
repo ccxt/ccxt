@@ -398,7 +398,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> subMessageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
             marketIds.Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
             subMessageHashes.Add(((name + "@") + ((market.ContainsKey("id") ? market["id"] : null))));
         }
@@ -625,7 +625,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            object symbolAndTimeframe = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -784,7 +784,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> subMessageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
             marketIds.Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
             subMessageHashes.Add(((name + "@") + ((market.ContainsKey("id") ? market["id"] : null))));
         }

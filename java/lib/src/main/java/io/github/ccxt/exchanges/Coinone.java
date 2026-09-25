@@ -513,7 +513,7 @@ public class Coinone extends CoinoneApi
         }
         final String finalCode = code;
         final String finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", finalCode );
             put( "info", rawCurrency );
@@ -535,7 +535,7 @@ public class Coinone extends CoinoneApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
             put( "type", finalType );
-        }}));
+        }});
     }
 
     /**
@@ -680,11 +680,11 @@ public class Coinone extends CoinoneApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "avail"));
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
+            account.put("free", this.safeString(balance, "avail"));
+            account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -751,7 +751,7 @@ public class Coinone extends CoinoneApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit); // only support 5, 10, 15, 16
+                request.put("size", limit); // only support 5, 10, 15, 16
             }
             Map<String, Object> response = (this.v2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //
@@ -826,8 +826,8 @@ public class Coinone extends CoinoneApi
             {
                 String first = this.safeString(symbols, 0);
                 market = (Map<String, Object>) this.market(first);
-                ((Map<String, Object>)request).put("quote_currency", ((Map<String, Object>)market).get("quote"));
-                ((Map<String, Object>)request).put("target_currency", ((Map<String, Object>)market).get("base"));
+                request.put("quote_currency", ((Map<String, Object>)market).get("quote"));
+                request.put("target_currency", ((Map<String, Object>)market).get("base"));
                 response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             } else
             {
@@ -1091,7 +1091,7 @@ public class Coinone extends CoinoneApi
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1105,7 +1105,7 @@ public class Coinone extends CoinoneApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1139,7 +1139,7 @@ public class Coinone extends CoinoneApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 200));
+                request.put("size", Helpers.mathMin(limit, 200));
             }
             Map<String, Object> response = (this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //
@@ -1457,7 +1457,7 @@ public class Coinone extends CoinoneApi
         final String finalRemainingString = remainingString;
         final String finalStatus = status;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -1479,7 +1479,7 @@ public class Coinone extends CoinoneApi
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1749,16 +1749,16 @@ public class Coinone extends CoinoneApi
                 }
                 String address = this.safeString(depositAddress, "address", value);
                 this.checkAddress(address);
-                ((Map<String, Object>)depositAddress).put("address", address);
-                ((Map<String, Object>)depositAddress).put("info", address);
+                depositAddress.put("address", address);
+                depositAddress.put("info", address);
                 if ((java.util.Objects.equals(secondPart, "tag") || java.util.Objects.equals(secondPart, "memo")))
                 {
-                    ((Map<String, Object>)depositAddress).put("tag", value);
-                    ((Map<String, Object>)depositAddress).put("info", new ArrayList<Object>(Arrays.asList(address, value)));
+                    depositAddress.put("tag", value);
+                    depositAddress.put("info", new ArrayList<Object>(Arrays.asList(address, value)));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, depositAddress);
+                    result.put((String)code, depositAddress);
                 }
             }
             return result;

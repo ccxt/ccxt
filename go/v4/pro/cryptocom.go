@@ -630,7 +630,7 @@ func (this *Cryptocom) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var messageHash any = "user.trade"
 	messageHash = func() any {
@@ -1144,7 +1144,7 @@ func (this *Cryptocom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var messageHash any = "user.order"
 	messageHash = func() any {
@@ -1390,9 +1390,9 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}())
-		var parts []string = ccxt.Split(messageHash, "::")
+		var parts []string = strings.Split(*messageHash, "::")
 		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
-		var symbols []string = ccxt.Split(symbolsString, ",")
+		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
@@ -1890,7 +1890,7 @@ func (this *Cryptocom) HandleSubscribe(client any, message map[string]any) {
 		// channel might be user.trade.BTC_USDT
 		this.HandleTrades(client, result)
 	}
-	if (channel != nil) && ccxt.StartsWith(channel, "user.order") {
+	if (channel != nil) && strings.HasPrefix(*channel, "user.order") {
 		// channel might be user.order.BTC_USDT
 		this.HandleOrders(client, result)
 	}

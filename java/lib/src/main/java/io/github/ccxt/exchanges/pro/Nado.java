@@ -1814,7 +1814,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }};
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)stream).put("product_id", this.parseToInt(Helpers.GetValue(market, "id")));
+                stream.put("product_id", this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -1999,7 +1999,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            ((Map<String, Object>)stream).put("product_id", this.parseToInt(((Map<String, Object>)market).get("id")));
+            stream.put("product_id", this.parseToInt(((Map<String, Object>)market).get("id")));
         }
         return new HashMap<String, Object>() {{
             put( "method", method );
@@ -2155,7 +2155,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -2169,7 +2169,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "amount", Nado.this.parseX18(Nado.this.safeString(trade, "taker_qty")) );
             put( "cost", null );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -2227,7 +2227,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Nado.this.safeString2(trade, "id", "submission_idx") );
             put( "timestamp", timestamp );
@@ -2241,7 +2241,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "amount", Nado.this.parseX18(Nado.this.safeString(trade, "filled_qty")) );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -2274,8 +2274,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
-        Helpers.callDynamically(trades, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        trades.append(trade);
         String symbol = (String) ((Map<String, Object>)trade).get("symbol");
         client.resolve(trades, "myTrades");
         client.resolve(trades, ("myTrades:" + symbol));
@@ -2369,7 +2369,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Map<String, Object> finalMarket = market;
         final Object finalRemaining = remaining;
         final String finalStatus = status;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -2393,7 +2393,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "status", finalStatus );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2408,8 +2408,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         String symbol = (String) ((Map<String, Object>)order).get("symbol");
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));
@@ -2457,7 +2457,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final String finalSide = side;
         final Object finalContracts = contracts;
         final Double finalEntryPrice = entryPrice;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -2482,7 +2482,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "marginMode", null );
             put( "marginRatio", null );
             put( "percentage", null );
-        }}));
+        }});
     }
     public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -2507,10 +2507,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         if (java.util.Objects.equals(side, null))
         {
             Map<String, Object> longPosition = this.extend(new HashMap<String, Object>() {{}}, position);
-            Helpers.addElementToObject(longPosition, "side", "long");
+            longPosition.put("side", "long");
             Helpers.callDynamically(positions, "append", new Object[]{longPosition});
             Map<String, Object> shortPosition = this.extend(new HashMap<String, Object>() {{}}, position);
-            Helpers.addElementToObject(shortPosition, "side", "short");
+            shortPosition.put("side", "short");
             Helpers.callDynamically(positions, "append", new Object[]{shortPosition});
         } else
         {
@@ -2565,7 +2565,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-        ((Map<String, Object>)tickers).put((String)symbol, ticker);
+        tickers.put((String)symbol, ticker);
         client.resolve(ticker, ("bidask:" + symbol));
         client.resolve(ticker, ("ticker:" + symbol));
         client.resolve(tickers, "bidask");
@@ -2606,7 +2606,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     put( "info", bbo );
                 }}, market);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
-                ((Map<String, Object>)result).put((String)symbol, ticker);
+                result.put((String)symbol, ticker);
             }
         }
         return result;

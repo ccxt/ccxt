@@ -87,7 +87,7 @@ func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"type": "subscribe",
 		"subscriptions": []any{map[string]any{
 			"name":    "l2",
-			"symbols": []any{ccxt.ToUpper(marketId)},
+			"symbols": []any{strings.ToUpper(*marketId)},
 		}},
 	}
 	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
@@ -401,7 +401,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	}()
 	var timeframeEndIndex int = strings.Index(timeframeId, "_")
 	timeframeId = ccxt.Slice(timeframeId, 0, timeframeEndIndex)
-	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
+	var marketId string = strings.ToLower(*this.SafeString(message, "symbol", ""))
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
@@ -466,7 +466,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"type": "subscribe",
 		"subscriptions": []any{map[string]any{
 			"name":    "l2",
-			"symbols": []any{ccxt.ToUpper(marketId)},
+			"symbols": []any{strings.ToUpper(*marketId)},
 		}},
 	}
 	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
@@ -565,7 +565,7 @@ func (this *Gemini) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
 func (this *Gemini) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

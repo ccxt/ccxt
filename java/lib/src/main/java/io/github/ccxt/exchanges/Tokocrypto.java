@@ -1058,7 +1058,7 @@ public class Tokocrypto extends TokocryptoApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
+                request.put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
@@ -1100,7 +1100,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeDict(response, "data", response);
             Long timestamp = (Long) this.safeInteger2(response, "T", "timestamp");
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
-            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "lastUpdateId"));
+            orderbook.put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1261,7 +1261,7 @@ public class Tokocrypto extends TokocryptoApi
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
@@ -1275,7 +1275,7 @@ public class Tokocrypto extends TokocryptoApi
             put( "amount", amount );
             put( "cost", cost );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1310,12 +1310,12 @@ public class Tokocrypto extends TokocryptoApi
             // the venue routes market data by the symbol type reported by fetchMarkets,
             // not by the quote currency: type 1 markets are served by the binance host
             // with the underscore-less id, every other type by open/v1 with the raw id
-            ((Map<String, Object>)request).put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
+            request.put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
             if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
                 // open/v1/market/trades answers an empty list for every market, the
                 // aggregate endpoint is the one that carries data for these markets
@@ -1346,17 +1346,17 @@ public class Tokocrypto extends TokocryptoApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default = 500, maximum = 1000
+                request.put("limit", limit); // default = 500, maximum = 1000
             }
             String defaultMethod = "binanceGetTrades";
             String method = this.safeString(this.options, "fetchTradesMethod", defaultMethod);
             List<Object> response = null;
             if ((java.util.Objects.equals(method, "binanceGetAggTrades")) && (!java.util.Objects.equals(since, null)))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 // https://github.com/ccxt/ccxt/issues/6400
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                ((Map<String, Object>)request).put("endTime", this.sum(since, 3600000));
+                request.put("endTime", this.sum(since, 3600000));
                 response = (this.binanceGetAggTrades(this.extend(request, parameters))).join();
             } else
             {
@@ -1772,19 +1772,19 @@ public class Tokocrypto extends TokocryptoApi
             }};
             if (java.util.Objects.equals(price, "index"))
             {
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id")); // Index price takes this argument instead of symbol
+                request.put("pair", ((Map<String, Object>)market).get("id")); // Index price takes this argument instead of symbol
             } else
             {
-                ((Map<String, Object>)request).put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
+                request.put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
             }
             // const duration = this.parseTimeframe (timeframe);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             Object response = null;
             if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
@@ -1952,11 +1952,11 @@ public class Tokocrypto extends TokocryptoApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
-            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
+            account.put("free", this.safeString(balance, "free"));
+            account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2121,7 +2121,7 @@ public class Tokocrypto extends TokocryptoApi
         final String finalType = type;
         final String finalTimeInForce = timeInForce;
         final String finalSide = side;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2144,7 +2144,7 @@ public class Tokocrypto extends TokocryptoApi
             put( "status", status );
             put( "fee", null );
             put( "trades", fills );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -2242,10 +2242,10 @@ public class Tokocrypto extends TokocryptoApi
             }};
             if (java.util.Objects.equals(side, "buy"))
             {
-                ((Map<String, Object>)request).put("side", 0);
+                request.put("side", 0);
             } else if (java.util.Objects.equals(side, "sell"))
             {
-                ((Map<String, Object>)request).put("side", 1);
+                request.put("side", 1);
             }
             if (java.util.Objects.equals(clientOrderId, null))
             {
@@ -2255,12 +2255,12 @@ public class Tokocrypto extends TokocryptoApi
                     String brokerId = this.safeString(broker, "marketType");
                     if (!java.util.Objects.equals(brokerId, null))
                     {
-                        ((Map<String, Object>)request).put("clientId", (brokerId + this.uuid22()));
+                        request.put("clientId", (brokerId + this.uuid22()));
                     }
                 }
             } else
             {
-                ((Map<String, Object>)request).put("clientId", clientOrderId);
+                request.put("clientId", clientOrderId);
             }
             // additional required fields depending on the order type
             Boolean priceIsRequired = false;
@@ -2307,7 +2307,7 @@ public class Tokocrypto extends TokocryptoApi
                     {
                         quoteAmount = amount;
                     }
-                    ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteAmount, TRUNCATE, precision, this.precisionMode));
+                    request.put("quoteOrderQty", this.decimalToPrecision(quoteAmount, TRUNCATE, precision, this.precisionMode));
                 } else
                 {
                     quantityIsRequired = true;
@@ -2336,7 +2336,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             if (Boolean.TRUE.equals(quantityIsRequired))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
             }
             if (Boolean.TRUE.equals(priceIsRequired))
             {
@@ -2344,7 +2344,7 @@ public class Tokocrypto extends TokocryptoApi
                 {
                     throw new InvalidOrder((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
                 }
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             if (Boolean.TRUE.equals(triggerPriceIsRequired))
             {
@@ -2353,7 +2353,7 @@ public class Tokocrypto extends TokocryptoApi
                     throw new InvalidOrder((((this.id + " createOrder() requires a triggerPrice extra param for a ") + type) + " order")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
             }
             Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, parameters))).join();
@@ -2515,11 +2515,11 @@ public class Tokocrypto extends TokocryptoApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
             //
@@ -2758,16 +2758,16 @@ public class Tokocrypto extends TokocryptoApi
             Long endTime = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(endTime, null))
             {
-                ((Map<String, Object>)request).put("endTime", endTime);
+                request.put("endTime", endTime);
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetOpenV1OrdersTrades(this.extend(request, parameters))).join();
             //
@@ -2844,7 +2844,7 @@ public class Tokocrypto extends TokocryptoApi
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (!java.util.Objects.equals(network, null))
             {
-                ((Map<String, Object>)request).put("network", network);
+                request.put("network", network);
                 parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             // has support for the 'network' parameter
@@ -2929,22 +2929,22 @@ public class Tokocrypto extends TokocryptoApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 Object endTime = this.sum(since, 7776000000L);
                 if (!java.util.Objects.equals(until, null))
                 {
                     endTime = Helpers.mathMin(endTime, until);
                 }
-                ((Map<String, Object>)request).put("endTime", endTime);
+                request.put("endTime", endTime);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetOpenV1Deposits(this.extend(request, parameters))).join();
             //
@@ -3022,17 +3022,17 @@ public class Tokocrypto extends TokocryptoApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                ((Map<String, Object>)request).put("endTime", this.sum(since, 7776000000L));
+                request.put("endTime", this.sum(since, 7776000000L));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetOpenV1Withdraws(this.extend(request, parameters))).join();
             //
@@ -3193,8 +3193,8 @@ public class Tokocrypto extends TokocryptoApi
         }};
         if (!java.util.Objects.equals(feeCost, null))
         {
-            ((Map<String, Object>)fee).put("currency", code);
-            ((Map<String, Object>)fee).put("cost", feeCost);
+            fee.put("currency", code);
+            fee.put("cost", feeCost);
         }
         Long internalRaw = this.safeInteger(transaction, "transferType");
         Boolean intern = false;
@@ -3278,7 +3278,7 @@ public class Tokocrypto extends TokocryptoApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("addressTag", tag);
+                request.put("addressTag", tag);
             }
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
@@ -3286,7 +3286,7 @@ public class Tokocrypto extends TokocryptoApi
             Object networkId = this.networkCodeToId((String) (networkCode), code);
             if (!java.util.Objects.equals(networkId, null))
             {
-                ((Map<String, Object>)request).put("network", ((String)networkId).toUpperCase());
+                request.put("network", ((String)networkId).toUpperCase());
             }
             Map<String, Object> response = (this.privatePostOpenV1Withdraws(this.extend(request, query))).join();
             //
@@ -3360,12 +3360,12 @@ public class Tokocrypto extends TokocryptoApi
             }}, parameters);
             if (!java.util.Objects.equals(defaultRecvWindow, null))
             {
-                Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);
+                extendedParams.put("recvWindow", defaultRecvWindow);
             }
             Long recvWindow = this.safeInteger(parameters, "recvWindow");
             if (!java.util.Objects.equals(recvWindow, null))
             {
-                Helpers.addElementToObject(extendedParams, "recvWindow", recvWindow);
+                extendedParams.put("recvWindow", recvWindow);
             }
             if ((java.util.Objects.equals(api, "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {

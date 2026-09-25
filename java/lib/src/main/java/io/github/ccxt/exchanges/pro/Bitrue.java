@@ -226,11 +226,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 if (Boolean.TRUE.equals(updateFree))
                 {
-                    ((Map<String, Object>)account).put("free", free);
+                    account.put("free", free);
                 }
                 if (Boolean.TRUE.equals(updateUsed))
                 {
-                    ((Map<String, Object>)account).put("used", used);
+                    account.put("used", used);
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -333,8 +333,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(parsed);
         String messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }
@@ -378,7 +378,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String statusId = this.safeString(order, "X");
         String feeCurrencyId = this.safeString(order, "N");
         final String finalSide = side;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitrue.this.safeString(order, "i") );
             put( "clientOrderId", Bitrue.this.safeString(order, "c") );
@@ -402,7 +402,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 put( "currency", Bitrue.this.safeCurrencyCode((String) (feeCurrencyId)) );
                 put( "cost", Bitrue.this.safeNumber(order, "n") );
             }} );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -714,7 +714,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String priceString = this.safeString(trade, "price");
         Double rawVol = this.safeNumber(trade, "vol");
         Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -728,7 +728,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "amount", Bitrue.this.numberToString(baseAmount) );
             put( "cost", null );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {

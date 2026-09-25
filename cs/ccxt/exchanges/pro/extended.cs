@@ -407,7 +407,7 @@ public partial class extended : ccxt.extended
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? messageHash = ((string)subscriptions[i]);
-            if ((getIndexOf(messageHash, "myTrades:") == 0))
+            if (((messageHash?.IndexOf("myTrades:", StringComparison.Ordinal) ?? -1) == 0))
             {
                 client.resolve(stored, messageHash);
             }
@@ -579,7 +579,7 @@ public partial class extended : ccxt.extended
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? messageHash = ((string)subscriptions[i]);
-            if ((getIndexOf(messageHash, "orders:") == 0))
+            if (((messageHash?.IndexOf("orders:", StringComparison.Ordinal) ?? -1) == 0))
             {
                 client.resolve(orders, messageHash);
             }

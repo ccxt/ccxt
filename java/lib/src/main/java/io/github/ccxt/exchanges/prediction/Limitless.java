@@ -366,7 +366,7 @@ public class Limitless extends LimitlessApi
                         String slug = this.safeString(raw, "slug");
                         if ((!java.util.Objects.equals(slug, null) && !java.util.Objects.equals(slug, "")) && !(seen.containsKey(slug)))
                         {
-                            ((Map<String, Object>)seen).put((String)slug, true);
+                            seen.put((String)slug, true);
                             ((List<Object>)allRaw).add(raw);
                         }
                     }
@@ -392,7 +392,7 @@ public class Limitless extends LimitlessApi
                 for (var i = 2; Helpers.isLessThanOrEqual(i, totalPages); i++)
                 {
                     page = i;
-                    ((Map<String, Object>)request).put("page", page);
+                    request.put("page", page);
                     ((List<Object>)promises).add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
                 }
                 Object responses = (Helpers.promiseAll(promises)).join();
@@ -412,7 +412,7 @@ public class Limitless extends LimitlessApi
                     while (true)
                     {
                         page = this.sum(page, 1);
-                        ((Map<String, Object>)request).put("page", page);
+                        request.put("page", page);
                         Map<String, Object> response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
                         Object responseRows = new ArrayList<Object>(Arrays.asList());
                         if ((response instanceof List))
@@ -460,7 +460,7 @@ public class Limitless extends LimitlessApi
                     if (!(eventGroups.containsKey(eventKey)))
                     {
                         final String finalGroupId = groupId;
-                        ((Map<String, Object>)eventGroups).put((String)eventKey, new HashMap<String, Object>() {{
+                        eventGroups.put((String)eventKey, new HashMap<String, Object>() {{
         put( "groupId", finalGroupId );
         put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
         put( "raw", raw );
@@ -482,7 +482,7 @@ public class Limitless extends LimitlessApi
             {
                 String eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
                 Object g = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
-                ((Map<String, Object>)eventsDict).put((String)eventKey, this.parseEvent((Map<String, Object>) (g)));
+                eventsDict.put((String)eventKey, this.parseEvent((Map<String, Object>) (g)));
             }
             this.events = eventsDict;
             Integer marketsLength = ((List<?>)markets).size();
@@ -1393,7 +1393,7 @@ public class Limitless extends LimitlessApi
         final String finalLastStr = lastStr;
         final String finalMidStr = midStr;
         final String finalVolumeStr = volumeStr;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", outcomeSymbol );
             put( "outcomeId", Limitless.this.safeString(finalMarket, "outcomeId") );
             put( "label", Limitless.this.safeString(finalMarket, "label") );
@@ -1417,7 +1417,7 @@ public class Limitless extends LimitlessApi
             put( "baseVolume", null );
             put( "quoteVolume", Limitless.this.parseNumber(finalVolumeStr) );
             put( "info", ticker );
-        }})));
+        }}));
     }
     /**
      * @ignore
@@ -1470,7 +1470,7 @@ public class Limitless extends LimitlessApi
                 {
                     if (!java.util.Objects.equals(slug, null))
                     {
-                        ((Map<String, Object>)outcomesBySlug).put((String)slug, new ArrayList<Object>(Arrays.asList()));
+                        outcomesBySlug.put((String)slug, new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)slugs).add(slug);
                 }
@@ -1479,7 +1479,7 @@ public class Limitless extends LimitlessApi
                 ((List<Object>)grouped).add(outcomeObj);
                 if (!java.util.Objects.equals(slug, null))
                 {
-                    ((Map<String, Object>)outcomesBySlug).put((String)slug, grouped);
+                    outcomesBySlug.put((String)slug, grouped);
                 }
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
@@ -1512,7 +1512,7 @@ public class Limitless extends LimitlessApi
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
-                        ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                        result.put((String)symbolKey, ticker);
                     }
                 }
             }
@@ -1560,7 +1560,7 @@ public class Limitless extends LimitlessApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Helpers.mathMin(limit, 100));
             }
             Map<String, Object> response = (this.limitlessPublicGetMarketsSlugEvents(this.extend(request, parameters))).join();
             //
@@ -1874,7 +1874,7 @@ public class Limitless extends LimitlessApi
                 String key = String.valueOf(bucket);
                 if (!(candles.containsKey(key)))
                 {
-                    ((Map<String, Object>)candles).put((String)key, new ArrayList<Object>(Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
+                    candles.put((String)key, new ArrayList<Object>(Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
                     ((List<Object>)bucketOrder).add(key);
                 } else
                 {
@@ -1885,7 +1885,7 @@ public class Limitless extends LimitlessApi
                     Object pPriceOrCandleLow = (((java.util.Objects.equals(pPrice, null)))) ? Helpers.GetValue(candle, 3) : pPrice;
                     Helpers.addElementToObject(candle, 3, Helpers.mathMin(candleLow, pPriceOrCandleLow));
                     Helpers.addElementToObject(candle, 4, pPrice);
-                    ((Map<String, Object>)candles).put((String)key, candle); // php arrays are value types - write the mutation back
+                    candles.put((String)key, candle); // php arrays are value types - write the mutation back
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -1945,7 +1945,7 @@ public class Limitless extends LimitlessApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.limitlessPrivateGetMarketsSlugUserOrders(this.extend(request, parameters))).join();
             //
@@ -2475,7 +2475,7 @@ public class Limitless extends LimitlessApi
         final String finalCost = cost;
         final String finalFilled = filled;
         final Map<String, Object> finalFee = fee;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "info", order );
@@ -2501,7 +2501,7 @@ public class Limitless extends LimitlessApi
             put( "remaining", Limitless.this.applyScale((String) (remaining)) );
             put( "fee", finalFee );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -2757,10 +2757,10 @@ public class Limitless extends LimitlessApi
             if (!java.util.Objects.equals(expirationInt, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, "expiration");
-                ((Map<String, Object>)signRequest).put("expiration", this.numberToString(expirationInt));
+                signRequest.put("expiration", this.numberToString(expirationInt));
             } else
             {
-                ((Map<String, Object>)signRequest).put("expiration", "0");
+                signRequest.put("expiration", "0");
             }
             String amountString = this.numberToString(amount);
             String priceString = this.numberToString(price);
@@ -2818,14 +2818,14 @@ public class Limitless extends LimitlessApi
                 }
             }
             // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
-            ((Map<String, Object>)signRequest).put("makerAmount", this.parseToInt(this.applyScale((String) (makerAmount), true)));
-            ((Map<String, Object>)signRequest).put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale((String) (takerAmount), true))));
+            signRequest.put("makerAmount", this.parseToInt(this.applyScale((String) (makerAmount), true)));
+            signRequest.put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale((String) (takerAmount), true))));
             Object signature = this.signOrderRequest((Map<String, Object>) (signRequest), marketSymbol);
-            ((Map<String, Object>)signRequest).put("signature", signature);
+            signRequest.put("signature", signature);
             // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
             if (!Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(price, null)))
             {
-                ((Map<String, Object>)signRequest).put("price", this.parseNumber(priceString));
+                signRequest.put("price", this.parseNumber(priceString));
             }
             String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
             final String finalTimeInForce = timeInForce;
@@ -2837,7 +2837,7 @@ public class Limitless extends LimitlessApi
             }};
             if (Boolean.TRUE.equals(postOnly))
             {
-                ((Map<String, Object>)request).put("postOnly", postOnly);
+                request.put("postOnly", postOnly);
             }
             Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, parameters))).join();
             Object parsedOrder = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
@@ -3239,7 +3239,7 @@ public class Limitless extends LimitlessApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
-                ((Map<String, Object>)request).put("slug", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug"));
+                request.put("slug", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug"));
             } else if (java.util.Objects.equals(slug, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;
@@ -3250,9 +3250,9 @@ public class Limitless extends LimitlessApi
             //         "message": "Orders canceled successfully"
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -3311,7 +3311,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit));
+                request.put("limit", Helpers.mathMin(limit, maxLimit));
             }
             Map<String, Object> response = (this.limitlessPrivateGetPortfolioHistory(this.extend(request, parameters))).join();
             //
@@ -3451,7 +3451,7 @@ public class Limitless extends LimitlessApi
             final String finalFeedSide = feedSide;
             final String finalPriceStr = priceStr;
             final String finalCostStr = costStr;
-            return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionTrade(new HashMap<String, Object>() {{
                 put( "id", Limitless.this.safeString(trade, "txHash") );
                 put( "info", trade );
                 put( "timestamp", ts );
@@ -3468,7 +3468,7 @@ public class Limitless extends LimitlessApi
                 put( "amount", Limitless.this.parseNumber(amountStr) );
                 put( "cost", Limitless.this.parseNumber(finalCostStr) );
                 put( "fee", null );
-            }}));
+            }});
         }
         //
         //     {
@@ -3549,7 +3549,7 @@ public class Limitless extends LimitlessApi
         final String finalType = type;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -3566,7 +3566,7 @@ public class Limitless extends LimitlessApi
             put( "amount", amount );
             put( "cost", cost );
             put( "fee", null );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -3901,7 +3901,7 @@ public class Limitless extends LimitlessApi
                         String rawSlug = this.safeString(raw, "slug");
                         if ((!java.util.Objects.equals(rawSlug, null) && !java.util.Objects.equals(rawSlug, "")) && !(seen.containsKey(rawSlug)))
                         {
-                            ((Map<String, Object>)seen).put((String)rawSlug, true);
+                            seen.put((String)rawSlug, true);
                             ((List<Object>)rawMarkets).add(raw);
                         }
                     }
@@ -3958,7 +3958,7 @@ public class Limitless extends LimitlessApi
                     if (!(eventGroups.containsKey(eventKey)))
                     {
                         final String finalGroupId = groupId;
-                        ((Map<String, Object>)eventGroups).put((String)eventKey, new HashMap<String, Object>() {{
+                        eventGroups.put((String)eventKey, new HashMap<String, Object>() {{
         put( "groupId", finalGroupId );
         put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
         put( "raw", raw );
@@ -4049,7 +4049,7 @@ public class Limitless extends LimitlessApi
                 Map<String, Object> response = null;
                 if (!java.util.Objects.equals(categoryId, null))
                 {
-                    ((Map<String, Object>)request).put("categoryId", categoryId);
+                    request.put("categoryId", categoryId);
                     response = (this.limitlessPublicGetMarketsActiveCategoryId(this.extend(request, rest))).join();
                 } else
                 {
@@ -4162,7 +4162,7 @@ public class Limitless extends LimitlessApi
                     String slug = this.safeString(raw, "slug");
                     if ((!java.util.Objects.equals(slug, null)) && !(seen.containsKey(slug)))
                     {
-                        ((Map<String, Object>)seen).put((String)slug, true);
+                        seen.put((String)slug, true);
                         ((List<Object>)allRaw).add(raw);
                     }
                 }
@@ -4248,7 +4248,7 @@ public class Limitless extends LimitlessApi
             }});
             String headerKey = ("lmts-api" + "-key"); // concatenating because of the php version
             Map<String, Object> headersKey = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)headersKey).put((String)headerKey, this.apiKey);
+            headersKey.put((String)headerKey, this.apiKey);
             headers = this.extend(headers, headersKey);
         }
         url = Helpers.add(baseUrl, url);

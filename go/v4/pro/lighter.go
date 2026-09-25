@@ -218,7 +218,7 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	//
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "order_book", map[string]any{}))
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -604,7 +604,7 @@ func (this *Lighter) WatchMarkPricesAsync(optionalArgs ...any) <-chan any {
 func (this *Lighter) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -654,7 +654,7 @@ func (this *Lighter) UnWatchMarkPricesAsync(optionalArgs ...any) <-chan any {
 func (this *Lighter) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -762,7 +762,7 @@ func (this *Lighter) HandleTrades(client any, message any) {
 	}
 	var data []any = ccxt.SafeListTyped(message, "trades")
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1003,7 +1003,7 @@ func (this *Lighter) HandleMyTrades(client any, message any) any {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var accountIndex *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
 	var marketIds []string = ccxt.ObjectKeys(data)
@@ -1228,7 +1228,7 @@ func (this *Lighter) HandleLiquidation(client any, message any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1932,7 +1932,7 @@ func (this *Lighter) HandleUnSubscription(client any, message any) {
 	// "account_orders:{marketId}", so parts[1] is the market id on every family below
 	//
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var name *string = this.SafeString(parts, 0, "")
 	var channelId *string = this.SafeString(parts, 1)
 	if name != nil && *name == "order_book" {

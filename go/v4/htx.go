@@ -2731,7 +2731,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 					if pair == nil {
 						panic(ExchangeError(this.Id + " method() missing pair"))
 					}
-					var parts []string = Split(pair, "-")
+					var parts []string = strings.Split(*pair, "-")
 					quoteId = this.SafeStringLower(parts, 1)
 					settleId = quoteId
 				}
@@ -3561,7 +3561,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(trade, "contract_code", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "created-at", "created_at", "create_date", "created_time"})
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
 	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
@@ -4363,7 +4363,7 @@ func (this *Htx) fetchAccountIdByTypeBody(ch chan any, typeVar any, optionalArgs
 	if symbol != nil {
 		marketId = this.MarketId(symbol)
 	}
-	for i := 0; i < GetArrayLength(accounts); i++ {
+	for i := 0; i < len(accounts); i++ {
 		var account map[string]any = SafeMapTyped(accounts, i)
 		var info map[string]any = SafeMapTyped(account, "info")
 		var subtype *string = this.SafeString(info, "subtype")
@@ -6366,7 +6366,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 				}
 				return strings.Index(*rawType, "-")
 			}() >= 0 {
-				var orderType []string = Split(rawType, "-")
+				var orderType []string = strings.Split(*rawType, "-")
 				side = GetValue(orderType, 0)
 				typeVar = GetValue(orderType, 1)
 			} else if IsEqual(typeVar, nil) {
@@ -6736,7 +6736,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		request["margin_mode"] = marginMode
 		request["side"] = side
 		if timeInForce != nil {
-			request["time_in_force"] = ToLower(timeInForce)
+			request["time_in_force"] = strings.ToLower(*timeInForce)
 		}
 		var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 		var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
@@ -7785,7 +7785,7 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 	var successes *string = this.SafeString(orders, "successes")
 	var success any = nil
 	if successes != nil {
-		success = Split(successes, ",")
+		success = strings.Split(*successes, ",")
 	} else {
 		success = this.SafeList(orders, "success", []any{})
 	}
@@ -10385,7 +10385,7 @@ func (this *Htx) FetchLeverageTiersAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11282,7 +11282,7 @@ func (this *Htx) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

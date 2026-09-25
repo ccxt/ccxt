@@ -362,9 +362,9 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
-        Helpers.callDynamically(trades, "append", new Object[]{parsed});
+        trades.append(parsed);
         client.resolve(trades, messageHash);
         client.resolve(trades, Helpers.add((messageHash + ":"), symbol));
     }
@@ -439,7 +439,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         final String finalTakerOrMaker = takerOrMaker;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "order", orderId );
@@ -453,7 +453,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -647,11 +647,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
+            account.put("free", this.safeString(balance, "available"));
+            account.put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         this.balance = this.safeBalance(result);

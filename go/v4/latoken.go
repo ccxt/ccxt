@@ -569,7 +569,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if (base == nil) || (quote == nil) {
 				continue
 			}
-			var lowercaseQuote string = ToLower(quote)
+			var lowercaseQuote string = strings.ToLower(*quote)
 			var capitalizedQuote string = this.Capitalize(lowercaseQuote)
 			var status *string = this.SafeString(market, "status")
 			result = append(result, map[string]any{
@@ -1022,7 +1022,7 @@ func (this *Latoken) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Latoken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1486,7 +1486,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 	var orderSide *string = this.SafeString(order, "side")
 	var side *string = nil
 	if orderSide != nil {
-		var parts []string = Split(orderSide, "_")
+		var parts []string = strings.Split(*orderSide, "_")
 		var partsLength int = len(parts)
 		side = this.SafeStringLower(parts, partsLength-1)
 	}

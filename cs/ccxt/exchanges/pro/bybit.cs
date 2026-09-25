@@ -498,12 +498,12 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             string? marketId = ((string)marketIds[i]);
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             topics.Add(((topic + ".") + marketId));
             subMessageHashes.Add(("ticker:" + symbol));
             messageHashes.Add(("unsubscribe:ticker:" + symbol));
         }
-        string? url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
+        string? url = await this.getUrlByMarketType((symbols != null && 0 < symbols.Count ? symbols[0] : null), false, "watchTickers", parameters);
         return await this.unWatchTopics(url, "ticker", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
 
@@ -779,7 +779,7 @@ public partial class bybit : ccxt.bybit
         }
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
-        object firstSymbol = getValue(marketSymbols, 0);
+        object firstSymbol = (marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null);
         string? url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -824,14 +824,14 @@ public partial class bybit : ccxt.bybit
         }
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
-        object firstSymbol = getValue(marketSymbols, 0);
+        object firstSymbol = (marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null);
         string? url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
         List<object> rawHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            object data = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             Dictionary<string, object> market = this.market(getValue(data, 0));
             string? symbolString = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object unfiedTimeframe = getValue(data, 1);
@@ -1059,7 +1059,7 @@ public partial class bybit : ccxt.bybit
             parameters = this.omit(parameters, "limit");
         } else
         {
-            Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
+            Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             limit = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) == true)) ? 50 : 500;
         }
         channel = channel + limit.ToString();
@@ -1068,7 +1068,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             string topic = ((channel + ".") + marketId);
@@ -1076,7 +1076,7 @@ public partial class bybit : ccxt.bybit
             subMessageHashes.Add(("orderbook:" + symbol));
             topics.Add(topic);
         }
-        string? url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchOrderBook", parameters);
+        string? url = await this.getUrlByMarketType((symbols != null && 0 < symbols.Count ? symbols[0] : null), false, "watchOrderBook", parameters);
         return await this.unWatchTopics(url, "orderbook", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
 
@@ -1274,13 +1274,13 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true);
-        string? url = await this.getUrlByMarketType(getValue(symbols, 0), false, "unWatchTradesForSymbols", parameters);
+        string? url = await this.getUrlByMarketType((symbols != null && 0 < symbols.Count ? symbols[0] : null), false, "unWatchTradesForSymbols", parameters);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string topic = ("publicTrade." + ((market.ContainsKey("id") ? market["id"] : null)));
             topics.Add(topic);
@@ -2659,7 +2659,7 @@ public partial class bybit : ccxt.bybit
         {
             for (int i = 0; i < topicsLength; i++)
             {
-                string? messageHash = ((string)getValue(messageHashes, i));
+                string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
                 if (!(inOp(client.subscriptions, messageHash)))
                 {
                     newTopics.Add(getValue(topics, i));
@@ -2679,7 +2679,7 @@ public partial class bybit : ccxt.bybit
                 int recordedLength = recordedTopics.Count;
                 for (int j = 0; j < recordedLength; j++)
                 {
-                    subscribedTopics[(string)getValue(recordedTopics, j)] = true;
+                    subscribedTopics[(string)(recordedTopics != null && j < recordedTopics.Count ? recordedTopics[j] : null)] = true;
                 }
             }
             for (int i = 0; i < topicsLength; i++)
@@ -2949,7 +2949,7 @@ public partial class bybit : ccxt.bybit
         // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
         // first-match loop (in Go map iteration order is randomized). Check the
         // orderbook prefix explicitly, then fall back to a simple first-match.
-        if (getIndexOf(topic, "orderbook") >= 0)
+        if ((topic?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
@@ -2958,7 +2958,7 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (getIndexOf(topic, key) >= 0)
+            if ((topic?.IndexOf(key, StringComparison.Ordinal) ?? -1) >= 0)
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -3103,7 +3103,7 @@ public partial class bybit : ccxt.bybit
                 for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = messageHashes[j];
-                    string? subHash = ((string)getValue(subMessageHashes, j));
+                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
                     bool usePrefix = (subHash == "orders") || (subHash == "myTrades") || (subHash == "positions");
                     this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }

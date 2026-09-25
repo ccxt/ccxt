@@ -6141,8 +6141,8 @@ public partial class coinbase : Exchange
                 int numErrors = errors.Count;
                 if (numErrors > 0)
                 {
-                    errorCode = this.safeString(getValue(errors, 0), "id");
-                    string? errorMessage = this.safeString(getValue(errors, 0), "message");
+                    errorCode = this.safeString((errors != null && 0 < errors.Count ? errors[0] : null), "id");
+                    string? errorMessage = this.safeString((errors != null && 0 < errors.Count ? errors[0] : null), "message");
                     if ((errorCode != null))
                     {
                         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);

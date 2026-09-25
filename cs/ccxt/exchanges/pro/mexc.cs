@@ -1976,10 +1976,10 @@ public partial class mexc : ccxt.mexc
         {
             if (isSpot)
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 topics.Add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null))));
             }
-            messageHashes.Add(("unsubscribe:bidask:" + (getValue(symbols, i))));
+            messageHashes.Add(("unsubscribe:bidask:" + ((symbols != null && i < symbols.Count ? symbols[i] : null))));
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2281,7 +2281,7 @@ public partial class mexc : ccxt.mexc
         if (msg == "PONG")
         {
             this.handlePong(client, message);
-        } else if (getIndexOf(msg, "@") > -1)
+        } else if ((msg?.IndexOf("@", StringComparison.Ordinal) ?? -1) > -1)
         {
             List<object> parts = msg.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
             string? channel = this.safeString(parts, 1);

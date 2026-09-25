@@ -145,7 +145,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         int length = getArrayLength(symbolsVar);
         if ((length == 1))
         {
-            Dictionary<string, object> market = this.market(getValue(marketIds, 0));
+            Dictionary<string, object> market = this.market((marketIds != null && 0 < marketIds.Count ? marketIds[0] : null));
             messageHash = add(add(messageHash, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         subscribe["product_ids"] = marketIds;

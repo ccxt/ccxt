@@ -299,7 +299,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             string? marketId = this.marketId(symbol);
             topics.Add(("ticker." + marketId));
             messageHashes.Add(("unsubscribe:ticker:" + symbol));
@@ -433,7 +433,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             string? marketId = this.marketId(symbol);
             topics.Add(("bookTicker." + marketId));
             messageHashes.Add(("unsubscribe:bidask:" + symbol));
@@ -603,7 +603,7 @@ public partial class backpack : ccxt.backpack
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -795,7 +795,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             string? marketId = this.marketId(symbol);
             topics.Add(("trade." + marketId));
             messageHashes.Add(("unsubscribe:trades:" + symbol));
@@ -947,7 +947,7 @@ public partial class backpack : ccxt.backpack
         {
             string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(("orderbook:" + symbol));
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
             string topic = ("depth." + marketId);
             topics.Add(topic);
         }
@@ -991,9 +991,9 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
             string topic = ("depth." + marketId);
             topics.Add(topic);
         }
@@ -1395,7 +1395,7 @@ public partial class backpack : ccxt.backpack
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 messageHashes.Add((("unsubscribe:positions" + ":") + symbol));
                 topics.Add(("account.positionUpdate." + this.marketId(symbol)));
             }

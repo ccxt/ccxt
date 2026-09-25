@@ -1740,8 +1740,8 @@ public partial class dydx : Exchange
             { "latestBlockHeight", lastBlockHeight },
         });
         List<object> orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
-        object orderId = getValue(orderRequestRes, 0);
-        object orderRequest = getValue(orderRequestRes, 1);
+        object orderId = (orderRequestRes != null && 0 < orderRequestRes.Count ? orderRequestRes[0] : null);
+        object orderRequest = (orderRequestRes != null && 1 < orderRequestRes.Count ? orderRequestRes[1] : null);
         string? chainName = ((string)(this.options.ContainsKey("chainName") ? this.options["chainName"] : null));
         string? signedTx = this.signDydxTx((credentials != null && ((IDictionary<string, object>)credentials).ContainsKey("privateKey") ? ((IDictionary<string, object>)credentials)["privateKey"] : null), orderRequest, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {

@@ -2549,7 +2549,7 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) any {
 		}()
 	}
 	market = MapTyped(this.SafeMarket(marketId, market, "_", marketType))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var percentage *string = this.SafeString2(ticker, "cr", "r")
 	if percentage != nil {
@@ -5804,7 +5804,7 @@ func (this *Xt) ParseLeverageTiers(response any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var marketIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = marketIdKey

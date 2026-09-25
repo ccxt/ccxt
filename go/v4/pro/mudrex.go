@@ -93,13 +93,13 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	this.SetBrokerHeaders()
 	var baseIdString any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+		if !ccxt.IsEqual(market["baseId"], nil) {
 			return market["baseId"]
 		}
 		return ""
 	}()
 	var quoteIdString any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+		if !ccxt.IsEqual(market["quoteId"], nil) {
 			return market["quoteId"]
 		}
 		return ""
@@ -140,13 +140,13 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
 			messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 			var baseIdString any = func() any {
-				if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+				if !ccxt.IsEqual(market["baseId"], nil) {
 					return market["baseId"]
 				}
 				return ""
 			}()
 			var quoteIdString any = func() any {
-				if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+				if !ccxt.IsEqual(market["quoteId"], nil) {
 					return market["quoteId"]
 				}
 				return ""
@@ -210,13 +210,13 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		prefix = "markKline"
 	}
 	var streamBaseId any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+		if !ccxt.IsEqual(market["baseId"], nil) {
 			return market["baseId"]
 		}
 		return ""
 	}()
 	var streamQuoteId any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+		if !ccxt.IsEqual(market["quoteId"], nil) {
 			return market["quoteId"]
 		}
 		return ""
@@ -288,7 +288,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	if stream == nil {
 		return
 	}
-	var parts []string = ccxt.Split(stream, "@")
+	var parts []string = strings.Split(*stream, "@")
 	var interval *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 	var tf *string = this.FindTimeframe(interval)
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
@@ -296,7 +296,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	if s == nil {
 		return
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToUpper(s)))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(strings.ToUpper(*s)))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -325,7 +325,7 @@ func (this *Mudrex) HandleTicker(client any, message any) {
 		if s == nil {
 			continue
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToUpper(s)))
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(strings.ToUpper(*s)))
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")

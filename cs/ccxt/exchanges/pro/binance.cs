@@ -421,9 +421,9 @@ public partial class binance : ccxt.binance
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 subscriptionHashes.Add(add((market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null), "@forceOrder"));
-                messageHashes.Add(("liquidations::" + (getValue(symbols, i))));
+                messageHashes.Add(("liquidations::" + ((symbols != null && i < symbols.Count ? symbols[i] : null))));
             }
             streamHash = streamHash + ("::" + String.Join(",", symbols.ToArray()));
         }
@@ -433,8 +433,8 @@ public partial class binance : ccxt.binance
             firstMarket = this.getMarketFromSymbols(symbols);
         }
         List<object> resolvedAuth = this.resolveAuthType("watchLiquidationsForSymbols", firstMarket, parameters);
-        object type = getValue(resolvedAuth, 0);
-        parameters = getValue(resolvedAuth, 2);
+        object type = (resolvedAuth != null && 0 < resolvedAuth.Count ? resolvedAuth[0] : null);
+        parameters = (resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null);
         // the spot check runs on the RESOLVED type: a spot default combined
         // with a linear or inverse defaultSubType means the caller wants the
         // matching derivatives stream, so the rewrite is allowed to route it
@@ -660,7 +660,7 @@ public partial class binance : ccxt.binance
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 messageHashes.Add(("myLiquidations::" + symbol));
             }
         }
@@ -899,7 +899,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
+        Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
         {
@@ -920,7 +920,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             subMessageHashes.Add(("orderbook::" + symbol));
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
@@ -1349,7 +1349,7 @@ public partial class binance : ccxt.binance
         for (int j = 0; j < messageHashes.Count; j++)
         {
             object unsubHash = messageHashes[j];
-            string? subHash = ((string)getValue(subMessageHashes, j));
+            string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -1494,7 +1494,7 @@ public partial class binance : ccxt.binance
         name = (string)nameparametersVariable[0];
         parameters = nameparametersVariable[1];
         parameters = this.omit(parameters, "callerMethodName");
-        Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
+        Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         bool? isOption = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null));
         if ((isOption == true))
@@ -1514,7 +1514,7 @@ public partial class binance : ccxt.binance
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 subMessageHashes.Add(("trade::" + symbol));
                 messageHashes.Add(("unsubscribe:trade:" + symbol));
@@ -1531,7 +1531,7 @@ public partial class binance : ccxt.binance
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 subMessageHashes.Add(("trade::" + symbol));
                 messageHashes.Add(("unsubscribe:trade:" + symbol));
@@ -1919,7 +1919,7 @@ public partial class binance : ccxt.binance
         parameters = klineTypeparametersVariable[1];
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, false, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
+        Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
         string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         string? wsUrlType = type;
         if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
@@ -2015,7 +2015,7 @@ public partial class binance : ccxt.binance
         parameters = klineTypeparametersVariable[1];
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, false, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
+        Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
         string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         string? wsUrlType = type;
         if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null) as bool?) == true))
@@ -2038,7 +2038,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symAndTf = getValue(symbolsAndTimeframes, i);
+            object symAndTf = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             object symbolString = getValue(symAndTf, 0);
             object timeframeString = getValue(symAndTf, 1);
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -3433,8 +3433,8 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
         List<object> resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
-        object type = getValue(resolvedAuth, 0);
-        parameters = getValue(resolvedAuth, 2);
+        object type = (resolvedAuth != null && 0 < resolvedAuth.Count ? resolvedAuth[0] : null);
+        parameters = (resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null);
         bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
         isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
@@ -3570,7 +3570,7 @@ public partial class binance : ccxt.binance
         isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         List<object> subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
-        object subType = getValue(subTypeInfo, 0);
+        object subType = (subTypeInfo != null && 0 < subTypeInfo.Count ? subTypeInfo[0] : null);
         if (type != "option" && type != "stock")
         {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
@@ -3917,7 +3917,7 @@ public partial class binance : ccxt.binance
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 payload["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }

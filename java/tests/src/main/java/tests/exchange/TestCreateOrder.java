@@ -179,7 +179,7 @@ public class TestCreateOrder extends BaseTest {
             Map<String, Object> parameters = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSwapFuture))
             {
-                ((Map<String, Object>)parameters).put("reduceOnly", true);
+                parameters.put("reduceOnly", true);
             }
             Object exitorderPriceArg = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? null : exitorderPrice;
             Object exitorderFilled = (tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties)).join();

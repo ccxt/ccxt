@@ -159,7 +159,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }};
             if (!java.util.Objects.equals(productIds, null))
             {
-                ((Map<String, Object>)subscribe).put("product_ids", productIds);
+                subscribe.put("product_ids", productIds);
             }
             if (Helpers.isGreaterThan(symbolsLength, 1))
             {
@@ -319,7 +319,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)result).put((String)symbol, fundingRate);
+                result.put((String)symbol, fundingRate);
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
@@ -869,7 +869,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //    }
         String marketId = this.safeString2(trade, "symbol", "product_id");
         String datetime = this.safeString(trade, "time");
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Coinbaseinternational.this.safeString(trade, "match_id") );
             put( "order", null );
@@ -883,7 +883,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             put( "amount", Coinbaseinternational.this.safeString(trade, "trade_qty") );
             put( "cost", null );
             put( "fee", null );
-        }})));
+        }}));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {

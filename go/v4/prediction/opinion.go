@@ -922,7 +922,7 @@ func (this *Opinion) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -931,7 +931,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
-	var outcomesLength int = ccxt.GetArrayLength(outcomes)
+	var outcomesLength int = len(outcomes)
 	var promises []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
@@ -1054,7 +1054,7 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	}
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 
 	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetTokenPriceHistory(this.Extend(map[string]any{

@@ -2154,7 +2154,7 @@ public partial class upbit : Exchange
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (getFeesFromTrades)
                 {
-                    IDictionary<string, object> tradeFee = this.safeDict(getValue(trades, i), "fee", new Dictionary<string, object>() {});
+                    IDictionary<string, object> tradeFee = this.safeDict((trades != null && i < trades.Count ? trades[i] : null), "fee", new Dictionary<string, object>() {});
                     string? tradeFeeCost = this.safeString(tradeFee, "cost");
                     if ((tradeFeeCost != null))
                     {

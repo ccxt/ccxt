@@ -731,14 +731,14 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
             String type = "myTrades";
             String messageHash = ((type + ":") + marketId);
-            Object tradesArray = this.myTrades;
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             if (java.util.Objects.equals(tradesArray, null))
             {
                 Long limit = this.safeInteger(this.options, "myTradesLimit", 1000);
                 tradesArray = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
                 this.myTrades = tradesArray;
             }
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
         return message;
@@ -933,7 +933,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         //         "reason": "filled"
         //     }
         //
-        Object currentOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache currentOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(currentOrders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -949,7 +949,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String orderId = this.safeString(message, "order_id");
             String makerOrderId = this.safeString(message, "maker_order_id");
             String takerOrderId = this.safeString(message, "taker_order_id");
-            Object orders = this.orders;
+            io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
             if (java.util.Objects.equals(orders, null))
             {
                 return;
@@ -963,7 +963,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             if (java.util.Objects.equals(previousOrder, null))
             {
                 Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
-                Helpers.callDynamically(orders, "append", new Object[]{parsed});
+                orders.append(parsed);
                 client.resolve(orders, messageHash);
             } else
             {
@@ -1023,7 +1023,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost"))));
                         }
                         // update the newUpdates count
-                        Helpers.callDynamically(orders, "append", new Object[]{previousOrder});
+                        orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     } else if ((java.util.Objects.equals(type, "received")) || (java.util.Objects.equals(type, "done")))
                     {
@@ -1044,7 +1044,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         {
                             return;
                         }
-                        Helpers.callDynamically(orders, "append", new Object[]{previousOrder});
+                        orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     }
                 }
@@ -1083,7 +1083,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         final String finalAmount = amount;
         final String finalFilled = filled;
         final String finalRemaining = remaining;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", id );
@@ -1106,7 +1106,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

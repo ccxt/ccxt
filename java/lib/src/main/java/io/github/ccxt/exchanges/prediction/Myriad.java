@@ -331,7 +331,7 @@ public class Myriad extends MyriadApi
                 String evKey = this.safeString(ev, "event");
                 if (!java.util.Objects.equals(evKey, null))
                 {
-                    ((Map<String, Object>)eventsDict).put((String)evKey, ev);
+                    eventsDict.put((String)evKey, ev);
                 }
             }
             this.events = eventsDict;
@@ -397,7 +397,7 @@ public class Myriad extends MyriadApi
                     String key = Helpers.add((networkId + ":"), marketId);
                     if (!(seen.containsKey(key)))
                     {
-                        ((Map<String, Object>)seen).put((String)key, true);
+                        seen.put((String)key, true);
                         ((List<Object>)rawMarkets).add(raw);
                     }
                 }
@@ -564,11 +564,11 @@ public class Myriad extends MyriadApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Helpers.isGreaterThan(partsLength, 1))
             {
-                ((Map<String, Object>)request).put("network_id", this.safeString(parts, 0));
-                ((Map<String, Object>)request).put("id", this.safeString(parts, 1));
+                request.put("network_id", this.safeString(parts, 0));
+                request.put("id", this.safeString(parts, 1));
             } else
             {
-                ((Map<String, Object>)request).put("id", id);
+                request.put("id", id);
             }
             return (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
         });
@@ -689,7 +689,7 @@ public class Myriad extends MyriadApi
                     String questionId = this.safeString(raw, "id");
                     if ((!java.util.Objects.equals(questionId, null)) && !(seen.containsKey(questionId)))
                     {
-                        ((Map<String, Object>)seen).put((String)questionId, true);
+                        seen.put((String)questionId, true);
                         ((List<Object>)rawQuestions).add(raw);
                     }
                 }
@@ -743,7 +743,7 @@ public class Myriad extends MyriadApi
                 }};
                 if (!java.util.Objects.equals(state, null))
                 {
-                    ((Map<String, Object>)request).put("state", state);
+                    request.put("state", state);
                 }
                 Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(request, rest))).join();
                 Boolean responseIsArray = (response instanceof List);
@@ -764,7 +764,7 @@ public class Myriad extends MyriadApi
                     }
                     if (!java.util.Objects.equals(questionId, null))
                     {
-                        ((Map<String, Object>)seen).put((String)questionId, true);
+                        seen.put((String)questionId, true);
                     }
                     if (Helpers.isLessThan(collected, maxQuestions))
                     {
@@ -920,7 +920,7 @@ public class Myriad extends MyriadApi
             percentage = Precise.stringMul(roi, "100");
         }
         final String finalPercentage = percentage;
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", id );
             put( "outcome", outcome );
@@ -935,7 +935,7 @@ public class Myriad extends MyriadApi
             put( "percentage", Myriad.this.parseNumber(finalPercentage) );
             put( "marginMode", "cash" );
             put( "hedged", false );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -985,10 +985,10 @@ public class Myriad extends MyriadApi
             }};
             if (java.util.Objects.equals(sideStr, "buy"))
             {
-                ((Map<String, Object>)request).put("value", amount);
+                request.put("value", amount);
             } else
             {
-                ((Map<String, Object>)request).put("shares", amount);
+                request.put("shares", amount);
             }
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage")));
             Map<String, Object> response = (this.myriadPublicPostMarketsQuote(this.extend(request, rest))).join();
@@ -1767,9 +1767,9 @@ public class Myriad extends MyriadApi
     put( "name", "expiration" );
     put( "type", "uint256" );
 }}));
-        return this.signOrderbookTypedData((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.signOrderbookTypedData(new HashMap<String, Object>() {{
             put( "Order", orderStruct );
-        }}), (Map<String, Object>) (message), networkId);
+        }}, (Map<String, Object>) (message), networkId);
     }
 
     /**
@@ -1791,9 +1791,9 @@ public class Myriad extends MyriadApi
     put( "name", "timestamp" );
     put( "type", "uint256" );
 }}));
-        return this.signOrderbookTypedData((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.signOrderbookTypedData(new HashMap<String, Object>() {{
             put( "CancelAll", cancelStruct );
-        }}), (Map<String, Object>) (message), networkId);
+        }}, (Map<String, Object>) (message), networkId);
     }
 
     /**
@@ -1980,7 +1980,7 @@ public class Myriad extends MyriadApi
         final Object finalOutcomeObj = outcomeObj;
         final String finalTif = tif;
         final String finalSide = side;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", orderHash );
             put( "clientOrderId", null );
             put( "info", order );
@@ -2005,7 +2005,7 @@ public class Myriad extends MyriadApi
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parsePredictionOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2064,7 +2064,7 @@ public class Myriad extends MyriadApi
         final String finalPriceStr = priceStr;
         final String finalAmountStr = amountStr;
         final String finalCostStr = costStr;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", Myriad.this.safeString2(trade, "txId", "id") );
             put( "clientOrderId", null );
             put( "info", trade );
@@ -2092,7 +2092,7 @@ public class Myriad extends MyriadApi
             put( "reduceOnly", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
             put( "event", null );
-        }}), market);
+        }}, market);
     }
     /**
      * @ignore
@@ -2156,17 +2156,17 @@ public class Myriad extends MyriadApi
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)request).put("market_id", this.safeString(info, "marketId"));
-                ((Map<String, Object>)request).put("network_id", this.safeString(info, "networkId"));
+                request.put("market_id", this.safeString(info, "marketId"));
+                request.put("network_id", this.safeString(info, "networkId"));
                 rowOutcomeId = this.safeString(info, "outcomeId");
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("since", this.parseToInt(Helpers.divide(since, 1000)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trader", "address", "status")));
             Map<String, Object> response = (this.myriadPublicGetUsersAddressEvents(this.extend(request, parameters))).join();
@@ -2396,10 +2396,10 @@ public class Myriad extends MyriadApi
             //
             // the endpoint returns a count, not the orders: hand back one canceled order
             // structure carrying the raw response, like limitless does
-            return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
         put( "info", response );
         put( "status", "canceled" );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2618,10 +2618,10 @@ public class Myriad extends MyriadApi
             {
                 if (!java.util.Objects.equals(this.privateKey, null))
                 {
-                    ((Map<String, Object>)request).put("trader", this.ethGetAddressFromPrivateKey(this.privateKey));
+                    request.put("trader", this.ethGetAddressFromPrivateKey(this.privateKey));
                 } else if (!java.util.Objects.equals(this.walletAddress, null))
                 {
-                    ((Map<String, Object>)request).put("trader", this.walletAddress);
+                    request.put("trader", this.walletAddress);
                 }
             }
             String requestedTradingModel = this.safeStringLower2(parameters, "tradingModel", "trading_model");
@@ -2886,7 +2886,7 @@ public class Myriad extends MyriadApi
         }
         final String finalOrderType = orderType;
         final Double finalPrice = price;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Myriad.this.safeString(order, "id") );
             put( "order", Myriad.this.safeString(order, "id") );
             put( "info", Myriad.this.safeDict(order, "info", new HashMap<String, Object>() {{}}) );
@@ -2903,7 +2903,7 @@ public class Myriad extends MyriadApi
             put( "amount", Myriad.this.safeNumber(order, "filled") );
             put( "cost", null );
             put( "fee", null );
-        }}));
+        }});
     }
 
     /**
@@ -2952,9 +2952,9 @@ public class Myriad extends MyriadApi
                 }} );
             }};
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", balanceString);
-            ((Map<String, Object>)account).put("total", balanceString);
-            ((Map<String, Object>)result).put((String)currency, account);
+            account.put("free", balanceString);
+            account.put("total", balanceString);
+            result.put((String)currency, account);
             return this.safeBalance(result);
         }).thenApply(Balances::new);
 
@@ -3022,7 +3022,7 @@ public class Myriad extends MyriadApi
 
     public Object parseTradeTx(String txHash, Map<String, Object> quote, Object market, String side)
     {
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", txHash );
             put( "clientOrderId", null );
             put( "info", Myriad.this.extend(new HashMap<String, Object>() {{
@@ -3039,7 +3039,7 @@ public class Myriad extends MyriadApi
             put( "cost", Myriad.this.safeNumber(quote, "value") );
             put( "status", "closed" );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -3566,7 +3566,7 @@ final Object finalNetworkId = networkId;
         final Object finalPreviousClose = previousClose;
         final Double finalChange = change;
         final Object finalPercentage = percentage;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Myriad.this.safeString(finalMarket, "outcome") );
             put( "outcomeId", Myriad.this.safeString(finalMarket, "id") );
             put( "label", Myriad.this.safeString(finalMarket, "label") );
@@ -3590,7 +3590,7 @@ final Object finalNetworkId = networkId;
             put( "baseVolume", Myriad.this.safeNumber(raw, "volumeNotional24h") );
             put( "quoteVolume", Myriad.this.safeNumber(raw, "volume24h") );
             put( "info", raw );
-        }}), market));
+        }}, market));
     }
     /**
      * @ignore
@@ -4041,13 +4041,13 @@ final Object finalNetworkId = networkId;
                 Object key = Helpers.add((networkId + ":"), marketId);
                 if (!(outcomesByMarket.containsKey(key)))
                 {
-                    ((Map<String, Object>)outcomesByMarket).put((String)key, new ArrayList<Object>(Arrays.asList()));
+                    outcomesByMarket.put((String)key, new ArrayList<Object>(Arrays.asList()));
                     ((List<Object>)marketKeys).add(key);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
                 Object grouped = (outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key));
                 ((List<Object>)grouped).add(outcomeObj);
-                ((Map<String, Object>)outcomesByMarket).put((String)key, grouped);
+                outcomesByMarket.put((String)key, grouped);
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
@@ -4074,7 +4074,7 @@ final Object finalNetworkId = networkId;
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
-                        ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                        result.put((String)symbolKey, ticker);
                     }
                 }
             }
@@ -4123,7 +4123,7 @@ final Object finalNetworkId = networkId;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.myriadPublicGetMarketsIdEvents(this.extend(request, parameters))).join();
             //
@@ -4209,7 +4209,7 @@ final Object finalNetworkId = networkId;
         final String finalPriceStr = priceStr;
         final String finalAmountStr = amountStr;
         final String finalCostStr = costStr;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Myriad.this.safeString(trade, "txId") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -4226,7 +4226,7 @@ final Object finalNetworkId = networkId;
             put( "amount", Myriad.this.parseNumber(finalAmountStr) );
             put( "cost", Myriad.this.parseNumber(finalCostStr) );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     /**
      * @ignore
@@ -4346,7 +4346,7 @@ final Object finalNetworkId = networkId;
                         {
                             continue;
                         }
-                        ((Map<String, Object>)seenMarketHandles).put((String)marketHandle, true);
+                        seenMarketHandles.put((String)marketHandle, true);
                         Helpers.addElementToObject(this.markets, marketHandle, m);
                     }
                     ((List<Object>)filteredMarkets).add(m);
@@ -4373,7 +4373,7 @@ final Object finalNetworkId = networkId;
                 }
                 if (!java.util.Objects.equals(marketHandle, null))
                 {
-                    ((Map<String, Object>)seenMarketHandles).put((String)marketHandle, true);
+                    seenMarketHandles.put((String)marketHandle, true);
                     Helpers.addElementToObject(this.markets, marketHandle, m);
                 }
                 Object ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
@@ -4752,7 +4752,7 @@ final Object finalNetworkId = networkId;
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount))});
             Helpers.addElementToObject(orderbook, "timestamp", ts);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(ts));
-            ((Map<String, Object>)updated).put((String)sym, true);
+            updated.put((String)sym, true);
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         Integer updatedLength = ((List<?>)updatedSymbols).size();
@@ -4890,7 +4890,7 @@ final Object finalNetworkId = networkId;
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(taker, "totalFees", new HashMap<String, Object>() {{}});
         final String finalSym = sym;
-        Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", txHash );
             put( "info", data );
             put( "timestamp", ts );
@@ -4910,7 +4910,7 @@ final Object finalNetworkId = networkId;
                 put( "cost", Myriad.this.safeNumber(fees, "total") );
                 put( "currency", Myriad.this.safeString(market, "quote") );
             }} );
-        }}), market);
+        }}, market);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -4945,7 +4945,7 @@ final Object finalNetworkId = networkId;
                     Map<String, Object> makerMarket = (Map<String, Object>) this.safeMarket(makerSym);
                     Map<String, Object> makerOutcomeObj = this.safeOutcome((String) (makerSym));
                     Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(maker, "fees", new HashMap<String, Object>() {{}});
-                    Object makerTrade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+                    Object makerTrade = this.safePredictionTrade(new HashMap<String, Object>() {{
                         put( "id", txHash );
                         put( "info", maker );
                         put( "timestamp", ts );
@@ -4965,7 +4965,7 @@ final Object finalNetworkId = networkId;
                             put( "cost", Myriad.this.safeNumber(makerFees, "total") );
                             put( "currency", Myriad.this.safeString(makerMarket, "quote") );
                         }} );
-                    }}), makerMarket);
+                    }}, makerMarket);
                     ((List<Object>)myLegs).add(makerTrade);
                 }
             }
@@ -5061,7 +5061,7 @@ final Object finalNetworkId = networkId;
                 ((List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))), outcomeObj));
                 if (java.util.Objects.equals(this.safeValue(seenChannels, channel), null))
                 {
-                    ((Map<String, Object>)seenChannels).put((String)channel, true);
+                    seenChannels.put((String)channel, true);
                     Long requestId = this.requestId((String) (url));
                     Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                         put( "subscribe", new HashMap<String, Object>() {{
@@ -5163,7 +5163,7 @@ final Object finalNetworkId = networkId;
             Map<String, Object> outcomeObj = this.safeOutcome((String) (sym));
             Object last = this.fromWei(this.safeString(oc, "last"));
             final String finalSym = sym;
-            Object ticker = this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+            Object ticker = this.safePredictionTicker(new HashMap<String, Object>() {{
                 put( "outcome", finalSym );
                 put( "outcomeId", Myriad.this.safeString2(outcomeObj, "outcomeId", "id") );
                 put( "label", Myriad.this.safeString(outcomeObj, "label") );
@@ -5187,7 +5187,7 @@ final Object finalNetworkId = networkId;
                 put( "baseVolume", null );
                 put( "quoteVolume", null );
                 put( "info", oc );
-            }}), market);
+            }}, market);
             Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
             client.resolve(ticker, ("ticker::" + sym));
         }
@@ -5263,7 +5263,7 @@ final Object finalNetworkId = networkId;
         Long timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
         final String finalSym = sym;
         final String finalTif = tif;
-        Object parsed = this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object parsed = this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", Myriad.this.safeString(data, "orderHash") );
             put( "clientOrderId", null );
             put( "info", data );
@@ -5285,7 +5285,7 @@ final Object finalNetworkId = networkId;
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}));
+        }});
         Object stored = this.orders;
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "orders");
@@ -5377,7 +5377,7 @@ final Object finalNetworkId = networkId;
                 String id = this.safeString(p, "id");
                 if (!java.util.Objects.equals(id, null))
                 {
-                    ((Map<String, Object>)balances).put((String)id, this.numberToString(this.safeNumber(p, "contracts", 0)));
+                    balances.put((String)id, this.numberToString(this.safeNumber(p, "contracts", 0)));
                 }
             }
             Helpers.addElementToObject(this.options, "positionBalances", balances);
@@ -5418,14 +5418,14 @@ final Object finalNetworkId = networkId;
             String updated = Precise.stringAdd(prior, deltaShares);
             if (!java.util.Objects.equals(posId, null))
             {
-                ((Map<String, Object>)balances).put((String)posId, updated);
+                balances.put((String)posId, updated);
             }
             Helpers.addElementToObject(this.options, "positionBalances", balances);
             contracts = this.parseNumber(updated);
         }
         final String finalPosId = posId;
         final Double finalContracts = contracts;
-        Object parsed = this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object parsed = this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "info", data );
             put( "id", finalPosId );
             put( "outcome", sym );
@@ -5441,7 +5441,7 @@ final Object finalNetworkId = networkId;
             put( "notional", null );
             put( "collateral", null );
             put( "unrealizedPnl", null );
-        }}));
+        }});
         Object stored = this.positions;
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "positions");
@@ -5538,7 +5538,7 @@ final Object finalNetworkId = networkId;
             // ts/src/test/static/request/prediction/myriad.json
             String headerKey = ("x-api" + "-key");
             Map<String, Object> headersKey = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)headersKey).put((String)headerKey, this.apiKey);
+            headersKey.put((String)headerKey, this.apiKey);
             headers = this.extend(headers, headersKey);
         }
         final String finalUrl = url;

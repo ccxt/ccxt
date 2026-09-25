@@ -553,7 +553,7 @@ public partial class paradex : ccxt.paradex
             {
                 for (int i = 0; i < (symbols?.Count ?? 0); i++)
                 {
-                    string messageHash = ((channel + ".") + (getValue(symbols, i)));
+                    string messageHash = ((channel + ".") + ((symbols != null && i < symbols.Count ? symbols[i] : null)));
                     messageHashes.Add(messageHash);
                 }
             } else

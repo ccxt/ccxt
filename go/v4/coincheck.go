@@ -729,9 +729,9 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "rate")
 	var marketId *string = this.SafeString(trade, "pair")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var baseId *string = SafeStringPtr(GetValue(market, "baseId"))
-	var quoteId *string = SafeStringPtr(GetValue(market, "quoteId"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var baseId *string = SafeStringPtr(market["baseId"])
+	var quoteId *string = SafeStringPtr(market["quoteId"])
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var takerOrMaker any = nil
 	var amountString *string = nil
 	var costString *string = nil

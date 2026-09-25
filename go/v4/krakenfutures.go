@@ -824,7 +824,7 @@ func (this *Krakenfutures) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Krakenfutures) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3563,7 +3563,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 		if code == nil {
 			continue
 		}
-		var splitCode []string = Split(code, "_")
+		var splitCode []string = strings.Split(*code, "_")
 		var codeLength int = len(splitCode)
 		if codeLength > 1 {
 			continue
@@ -3794,7 +3794,7 @@ func (this *Krakenfutures) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Krakenfutures) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3866,7 +3866,7 @@ func (this *Krakenfutures) FetchPositionsHistoryAsync(optionalArgs ...any) <-cha
 func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -3878,7 +3878,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = nil
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))
 		}
@@ -4086,7 +4086,7 @@ func (this *Krakenfutures) FetchLeverageTiersAsync(optionalArgs ...any) <-chan a
 func (this *Krakenfutures) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4429,7 +4429,7 @@ func (this *Krakenfutures) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
 func (this *Krakenfutures) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

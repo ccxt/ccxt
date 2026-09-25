@@ -1776,7 +1776,7 @@ func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "createTime", "cT", "cTime"})
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower2(trade, "side", "takerSide")
 	var fee map[string]any = nil
 	var priceString *string = this.SafeString2(trade, "price", "px")
@@ -2144,7 +2144,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var resultingTrades any = this.SafeValue(order, "resultingTrades")
 	if !IsEqual(resultingTrades, nil) {
 		if !IsArray(resultingTrades) {
@@ -3828,7 +3828,7 @@ func (this *Poloniex) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan 
 func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

@@ -912,7 +912,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             string? errorMessage = this.safeString(message, "message");
             throw new ExchangeError (errorMessage) ;
         }
-        if (getIndexOf(channel, "CANDLES") > -1)
+        if ((channel?.IndexOf("CANDLES", StringComparison.Ordinal) ?? -1) > -1)
         {
             this.handleOHLCV(client, (Dictionary<string, object>)message);
         }

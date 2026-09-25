@@ -601,8 +601,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object tradesArray = this.myTrades;
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        tradesArray.append(trade);
         this.myTrades = tradesArray;
         // generic subscription
         client.resolve(tradesArray, name);
@@ -795,7 +795,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         final String finalSide = side;
         final Double finalAmount = amount;
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
@@ -809,7 +809,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -924,7 +924,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("len", limit); // string, number of price points, '25', '100', default = '25'
+                request.put("len", limit); // string, number of price points, '25', '100', default = '25'
             }
             Object orderbook = (this.subscribe("book", symbol, this.deepExtend(request, parameters))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -1002,10 +1002,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     Object delta2 = Helpers.GetValue(delta, 2);
                     Object size = (((Helpers.isLessThan(delta2, 0)))) ? Helpers.opNeg(delta2) : delta2;
                     String side = (((Helpers.isLessThan(delta2, 0)))) ? "asks" : "bids";
-                    Object bookside = Helpers.GetValue(orderbook, side);
+                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
                     String idString = this.safeString(delta, 0);
                     Double price = this.safeFloat(delta, 1);
-                    Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, idString))});
+                    bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, idString)));
                 }
             } else
             {
@@ -1022,8 +1022,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     Double price = this.safeNumber(delta, 0);
                     Object size = (((Helpers.isLessThan(amount, 0)))) ? Helpers.opNeg(amount) : amount;
                     String side = (((Helpers.isLessThan(amount, 0)))) ? "asks" : "bids";
-                    Object bookside = Helpers.GetValue(orderbook, side);
-                    Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, counter))});
+                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+                    bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, counter)));
                 }
             }
             Helpers.addElementToObject(orderbook, "symbol", symbol);
@@ -1039,11 +1039,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Object deltas2 = Helpers.GetValue(deltas, 2);
                 Object size = (((Helpers.isLessThan(deltas2, 0)))) ? Helpers.opNeg(deltas2) : deltas2;
                 String side = (((Helpers.isLessThan(deltas2, 0)))) ? "asks" : "bids";
-                Object bookside = Helpers.GetValue(orderbookItem, side);
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
                 Object amount = ((Precise.stringGt(price, "0"))) ? size : "0";
                 String idString = this.safeString(deltas, 0);
-                Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount), idString))});
+                bookside.storeArray(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount), idString)));
             } else
             {
                 String amount = this.safeString(deltas, 2);
@@ -1051,8 +1051,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String price = this.safeString(deltas, 0);
                 Object size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 String side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
-                Object bookside = Helpers.GetValue(orderbookItem, side);
-                Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)))});
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbookItem, side);
+                bookside.storeArray(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter))));
             }
             client.resolve(orderbook, messageHash);
         }
@@ -1233,11 +1233,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, balanceType, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)oldBalance).put((String)code, balance);
+                oldBalance.put((String)code, balance);
             }
-            ((Map<String, Object>)oldBalance).put("info", message);
+            oldBalance.put("info", message);
             Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
-            ((Map<String, Object>)updatedTypes).put((String)balanceType, true);
+            updatedTypes.put((String)balanceType, true);
         }
         List<String> updatesKeys = new ArrayList<String>(updatedTypes.keySet());
         for (var i = 0; i < ((List<?>)updatesKeys).size(); i++)
@@ -1266,9 +1266,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> account = (Map<String, Object>) this.account();
         if (!java.util.Objects.equals(availableBalance, null))
         {
-            ((Map<String, Object>)account).put("free", availableBalance);
+            account.put("free", availableBalance);
         }
-        ((Map<String, Object>)account).put("total", totalBalance);
+        account.put("total", totalBalance);
         return account;
     }
 
@@ -1518,7 +1518,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> symbolIds = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(messageType, "os"))
         {
@@ -1532,15 +1532,15 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Object value = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (value));
                 Object symbol = ((Map<String, Object>)parsed).get("symbol");
-                ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
-                Helpers.callDynamically(orders, "append", new Object[]{parsed});
+                symbolIds.put((String)((String)symbol), true);
+                orders.append(parsed);
             }
         } else
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data));
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
+            symbolIds.put((String)((String)symbol), true);
         }
         String name = "orders";
         client.resolve(this.orders, name);
@@ -1635,7 +1635,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         final String finalType = type;
         final String finalSide = side;
         final String finalAmount = amount;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -1656,7 +1656,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "fee", null );
             put( "cost", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

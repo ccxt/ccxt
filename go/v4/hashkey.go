@@ -1683,7 +1683,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var side *string = this.SafeStringLower(trade, "side") // swap trades have side param
 	if side != nil {
-		side = this.SafeString(Split(side, "_"), 0)
+		side = this.SafeString(strings.Split(*side, "_"), 0)
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
@@ -4411,7 +4411,7 @@ func (this *Hashkey) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4419,7 +4419,7 @@ func (this *Hashkey) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument with one single market symbol"))
 	} else {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength != 1 {
 			panic(NotSupported(this.Id + " " + methodName + "() is supported for a symbol argument with one single market symbol only"))
 		}
@@ -4504,7 +4504,7 @@ func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	return this.SafePosition(map[string]any{
 		"symbol":                      symbol,
 		"id":                          nil,

@@ -760,7 +760,7 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	if marketId == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
-	var parts []string = Split(marketId, "/")
+	var parts []string = strings.Split(*marketId, "/")
 	var assetClass *string = this.SafeString(asset, "class")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
@@ -1993,7 +1993,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var alpacaStatus *string = this.SafeString(order, "status")
 	var status *string = this.ParseOrderStatus(alpacaStatus)
 	var feeValue *string = this.SafeString(order, "commission")
@@ -2818,7 +2818,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 			}
 			return strings.Index(*positionSymbol, "/")
 		}() >= 0 {
-			var parts []string = Split(positionSymbol, "/")
+			var parts []string = strings.Split(*positionSymbol, "/")
 			baseId = DerefScalar(this.SafeString(parts, 0))
 		} else {
 			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD

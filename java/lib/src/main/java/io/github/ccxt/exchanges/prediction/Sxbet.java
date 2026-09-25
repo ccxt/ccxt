@@ -324,7 +324,7 @@ public class Sxbet extends SxbetApi
                 }};
                 if (!java.util.Objects.equals(paginationKey, null))
                 {
-                    ((Map<String, Object>)request).put("paginationKey", paginationKey);
+                    request.put("paginationKey", paginationKey);
                 }
                 Map<String, Object> response = (this.sxbetPublicGetMarketsActive(this.extend(request, extra))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -614,7 +614,7 @@ final Object finalOi = oi;
                 }
                 if (!(grouped.containsKey(sportXeventId)))
                 {
-                    ((Map<String, Object>)grouped).put((String)sportXeventId, new ArrayList<Object>(Arrays.asList()));
+                    grouped.put((String)sportXeventId, new ArrayList<Object>(Arrays.asList()));
                     ((List<Object>)order).add(sportXeventId);
                 }
                 ((List<Object>)(grouped == null || sportXeventId == null ? null : grouped.get(sportXeventId))).add(raw);
@@ -1290,19 +1290,19 @@ final Object finalOi = oi;
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)orderItem).put("clientOrderId", clientOrderId);
+                orderItem.put("clientOrderId", clientOrderId);
             }
             // useBetCredits and externalUserId are per-order fields - route them into the order item,
             // not the top-level body, where the venue would silently ignore them
             Boolean useBetCredits = (Boolean) this.safeBool(parameters, "useBetCredits");
             if (!java.util.Objects.equals(useBetCredits, null))
             {
-                ((Map<String, Object>)orderItem).put("useBetCredits", useBetCredits);
+                orderItem.put("useBetCredits", useBetCredits);
             }
             String externalUserId = this.safeString(parameters, "externalUserId");
             if (!java.util.Objects.equals(externalUserId, null))
             {
-                ((Map<String, Object>)orderItem).put("externalUserId", externalUserId);
+                orderItem.put("externalUserId", externalUserId);
             }
             Boolean waitForOutcome = (Boolean) this.safeBool(parameters, "waitForOutcome", true);
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId")));
@@ -1369,7 +1369,7 @@ final Object finalOi = oi;
             final String finalOutcomeId = outcomeId;
             final String finalType = type;
             final String finalSide = side;
-            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", Sxbet.this.safeString2(first, "orderId", "orderHash") );
                 put( "clientOrderId", Sxbet.this.safeString(first, "clientOrderId", finalClientOrderId) );
                 put( "info", response );
@@ -1390,7 +1390,7 @@ final Object finalOi = oi;
                 put( "amount", amount );
                 put( "fee", null );
                 put( "trades", new ArrayList<Object>(Arrays.asList()) );
-            }}), ((Object)outcomeObj));
+            }}, ((Object)outcomeObj));
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1438,11 +1438,11 @@ final Object finalOi = oi;
         for (var i = 0; Helpers.isLessThan(i, cancelledLength); i++)
         {
 final Object finalI = i;
-                        ((List<Object>)result).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                        ((List<Object>)result).add(this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", Sxbet.this.safeString(Helpers.GetValue(cancelled, finalI), "orderId") );
                 put( "status", "canceled" );
                 put( "info", response );
-            }})));
+            }}));
         }
         List<Object> notCancelled = (List<Object>) this.safeList(data, "notCancelled", new ArrayList<Object>(Arrays.asList()));
         Integer notCancelledLength = ((List<?>)notCancelled).size();
@@ -1450,22 +1450,22 @@ final Object finalI = i;
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
 final Object finalI = i;
-                        ((List<Object>)result).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                        ((List<Object>)result).add(this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", Sxbet.this.safeString(Helpers.GetValue(notCancelled, finalI), "orderId") );
                 put( "status", null );
                 put( "info", response );
-            }})));
+            }}));
         }
         List<Object> unconfirmed = (List<Object>) this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
         Integer unconfirmedLength = ((List<?>)unconfirmed).size();
         for (var i = 0; Helpers.isLessThan(i, unconfirmedLength); i++)
         {
 final Object finalI = i;
-                        ((List<Object>)result).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                        ((List<Object>)result).add(this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", Sxbet.this.safeString(Helpers.GetValue(unconfirmed, finalI), "orderId") );
                 put( "status", null );
                 put( "info", response );
-            }})));
+            }}));
         }
         return result;
     }
@@ -1727,7 +1727,7 @@ final Object finalI = i;
         Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
         final String finalStatus = status;
         final Object finalOutcomeId = outcomeId;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", Sxbet.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -1752,7 +1752,7 @@ final Object finalI = i;
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
             put( "market", Sxbet.this.safeString(outcomeObj, "market") );
             put( "info", order );
-        }}), outcomeObj);
+        }}, outcomeObj);
     }
     /**
      * @ignore
@@ -1810,11 +1810,11 @@ final Object finalI = i;
             {
                 (this.loadOutcome((String) (outcome))).join();
                 outcomeObj = this.outcome((String) (outcome));
-                ((Map<String, Object>)request).put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash"));
+                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
+                request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPrivateGetOrdersV3(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -1958,7 +1958,7 @@ final Object finalI = i;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
+                request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPublicGetTradesV3Public(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -2022,13 +2022,13 @@ final Object finalI = i;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startDate", this.iso8601(since));
+                request.put("startDate", this.iso8601(since));
             }
             if ((!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(outcome, null)))
             {
                 // with an outcome filter the rows are narrowed client-side - a server-side page
                 // size would truncate the page before the filter and under-fill the result
-                ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
+                request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPrivateGetFillsV3(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -2113,7 +2113,7 @@ final Object finalI = i;
         }
         final Object finalOutcomeId = outcomeId;
         final String finalTakerOrMaker = takerOrMaker;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Sxbet.this.safeString(fill, "id") );
             put( "info", fill );
             put( "timestamp", timestamp );
@@ -2130,7 +2130,7 @@ final Object finalI = i;
             put( "amount", amount );
             put( "cost", amount );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     /**
      * @ignore
@@ -2190,7 +2190,7 @@ final Object finalI = i;
                 }
                 String free = Precise.stringDiv(this.safeString(row, "availableAmount", "0"), usdcDecimals, 6);
                 String used = Precise.stringDiv(this.safeString(row, "escrowedAmount", "0"), usdcDecimals, 6);
-                ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
+                result.put((String)code, new HashMap<String, Object>() {{
         put( "free", Sxbet.this.parseNumber(free) );
         put( "used", Sxbet.this.parseNumber(used) );
         put( "total", Sxbet.this.parseNumber(Precise.stringAdd(free, used)) );
@@ -2239,7 +2239,7 @@ final Object finalI = i;
                 {
                     Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
                     String hash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
-                    ((Map<String, Object>)wantedMarkets).put((String)hash, true);
+                    wantedMarkets.put((String)hash, true);
                 }
             }
             // open exposure lives in MATCHED and LOCKED bets - the venue requires an explicit status
@@ -2332,7 +2332,7 @@ final Object finalI = i;
         Long timestamp = this.parse8601(this.safeString(raw, "betTime"));
         final Object finalOutcomeId = outcomeId;
         final String finalPnl = pnl;
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", finalOutcomeId) );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
@@ -2347,7 +2347,7 @@ final Object finalI = i;
             put( "realizedPnl", (((!java.util.Objects.equals(finalPnl, null)))) ? Sxbet.this.parseNumber(Precise.stringDiv(finalPnl, usdcDecimals, 6)) : null );
             put( "side", "long" );
             put( "info", raw );
-        }}));
+        }});
     }
 
     /**
@@ -2379,18 +2379,18 @@ final Object finalI = i;
             {
                 (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-                ((Map<String, Object>)request).put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", ""));
+                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", ""));
                 wantedOutcomeId = this.safeString(outcomeObj, "outcomeId");
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startDate", this.iso8601(since));
+                request.put("startDate", this.iso8601(since));
             }
             if ((!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(outcome, null)))
             {
                 // the outcome scope narrows rows client-side (the venue filter is per market, not
                 // per side) - a server-side page size would under-fill the filtered result
-                ((Map<String, Object>)request).put("perPage", this.clampSxbetPerPage(limit));
+                request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPrivateGetTradesV3(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -2685,7 +2685,7 @@ final Object finalI = i;
                 String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
                 if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash), null))
                 {
-                    ((Map<String, Object>)seenHashes).put((String)marketHash, true);
+                    seenHashes.put((String)marketHash, true);
                     ((List<Object>)hashesOrder).add(marketHash);
                 }
             }
@@ -2701,7 +2701,7 @@ final Object finalI = i;
                 {
                     Object marketHash = (hashesOrder == null || i < 0 || i >= hashesOrder.size() ? null : hashesOrder.get(i));
                     Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
-                    ((Map<String, Object>)rowsByHash).put((String)marketHash, this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot)));
+                    rowsByHash.put((String)marketHash, this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot)));
                 }
                 return this.parseSxbetTickersByHash(outcomesList, (Map<String, Object>) (rowsByHash));
             }
@@ -2724,7 +2724,7 @@ final Object finalI = i;
                     String rowHash = this.safeString(row, "marketHash");
                     if (!java.util.Objects.equals(rowHash, null))
                     {
-                        ((Map<String, Object>)rowsByHash).put((String)rowHash, row);
+                        rowsByHash.put((String)rowHash, row);
                     }
                 }
             }
@@ -2772,7 +2772,7 @@ final Object finalI = i;
             String sym = this.safeString(ticker, "outcome");
             if (!java.util.Objects.equals(sym, null))
             {
-                ((Map<String, Object>)result).put((String)sym, ticker);
+                result.put((String)sym, ticker);
             }
         }
         return result;
@@ -2833,7 +2833,7 @@ final Object finalI = i;
         final Double finalBid = bid;
         final Double finalAsk = ask;
         final Double finalAverage = average;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", finalOutcomeId );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
@@ -2855,7 +2855,7 @@ final Object finalI = i;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}), market));
+        }}, market));
     }
     /**
      * @ignore
@@ -3609,7 +3609,7 @@ final Object finalI = i;
         Double amount = this.parseNumber(Precise.stringDiv(stake, usdcDecimals, 6));
         Long timestamp = this.parse8601(this.safeString(trade, "betTime"));
         final Object finalOutcomeId = outcomeId;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Sxbet.this.safeString(trade, "tradeId") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -3626,7 +3626,7 @@ final Object finalI = i;
             put( "amount", amount );
             put( "cost", amount );
             put( "fee", null );
-        }}));
+        }});
     }
 
     public void handleTrades(Client client, Object rows)

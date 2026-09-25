@@ -310,7 +310,7 @@ func (this *Predictfun) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(params))))
-	var eventsLength int = ccxt.GetArrayLength(events)
+	var eventsLength int = len(events)
 	var markets []any = []any{}
 	for ei := 0; ei < eventsLength; ei++ {
 		var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
@@ -1706,7 +1706,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1OrdersMatches(this.Extend(request, query))).Raw))
 	// the venue answers with the shape documented in fetchTrades below
 	var data []any = ccxt.SafeListTyped(response, "data")
-	var wallet string = ccxt.ToLower(signerAddress)
+	var wallet string = strings.ToLower(*signerAddress)
 	// a settlement names one taker and several makers, and the wallet may sit on either side,
 	// so the legs it signed are the ones to report - a self trade legitimately yields two rows
 	var flattenTrades []any = []any{}
@@ -4610,7 +4610,7 @@ func (this *Predictfun) HandleMessage(client any, message any) {
 	if topic == nil {
 		return
 	}
-	var parts []string = ccxt.Split(topic, "/")
+	var parts []string = strings.Split(*topic, "/")
 	var channel *string = this.SafeString(parts, 0)
 	if channel != nil && *channel == "predictOrderbook" {
 		this.HandleOrderBook(client, message)

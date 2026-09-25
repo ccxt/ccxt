@@ -288,8 +288,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new NotSupported((this.id + " watchTickers does not support spot markets")) ;
             } else
             {
-                ((Map<String, Object>)request).put("method", "sub.tickers");
-                ((Map<String, Object>)request).put("params", new HashMap<String, Object>() {{}});
+                request.put("method", "sub.tickers");
+                request.put("params", new HashMap<String, Object>() {{}});
                 messageHashes.add("ticker");
             }
             Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
@@ -872,7 +872,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(timeframe, null))
             {
-                ((Map<String, Object>)symbolOhlcvs).put((String)timeframe, stored);
+                symbolOhlcvs.put((String)timeframe, stored);
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1477,14 +1477,14 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return;
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(trades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = trades;
         }
-        Helpers.callDynamically(trades, "append", new Object[]{trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);
@@ -1567,7 +1567,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         final Long finalTimestamp = timestamp;
         final String finalSide = side;
         final Long finalIsMaker = isMaker;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalTradeId );
             put( "order", Mexc.this.safeString2(trade, "i", "orderId") );
@@ -1584,7 +1584,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "cost", feeAmount );
                 put( "currency", Mexc.this.safeCurrencyCode((String) (feeCurrencyId)) );
             }} );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1765,14 +1765,14 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return;
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
@@ -1863,7 +1863,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Mexc.this.safeString(order, "id") );
             put( "clientOrderId", Mexc.this.safeString(order, "clientId") );
             put( "timestamp", timestamp );
@@ -1885,7 +1885,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2047,8 +2047,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String currencyId = this.safeString2(data, "currency", "vcoinName");
         String code = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("free", this.safeString2(data, "balanceAmount", "availableBalance"));
-        ((Map<String, Object>)account).put("used", this.safeString2(data, "frozenBalance", "frozenAmount"));
+        account.put("free", this.safeString2(data, "balanceAmount", "availableBalance"));
+        account.put("used", this.safeString2(data, "frozenBalance", "frozenAmount"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
@@ -2271,8 +2271,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new NotSupported((this.id + " watchTickers does not support spot markets")) ;
             } else
             {
-                ((Map<String, Object>)request).put("method", "unsub.tickers");
-                ((Map<String, Object>)request).put("params", new HashMap<String, Object>() {{}});
+                request.put("method", "unsub.tickers");
+                request.put("params", new HashMap<String, Object>() {{}});
                 messageHashes.add("unsubscribe:ticker");
             }
             Client client = this.client(url);

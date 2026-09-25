@@ -817,7 +817,7 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", networkItem );
     put( "id", network );
     put( "network", finalNetworkCode );
@@ -840,7 +840,7 @@ public class Coinsph extends CoinsphApi
             }
         }
         final Boolean finalIsFiat = isFiat;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Coinsph.this.safeString(rawCurrency, "name") );
             put( "code", code );
@@ -854,7 +854,7 @@ public class Coinsph extends CoinsphApi
             put( "fee", null );
             put( "fees", null );
             put( "limits", new HashMap<String, Object>() {{}} );
-        }}));
+        }});
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
@@ -1157,7 +1157,7 @@ public class Coinsph extends CoinsphApi
                     String id = (String) ((Map<String, Object>)market).get("id");
                     ((List<Object>)ids).add(id);
                 }
-                ((Map<String, Object>)request).put("symbols", ids);
+                request.put("symbols", ids);
             }
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
@@ -1362,7 +1362,7 @@ public class Coinsph extends CoinsphApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetOpenapiQuoteV1Depth(this.extend(request, parameters))).join();
             //
@@ -1379,7 +1379,7 @@ public class Coinsph extends CoinsphApi
             //     }
             //
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol);
-            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
+            orderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1438,26 +1438,26 @@ public class Coinsph extends CoinsphApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 // since work properly only when it is "younger" than last "limit" candle
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("endTime", until);
+                    request.put("endTime", until);
                 } else
                 {
                     Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
                     Object endTimeByLimit = this.sum(since, Helpers.multiply(duration, (Helpers.subtract(limit, 1))));
                     Long now = this.milliseconds();
-                    ((Map<String, Object>)request).put("endTime", Helpers.mathMin(endTimeByLimit, now));
+                    request.put("endTime", Helpers.mathMin(endTimeByLimit, now));
                 }
             } else if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
                 // since work properly only when it is "younger" than last "limit" candle
                 Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-                ((Map<String, Object>)request).put("startTime", Helpers.subtract(until, (Helpers.multiply(duration, (Helpers.subtract(limit, 1))))));
+                request.put("startTime", Helpers.subtract(until, (Helpers.multiply(duration, (Helpers.subtract(limit, 1))))));
             }
-            ((Map<String, Object>)request).put("limit", limit);
+            request.put("limit", limit);
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             List<Object> response = (this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters))).join();
             //
@@ -1538,12 +1538,12 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(since, null))
             {
                 // since work properly only when it is "younger" than last 'limit' trade
-                ((Map<String, Object>)request).put("limit", 1000);
+                request.put("limit", 1000);
             } else
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
             }
             List<Object> response = (this.publicGetOpenapiQuoteV1Trades(this.extend(request, parameters))).join();
@@ -1614,12 +1614,12 @@ public class Coinsph extends CoinsphApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 // since work properly only when it is "younger" than last 'limit' trade
-                ((Map<String, Object>)request).put("limit", 1000);
+                request.put("limit", 1000);
             } else if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
@@ -1768,7 +1768,7 @@ public class Coinsph extends CoinsphApi
         final String finalTakerOrMaker = takerOrMaker;
         final String finalCostString = costString;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", finalOrderId );
             put( "timestamp", timestamp );
@@ -1782,7 +1782,7 @@ public class Coinsph extends CoinsphApi
             put( "cost", finalCostString );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1859,11 +1859,11 @@ public class Coinsph extends CoinsphApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
-            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
+            account.put("free", this.safeString(balance, "free"));
+            account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1920,18 +1920,18 @@ public class Coinsph extends CoinsphApi
                     throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
                 }
                 newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                request.put("price", this.priceToPrecision(symbol, price));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
                 if (!java.util.Objects.equals(orderType, "LIMIT_MAKER"))
                 {
-                    ((Map<String, Object>)request).put("timeInForce", this.safeString(options, "timeInForce", "GTC"));
+                    request.put("timeInForce", this.safeString(options, "timeInForce", "GTC"));
                 }
             } else if (java.util.Objects.equals(orderType, "MARKET") || java.util.Objects.equals(orderType, "STOP_LOSS") || java.util.Objects.equals(orderType, "TAKE_PROFIT"))
             {
                 newOrderRespType = this.safeString(newOrderRespType, "market", "FULL");
                 if (java.util.Objects.equals(orderSide, "SELL"))
                 {
-                    ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                    request.put("quantity", this.amountToPrecision(symbol, amount));
                 } else if (java.util.Objects.equals(orderSide, "BUY"))
                 {
                     String quoteAmount = null;
@@ -1960,7 +1960,7 @@ public class Coinsph extends CoinsphApi
                     {
                         quoteAmount = this.costToPrecision(symbol, amount);
                     }
-                    ((Map<String, Object>)request).put("quoteOrderQty", quoteAmount);
+                    request.put("quoteOrderQty", quoteAmount);
                 }
             }
             if (java.util.Objects.equals(orderType, "STOP_LOSS") || java.util.Objects.equals(orderType, "STOP_LOSS_LIMIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT_LIMIT"))
@@ -1970,9 +1970,9 @@ public class Coinsph extends CoinsphApi
                 {
                     throw new InvalidOrder((this.id + " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
                 }
-                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            ((Map<String, Object>)request).put("newOrderRespType", newOrderRespType);
+            request.put("newOrderRespType", newOrderRespType);
             parameters = (Map<String, Object>) this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(testOrder, true))
@@ -2056,10 +2056,10 @@ public class Coinsph extends CoinsphApi
             Object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
+                request.put("origClientOrderId", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
             Map<String, Object> response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
@@ -2107,7 +2107,7 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
@@ -2164,12 +2164,12 @@ public class Coinsph extends CoinsphApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 // since work properly only when it is "younger" than last 'limit' order
-                ((Map<String, Object>)request).put("limit", 1000);
+                request.put("limit", 1000);
             } else if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
@@ -2215,10 +2215,10 @@ public class Coinsph extends CoinsphApi
             Object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
+                request.put("origClientOrderId", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
             Map<String, Object> response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
@@ -2268,7 +2268,7 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
@@ -2371,7 +2371,7 @@ public class Coinsph extends CoinsphApi
         }
         final Map<String, Object> finalMarket = market;
         final String finalTriggerPrice = triggerPrice;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", Coinsph.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -2393,7 +2393,7 @@ public class Coinsph extends CoinsphApi
             put( "fees", null );
             put( "trades", trades );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -2584,7 +2584,7 @@ public class Coinsph extends CoinsphApi
                 String symbol = (String) ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, fee);
+                    result.put((String)symbol, fee);
                 }
             }
             return result;
@@ -2675,7 +2675,7 @@ public class Coinsph extends CoinsphApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("withdrawOrderId", tag);
+                request.put("withdrawOrderId", tag);
             }
             parameters = (Map<String, Object>) this.omit(parameters, "network");
             Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, parameters))).join();
@@ -2730,15 +2730,15 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOpenapiWalletV1DepositHistory(this.extend(request, parameters))).join();
             //
@@ -2819,15 +2819,15 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOpenapiWalletV1WithdrawHistory(this.extend(request, parameters))).join();
             //

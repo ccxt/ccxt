@@ -555,11 +555,11 @@ public class Bitflyer extends BitflyerApi
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            account.put("total", this.safeString(balance, "amount"));
+            account.put("free", this.safeString(balance, "available"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -793,7 +793,7 @@ public class Bitflyer extends BitflyerApi
         final Map<String, Object> finalMarket = market;
         final String finalOrder = order;
         final String finalSide = side;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -807,7 +807,7 @@ public class Bitflyer extends BitflyerApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -840,7 +840,7 @@ public class Bitflyer extends BitflyerApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("count", limit);
+                request.put("count", limit);
             }
             List<Object> response = (this.publicGetGetexecutions(this.extend(request, parameters))).join();
             //
@@ -962,10 +962,10 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> result = (this.privatePostSendchildorder(this.extend(request, parameters))).join();
             // { "status": - 200, "error_message": "Insufficient funds", "data": null }
             String id = this.safeString(result, "child_order_acceptance_id");
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "info", result );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1019,9 +1019,9 @@ public class Bitflyer extends BitflyerApi
             //
             //    200 OK.
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1077,7 +1077,7 @@ public class Bitflyer extends BitflyerApi
         }
         String id = this.safeString(order, "child_order_acceptance_id");
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "info", order );
@@ -1099,7 +1099,7 @@ public class Bitflyer extends BitflyerApi
             put( "fee", finalFee );
             put( "average", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1317,7 +1317,7 @@ public class Bitflyer extends BitflyerApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("count", limit);
+                request.put("count", limit);
             }
             List<Object> response = (this.privateGetGetexecutions(this.extend(request, parameters))).join();
             //
@@ -1505,7 +1505,7 @@ public class Bitflyer extends BitflyerApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("count", limit); // default 100
+                request.put("count", limit); // default 100
             }
             List<Object> response = (this.privateGetGetcoinins(this.extend(request, parameters))).join();
             //
@@ -1572,7 +1572,7 @@ public class Bitflyer extends BitflyerApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("count", limit); // default 100
+                request.put("count", limit); // default 100
             }
             List<Object> response = (this.privateGetGetcoinouts(this.extend(request, parameters))).join();
             //

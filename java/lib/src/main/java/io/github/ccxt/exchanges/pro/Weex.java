@@ -832,7 +832,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         final Object finalSymbol = symbol;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "t") );
             put( "timestamp", timestamp );
@@ -846,7 +846,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "amount", Weex.this.safeString(trade, "q") );
             put( "cost", Weex.this.safeString(trade, "v") );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1453,7 +1453,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (java.util.Objects.equals(eventVar, "depthSnapshot"))
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
-            ((Map<String, Object>)parsed).put("nonce", nonce);
+            parsed.put("nonce", nonce);
             orderbook.reset(parsed);
         } else
         {
@@ -1853,7 +1853,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1863,9 +1863,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)symbols).put((String)symbol, true);
+                symbols.put((String)symbol, true);
             }
-            Helpers.callDynamically(trades, "append", new Object[]{parsed});
+            trades.append(parsed);
         }
         String messageHash = "myTrades";
         List<String> symbolKeys = new ArrayList<String>(symbols.keySet());
@@ -1938,7 +1938,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Weex.this.safeString(trade, "id") );
             put( "timestamp", timestamp );
@@ -1952,7 +1952,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "amount", Weex.this.safeString(trade, "fillSize") );
             put( "cost", Weex.this.safeString(trade, "fillValue") );
             put( "fee", finalFee );
-        }}));
+        }});
     }
     public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -2154,16 +2154,16 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder));
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)symbols).put((String)symbol, true);
+                symbols.put((String)symbol, true);
             }
         }
         String messageHash = "orders";
@@ -2320,7 +2320,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         final Map<String, Object> finalFee = fee;
         final String finalStopLossPrice = stopLossPrice;
         final String finalTakeProfitPrice = takeProfitPrice;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Weex.this.safeString(order, "id") );
             put( "clientOrderId", Weex.this.safeString(order, "clientOrderId") );
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
@@ -2346,7 +2346,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2538,9 +2538,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString2(entry, "available", "amount"));
-            ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
-            ((Map<String, Object>)account).put("total", this.safeString2(entry, "equity", "legacyAmount"));
+            account.put("free", this.safeString2(entry, "available", "amount"));
+            account.put("used", this.safeString(entry, "frozen"));
+            account.put("total", this.safeString2(entry, "equity", "legacyAmount"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);

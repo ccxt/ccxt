@@ -409,9 +409,9 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (List<String>)productIds));
         if (!Boolean.TRUE.equals(isCloudAPiKey))
         {
-            ((Map<String, Object>)subscribe).put("api_key", this.apiKey);
-            ((Map<String, Object>)subscribe).put("timestamp", timestamp);
-            ((Map<String, Object>)subscribe).put("signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+            subscribe.put("api_key", this.apiKey);
+            subscribe.put("timestamp", timestamp);
+            subscribe.put("signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         } else
         {
             if (Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))
@@ -428,7 +428,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 Helpers.addElementToObject(this.options, "wsToken", token);
                 Helpers.addElementToObject(this.options, "wsTokenTimestamp", seconds);
             }
-            ((Map<String, Object>)subscribe).put("jwt", this.safeString(this.options, "wsToken"));
+            subscribe.put("jwt", this.safeString(this.options, "wsToken"));
         }
         return subscribe;
     }
@@ -1281,7 +1281,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 Object responseOrder = (responseOrders == null || j < 0 || j >= responseOrders.size() ? null : responseOrders.get(j));
                 Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (responseOrder));
-                Object cachedOrders = this.orders;
+                io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
@@ -1290,7 +1290,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                         ((List<Object>)marketIds).add(marketId);
                     }
                 }
-                Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+                cachedOrders.append(parsed);
             }
         }
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -1328,7 +1328,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String stopPrice = this.safeString(order, "stop_price");
         final Map<String, Object> finalMarket = market;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", Coinbase.this.safeString(finalMarket, "symbol") );
             put( "id", id );
@@ -1354,7 +1354,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 put( "currency", Coinbase.this.safeString(finalMarket, "quote") );
             }} );
             put( "trades", null );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

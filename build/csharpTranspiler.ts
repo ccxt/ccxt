@@ -362,7 +362,7 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
-function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType): string | undefined {
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType): string | undefined {
     const edits = [];
     const lengthCall = /getArrayLength[ ]*\(/g;
     let match;
@@ -418,11 +418,19 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const keyMask = masked.substring (firstComma + 1, close).trim ();
         const receiver = takeType (name);
         if (receiver === undefined) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        // the helper's IList<object> branch: an index at or past Count reads null, a negative one
+        // throws in both forms; only an `int` local or a non-negative int literal is a C# index
+        if (CSHARP_DECLARED_LIST_TYPES.includes (receiver.type)) {
+            if (!(/^\d{1,9}$/.test (keyMask) || takeIndexType (keyMask))) continue;
+            edits.push ({ start: match.index, end: close + 1,
+                text: `(${name} != null && ${keyText} < ${name}.Count ? ${name}[${keyText}] : null)` });
+            continue;
+        }
         // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
         // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
         if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
         if (!takeKeyType (keyMask)) continue;
-        const keyText = original.substring (firstComma + 1, close).trim ();
         edits.push ({ start: match.index, end: close + 1,
             text: `(${name} != null && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
     }
@@ -636,11 +644,28 @@ export function nativeDeclaredHelperCalls (content: string): string {
             return receiver;
         };
         const takeType = (name) => rewrite (name, false);
+        // an `int` index: every binding of the name in the method is an `int` local or
+        // `for (int name = ...)` header, so the read compiles as a List indexer argument
+        const takeIndexType = (keyMask) => {
+            if (!/^[A-Za-z_]\w*$/.test (keyMask) || (region.params[keyMask] !== undefined)) return false;
+            const bound = region.declarations.filter ((d) => d.name === keyMask);
+            if (bound.some ((d) => d.type !== 'int')) return false;
+            // any other typed binding (foreach / lambda / catch / out variable) keeps the helper
+            const typed = new RegExp ('([A-Za-z_][\\w<>?\\[\\]]*)[ ]+' + keyMask + '\\b(?=[ ]*(?:=[^=]|;|\\)|,|in\\b))', 'g');
+            for (let k = region.start + 1; k < region.end; k++) {
+                for (const m of masked[k].matchAll (typed)) {
+                    if (![ 'int', 'return', 'throw', 'else', 'case', 'await', 'new', 'in' ].includes (m[1])) return false;
+                }
+            }
+            const header = new RegExp ('\\bfor[ ]*\\([ ]*int[ ]+' + keyMask + '[ ]*=');
+            const loops = masked.some ((maskedLine, k) => (k > region.start) && (k <= i) && header.test (maskedLine));
+            return loops || bound.some ((d) => d.line < i);
+        };
         const takeKeyType = (keyMask) => {
             if (keyMask.startsWith ('"')) return true; // a string literal is never null
             return rewrite (keyMask, true) === true;
         };
-        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType);
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType);
         if (rewritten === undefined) {
             return line;
         }

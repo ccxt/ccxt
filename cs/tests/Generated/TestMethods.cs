@@ -1695,7 +1695,7 @@ public partial class testMainClass
             if (i > 2)
             {
                 string? current = ((string)urlParts[i]);
-                if (getIndexOf(current, "?") > -1)
+                if ((current?.IndexOf("?", StringComparison.Ordinal) ?? -1) > -1)
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<object> currentParts = current.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();

@@ -1214,7 +1214,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         final String finalOrderId = orderId;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "timestamp", timestamp );
@@ -1231,7 +1231,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 put( "currency", null );
                 put( "cost", null );
             }} );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1666,14 +1666,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), market);
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
@@ -1734,7 +1734,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }};
         }
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -1756,7 +1756,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2000,7 +2000,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Double initialMarginPercentage = this.safeNumber(position, "f");
         final String finalSide = side;
         final Boolean finalHedged = hedged;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", id );
             put( "symbol", symbol );
@@ -2025,7 +2025,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             put( "initialMarginPercentage", initialMarginPercentage );
             put( "leverage", null );
             put( "marginRatio", null );
-        }}));
+        }});
     }
     public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {

@@ -136,11 +136,11 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)message).put("start", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))))));
+                message.put("start", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)message).put("size", limit);
+                message.put("size", limit);
             }
             Map<String,Object> request = this.deepExtend(message, parameters);
             Long requestId = this.requestId();
@@ -706,7 +706,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         final Long finalTimestamp = timestamp;
         final String finalDatetime = datetime;
         final String finalSide = side;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", finalDatetime );
             put( "symbol", null );
@@ -720,7 +720,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "cost", Lbank.this.safeString(trade, "amount") );
             put( "fee", null );
             put( "info", trade );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -812,7 +812,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, null, "_");
-        Object myOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -823,7 +823,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             return;
         }
-        Helpers.callDynamically(myOrders, "append", new Object[]{order});
+        myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, "orders");
         String messageHash = ("orders:" + symbol);
@@ -896,7 +896,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         final String finalType = type;
         final String finalSide = side;
         final String finalCost = cost;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Lbank.this.safeString(orderUpdate, "uuid") );
             put( "clientOrderId", Lbank.this.safeString(orderUpdate, "customerID") );
@@ -917,7 +917,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "fee", null );
             put( "cost", finalCost );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -1005,9 +1005,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String currencyId = this.safeString(data, "assetCode");
         String code = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("free", this.safeString(data, "free"));
-        ((Map<String, Object>)account).put("used", this.safeString(data, "freeze"));
-        ((Map<String, Object>)account).put("total", this.safeString(data, "asset"));
+        account.put("free", this.safeString(data, "free"));
+        account.put("used", this.safeString(data, "freeze"));
+        account.put("total", this.safeString(data, "asset"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(this.balance, code, account);

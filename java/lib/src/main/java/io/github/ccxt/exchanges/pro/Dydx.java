@@ -216,7 +216,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Dydx.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -230,7 +230,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             put( "amount", Dydx.this.safeString(trade, "size") );
             put( "cost", null );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {

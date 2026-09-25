@@ -2741,7 +2741,7 @@ func (this *Mexc) FetchBidsAsksAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2752,7 +2752,7 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var isSingularMarket bool = false
 	if symbols != nil {
-		var length int = GetArrayLength(symbols)
+		var length int = len(symbols)
 		isSingularMarket = (length == 1)
 		market = this.Market(GetValue(symbols, 0))
 	}
@@ -4717,7 +4717,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 		"info": response,
 	}
 	if IsEqual(marketType, "margin") {
-		for i := 0; i < GetArrayLength(wallet); i++ {
+		for i := 0; i < len(wallet); i++ {
 			var entry map[string]any = SafeMapTyped(wallet, i)
 			var base map[string]any = MapTyped(this.SafeDict(entry, "baseAsset", map[string]any{}))
 			var quote map[string]any = MapTyped(this.SafeDict(entry, "quoteAsset", map[string]any{}))
@@ -4732,7 +4732,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 		}
 		return this.SafeBalance(result)
 	} else if IsEqual(marketType, "swap") {
-		for i := 0; i < GetArrayLength(wallet); i++ {
+		for i := 0; i < len(wallet); i++ {
 			var entry map[string]any = SafeMapTyped(wallet, i)
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -4745,7 +4745,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 		}
 		return this.SafeBalance(result)
 	} else {
-		for i := 0; i < GetArrayLength(wallet); i++ {
+		for i := 0; i < len(wallet); i++ {
 			var entry map[string]any = SafeMapTyped(wallet, i)
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -6183,7 +6183,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId any = nil
 	var currencyWithNetwork *string = this.SafeString(transaction, "coin")
 	if currencyWithNetwork != nil {
-		currencyId = GetValue(Split(currencyWithNetwork, "-"), 0)
+		currencyId = GetValue(strings.Split(*currencyWithNetwork, "-"), 0)
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var network *string = nil
@@ -6348,7 +6348,7 @@ func (this *Mexc) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -6457,7 +6457,7 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	market = MapTyped(this.SafeMarket(this.SafeString(position, "symbol"), market, nil, "swap"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var contracts *string = this.SafeString(position, "holdVol")
 	var entryPrice *float64 = this.SafeNumber(position, "openAvgPrice")
 	var initialMargin *string = this.SafeString(position, "im")
@@ -7054,7 +7054,7 @@ func (this *Mexc) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7098,7 +7098,7 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) map[string]any {
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var withdrawFees map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -7174,7 +7174,7 @@ func (this *Mexc) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any 
 func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7410,7 +7410,7 @@ func (this *Mexc) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -7424,7 +7424,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
 			var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
 			request["symbol"] = market["id"]

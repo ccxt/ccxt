@@ -121,11 +121,11 @@ public class Kucoinfutures extends KucoinfuturesApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(toAccountString, "TRADE") || java.util.Objects.equals(toAccountString, "MAIN"))
             {
-                ((Map<String, Object>)request).put("recAccountType", toAccountString);
+                request.put("recAccountType", toAccountString);
                 response = (this.futuresPrivatePostTransferOut(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(toAccount, "future") || java.util.Objects.equals(toAccount, "swap") || java.util.Objects.equals(toAccount, "contract"))
             {
-                ((Map<String, Object>)request).put("payAccountType", this.parseTransferType((String) (fromAccount)));
+                request.put("payAccountType", this.parseTransferType((String) (fromAccount)));
                 response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
             } else
             {

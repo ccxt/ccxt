@@ -159,11 +159,11 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
-            ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
+            account.put("free", this.safeString(entry, "available"));
+            account.put("total", this.safeString(entry, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         String messageHash = "balance";
@@ -535,7 +535,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "timestamp");
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(trade, "trade_id") );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "datetime", datetime );
@@ -549,7 +549,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "cost", null );
             put( "fee", null );
             put( "info", trade );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -693,7 +693,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String eventVar = this.safeString(message, "event");
         String messageHash = "orders";
-        Object cachedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(cachedOrders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -713,12 +713,12 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
-                Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
+                cachedOrders.append(parsedOrder);
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
+            cachedOrders.append(parsedOrder);
         }
         this.orders = cachedOrders;
         client.resolve(this.orders, messageHash);
@@ -771,7 +771,7 @@ final String finalTradeId = tradeId;
             }});
         }
         final Map<String, Object> finalMarket = market;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(order, "orderID") );
             put( "clientOrderId", Blockchaincom.this.safeString(order, "clOrdID") );
             put( "datetime", datetime );
@@ -797,7 +797,7 @@ final String finalTradeId = tradeId;
             put( "info", order );
             put( "lastTradeTimestamp", null );
             put( "average", Blockchaincom.this.safeString(order, "avgPx") );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

@@ -551,9 +551,9 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 	// add in wrapped map
 	var fullName *string = this.SafeString(rawCurrency, "fullName")
 	if (fullName != nil) && (name != nil) {
-		var isWrapped bool = StartsWith(fullName, "Unit ") && StartsWith(name, "U")
+		var isWrapped bool = strings.HasPrefix(*fullName, "Unit ") && strings.HasPrefix(*name, "U")
 		if isWrapped {
-			var parts []string = Split(name, "U")
+			var parts []string = strings.Split(*name, "U")
 			var nameWithoutU any = ""
 			for j := 0; j < len(parts); j++ {
 				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
@@ -607,7 +607,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		result = this.ArrayConcat(result, GetValue(promises, i))
 	}
 
@@ -707,7 +707,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	this.Options.Store("hip3TokensByName", map[string]any{})
 	var markets []any = []any{}
-	for i := 0; i < GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		var dexName any = GetValue(fetchDexesList, i)
 		var offset any = GetValue(perpDexesOffset, dexName)
 		var response []any = SafeListTyped(promises, i)
@@ -736,7 +736,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 					if safeCode == nil {
 						return name
 					}
-					return SafeStringPtr(Replace(safeCode, ":", "-"))
+					return SafeStringPtr(strings.Replace(*safeCode, ":", "-", 1))
 				}()
 				AddElementToObject(GetValue(this.Options, "hip3TokensByName"), name, map[string]any{
 					"quote": collateralTokenCode,
@@ -867,7 +867,7 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 	if priceStr == nil {
 		return 0
 	}
-	var priceSplitted []string = Split(priceStr, ".")
+	var priceSplitted []string = strings.Split(*priceStr, ".")
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		var significantDigits int = 5
@@ -1112,7 +1112,7 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 	if base == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing base currency"))
 	}
-	base = SafeStringPtr(Replace(base, ":", "-")) // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+	base = SafeStringPtr(strings.Replace(*base, ":", "-", 1)) // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var baseId *string = this.SafeString(market, "baseId")
 	var settle *string = this.SafeCurrencyCode(settleId)
@@ -1542,7 +1542,7 @@ func (this *Hyperliquid) FetchFundingRatesAsync(optionalArgs ...any) <-chan any 
 func (this *Hyperliquid) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3865,7 +3865,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 }
 func (this *Hyperliquid) GetDexFromHip3Symbol(market any) any {
 	var baseName *string = this.SafeString(market, "baseName", "")
-	var part []string = Split(baseName, ":")
+	var part []string = strings.Split(*baseName, ":")
 	var partsLength int = len(part)
 	if partsLength > 1 {
 		return this.SafeString(part, 0)
@@ -4404,7 +4404,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		market = MapTyped(this.SafeMarket(marketId, market))
 	}
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var status *string = this.SafeString2(order, "status", "ccxtStatus")
 	order = this.Omit(order, []any{"ccxtStatus"})
@@ -4493,10 +4493,10 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		"rejected":       "rejected",
 		"marginCanceled": "canceled",
 	}
-	if EndsWith(status, "Rejected") {
+	if strings.HasSuffix(*status, "Rejected") {
 		return "rejected"
 	}
-	if EndsWith(status, "Canceled") {
+	if strings.HasSuffix(*status, "Canceled") {
 		return "canceled"
 	}
 	return this.SafeString(statuses, status, status)
@@ -4624,7 +4624,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = MapTyped(this.SafeMarket(marketId))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
@@ -4698,12 +4698,12 @@ func (this *Hyperliquid) fetchPositionBody(ch chan any, symbol any, optionalArgs
 	return nil
 }
 func (this *Hyperliquid) GetDexFromSymbols(methodName any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if symbols == nil {
 		return nil
 	}
-	var symbolsLength int = GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		return nil
 	}
@@ -4859,7 +4859,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	market = MapTyped(this.SafeMarket(marketId))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var leverage map[string]any = SafeMapTyped(entry, "leverage")
 	var marginMode *string = this.SafeString(leverage, "type")
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated")

@@ -3583,15 +3583,15 @@ public partial class bybit : Exchange
         {
             parsedSymbols = new List<object>() {};
             List<object> marketTypeInfo = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
-            object defaultType = getValue(marketTypeInfo, 0); // don't omit here
+            object defaultType = (marketTypeInfo != null && 0 < marketTypeInfo.Count ? marketTypeInfo[0] : null); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             string? currentType = null;
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                bool isExchangeSpecificSymbol = ((getIndexOf(symbol, "/") == -1));
+                bool isExchangeSpecificSymbol = (((symbol?.IndexOf("/", StringComparison.Ordinal) ?? -1) == -1));
                 if (isExchangeSpecificSymbol)
                 {
                     market = this.safeMarket(symbol, null, null, defaultType);
@@ -3947,7 +3947,7 @@ public partial class bybit : Exchange
         if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
@@ -5242,7 +5242,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         List<object> types = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = getValue(types, 1);
+        object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
         if (!isEqual(enableUnifiedAccount, true))
         {
             throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
@@ -5303,7 +5303,7 @@ public partial class bybit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> parts = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = getValue(parts, 1);
+        object enableUnifiedAccount = (parts != null && 1 < parts.Count ? parts[1] : null);
         bool isTrailingOrder = (this.safeString2(parameters, "trailingAmount", "trailingStop") != null);
         bool isStopLossOrder = (this.safeString(parameters, "stopLossPrice") != null);
         bool isTakeProfitOrder = (this.safeString(parameters, "takeProfitPrice") != null);
@@ -5724,7 +5724,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         List<object> accounts = await this.isUnifiedEnabled();
-        object isUta = getValue(accounts, 1);
+        object isUta = (accounts != null && 1 < accounts.Count ? accounts[1] : null);
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
@@ -5742,7 +5742,7 @@ public partial class bybit : Exchange
             ordersRequests.Add(orderRequest);
         }
         IList<object> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Dictionary<string, object> market = this.market(getValue(symbols, 0));
+        Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
         string? category = null;
         var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
@@ -5768,7 +5768,7 @@ public partial class bybit : Exchange
             Int64? retCode = this.safeInteger(code, "code");
             if ((retCode != 0))
             {
-                ((List<object>)data)[Convert.ToInt32(i)] = this.extend(getValue(data, i), code);
+                ((List<object>)data)[Convert.ToInt32(i)] = this.extend((data != null && i < data.Count ? data[i] : null), code);
             }
         }
         //
@@ -5987,7 +5987,7 @@ public partial class bybit : Exchange
             ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
+        Dictionary<string, object> market = this.market((orderSymbols != null && 0 < orderSymbols.Count ? orderSymbols[0] : null));
         Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
         string? category = null;
         var categoryparametersVariable = this.getBybitType("editOrders", market, parameters);
@@ -6013,7 +6013,7 @@ public partial class bybit : Exchange
             Int64? retCode = this.safeInteger(code, "code");
             if ((retCode != 0))
             {
-                ((List<object>)data)[Convert.ToInt32(i)] = this.extend(getValue(data, i), code);
+                ((List<object>)data)[Convert.ToInt32(i)] = this.extend((data != null && i < data.Count ? data[i] : null), code);
             }
         }
         //
@@ -6147,7 +6147,7 @@ public partial class bybit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> types = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = getValue(types, 1);
+        object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
         if (!isEqual(enableUnifiedAccount, true))
         {
             throw new NotSupported ((this.id + " cancelOrders() supports UTA accounts only")) ;
@@ -6284,7 +6284,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         List<object> types = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = getValue(types, 1);
+        object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
         if (!isEqual(enableUnifiedAccount, true))
         {
             throw new NotSupported ((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
@@ -7708,7 +7708,7 @@ public partial class bybit : Exchange
         List<object> enableUnified = await this.isUnifiedEnabled();
         IDictionary<string, object> currency = null;
         string currencyKey = "coin";
-        if (isEqual(getValue(enableUnified, 1), true))
+        if (isEqual((enableUnified != null && 1 < enableUnified.Count ? enableUnified[1] : null), true))
         {
             currencyKey = "currency";
             if ((since != null))
@@ -7736,7 +7736,7 @@ public partial class bybit : Exchange
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(enableUnified, 1), true))
+        if (isEqual((enableUnified != null && 1 < enableUnified.Count ? enableUnified[1] : null), true))
         {
             Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType == "inverse" && (isLessThan(unifiedMarginStatus, 5)))
@@ -7997,7 +7997,7 @@ public partial class bybit : Exchange
         parameters = tagparametersVariable[1];
         string? accountType = null;
         List<object> accounts = await this.isUnifiedEnabled();
-        object isUta = getValue(accounts, 1);
+        object isUta = (accounts != null && 1 < accounts.Count ? accounts[1] : null);
         IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "withdraw", "accountType");
         accountType = (string)accountTypeparametersVariable[0];
         parameters = accountTypeparametersVariable[1];
@@ -8952,7 +8952,7 @@ public partial class bybit : Exchange
         string? id = this.safeString(result, "symbol");
         Dictionary<string, object> safeMarketObj = this.safeMarket(id, market, null, "contract");
         List<object> data = this.addPaginationCursorToResult(response);
-        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(getValue(data, 0), safeMarketObj));
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest((data != null && 0 < data.Count ? data[0] : null), safeMarketObj));
     }
 
     /**
@@ -10245,7 +10245,7 @@ public partial class bybit : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
@@ -10563,7 +10563,7 @@ public partial class bybit : Exchange
         string? symbol = null;
         if ((symbols != null))
         {
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 throw new NotSupported ((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
@@ -10992,7 +10992,7 @@ public partial class bybit : Exchange
             symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             }
         }
         Int64? until = this.safeInteger(parameters, "until");

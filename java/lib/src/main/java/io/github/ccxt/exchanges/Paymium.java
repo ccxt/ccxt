@@ -248,9 +248,9 @@ public class Paymium extends PaymiumApi
             {
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 String used = ("locked_" + currencyId);
-                ((Map<String, Object>)account).put("free", this.safeString(response, free));
-                ((Map<String, Object>)account).put("used", this.safeString(response, used));
-                ((Map<String, Object>)result).put((String)code, account);
+                account.put("free", this.safeString(response, free));
+                account.put("used", this.safeString(response, used));
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -457,7 +457,7 @@ public class Paymium extends PaymiumApi
         String amountField = ("traded_" + ((String)((Map<String, Object>)market).get("base")).toLowerCase());
         String amount = this.safeString(trade, amountField);
         final Map<String, Object> finalMarket = market;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
@@ -471,7 +471,7 @@ public class Paymium extends PaymiumApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -720,13 +720,13 @@ public class Paymium extends PaymiumApi
             }};
             if (!java.util.Objects.equals(type, "market"))
             {
-                ((Map<String, Object>)request).put("price", price);
+                request.put("price", price);
             }
             Map<String, Object> response = (this.privatePostUserOrders(this.extend(request, parameters))).join();
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Paymium.this.safeString(response, "uuid") );
-            }}), market);
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -767,9 +767,9 @@ public class Paymium extends PaymiumApi
                 put( "uuid", id );
             }};
             Map<String, Object> response = (this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters))).join();
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }

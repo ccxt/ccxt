@@ -592,7 +592,7 @@ func (this *Myriad) fetchRawQuestionByIdBody(ch chan any, id any, optionalArgs .
 							var qSlug *string = this.SafeString(q, "slug", "")
 							var qTitle *string = this.SafeString(q, "title", "")
 							var qHandle any = this.ShortenSlug(qSlug)
-							if (ccxt.ToLower(qId) == idLower) || (ccxt.ToLower(qSlug) == idLower) || (ccxt.ToLower(qTitle) == idLower) || ((qHandle != nil) && (ccxt.ToLower(qHandle) == idLower)) {
+							if (strings.ToLower(*qId) == idLower) || (strings.ToLower(*qSlug) == idLower) || (strings.ToLower(*qTitle) == idLower) || ((qHandle != nil) && (ccxt.ToLower(qHandle) == idLower)) {
 
 								ch <- q
 								chSent = true
@@ -2625,7 +2625,7 @@ func (this *Myriad) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
 	var trades []any = []any{}
-	var ordersLength int = ccxt.GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
 		var order any = ccxt.GetValue(orders, i)
 		trades = append(trades, this.OrderToTrade(order))
@@ -3720,7 +3720,7 @@ func (this *Myriad) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3733,7 +3733,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var outcomesByMarket map[string]any = map[string]any{}
 	var marketKeys []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var networkId *string = this.SafeString(info, "networkId")
@@ -4291,7 +4291,7 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 	}
 	var pub map[string]any = ccxt.SafeMapTyped(push, "pub")
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(pub, "data", map[string]any{}))
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook" {
 		this.HandleOrderBook(client, data)
@@ -4688,14 +4688,14 @@ func (this *Myriad) WatchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires a list of outcomes (the prices channel is per-market)"))
 	}
-	var symbolsLength int = ccxt.GetArrayLength(outcomes)
+	var symbolsLength int = len(outcomes)
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 
 	ccxt.PanicOnError((<-this.ConnectCentrifugoAsync(url)))
@@ -4981,7 +4981,7 @@ func (this *Myriad) WatchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -5040,7 +5040,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan any, trader any) any {
 		"address": trader,
 	}))))
 	var balances map[string]any = map[string]any{}
-	var positionsLength int = ccxt.GetArrayLength(positions)
+	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
 		var p map[string]any = ccxt.SafeMapTyped(positions, i)
 		var id *string = this.SafeString(p, "id")
