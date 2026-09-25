@@ -4411,12 +4411,12 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode string, optionalAr
  * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
  * @returns {object} response from the exchange
  */
-func (this *Coinex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Coinex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Coinex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4437,7 +4437,7 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	var minLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "min", 1)
 	var maxLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "max", 100)
-	if (IsLessThan(leverage, minLeverage)) || (IsGreaterThan(leverage, maxLeverage)) {
+	if (minLeverage != nil && leverage < *minLeverage) || (maxLeverage == nil || leverage > *maxLeverage) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between " + ToString(minLeverage) + " and " + ToString(maxLeverage) + " for " + *symbol))
 	}
 	var request map[string]any = map[string]any{

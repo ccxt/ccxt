@@ -5640,12 +5640,12 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
  * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
  * @returns {object} response from the exchange
  */
-func (this *Phemex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Phemex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Phemex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -5657,7 +5657,7 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if (IsLessThan(leverage, -100)) || (IsGreaterThan(leverage, 100)) {
+	if (leverage < -100) || (leverage > 100) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between -100 and 100"))
 	}
 	if this.Markets == nil {

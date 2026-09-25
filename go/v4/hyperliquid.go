@@ -3391,12 +3391,12 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} the api result
  */
-func (this *Hyperliquid) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4986,12 +4986,12 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode string, optio
  * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
  * @returns {object} response from the exchange
  */
-func (this *Hyperliquid) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Hyperliquid) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6371,7 +6371,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 func (this *Hyperliquid) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "byType")) && (InOp(params, "type")) {
+	if (func() bool { _, ok := config["byType"]; return ok }()) && (InOp(params, "type")) {
 		var typeVar any = GetValue(params, "type")
 		var byType any = GetValue(config, "byType")
 		if InOp(byType, typeVar) {

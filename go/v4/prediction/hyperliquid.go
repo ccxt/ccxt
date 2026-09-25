@@ -2933,7 +2933,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 func (this *Hyperliquid) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (ccxt.InOp(config, "byType")) && (ccxt.InOp(params, "type")) {
+	if (func() bool { _, ok := config["byType"]; return ok }()) && (ccxt.InOp(params, "type")) {
 		var typeVar any = ccxt.GetValue(params, "type")
 		var byType any = ccxt.GetValue(config, "byType")
 		if ccxt.InOp(byType, typeVar) {

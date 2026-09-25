@@ -2212,12 +2212,12 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
  * @returns {object} the api result
  */
-func (this *Bitvavo) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3366,7 +3366,7 @@ func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any,
 func (this *Bitvavo) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "noMarket")) && !(InOp(params, "market")) {
+	if (func() bool { _, ok := config["noMarket"]; return ok }()) && !(InOp(params, "market")) {
 		return GetValue(config, "noMarket")
 	}
 	return this.SafeNumber(config, "cost", 1)

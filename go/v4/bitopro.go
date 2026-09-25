@@ -2223,7 +2223,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address 
 		"amount":   this.NumberToString(amount),
 		"address":  address,
 	}
-	var hasNetwork bool = (InOp(paramsWithdrawTag, "network"))
+	var hasNetwork bool = (func() bool { _, ok := paramsWithdrawTag["network"]; return ok }())
 	var paramsOmitted any = paramsWithdrawTag
 	if hasNetwork {
 		paramsOmitted = this.Omit(paramsWithdrawTag, []any{"network"})

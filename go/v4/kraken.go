@@ -3373,33 +3373,33 @@ func (this *Kraken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Kraken) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Kraken) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
-	if IsGreaterThan(timeout, 86400000) {
+	if timeout > 86400000 {
 		panic(BadRequest(this.Id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds"))
 	}
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var request map[string]any = map[string]any{
 		"timeout": func() any {
-			if IsGreaterThan(timeout, 0) {
-				return (this.ParseToInt(Divide(timeout, 1000)))
+			if timeout > 0 {
+				return (this.ParseToInt(float64(timeout) / 1000))
 			}
 			return 0
 		}(),

@@ -3228,7 +3228,7 @@ func (this *Xt) createOrderBody(ch chan any, symbol string, typeVar string, side
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = SafeStringPtr(market["symbol"])
 	if market["spot"] == true {
-		var isTrailing bool = (InOp(params, "trailingPercent")) || (InOp(params, "trailingAmount")) || (InOp(params, "trailingTriggerPrice"))
+		var isTrailing bool = (func() bool { _, ok := params["trailingPercent"]; return ok }()) || (func() bool { _, ok := params["trailingAmount"]; return ok }()) || (func() bool { _, ok := params["trailingTriggerPrice"]; return ok }())
 		if isTrailing {
 			panic(NotSupported(this.Id + " createOrder() trailing orders are only supported on swap markets"))
 		}
@@ -5470,12 +5470,12 @@ func (this *Xt) ParseTransactionStatus(status *string) *string {
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} response from the exchange
  */
-func (this *Xt) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Xt) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Xt) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Xt) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5487,7 +5487,7 @@ func (this *Xt) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) 
 	}
 	var positionSide *string = this.SafeString(params, "positionSide")
 	this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []any{"LONG", "SHORT"})
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 125"))
 	}
 	if this.Markets == nil {

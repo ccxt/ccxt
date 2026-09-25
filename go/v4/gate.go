@@ -8053,12 +8053,12 @@ func (this *Gate) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Gate) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Gate) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Gate) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8070,7 +8070,7 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if (IsLessThan(leverage, 0)) || (IsGreaterThan(leverage, 100)) {
+	if (leverage < 0) || (leverage > 100) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 100"))
 	}
 	if this.Markets == nil {

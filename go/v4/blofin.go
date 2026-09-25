@@ -3517,12 +3517,12 @@ func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
  * @returns {object} response from the exchange
  */
-func (this *Blofin) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Blofin) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Blofin) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3534,7 +3534,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 125"))
 	}
 	if this.Markets == nil {

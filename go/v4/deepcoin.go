@@ -3383,12 +3383,12 @@ func (this *Deepcoin) ParsePosition(position any, optionalArgs ...any) any {
  * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
  * @returns {object} response from the exchange
  */
-func (this *Deepcoin) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Deepcoin) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3400,7 +3400,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if IsLessThan(leverage, 1) {
+	if leverage < 1 {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be minimum 1"))
 	}
 	if this.Markets == nil {

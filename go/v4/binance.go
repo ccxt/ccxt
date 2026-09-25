@@ -15011,12 +15011,12 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
  * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
  * @returns {object} response from the exchange
  */
-func (this *Binance) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Binance) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Binance) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Binance) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -15028,7 +15028,7 @@ func (this *Binance) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 125"))
 	}
 	if this.Markets == nil {
@@ -16240,13 +16240,13 @@ func (this *Binance) CalculateRateLimiterCost(api any, method any, path any, par
 	// safeValue keeps runtime identical to the prior bare index (no empty-array default)
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "noCoin")) && !(InOp(params, "coin")) {
+	if (func() bool { _, ok := config["noCoin"]; return ok }()) && !(InOp(params, "coin")) {
 		return GetValue(config, "noCoin")
-	} else if (InOp(config, "noSymbol")) && !(InOp(params, "symbol")) {
+	} else if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (InOp(config, "noPoolId")) && !(InOp(params, "poolId")) {
+	} else if (func() bool { _, ok := config["noPoolId"]; return ok }()) && !(InOp(params, "poolId")) {
 		return GetValue(config, "noPoolId")
-	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
+	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit any = this.SafeValue(config, "byLimit")
 		for i := 0; i < GetArrayLength(byLimit); i++ {

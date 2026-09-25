@@ -3166,7 +3166,7 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if first != nil {
 		market = this.Market(first)
 	}
-	var isSubTypeRequested bool = (InOp(params, "subType")) || (InOp(params, "business_type"))
+	var isSubTypeRequested bool = (func() bool { _, ok := params["subType"]; return ok }()) || (func() bool { _, ok := params["business_type"]; return ok }())
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
 	var request map[string]any = map[string]any{}
@@ -7902,12 +7902,12 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Htx) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Htx) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Htx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Htx) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7916,13 +7916,13 @@ func (this *Htx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var request map[string]any = map[string]any{
 		"timeout": func() any {
-			if IsGreaterThan(timeout, 0) {
-				return this.ParseToInt(Divide(timeout, 1000))
+			if timeout > 0 {
+				return this.ParseToInt(float64(timeout) / 1000)
 			}
 			return 0
 		}(),
@@ -9695,12 +9695,12 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
  * @returns {object} response from the exchange
  */
-func (this *Htx) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Htx) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Htx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Htx) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

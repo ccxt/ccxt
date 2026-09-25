@@ -6405,12 +6405,12 @@ func (this *Bybit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
  * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
  * @returns {object} the api result
  */
-func (this *Bybit) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Bybit) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Bybit) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Bybit) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6419,11 +6419,11 @@ func (this *Bybit) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var request map[string]any = map[string]any{
-		"timeWindow": this.ParseToInt(Divide(timeout, 1000)),
+		"timeWindow": this.ParseToInt(float64(timeout) / 1000),
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, "swap")
 	var productMap map[string]any = map[string]any{
@@ -9089,12 +9089,12 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
  * @param {string} [params.sellLeverage] leverage for sell side
  * @returns {object} response from the exchange
  */
-func (this *Bybit) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Bybit) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Bybit) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Bybit) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

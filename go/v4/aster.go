@@ -1757,7 +1757,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var response []any = nil
 	var sinceDefined bool = (since != nil)
-	var untilDefined bool = (InOp(params, "until"))
+	var untilDefined bool = (func() bool { _, ok := params["until"]; return ok }())
 	if sinceDefined {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -3842,12 +3842,12 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Aster) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Aster) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Aster) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3857,7 +3857,7 @@ func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 125"))
 	}
 

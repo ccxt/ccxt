@@ -5511,12 +5511,12 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Okx) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Okx) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Okx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Okx) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5526,8 +5526,8 @@ func (this *Okx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var timeOut any = 0
-	if (!IsEqual(timeout, nil)) && (IsGreaterThan(timeout, 0)) {
-		timeOut = this.ParseToInt(Divide(timeout, 1000))
+	if (true) && (timeout > 0) {
+		timeOut = this.ParseToInt(float64(timeout) / 1000)
 	}
 	var request map[string]any = map[string]any{
 		"timeOut": timeOut,
@@ -9014,12 +9014,12 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
  * @returns {object} response from the exchange
  */
-func (this *Okx) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Okx) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Okx) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9031,7 +9031,7 @@ func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 125"))
 	}
 	if this.Markets == nil {

@@ -3096,12 +3096,12 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
  * @returns {object} the api result
  */
-func (this *Btse) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Btse) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4490,12 +4490,12 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
  * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
  * @returns {object} response from the exchange
  */
-func (this *Btse) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Btse) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Btse) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

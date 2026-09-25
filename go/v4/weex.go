@@ -5131,12 +5131,12 @@ func (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) any {
  * the leverage value will be applied to cross leverage
  * @returns {object} response from the exchange
  */
-func (this *Weex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Weex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Weex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -869,12 +869,12 @@ func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
  * @returns {object} response from the exchange
  */
-func (this *Mudrex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Mudrex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -1379,7 +1379,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-	var markerInParams bool = (InOp(params, "marker"))
+	var markerInParams bool = (func() bool { _, ok := params["marker"]; return ok }())
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 	if (since != nil) && !markerInParams {
@@ -1701,7 +1701,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-	var markerInParams bool = (InOp(params, "marker"))
+	var markerInParams bool = (func() bool { _, ok := params["marker"]; return ok }())
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 	if (since != nil) && !markerInParams {

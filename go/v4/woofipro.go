@@ -4383,12 +4383,12 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Woofipro) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Woofipro) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4399,7 +4399,7 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 50)) {
+	if (leverage < 1) || (leverage > 50) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 50"))
 	}
 	var request map[string]any = map[string]any{

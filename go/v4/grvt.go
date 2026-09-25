@@ -3221,12 +3221,12 @@ func (this *Grvt) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Grvt) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Grvt) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Grvt) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Grvt) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

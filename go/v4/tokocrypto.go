@@ -3265,13 +3265,13 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 func (this *Tokocrypto) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "noCoin")) && !(InOp(params, "coin")) {
+	if (func() bool { _, ok := config["noCoin"]; return ok }()) && !(InOp(params, "coin")) {
 		return GetValue(config, "noCoin")
-	} else if (InOp(config, "noSymbol")) && !(InOp(params, "symbol")) {
+	} else if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (InOp(config, "noPoolId")) && !(InOp(params, "poolId")) {
+	} else if (func() bool { _, ok := config["noPoolId"]; return ok }()) && !(InOp(params, "poolId")) {
 		return GetValue(config, "noPoolId")
-	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
+	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

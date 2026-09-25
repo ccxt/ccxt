@@ -4123,12 +4123,12 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) any
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-func (this *Poloniex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Poloniex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4149,7 +4149,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	hedged := GetValue(hedgedparamsHedgedVariable, 0)
 	var paramsHedged map[string]any = MapTyped(GetValue(hedgedparamsHedgedVariable, 1))
 	if IsEqual(hedged, true) {
-		if !(InOp(paramsHedged, "posSide")) {
+		if _, ok := paramsHedged["posSide"]; !ok {
 			panic(ArgumentsRequired(this.Id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\""))
 		}
 	}

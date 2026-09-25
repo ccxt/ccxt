@@ -3637,12 +3637,12 @@ func (this *Bitrue) transferBody(ch chan any, code string, amount any, fromAccou
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Bitrue) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Bitrue) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Bitrue) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3652,7 +3652,7 @@ func (this *Bitrue) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 125"))
 	}
 	if this.Markets == nil {
@@ -3963,9 +3963,9 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 func (this *Bitrue) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "noSymbol")) && !(InOp(params, "symbol")) {
+	if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
+	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

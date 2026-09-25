@@ -3073,12 +3073,12 @@ func (this *Whitebit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
  * @returns {object} the api result
  */
-func (this *Whitebit) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Whitebit) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3093,15 +3093,15 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan any, timeout any, optiona
 	}
 	var market map[string]any = this.Market(symbol)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "symbol"))
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
-	var isBiggerThanZero bool = (IsGreaterThan(timeout, 0))
+	var isBiggerThanZero bool = (timeout > 0)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if isBiggerThanZero {
-		request["timeout"] = this.NumberToString(Divide(timeout, 1000))
+		request["timeout"] = this.NumberToString(float64(timeout) / 1000)
 	} else {
 		request["timeout"] = "null"
 	}
@@ -3961,12 +3961,12 @@ func (this *Whitebit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Whitebit) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Whitebit) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3980,7 +3980,7 @@ func (this *Whitebit) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	if symbol != nil {
 		panic(NotSupported(this.Id + " setLeverage() does not allow to set per symbol"))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 20)) {
+	if (leverage < 1) || (leverage > 20) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 20"))
 	}
 	var request map[string]any = map[string]any{

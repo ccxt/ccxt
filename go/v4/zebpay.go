@@ -1933,12 +1933,12 @@ func (this *Zebpay) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Zebpay) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Zebpay) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

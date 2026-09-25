@@ -5214,12 +5214,12 @@ func (this *Mexc) addMarginBody(ch chan any, symbol string, amount any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Mexc) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Mexc) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Mexc) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Mexc) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

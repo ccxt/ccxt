@@ -3665,12 +3665,12 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode string, optional
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} response from the exchange
  */
-func (this *Pacifica) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Pacifica) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

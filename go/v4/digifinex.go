@@ -4874,12 +4874,12 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
  * @returns {object} response from the exchange
  */
-func (this *Digifinex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Digifinex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4897,7 +4897,7 @@ func (this *Digifinex) setLeverageBody(ch chan any, leverage any, optionalArgs .
 	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 100)) {
+	if (leverage < 1) || (leverage > 100) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 100"))
 	}
 	var request map[string]any = map[string]any{

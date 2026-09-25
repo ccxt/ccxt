@@ -1579,12 +1579,12 @@ func (this *BaseExchange) createDepositAddressBody(ch chan any, code string, opt
 	_ = params
 	panic(NotSupported(this.Id + " createDepositAddress() is not supported yet"))
 }
-func (this *BaseExchange) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *BaseExchange) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6016,12 +6016,12 @@ func (this *BaseExchange) cancelAllContractOrdersBody(ch chan any, optionalArgs 
 	_ = params
 	panic(NotSupported(this.Id + " cancelAllContractOrders() is not supported yet"))
 }
-func (this *BaseExchange) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *BaseExchange) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6439,7 +6439,7 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 			} else {
 				// check if base currency is inside dict
 				var baseCurrencyCode string = Replace(currencyCode, leverageSuffix, "")
-				if (existingCurrencies != nil) && (InOp(existingCurrencies, baseCurrencyCode)) {
+				if _, ok := existingCurrencies[baseCurrencyCode]; (existingCurrencies != nil) && ok {
 					return true
 				}
 			}

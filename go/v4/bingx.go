@@ -5132,12 +5132,12 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
  * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
  * @returns {object} the api result
  */
-func (this *Bingx) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Bingx) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Bingx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Bingx) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6657,12 +6657,12 @@ func (this *Bingx) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
  * @returns {object} response from the exchange
  */
-func (this *Bingx) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Bingx) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Bingx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Bingx) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

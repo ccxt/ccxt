@@ -10617,15 +10617,15 @@ func (this *Kucoin) transferClassicBody(ch chan any, code string, amount any, fr
 	var transferTypeOption *string = SafeStringPtr(GetValue(transferTypeOptionparamsTransferTypeVariable, 0))
 	var paramsTransferType map[string]any = MapTyped(GetValue(transferTypeOptionparamsTransferTypeVariable, 1))
 	if transferTypeOption != nil && *transferTypeOption == "PARENT_TO_SUB" {
-		if !(InOp(paramsTransferType, "toUserId")) {
+		if _, ok := paramsTransferType["toUserId"]; !ok {
 			panic(ExchangeError(this.Id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers"))
 		}
 	} else if transferTypeOption != nil && *transferTypeOption == "SUB_TO_PARENT" {
-		if !(InOp(paramsTransferType, "fromUserId")) {
+		if _, ok := paramsTransferType["fromUserId"]; !ok {
 			panic(ExchangeError(this.Id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers"))
 		}
 	}
-	if !(InOp(paramsTransferType, "clientOid")) {
+	if _, ok := paramsTransferType["clientOid"]; !ok {
 		request["clientOid"] = this.Uuid()
 	}
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
@@ -12102,12 +12102,12 @@ func (this *Kucoin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
  * @returns {object} response from the exchange
  */
-func (this *Kucoin) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Kucoin) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
