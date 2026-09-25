@@ -2382,9 +2382,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	if limit != nil {
 		AddElementToObject(requestUntil, "limit", limit) // default 100, max 100
 	}
@@ -2482,9 +2480,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("after", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetDepositHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2547,9 +2543,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("after", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetWithdrawalHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2755,9 +2749,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetBills(this.Extend(requestUntil, paramsUntil))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -3212,9 +3204,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	if since != nil {
 		request["begin"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//

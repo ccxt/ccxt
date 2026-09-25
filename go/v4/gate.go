@@ -5564,9 +5564,7 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["from"] = start
 		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, paramsPaginate, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetDeposits(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -5630,9 +5628,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["from"] = start
 		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, paramsPaginate, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetWithdrawals(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -9137,9 +9133,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 	var isUnifiedAccount bool = GetValueBool(isUnifiedAccountparamsUnifiedAccountVariable, 0, false)
 	var paramsUnifiedAccount map[string]any = MapTyped(GetValue(isUnifiedAccountparamsUnifiedAccountVariable, 1))
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, paramsUnifiedAccount)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsUnifiedAccount)
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -9965,9 +9959,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, paramsSettle)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsSettle)
 	if typeVar != nil && *typeVar == "spot" {
 
 		response = (<-this.PrivateSpotGetAccountBook(this.Extend(requestUntil, paramsUntil))).Raw
@@ -10312,9 +10304,7 @@ func (this *Gate) fetchLiquidationsBody(ch chan any, symbol string, optionalArgs
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))).Raw))
 

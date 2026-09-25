@@ -62,8 +62,20 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 
 // TupleSlice boxes a (value, params) result pair into the [ value, params ] list a
 // non-destructuring TS use of the tuple reads (element access, a kept tuple local).
-func TupleSlice(value *string, params map[string]any) []any {
+func TupleSlice[T any](value T, params map[string]any) []any {
 	return []any{value, params}
+}
+
+// HandleUntilOption is handleUntilOption with its [Dict, Dict] tuple spelled as two Go
+// results: request (with the until key when given) and params without until/till.
+func (this *BaseExchange) HandleUntilOption(key any, request any, params any, optionalArgs ...any) (map[string]any, map[string]any) {
+	multiplier := GetArg(optionalArgs, 0, 1)
+	until := this.SafeInteger2(params, "until", "till")
+	if until == nil {
+		return MapTyped(request), MapTyped(params)
+	}
+	AddElementToObject(request, key, this.ParseToInt(Multiply(until, multiplier)))
+	return MapTyped(request), MapTyped(this.Omit(params, []any{"until", "till"}))
 }
 
 // HandleOptionStringAndParams is handleOptionAndParams read as a string: a present option

@@ -2875,9 +2875,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	if since != nil {
 		request["since_timestamp"] = MathRound(Divide(since, 1000))
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
 	if limit != nil {
 		AddElementToObject(requestUntil, "limit", limit)
 	}

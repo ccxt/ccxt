@@ -1692,9 +1692,7 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3016,9 +3014,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["page_size"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3262,9 +3258,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3497,9 +3491,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3592,9 +3584,7 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3687,9 +3677,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3786,9 +3774,7 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -4412,9 +4398,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(requestUntil, paramsUntil))).Raw))
 	//

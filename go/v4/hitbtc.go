@@ -2250,9 +2250,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("until", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	if limit != nil {
 		AddElementToObject(requestUntil, "limit", mathMin(limit, 1000))
 	}
@@ -3578,9 +3576,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("until", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(requestUntil, "symbols", GetValue(market, "id"))

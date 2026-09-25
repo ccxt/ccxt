@@ -9428,13 +9428,19 @@ function installCcxtGoTupleParamsRebind (goTranspiler) {
 // return Go `(*string, map[string]any)` (go/v4/exchange_market_type.go). A destructuring whose printed element reads are already the
 // typed unwraps becomes `a, b := call`; every other use keeps the old `[]any` via TupleSlice(..).
 const CCXT_GO_TUPLE_RESULT_METHODS = [ 'handleMarketTypeAndParams', 'handleSubTypeAndParams',
-    'handleOptionStringAndParams' ];
+    'handleOptionStringAndParams', 'handleUntilOption' ];
+// element 0 unwrap per method (element 1 is always the params map); default SafeStringPtr
+const CCXT_GO_TUPLE_RESULT_ELEMENT_0 = { 'handleUntilOption': 'MapTyped' };
 
 function ccxtGoTupleResultCall (node) {
     const callee = node?.expression;
     return (node?.kind === ts.SyntaxKind.CallExpression) && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression)
         && CCXT_GO_TUPLE_RESULT_METHODS.includes (callee.name?.text)
         && ((callee.expression?.kind === ts.SyntaxKind.ThisKeyword) || isIdentifierNamed (callee.expression, 'exchange'));
+}
+
+function ccxtGoTupleResultFirst (call) {
+    return CCXT_GO_TUPLE_RESULT_ELEMENT_0[call.expression.name.text] ?? 'SafeStringPtr';
 }
 
 // `TupleSlice(<call>)` -> `<call>`, undefined for any other text
@@ -9444,7 +9450,7 @@ function ccxtGoTupleResultUnwrap (text) {
 }
 
 // holder block -> multi-assign, or undefined (the block stays as printed)
-function ccxtGoTupleResultJoin (printed, count, declare, untypedOk = false) {
+function ccxtGoTupleResultJoin (printed, count, declare, untypedOk = false, first = 'SafeStringPtr') {
     const lines = printed.split ('\n').filter ((l) => l.trim () !== '');
     const head = /^(\s*)(?:var (\w+Variable) \[\]any = |(\w+Variable) := )(.*)$/.exec (lines[0] ?? '');
     if ((head === null) || (lines.length !== count + 1)) {
@@ -9468,7 +9474,7 @@ function ccxtGoTupleResultJoin (printed, count, declare, untypedOk = false) {
         const [ name, wrap, h, index ] = [ m[1], m[2], m[3], Number (m[4]) ];
         // element 0 must already be the *string unwrap; element 1 is the map itself
         const ok = (h === holder) && (index === i - 1)
-            && ((wrap === '') ? ((index === 1) || declare) : (wrap === ((index === 0) ? 'SafeStringPtr' : 'MapTyped')));
+            && ((wrap === '') ? ((index === 1) || declare || (first === 'MapTyped')) : (wrap === ((index === 0) ? first : 'MapTyped')));
         if (!ok) {
             return undefined;
         }
@@ -9522,7 +9528,7 @@ function installCcxtGoTupleResults (goTranspiler) {
             return printed;
         }
         const untypedOk = ccxtGoTupleResultUntypedElementsAreSafe (this, declaration);
-        return ccxtGoTupleResultJoin (printed, declaration.name.elements.length, true, untypedOk) ?? printed;
+        return ccxtGoTupleResultJoin (printed, declaration.name.elements.length, true, untypedOk, ccxtGoTupleResultFirst (declaration.initializer)) ?? printed;
     };
     const printCustom = goTranspiler.printCustomBinaryExpressionIfAny;
     goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {
@@ -9531,7 +9537,7 @@ function installCcxtGoTupleResults (goTranspiler) {
             || (node.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) || !ccxtGoTupleResultCall (node.right)) {
             return printed;
         }
-        return ccxtGoTupleResultJoin (printed, node.left.elements.length, false) ?? printed;
+        return ccxtGoTupleResultJoin (printed, node.left.elements.length, false, false, ccxtGoTupleResultFirst (node.right)) ?? printed;
     };
     goTranspiler.__ccxtGoTupleResultsInstalled = true;
 }

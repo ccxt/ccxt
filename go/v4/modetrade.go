@@ -1487,9 +1487,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	if since != nil {
 		request["start_t"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_t", request, paramsPaginate, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsPaginate, 0.001)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRateHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -2800,9 +2798,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if isTrigger != nil && *isTrigger == true {
 		request["algo_type"] = "STOP"
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_t", request, paramsOmitted)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsOmitted)
 	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
@@ -3069,9 +3065,7 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["size"] = 500
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_t", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 	//

@@ -4724,9 +4724,7 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endDate", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountFundingHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -5036,9 +5034,7 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, params, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params, 0.001)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostConvertHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -5174,9 +5170,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol string, optio
 	if limit != nil {
 		request["limit"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endDate", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
 	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -5455,9 +5449,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	if since != nil {
 		request["startDate"] = MathRound(Divide(since, 1000))
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
 	if limit != nil {
 		AddElementToObject(requestUntil, "limit", limit)
 	}
