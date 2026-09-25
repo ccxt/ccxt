@@ -2710,7 +2710,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             return await this.CreateSpotOrder(market, type, side, amount, price, marginMode, query);
@@ -3140,7 +3140,7 @@ public partial class mexc : Exchange
             object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, "clientOrderId") : parameters;
             IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", paramsOmitted);
             string? marginMode = (string)marginModequeryVariable[0];
-            var query = marginModequeryVariable[1];
+            IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
             if ((marginMode != null))
             {
                 if (!(marginMode == "isolated"))
@@ -3235,7 +3235,7 @@ public partial class mexc : Exchange
             }
             IList<object> marginModequeryInnerVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", paramsOmitted);
             string? marginMode = (string)marginModequeryInnerVariable[0];
-            var queryInner = marginModequeryInnerVariable[1];
+            IDictionary<string, object> queryInner = ((IDictionary<string, object>)marginModequeryInnerVariable[1]);
             if ((since != null))
             {
                 request["startTime"] = since;
@@ -3527,7 +3527,7 @@ public partial class mexc : Exchange
             }
             IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
             string? marginMode = (string)marginModequeryVariable[0];
-            var query = marginModequeryVariable[1];
+            IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
             List<object> response = null;
             if ((marginMode != null))
             {
@@ -3696,7 +3696,7 @@ public partial class mexc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         object data = null;
         if ((marketType == "spot"))
         {

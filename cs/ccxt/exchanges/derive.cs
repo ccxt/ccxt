@@ -1615,7 +1615,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("createOrder", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         bool? test = this.safeBool(paramsDeriveSubaccountId, "test", false);
         bool? reduceOnly = this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
@@ -1648,7 +1648,7 @@ public partial class derive : Exchange
         byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_address"), this.parseToNumeric(getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary"));
         IList<object> deriveWalletAddressparamsDeriveWalletAddressVariable = (IList<object>)this.handleDeriveWalletAddress("createOrder", paramsMaxFee);
         var deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[0];
-        var paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[1];
+        IDictionary<string, object> paramsDeriveWalletAddress = ((IDictionary<string, object>)deriveWalletAddressparamsDeriveWalletAddressVariable[1]);
         string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1700,7 +1700,7 @@ public partial class derive : Exchange
             request["label"] = clientOrderId;
         }
         request["signature"] = signature;
-        object paramsOmitted = this.omit(paramsDeriveWalletAddress, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsDeriveWalletAddress, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"});
         Dictionary<string, object> response = null;
         if ((test == true))
         {
@@ -1812,7 +1812,7 @@ public partial class derive : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("editOrder", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         bool? reduceOnly = this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
         bool? postOnly = this.safeBool(paramsDeriveSubaccountId, "postOnly");
@@ -1835,7 +1835,7 @@ public partial class derive : Exchange
         byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_address"), this.parseToNumeric(getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary"));
         IList<object> deriveWalletAddressparamsDeriveWalletAddressVariable = (IList<object>)this.handleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId);
         var deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[0];
-        var paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[1];
+        IDictionary<string, object> paramsDeriveWalletAddress = ((IDictionary<string, object>)deriveWalletAddressparamsDeriveWalletAddressVariable[1]);
         string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1871,7 +1871,7 @@ public partial class derive : Exchange
             request["label"] = clientOrderId;
         }
         request["signature"] = signature;
-        object paramsOmitted = this.omit(paramsDeriveWalletAddress, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsDeriveWalletAddress, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"});
         Dictionary<string, object> response = await this.privatePostReplace(this.extend(request, paramsOmitted));
         //
         //   {
@@ -1980,8 +1980,8 @@ public partial class derive : Exchange
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("cancelOrder", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
-        object paramsOmitted = this.omit(paramsDeriveSubaccountId, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsDeriveSubaccountId, new List<object>() {"trigger", "stop"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "subaccount_id", subaccountId },
@@ -1993,7 +1993,7 @@ public partial class derive : Exchange
         if (isByClientOrder)
         {
             request["label"] = clientOrderIdExchangeSpecific;
-            object paramsLabel = this.omit(paramsOmitted, new List<object>() {"clientOrderId", "label"});
+            Dictionary<string, object> paramsLabel = this.omit(paramsOmitted, new List<object>() {"clientOrderId", "label"});
             response = await this.privatePostCancelByLabel(this.extend(request, paramsLabel));
         } else
         {
@@ -2085,7 +2085,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("cancelAllOrders", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
@@ -2146,7 +2146,7 @@ public partial class derive : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"trigger", "stop"});
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchOrders", paramsOmitted);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
@@ -2483,7 +2483,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchOrderTrades", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
             { "subaccount_id", subaccountId },
@@ -2573,7 +2573,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchMyTrades", paramsPaginate);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
@@ -2662,11 +2662,11 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchPositions", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
-        object paramsOmitted = this.omit(paramsDeriveSubaccountId, new List<object>() {"subaccount_id"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsDeriveSubaccountId, new List<object>() {"subaccount_id"});
         Dictionary<string, object> response = await this.privatePostGetPositions(this.extend(request, paramsOmitted));
         //
         // {
@@ -2819,7 +2819,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchFundingHistory", paramsPaginate);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
@@ -2928,7 +2928,7 @@ public partial class derive : Exchange
         }
         IList<object> deriveWalletAddressparamsDeriveWalletAddressVariable = (IList<object>)this.handleDeriveWalletAddress("fetchBalance", parameters);
         var deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[0];
-        var paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[1];
+        IDictionary<string, object> paramsDeriveWalletAddress = ((IDictionary<string, object>)deriveWalletAddressparamsDeriveWalletAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "wallet", deriveWalletAddress },
         };
@@ -3038,7 +3038,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchDeposits", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
@@ -3092,7 +3092,7 @@ public partial class derive : Exchange
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchWithdrawals", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };

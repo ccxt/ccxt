@@ -3159,7 +3159,7 @@ public partial class hashkey : Exchange
         {
             IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
             bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
-            var paramsTrigger = isTriggerparamsTriggerVariable[1];
+            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
             if (isEqual(isTrigger, true))
             {
                 request["type"] = "STOP";
@@ -3327,7 +3327,7 @@ public partial class hashkey : Exchange
         {
             IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
             bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
-            var paramsTrigger = isTriggerparamsTriggerVariable[1];
+            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
             if (isEqual(isTrigger, true))
             {
                 request["type"] = "STOP";
@@ -3587,7 +3587,7 @@ public partial class hashkey : Exchange
             request["symbol"] = this.safeString(market, "id");
             IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
             bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
-            var paramsTrigger = isTriggerparamsTriggerVariable[1];
+            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
             if (isEqual(isTrigger, true))
             {
                 request["type"] = "STOP";

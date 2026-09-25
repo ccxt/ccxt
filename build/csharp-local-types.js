@@ -12808,7 +12808,7 @@ function element1ParamsBinding (csharp, element) {
     const name = destructuredHandleCallName (call);
     if (name === undefined || !CSHARP_ELEMENT_1_PARAMS.has (name) || call.questionDotToken !== undefined
             || typeof csharp.getChecker !== 'function') {
-        return false;
+        return tupleDictSlotCall (csharp, call);
     }
     let signature;
     try {
@@ -12828,7 +12828,404 @@ function element1ParamsBinding (csharp, element) {
     } catch (e) {
         return false;
     }
-    return CSHARP_ELEMENT_1_BASE_FILE.test (signature?.getSourceFile?.()?.fileName ?? '');
+    return CSHARP_ELEMENT_1_BASE_FILE.test (signature?.getSourceFile?.()?.fileName ?? '') || tupleDictSlotCall (csharp, call);
+}
+
+// Element 1 of any `this.<m> (...)` whose every ts/src declaration is a sync method declaring
+// `[T, Dict]` and returning in slot 1 a fresh dict (object literal / extend / omit of a proven
+// dict) or one of its own params; those params must then be statically Dict at the call site.
+const tupleDictSlotTables = { 'texts': undefined, 'files': new Map (), 'byName': new Map (), 'proofs': new Map () };
+
+function tupleDictSourceTexts () {
+    if (tupleDictSlotTables.texts !== undefined) {
+        return tupleDictSlotTables.texts;
+    }
+    const texts = new Map ();
+    tupleDictSlotTables.texts = texts;
+    try {
+        const walk = (dir) => {
+            for (const entry of fs.readdirSync (dir, { 'withFileTypes': true })) {
+                const full = path.join (dir, entry.name);
+                if (entry.isDirectory ()) {
+                    if (entry.name !== 'node_modules' && entry.name !== 'test') {
+                        walk (full);
+                    }
+                } else if (entry.name.endsWith ('.ts') && !entry.name.endsWith ('.d.ts')) {
+                    texts.set (full, fs.readFileSync (full, 'utf8'));
+                }
+            }
+        };
+        walk (path.join (process.cwd (), 'ts', 'src'));
+    } catch (e) {
+        texts.clear (); // no corpus: nothing proves
+    }
+    return texts;
+}
+
+function tupleDictSourceFile (file) {
+    if (!tupleDictSlotTables.files.has (file)) {
+        const text = tupleDictSourceTexts ().get (file);
+        let sourceFile;
+        try {
+            sourceFile = (text === undefined) ? undefined : ts.createSourceFile (file, text);
+        } catch (e) {
+            sourceFile = undefined;
+        }
+        tupleDictSlotTables.files.set (file, sourceFile);
+    }
+    return tupleDictSlotTables.files.get (file);
+}
+
+function tupleDictMethodsIn (node, name, found) {
+    node?.forEachChild ((child) => {
+        if (child.kind === ts.SyntaxKind.MethodDeclaration && child.name?.text === name) {
+            found.push (child);
+        }
+        tupleDictMethodsIn (child, name, found);
+    });
+    return found;
+}
+
+// every bodied ts/src declaration of the name, or undefined when any other member shape binds it
+function tupleDictDeclarations (name) {
+    if (tupleDictSlotTables.byName.has (name)) {
+        return tupleDictSlotTables.byName.get (name);
+    }
+    const escaped = name.replace (/[$]/g, '\\$');
+    const re = new RegExp ('^\\s+(?:(?:public|protected|private|static|override|async|readonly)\\s+)*' + escaped + '\\s*[(=:<?]', 'm');
+    let found = [];
+    for (const [ file, text ] of tupleDictSourceTexts ()) {
+        if (!re.test (text)) {
+            continue;
+        }
+        const methods = tupleDictMethodsIn (tupleDictSourceFile (file), name, []);
+        if (methods.length === 0) {
+            found = undefined;
+            break;
+        }
+        found.push (...methods.filter ((m) => m.body !== undefined));
+    }
+    const result = (found === undefined || found.length === 0) ? undefined : found;
+    tupleDictSlotTables.byName.set (name, result);
+    return result;
+}
+
+function tupleDictEnclosingClass (node) {
+    let current = node?.parent;
+    while (current !== undefined && current.kind !== ts.SyntaxKind.ClassDeclaration) {
+        current = current.parent;
+    }
+    return current;
+}
+
+// the class a heritage identifier names: same-file class, else the imported module's class
+function tupleDictResolveClass (sourceFile, identifier) {
+    for (const statement of sourceFile.statements ?? []) {
+        if (statement.kind === ts.SyntaxKind.ClassDeclaration && statement.name?.text === identifier) {
+            return statement;
+        }
+    }
+    for (const statement of sourceFile.statements ?? []) {
+        const clause = (statement.kind === ts.SyntaxKind.ImportDeclaration) ? statement.importClause : undefined;
+        if (clause === undefined || clause.isTypeOnly) {
+            continue;
+        }
+        let exported;
+        if (clause.name?.text === identifier) {
+            exported = 'default';
+        }
+        for (const element of clause.namedBindings?.elements ?? []) {
+            if (element.name?.text === identifier) {
+                exported = element.propertyName?.text ?? element.name.text;
+            }
+        }
+        if (exported === undefined) {
+            continue;
+        }
+        const specifier = statement.moduleSpecifier?.text ?? '';
+        if (!specifier.startsWith ('.')) {
+            return undefined;
+        }
+        const target = tupleDictSourceFile (path.resolve (path.dirname (sourceFile.fileName), specifier.replace (/\.js$/, '.ts')));
+        // `export default Name;` re-exports a class declared by name
+        const assignment = (target?.statements ?? []).find ((st) => st.kind === ts.SyntaxKind.ExportAssignment && !st.isExportEquals);
+        if (exported === 'default' && assignment?.expression?.kind === ts.SyntaxKind.Identifier) {
+            exported = assignment.expression.text;
+        }
+        for (const candidate of target?.statements ?? []) {
+            if (candidate.kind !== ts.SyntaxKind.ClassDeclaration) {
+                continue;
+            }
+            const isDefault = (candidate.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.DefaultKeyword);
+            if ((exported === 'default' && isDefault) || (exported !== 'default' && candidate.name?.text === exported)) {
+                return candidate;
+            }
+        }
+        return undefined;
+    }
+    return undefined;
+}
+
+// the declaration `super.<name>` binds from inside a method: the nearest ancestor class declaring it
+function tupleDictSuperDeclaration (method, name) {
+    let owner = tupleDictEnclosingClass (method);
+    for (let depth = 0; owner !== undefined && depth < 8; depth++) {
+        const heritage = (owner.heritageClauses ?? []).find ((h) => h.token === ts.SyntaxKind.ExtendsKeyword);
+        const base = heritage?.types?.[0]?.expression;
+        if (base?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        owner = tupleDictResolveClass (owner.getSourceFile (), base.text);
+        const own = (owner?.members ?? []).filter ((m) => m.kind === ts.SyntaxKind.MethodDeclaration && m.name?.text === name);
+        if (own.length > 0) {
+            const bodied = own.filter ((m) => m.body !== undefined);
+            return (bodied.length === 1) ? bodied[0] : undefined;
+        }
+    }
+    return undefined;
+}
+
+function tupleDictIsAsync (method) {
+    return (method.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword);
+}
+
+function tupleDictUnion (sets) {
+    const result = new Set ();
+    for (const set of sets) {
+        if (set === undefined) {
+            return undefined;
+        }
+        set.forEach ((v) => result.add (v));
+    }
+    return result;
+}
+
+// slot 1 of a tuple-returning `this.<m> (...)` / `super.<m> (...)` inside `method`
+function tupleDictCallSlot (method, call, visiting) {
+    const callee = call?.kind === ts.SyntaxKind.CallExpression ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || call.questionDotToken !== undefined
+            || (call.arguments ?? []).some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+        return undefined;
+    }
+    const name = callee.name?.text;
+    let declarations;
+    if (callee.expression?.kind === ts.SyntaxKind.SuperKeyword) {
+        const target = tupleDictSuperDeclaration (method, name);
+        declarations = (target === undefined) ? undefined : [ target ];
+    } else if (callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+        declarations = tupleDictDeclarations (name);
+    }
+    if (declarations === undefined) {
+        return undefined;
+    }
+    const sets = [];
+    for (const declaration of declarations) {
+        const passed = tupleDictDeclarationSlot (declaration);
+        if (passed === undefined) {
+            return undefined;
+        }
+        for (const index of passed) {
+            const argument = call.arguments?.[index];
+            if (argument !== undefined) {
+                sets.push (tupleDictExpression (method, argument, visiting));
+            } else if (unwrapPassthroughExpression (declaration.parameters[index]?.initializer)?.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+                return undefined;
+            }
+        }
+    }
+    return tupleDictUnion (sets);
+}
+
+// the parameter indices slot 1 may hand back (empty: always a fresh dict), undefined when unproven
+function tupleDictDeclarationSlot (declaration) {
+    const proofs = tupleDictSlotTables.proofs;
+    if (proofs.has (declaration)) {
+        return proofs.get (declaration);
+    }
+    proofs.set (declaration, undefined); // recursion proves nothing
+    let result = undefined;
+    if (!tupleDictIsAsync (declaration) && declaration.body !== undefined) {
+        const sets = [];
+        const visit = (node) => {
+            if (node !== declaration && isFunctionScope (node)) {
+                return;
+            }
+            if (node.kind === ts.SyntaxKind.ReturnStatement) {
+                const value = unwrapPassthroughExpression (node.expression);
+                if (value?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+                    const slot = value.elements?.[1];
+                    sets.push ((value.elements.length === 2 && slot.kind !== ts.SyntaxKind.SpreadElement) ? tupleDictExpression (declaration, slot, new Set ()) : undefined);
+                } else {
+                    sets.push (tupleDictCallSlot (declaration, value, new Set ()));
+                }
+                return;
+            }
+            node.forEachChild (visit);
+        };
+        declaration.body.forEachChild (visit);
+        result = (sets.length === 0) ? undefined : tupleDictUnion (sets);
+    }
+    proofs.set (declaration, result);
+    return result;
+}
+
+function tupleDictExpression (method, expression, visiting) {
+    const node = unwrapPassthroughExpression (expression);
+    switch (node?.kind) {
+    case ts.SyntaxKind.ObjectLiteralExpression:
+        return new Set ();
+    case ts.SyntaxKind.ConditionalExpression:
+        return tupleDictUnion ([ tupleDictExpression (method, node.whenTrue, visiting), tupleDictExpression (method, node.whenFalse, visiting) ]);
+    case ts.SyntaxKind.Identifier:
+        return tupleDictIdentifier (method, node.text, visiting);
+    case ts.SyntaxKind.CallExpression: {
+        const callee = node.expression;
+        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        if (callee.name?.text === 'extend' || callee.name?.text === 'deepExtend') {
+            return new Set (); // Exchange.Generic.cs: both return a Dictionary<string, object>
+        }
+        // omit hands back a fresh dict for any dictionary receiver
+        return (callee.name?.text === 'omit' && node.arguments?.length > 0) ? tupleDictExpression (method, node.arguments[0], visiting) : undefined;
+    }
+    }
+    return undefined;
+}
+
+// every value a method-local name (or parameter) can hold, flow-insensitively
+function tupleDictIdentifier (method, name, visiting) {
+    if (visiting.has (name)) {
+        return new Set ();
+    }
+    visiting.add (name);
+    const sets = [];
+    const index = (method.parameters ?? []).findIndex ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === name);
+    if (index >= 0) {
+        sets.push ((method.parameters[index].dotDotDotToken === undefined) ? new Set ([ index ]) : undefined);
+    }
+    const returnsAfter = (position) => {
+        let ok = true;
+        const visit = (node) => {
+            if (node !== method && isFunctionScope (node)) {
+                return;
+            }
+            if (node.kind === ts.SyntaxKind.ReturnStatement && node.pos < position) {
+                ok = false;
+            }
+            node.forEachChild (visit);
+        };
+        method.body.forEachChild (visit);
+        return ok;
+    };
+    const visit = (node) => {
+        if (node.kind === ts.SyntaxKind.VariableDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === name) {
+            if (node.initializer !== undefined && !isUndefinedLiteral (node.initializer)) {
+                sets.push (tupleDictExpression (method, node.initializer, visiting));
+            } else {
+                // `let x = undefined`: every return must follow a top-level statement that writes x
+                const statement = node.parent?.parent;
+                const later = (statement?.parent === method.body) ? method.body.statements.slice (method.body.statements.indexOf (statement) + 1) : [];
+                const writer = later.find ((s) => s.kind === ts.SyntaxKind.ExpressionStatement && s.expression.kind === ts.SyntaxKind.BinaryExpression
+                    && s.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken && tupleDictTargets (s.expression.left, name));
+                sets.push ((writer !== undefined && returnsAfter (writer.end)) ? new Set () : undefined);
+            }
+        } else if (node.kind === ts.SyntaxKind.BindingElement && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === name) {
+            const pattern = node.parent;
+            const holder = pattern?.parent;
+            const ok = pattern?.kind === ts.SyntaxKind.ArrayBindingPattern && pattern.elements.indexOf (node) === 1
+                && node.initializer === undefined && holder?.kind === ts.SyntaxKind.VariableDeclaration;
+            sets.push (ok ? tupleDictCallSlot (method, holder.initializer, visiting) : undefined);
+        } else if (node.kind === ts.SyntaxKind.Parameter && node.parent !== method && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === name) {
+            sets.push (undefined); // shadowed in a nested function
+        } else if (node.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (node.operatorToken.kind) && tupleDictTargets (node.left, name)) {
+            const left = unwrapPassthroughExpression (node.left);
+            if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+                sets.push (undefined);
+            } else if (left.kind === ts.SyntaxKind.Identifier) {
+                sets.push (tupleDictExpression (method, node.right, visiting));
+            } else {
+                const at = left.elements.findIndex ((e) => e.kind === ts.SyntaxKind.Identifier && e.text === name);
+                sets.push ((at === 1 && left.elements.filter ((e) => e.kind === ts.SyntaxKind.Identifier && e.text === name).length === 1) ? tupleDictCallSlot (method, unwrapPassthroughExpression (node.right), visiting) : undefined);
+            }
+        } else if ((node.kind === ts.SyntaxKind.PrefixUnaryExpression || node.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                && node.operand?.kind === ts.SyntaxKind.Identifier && node.operand.text === name) {
+            sets.push (undefined);
+        } else if (node.kind === ts.SyntaxKind.ShorthandPropertyAssignment && node.name?.text === name) {
+            sets.push (undefined); // possible object-destructuring write
+        }
+        node.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    visiting.delete (name);
+    return (sets.length === 0) ? undefined : tupleDictUnion (sets);
+}
+
+// does an assignment target write the name (bare identifier or array-literal destructuring)?
+function tupleDictTargets (target, name) {
+    const node = unwrapPassthroughExpression (target);
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        return node.text === name;
+    }
+    if (node?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return node.elements.some ((e) => tupleDictTargets (e, name) || (e.kind === ts.SyntaxKind.SpreadElement && tupleDictTargets (e.expression, name)));
+    }
+    return false;
+}
+
+function tupleDictDeclaresSlot (declaration) {
+    const slot = (declaration.type?.kind === ts.SyntaxKind.TupleType) ? declaration.type.elements?.[1] : undefined;
+    return slot?.kind === ts.SyntaxKind.TypeReference && slot.typeName?.kind === ts.SyntaxKind.Identifier && slot.typeName.text === 'Dict';
+}
+
+// the call-site half: every declaration declares Dict in slot 1 and proves it; each param it can
+// hand back is bound to a statically Dict argument (or its own `{}` default)
+function tupleDictSlotCall (csharp, call) {
+    const callee = call?.kind === ts.SyntaxKind.CallExpression ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || call.questionDotToken !== undefined || typeof csharp.getChecker !== 'function'
+            || (call.arguments ?? []).some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+        return false;
+    }
+    const declarations = tupleDictDeclarations (callee.name?.text ?? '');
+    if (declarations === undefined || !declarations.every (tupleDictDeclaresSlot)) {
+        return false;
+    }
+    try {
+        const resolved = csharp.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        const file = (resolved?.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+        if (resolved?.name?.text !== callee.name.text || !file.includes ('ts/src/') || file.includes ('ts/src/test/')) {
+            return false;
+        }
+        for (const declaration of declarations) {
+            const passed = tupleDictDeclarationSlot (declaration);
+            if (passed === undefined) {
+                return false;
+            }
+            for (const index of passed) {
+                const argument = call.arguments?.[index];
+                if (argument === undefined) {
+                    if (unwrapPassthroughExpression (declaration.parameters[index]?.initializer)?.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+                        return false;
+                    }
+                    continue;
+                }
+                const argType = csharp.getChecker ().getTypeAtLocation (argument);
+                if (argType === undefined || (argType.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+                    return false;
+                }
+                const argDeclaration = csharp.getChecker ().getSymbolAtLocation (argument)?.valueDeclaration?.resolve ();
+                if (argDeclaration?.kind === ts.SyntaxKind.BindingElement && argDeclaration.parent?.elements?.indexOf (argDeclaration) === 1
+                        && argDeclaration.parent.parent?.initializer?.kind === ts.SyntaxKind.CallExpression
+                        && !element1ParamsBinding (csharp, argDeclaration)) {
+                    return false;
+                }
+            }
+        }
+    } catch (e) {
+        return false;
+    }
+    return true;
 }
 
 // is this identifier a read of a typed element-1 binding (omit receiver proof)?
@@ -12842,8 +13239,11 @@ function element1ParamsRead (csharp, node) {
     } catch (e) {
         return false;
     }
-    return element1ParamsBinding (csharp, declaration);
+    return element1TypedBindings.has (declaration);
 }
+
+// binding elements whose declaration line was printed typed: the one proof omit receivers read
+const element1TypedBindings = new WeakSet ();
 
 function retypeElement1Params (csharp, declaration, printed) {
     const element = declaration.name?.elements?.[1];
@@ -12851,8 +13251,12 @@ function retypeElement1Params (csharp, declaration, printed) {
         return printed;
     }
     const name = csharp.printNode (element.name, 0);
-    // the last tuple element is printed without its `;` (the statement printer adds it)
-    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\])(;?)$', 'm');
+    // the read is `tmp[1]` or `((IList<object>) tmp)[1]`; the last element has no `;` yet
+    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\]|\\(\\(IList<object>\\) \\w+Variable\\)\\[1\\])(;?)$', 'm');
+    if (!re.test (printed)) {
+        return printed;
+    }
+    element1TypedBindings.add (element);
     return printed.replace (re, (all, indent, read, semi) => indent + CSHARP_ELEMENT_1_TYPE + ' ' + name + ' = ((' + CSHARP_ELEMENT_1_TYPE + ')' + read + ')' + semi);
 }
 
@@ -13558,7 +13962,7 @@ export function installCsharpLocalTypes (transpiler) {
         if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
             const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
             if (destructuredHandleCallName (declaration.initializer) === undefined) {
-                return (destructuredAuditedCallName (declaration.initializer) === undefined) ? printed : retypeDestructuredElement0 (csharp, scope, declaration, printed);
+                return retypeElement1Params (csharp, declaration, (destructuredAuditedCallName (declaration.initializer) === undefined) ? printed : retypeDestructuredElement0 (csharp, scope, declaration, printed));
             }
             return retypeElement1Params (csharp, declaration, retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed));
         }

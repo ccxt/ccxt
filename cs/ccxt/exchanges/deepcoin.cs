@@ -1876,7 +1876,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> orderTypeparamsOrderTypeVariable = (IList<object>)this.handleTypePostOnlyAndTimeInForce(type, parameters);
         var orderType = orderTypeparamsOrderTypeVariable[0];
-        var paramsOrderType = orderTypeparamsOrderTypeVariable[1];
+        IDictionary<string, object> paramsOrderType = ((IDictionary<string, object>)orderTypeparamsOrderTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
@@ -1939,7 +1939,7 @@ public partial class deepcoin : Exchange
         } else
         {
             request["sz"] = this.amountToPrecision(symbol, amount);
-            object paramsOmitted = this.omit(paramsOrderType, keysToOmit);
+            Dictionary<string, object> paramsOmitted = this.omit(paramsOrderType, keysToOmit);
             IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsOmitted, "cross");
             string? marginMode = (string)marginModeparamsMarginModeVariable[0];
             IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);

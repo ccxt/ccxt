@@ -2342,7 +2342,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         bool isMargin = ((marginMode != null)) || ((marketType == "margin"));
         if ((marketType == "swap"))
         {
@@ -2775,7 +2775,7 @@ public partial class coinex : Exchange
         {
             IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
             string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
             if ((marginMode != null))
             {
                 request["market_type"] = "MARGIN";
@@ -3158,7 +3158,7 @@ public partial class coinex : Exchange
         }
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("editOrder", paramsOmitted);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             if ((marginMode != null))
@@ -3322,7 +3322,7 @@ public partial class coinex : Exchange
         };
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", parameters);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         if ((swap == true))
         {
             request["market_type"] = "FUTURES";
@@ -3337,7 +3337,7 @@ public partial class coinex : Exchange
             }
         }
         string? clientOrderId = this.safeString2(paramsMarginMode, "client_id", "clientOrderId");
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"stop", "trigger", "clientOrderId"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"stop", "trigger", "clientOrderId"});
         Dictionary<string, object> response = null;
         if ((clientOrderId != null))
         {
@@ -3432,7 +3432,7 @@ public partial class coinex : Exchange
         {
             IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrders", parameters);
             string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
             if ((marginMode != null))
             {
                 request["market_type"] = "MARGIN";
@@ -3553,7 +3553,7 @@ public partial class coinex : Exchange
         {
             IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrdersByStatus", paramsMarketType);
             string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
             if ((marginMode != null))
             {
                 request["market_type"] = "MARGIN";
@@ -3800,7 +3800,7 @@ public partial class coinex : Exchange
         {
             IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", paramsUntil);
             string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
             if ((marginMode != null))
             {
                 ((IDictionary<string,object>)requestUntil)["market_type"] = "MARGIN";
@@ -4138,7 +4138,7 @@ public partial class coinex : Exchange
         }
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, "cross");
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         Int64? minLeverage = this.safeInteger(getValue((market.ContainsKey("limits") ? market["limits"] : null), "leverage"), "min", 1);
         Int64? maxLeverage = this.safeInteger(getValue((market.ContainsKey("limits") ? market["limits"] : null), "leverage"), "max", 100);
         if ((isLessThan(leverage, minLeverage)) || (isGreaterThan(leverage, maxLeverage)))
@@ -5084,7 +5084,7 @@ public partial class coinex : Exchange
         };
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchTransfers", parameters);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         if ((marginMode != null))
         {
             request["transfer_type"] = "MARGIN";

@@ -1700,7 +1700,7 @@ public partial class cryptocom : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsValueVariable = (IList<object>)this.customHandleMarginModeAndParams("createOrder", paramsMarketType);
         var marginMode = marginModeparamsValueVariable[0];
-        var paramsValue = marginModeparamsValueVariable[1];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)marginModeparamsValueVariable[1]);
         if (((marketType == "margin")) || ((marginMode != null)))
         {
             request["spot_margin"] = "MARGIN";
@@ -1808,7 +1808,7 @@ public partial class cryptocom : Exchange
         {
             request["type"] = uppercaseType;
         }
-        object paramsOmitted = this.omit(paramsValue, new List<object>() {"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsValue, new List<object>() {"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         return this.extend(request, paramsOmitted);
     }
 

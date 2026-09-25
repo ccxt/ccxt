@@ -744,7 +744,7 @@ public partial class deepcoin : ccxt.deepcoin
         string messageHash = (("orderbook" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         var suffixparamsValueVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
         var suffix = suffixparamsValueVariable[0];
-        var paramsValue = suffixparamsValueVariable[1];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)suffixparamsValueVariable[1]);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(market, messageHash, "25", paramsValue, suffix));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -770,7 +770,7 @@ public partial class deepcoin : ccxt.deepcoin
         string messageHash = (("orderbook" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         var suffixparamsValueVariable = this.orderBookSuffix(market, "unWatchOrderBook", parameters);
         var suffix = suffixparamsValueVariable[0];
-        var paramsValue = suffixparamsValueVariable[1];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)suffixparamsValueVariable[1]);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "orderbook" },
         };

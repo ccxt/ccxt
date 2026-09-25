@@ -1136,10 +1136,10 @@ public partial class dydx : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         IList<object> subAccountNumberparamsSubAccountNumberVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
         string? subAccountNumber = (string)subAccountNumberparamsSubAccountNumberVariable[0];
-        var paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable[1];
+        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1326,10 +1326,10 @@ public partial class dydx : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         IList<object> subAccountNumberparamsSubAccountNumberVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
         string? subAccountNumber = (string)subAccountNumberparamsSubAccountNumberVariable[0];
-        var paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable[1];
+        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2610,7 +2610,7 @@ public partial class dydx : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchAccounts", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
         };
@@ -2693,10 +2693,10 @@ public partial class dydx : Exchange
         }
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchBalance", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         IList<object> subaccountNumberparamsSubaccountNumberVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0);
         Int64? subaccountNumber = (Int64?)subaccountNumberparamsSubaccountNumberVariable[0];
-        var paramsSubaccountNumber = subaccountNumberparamsSubaccountNumberVariable[1];
+        IDictionary<string, object> paramsSubaccountNumber = ((IDictionary<string, object>)subaccountNumberparamsSubaccountNumberVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
             { "subaccountNumber", subaccountNumber },
