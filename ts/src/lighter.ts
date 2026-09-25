@@ -697,6 +697,7 @@ export default class lighter extends Exchange {
         //
         const tier = this.safeString (accountLimits, 'user_tier');
         const isStandard = (tier === 'standard');
+        this.options['isStandardAccountTier'] = isStandard;
         return isStandard;
     }
 
