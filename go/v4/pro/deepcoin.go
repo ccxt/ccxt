@@ -345,12 +345,12 @@ func (this *Deepcoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Deepcoin) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deepcoin) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -524,12 +524,12 @@ func (this *Deepcoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Deepcoin) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deepcoin) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -676,12 +676,12 @@ func (this *Deepcoin) HandleTakerOrMaker(matchRole any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Deepcoin) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deepcoin) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -723,12 +723,12 @@ func (this *Deepcoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Deepcoin) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deepcoin) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -868,12 +868,12 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Deepcoin) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

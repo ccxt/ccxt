@@ -448,12 +448,12 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mudrex) FetchMarkOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchMarkOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarkOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -928,12 +928,12 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {string} [params.trade_currency] the settlement currency for the order
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1599,12 +1599,12 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	side := GetArg(optionalArgs, 0, nil)
@@ -1674,12 +1674,12 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
  */
-func (this *Mudrex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Mudrex) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1726,12 +1726,12 @@ func (this *Mudrex) addMarginBody(ch chan any, symbol any, amount any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
  */
-func (this *Mudrex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Mudrex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

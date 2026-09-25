@@ -15,7 +15,7 @@ func testFetchMarketLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, 
 	defer ReturnPanicError(ch)
 	var method string = "fetchMarketLeverageTiers"
 
-	tiers := (<-exchange.FetchMarketLeverageTiersAsync(symbol))
+	tiers := (<-exchange.FetchMarketLeverageTiersAsync(StringArg(symbol)))
 	PanicOnError(tiers)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol)
 	for j := 0; j < GetArrayLength(tiers); j++ {

@@ -193,12 +193,12 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitget) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -614,12 +614,12 @@ func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) a
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitget) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -688,12 +688,12 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitget) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -928,12 +928,12 @@ func (this *Bitget) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitget) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -956,12 +956,12 @@ func (this *Bitget) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, channel, "orderbook", "watchOrderBook", paramsOmitted)))
 	return nil
 }
-func (this *Bitget) UnWatchChannelAsync(symbol any, channel any, messageHashTopic any, methodName string, optionalArgs ...any) <-chan any {
+func (this *Bitget) UnWatchChannelAsync(symbol string, channel any, messageHashTopic any, methodName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchChannelBody(ch, symbol, channel, messageHashTopic, methodName, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, messageHashTopic any, methodName string, optionalArgs ...any) any {
+func (this *Bitget) unWatchChannelBody(ch chan any, symbol string, channel any, messageHashTopic any, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1221,7 +1221,7 @@ func (this *Bitget) handleCheckSumErrorBody(ch chan any, client any, symbol any,
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	ccxt.PanicOnError((<-this.UnWatchOrderBookAsync(symbol)))
+	ccxt.PanicOnError((<-this.UnWatchOrderBookAsync(ccxt.StringArg(symbol))))
 	error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 	client.(ccxt.ClientInterface).Reject(error, messageHash)
 	return nil
@@ -1387,12 +1387,12 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {any} status of the unwatch request
  */
-func (this *Bitget) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

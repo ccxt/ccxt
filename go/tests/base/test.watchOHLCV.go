@@ -52,7 +52,7 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 				}()
 				// try block:
 
-				response = (UnWrapType(<-exchange.WatchOHLCVAsync(symbol, chosenTimeframeKey, since, limit)))
+				response = (UnWrapType(<-exchange.WatchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)))
 				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))

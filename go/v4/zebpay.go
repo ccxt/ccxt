@@ -1370,12 +1370,12 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.positionId] PositionId of the order.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Zebpay) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1444,7 +1444,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Zebpay) OrderRequest(symbol any, typeVar string, amount any, request any, optionalArgs ...any) any {
+func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1810,12 +1810,12 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) any {
  * @param {string} [params.positionId] client order id of the order
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Zebpay) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Zebpay) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2031,12 +2031,12 @@ func (this *Zebpay) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.timestamp] Tiemstamp.
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Zebpay) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Zebpay) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2091,12 +2091,12 @@ func (this *Zebpay) addMarginBody(ch chan any, symbol any, amount any, optionalA
  * @param {string} [params.timestamp] Tiemstamp.
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Zebpay) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Zebpay) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

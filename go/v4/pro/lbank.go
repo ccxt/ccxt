@@ -92,12 +92,12 @@ func (this *Lbank) CheckContractMarket(market any, methodName string) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Lbank) FetchOHLCVWsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -150,12 +150,12 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Lbank) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lbank) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lbank) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -294,12 +294,12 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Lbank) FetchTickerWsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchTickerWsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lbank) fetchTickerWsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -456,12 +456,12 @@ func (this *Lbank) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lbank) FetchTradesWsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchTradesWsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradesWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lbank) fetchTradesWsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -933,12 +933,12 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
-func (this *Lbank) FetchOrderBookWsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchOrderBookWsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

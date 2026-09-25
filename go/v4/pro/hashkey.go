@@ -117,12 +117,12 @@ func (this *Hashkey) GetPrivateUrl(listenKey any) any {
  * @param {bool} [params.binary] true or false - default false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hashkey) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hashkey) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hashkey) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

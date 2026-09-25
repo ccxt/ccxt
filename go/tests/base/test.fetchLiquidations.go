@@ -20,7 +20,7 @@ func testFetchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 		return nil
 	}
 
-	items := (<-exchange.FetchLiquidationsAsync(code))
+	items := (<-exchange.FetchLiquidationsAsync(StringArg(code)))
 	PanicOnError(items)
 	Assert(IsArray(items), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), code), " must return an array. "), exchange.Json(items)))
 	// const now = exchange.Getmilliseconds() ();

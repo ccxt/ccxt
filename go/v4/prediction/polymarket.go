@@ -2044,12 +2044,12 @@ func (this *Polymarket) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-func (this *Polymarket) FetchOpenInterestAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Polymarket) FetchOpenInterestAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2060,7 +2060,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome any, optional
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
-		panic(ccxt.BadRequest(ccxt.Add(this.Id+" fetchOpenInterest() requires outcome.info.conditionId for ", outcome)))
+		panic(ccxt.BadRequest(this.Id + " fetchOpenInterest() requires outcome.info.conditionId for " + outcome))
 	}
 	var request map[string]any = map[string]any{
 		"market": conditionId,
@@ -2797,12 +2797,12 @@ func (this *Polymarket) ParseOrderStatus(status *string) *string {
  * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Polymarket) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Polymarket) createOrderBody(ch chan any, outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3100,12 +3100,12 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) CreateMarketBuyOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <-chan any {
+func (this *Polymarket) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome any, cost any, optionalArgs ...any) any {
+func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

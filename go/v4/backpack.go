@@ -1367,12 +1367,12 @@ func (this *Backpack) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
  */
-func (this *Backpack) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Backpack) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1383,7 +1383,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	}
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
-		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
+		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -2218,12 +2218,12 @@ func (this *Backpack) ParseDepositAddress(depositAddress any, optionalArgs ...an
  * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Backpack) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Backpack) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

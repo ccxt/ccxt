@@ -2370,12 +2370,12 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
  * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Delta) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3418,12 +3418,12 @@ func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Delta) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Delta) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Delta) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3444,12 +3444,12 @@ func (this *Delta) addMarginBody(ch chan any, symbol any, amount any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Delta) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Delta) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Delta) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3459,12 +3459,12 @@ func (this *Delta) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	ch <- BoxAbsent(retRes291915)
 	return nil
 }
-func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
+func (this *Delta) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Delta) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3561,12 +3561,12 @@ func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Delta) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4004,12 +4004,12 @@ func (this *Delta) ParseSettlements(settlements []any, market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
-func (this *Delta) FetchGreeksAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchGreeksBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchGreeksBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4347,12 +4347,12 @@ func (this *Delta) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
-func (this *Delta) FetchOptionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchOptionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOptionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchOptionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

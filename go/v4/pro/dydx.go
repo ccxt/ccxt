@@ -103,12 +103,12 @@ func (this *Dydx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Dydx) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Dydx) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Dydx) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -253,12 +253,12 @@ func (this *Dydx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Dydx) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Dydx) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -344,12 +344,12 @@ func (this *Dydx) HandleDelta(bookside any, delta any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Dydx) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Dydx) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Dydx) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -395,12 +395,12 @@ func (this *Dydx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Dydx) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Dydx) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

@@ -573,12 +573,12 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoin) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1205,12 +1205,12 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kucoin) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1278,12 +1278,12 @@ func (this *Kucoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kucoin) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1643,12 +1643,12 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan any, symbols any, option
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Kucoin) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1889,12 +1889,12 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Kucoin) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3923,12 +3923,12 @@ func (this *Kucoin) ParseWsUtaPosition(position map[string]any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Kucoin) WatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) watchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3954,12 +3954,12 @@ func (this *Kucoin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Kucoin) UnWatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) unWatchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4057,12 +4057,12 @@ func (this *Kucoin) ParseWsFundingRate(data map[string]any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoin) WatchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) WatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) watchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4088,12 +4088,12 @@ func (this *Kucoin) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoin) UnWatchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) UnWatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) unWatchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

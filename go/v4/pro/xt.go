@@ -446,12 +446,12 @@ func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) an
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
-func (this *Xt) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -578,12 +578,12 @@ func (this *Xt) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Xt) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -622,12 +622,12 @@ func (this *Xt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Xt) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -704,12 +704,12 @@ func (this *Xt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) an
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
-func (this *Xt) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -783,12 +783,12 @@ func (this *Xt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {int} [params.levels] 5, 10, 20, or 50
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
-func (this *Xt) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1002,12 +1002,12 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
  */
-func (this *Xt) WatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) watchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1035,12 +1035,12 @@ func (this *Xt) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
  */
-func (this *Xt) UnWatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) unWatchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

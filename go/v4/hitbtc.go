@@ -2971,12 +2971,12 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
  * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4016,12 +4016,12 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
  */
-func (this *Hitbtc) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4151,12 +4151,12 @@ func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 nil,
 	}
 }
-func (this *Hitbtc) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4279,12 +4279,12 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {bool} [params.margin] true for reducing spot-margin
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hitbtc) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4311,12 +4311,12 @@ func (this *Hitbtc) reduceMarginBody(ch chan any, symbol any, amount any, option
  * @param {bool} [params.margin] true for adding spot-margin
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hitbtc) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4612,12 +4612,12 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
  * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)

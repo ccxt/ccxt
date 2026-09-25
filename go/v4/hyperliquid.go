@@ -2605,12 +2605,12 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan any, abstraction any, o
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2646,12 +2646,12 @@ func (this *Hyperliquid) createOrderBody(ch chan any, symbol any, typeVar string
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateTwapOrderAsync(symbol any, side string, amount any, duration any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side string, amount any, duration any, optionalArgs ...any) any {
+func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol string, side string, amount any, duration any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5064,12 +5064,12 @@ func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hyperliquid) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5092,12 +5092,12 @@ func (this *Hyperliquid) addMarginBody(ch chan any, symbol any, amount any, opti
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hyperliquid) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5107,12 +5107,12 @@ func (this *Hyperliquid) reduceMarginBody(ch chan any, symbol any, amount any, o
 	ch <- BoxAbsent(retRes408815)
 	return nil
 }
-func (this *Hyperliquid) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5976,12 +5976,12 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan any, optionalArgs ...any
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Hyperliquid) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

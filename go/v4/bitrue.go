@@ -2219,12 +2219,12 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitrue) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Bitrue) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2268,12 +2268,12 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
  * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitrue) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitrue) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2361,7 +2361,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
 		if !this.InArray(uppercaseType, validOrderTypes) {
-			panic(InvalidOrder(Add(this.Id+" "+typeVar+" is not a valid order type in market ", symbol)))
+			panic(InvalidOrder(this.Id + " " + typeVar + " is not a valid order type in market " + symbol))
 		}
 		var clientOrderId *string = this.SafeString2(params, "newClientOrderId", "clientOrderId")
 		if clientOrderId != nil {

@@ -15,7 +15,7 @@ func testFetchOpenInterestHistoryBody(ch chan any, exchange ccxt.ICoreExchange, 
 	defer ReturnPanicError(ch)
 	var method string = "fetchOpenInterestHistory"
 
-	openInterestHistory := (<-exchange.FetchOpenInterestHistoryAsync(symbol))
+	openInterestHistory := (<-exchange.FetchOpenInterestHistoryAsync(StringArg(symbol)))
 	PanicOnError(openInterestHistory)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol)
 	for i := 0; i < GetArrayLength(openInterestHistory); i++ {

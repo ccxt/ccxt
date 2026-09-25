@@ -2061,12 +2061,12 @@ func (this *Tokocrypto) ParseOrderType(status *string) *string {
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Tokocrypto) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Tokocrypto) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2107,7 +2107,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string,
 	var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeResolved), " orders")))
+			panic(InvalidOrder(Add(Add(this.Id+" triggerPrice parameter is not allowed for "+symbol+" ", typeResolved), " orders")))
 		} else {
 			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeResolved), " is not a valid order type for the "), symbol), " market")))
 		}
