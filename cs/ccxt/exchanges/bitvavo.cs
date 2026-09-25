@@ -908,7 +908,7 @@ public partial class bitvavo : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
         }
@@ -1265,7 +1265,7 @@ public partial class bitvavo : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1440));
         }
@@ -2157,7 +2157,7 @@ public partial class bitvavo : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate));
         }
@@ -2442,7 +2442,7 @@ public partial class bitvavo : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
         }

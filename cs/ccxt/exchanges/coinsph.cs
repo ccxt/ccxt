@@ -1652,7 +1652,7 @@ public partial class coinsph : Exchange
                 if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                } else if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if ((price == null))
                     {

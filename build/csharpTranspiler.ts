@@ -482,6 +482,10 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
             text: `(${valueNullTest} && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
     }
     csharpHelperOperatorEdits (original, masked, takeType, edits, objectNull);
+    // only in the final pass, after the identifier-copy retypes (they read isTrue on `object` names)
+    if (objectNull) {
+        csharpHelperTruthEdits (original, masked, takeType, edits);
+    }
     if (edits.length === 0) {
         return undefined;
     }
@@ -581,7 +585,7 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
 }
 
 // a line that may carry a call one of the rewrites above takes
-const CSHARP_HELPER_LINE_RE = /getArrayLength|inOp|getValue|isEqual|isGreaterThan|isLessThan/;
+const CSHARP_HELPER_LINE_RE = /getArrayLength|inOp|getValue|isEqual|isGreaterThan|isLessThan|isTrue/;
 
 // the operator helper calls of one line whose operands the emitted declarations prove
 function csharpHelperOperatorEdits (original: string, masked: string, takeType, edits, objectNull: boolean) {
@@ -600,6 +604,27 @@ function csharpHelperOperatorEdits (original: string, masked: string, takeType, 
         const right = csharpOperatorOperand (masked.substring (comma + 1, close).trim (), rightText, takeType);
         if ((left === undefined) || (right === undefined)) continue;
         const text = csharpNativeOperatorText (match[1], left, right, leftText, rightText, objectNull);
+        if (text !== undefined) {
+            edits.push ({ start: match.index, end: close + 1, text });
+        }
+    }
+}
+
+// `isTrue(x)` on a name the emitted text declares `bool` -> `x` (the bool overload is identity) and
+// `bool?` -> `(x == true)` (the boxed null / false / true answer isTrue(object)'s false / false / true)
+function csharpHelperTruthEdits (original: string, masked: string, takeType, edits) {
+    const truthCall = /(?<![A-Za-z0-9_.])isTrue\(/g;
+    let match;
+    while ((match = truthCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const name = masked.substring (open + 1, close).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'null') || (name === 'true') || (name === 'false')) continue;
+        if (edits.some ((e) => (e.start < close + 1) && (match.index < e.end))) continue;
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        const text = (receiver.type === 'bool') ? name : ((receiver.type === 'bool?') ? `(${name} == true)` : undefined);
         if (text !== undefined) {
             edits.push ({ start: match.index, end: close + 1, text });
         }
@@ -2038,6 +2063,8 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
     'spotOrderPrepareRequest',
     'subscribe', 'toEp', 'toEv', 'toSandboxMarketId', 'unSubscribe', 'unWatch', 'unWatchPublic',
     'unsubscribePublic', 'watchPublic', 'wathPublic',
+    // row builders whose every caller passes null, a dictionary or an admitted name's own `market`
+    'fromEr', 'parseContractTrade', 'parseSpotOrUtaTrade',
 ];
 
 // the emitted declaration line the pass rewrites, and the `market` parameter inside it (with and

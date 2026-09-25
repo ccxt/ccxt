@@ -3331,7 +3331,7 @@ class grvt extends Exchange {
         return $this->convert_to_big_int_custom('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    public function create_signed_request(mixed $request, string $structureType, ?array $currencyObj = null, ?string $signerAddress = null): array {
+    public function create_signed_request(array $request, string $structureType, ?array $currencyObj = null, ?string $signerAddress = null): array {
         $messageData = null;
         if ($structureType === 'EIP712_TRANSFER_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');

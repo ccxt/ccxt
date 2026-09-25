@@ -3136,7 +3136,7 @@ public partial class okx : Exchange
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
         object limitResolved = requestedLimit;
-        if (isTrue(rpi) && (isGreaterThan(requestedLimit, 400)))
+        if ((rpi == true) && (isGreaterThan(requestedLimit, 400)))
         {
             limitResolved = 400;
         }
@@ -3145,7 +3145,7 @@ public partial class okx : Exchange
             request["sz"] = limitResolved; // max 400
         }
         Dictionary<string, object> response = null;
-        if (isTrue(rpi))
+        if ((rpi == true))
         {
             response = await this.publicGetMarketBooksRpi(this.extend(request, paramsMethod));
         } else if (((method == "publicGetMarketBooksFull")) || (isGreaterThan(limitResolved, 400)))
@@ -3583,7 +3583,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", null, 100));
         }
@@ -3705,7 +3705,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 200));
         }
@@ -3840,7 +3840,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100));
         }
@@ -4391,7 +4391,7 @@ public partial class okx : Exchange
                     IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
                     object notional = this.safeNumber2(paramsRequiresPrice, "cost", "sz");
                     orderParams = this.omit(paramsRequiresPrice, new List<object>() {"cost", "sz"});
-                    if (isTrue(createMarketBuyOrderRequiresPrice))
+                    if ((createMarketBuyOrderRequiresPrice == true))
                     {
                         if ((price != null))
                         {
@@ -4424,7 +4424,7 @@ public partial class okx : Exchange
                 request["px"] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             request["ordType"] = "post_only";
         } else if (ioc && !marketIOC)
@@ -5795,7 +5795,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit));
         }
@@ -6162,7 +6162,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, maxLimit));
         }
@@ -6352,7 +6352,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
         }
@@ -6455,7 +6455,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate));
         }
@@ -6943,7 +6943,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate));
         }
@@ -7063,7 +7063,7 @@ public partial class okx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsPaginate));
         }

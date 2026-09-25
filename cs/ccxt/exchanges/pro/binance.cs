@@ -842,7 +842,7 @@ public partial class binance : ccxt.binance
         IList<object> rpiparamsRpiVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false);
         bool? rpi = (bool?)rpiparamsRpiVariable[0];
         IDictionary<string, object> paramsRpi = ((IDictionary<string, object>)rpiparamsRpiVariable[1]);
-        if (isTrue(rpi) && type == "future")
+        if ((rpi == true) && type == "future")
         {
             name = "rpiDepth";
             watchOrderBookRate = "500";
@@ -1881,7 +1881,7 @@ public partial class binance : ccxt.binance
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
-        if (isTrue(stock))
+        if ((stock == true))
         {
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
@@ -2438,7 +2438,7 @@ public partial class binance : ccxt.binance
         bool? stock = (bool?)stockparamsStockVariable[0];
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
         object symbolsNormalized = symbols;
-        if (isTrue(stock))
+        if ((stock == true))
         {
             if ((symbols == null))
             {
@@ -2590,7 +2590,7 @@ public partial class binance : ccxt.binance
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
-        if (isTrue(stock))
+        if ((stock == true))
         {
             if ((symbols == null))
             {
@@ -3495,7 +3495,7 @@ public partial class binance : ccxt.binance
                 {
                     object requestParams = this.omit(paramsOmitted, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
                     response = await this.sapiPostEquityListenKey(requestParams);
-                } else if (isTrue(isPortfolioMargin))
+                } else if ((isPortfolioMargin == true))
                 {
                     response = await this.papiPostListenKey(paramsOmitted);
                 } else if (type == "future")
@@ -3529,7 +3529,7 @@ public partial class binance : ccxt.binance
                         { "type", "stock" },
                         { "defaultType", "stock" },
                     });
-                } else if (isTrue(isPortfolioMargin))
+                } else if ((isPortfolioMargin == true))
                 {
                     delayParams = this.extend(paramsOmitted, new Dictionary<string, object>() {
                         { "portfolioMargin", true },
@@ -3604,7 +3604,7 @@ public partial class binance : ccxt.binance
                 // POST extends the validity of that same key
                 object requestParams = this.omit(paramsOmitted, new List<object>() {"stock", "name", "callerMethodName", "subType", "timeframe"});
                 await this.sapiPostEquityListenKey(requestParams);
-            } else if (isTrue(isPortfolioMargin))
+            } else if ((isPortfolioMargin == true))
             {
                 await this.papiPutListenKey(this.extend(request, paramsOmitted));
             } else if (type == "future")
@@ -3632,7 +3632,7 @@ public partial class binance : ccxt.binance
             } else
             {
                 string? urlType = type;
-                if (isTrue(isPortfolioMargin))
+                if ((isPortfolioMargin == true))
                 {
                     urlType = "papi";
                 }
@@ -3675,7 +3675,7 @@ public partial class binance : ccxt.binance
             delayParams = this.extend(paramsOmitted, new Dictionary<string, object>() {
                 { "type", "stock" },
             });
-        } else if (isTrue(isPortfolioMargin))
+        } else if ((isPortfolioMargin == true))
         {
             delayParams = this.extend(paramsOmitted, new Dictionary<string, object>() {
                 { "portfolioMargin", true },
@@ -4944,7 +4944,7 @@ public partial class binance : ccxt.binance
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrders", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
-        if (isTrue(stock))
+        if ((stock == true))
         {
             // literal on top: a stray type in the caller params must not override
             // the forced stock, the removed authenticateStock ignored it entirely

@@ -6843,7 +6843,7 @@ public partial class binance : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
         }
@@ -7314,7 +7314,7 @@ public partial class binance : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
         }
@@ -7795,7 +7795,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiPutUmOrder(this.extend(request, paramsPapi));
             } else
@@ -7804,7 +7804,7 @@ public partial class binance : Exchange
             }
         } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiPutCmOrder(this.extend(request, paramsPapi));
             } else
@@ -9033,7 +9033,7 @@ public partial class binance : Exchange
         bool isTakeProfit = (takeProfitPrice != null);
         bool isTriggerOrder = (triggerPrice != null);
         bool isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isConditional);
+        bool isPortfolioMarginConditional = ((isPortfolioMargin == true) && isConditional);
         bool isPriceMatch = (priceMatch != null);
         bool priceRequiredForTrailing = true;
         string uppercaseType = type.ToUpper();
@@ -9141,7 +9141,7 @@ public partial class binance : Exchange
         {
             clientOrderIdRequest = "newClientStrategyId";
         }
-        if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && isConditional && !isTrue(isPortfolioMargin))
+        if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && isConditional && !(isPortfolioMargin == true))
         {
             clientOrderIdRequest = "clientAlgoId";
         } else if ((stock == true))
@@ -9169,7 +9169,7 @@ public partial class binance : Exchange
             request[(string)clientOrderIdRequest] = clientOrderId;
         }
         bool? postOnly = null;
-        if (!isTrue(isPortfolioMargin))
+        if (!(isPortfolioMargin == true))
         {
             postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType == "LIMIT_MAKER", paramsPapi);
             if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || marketType == "margin")
@@ -9199,7 +9199,7 @@ public partial class binance : Exchange
             }
         }
         // handle newOrderRespType response type
-        if (((marketType == "spot") || (marketType == "margin")) && !isTrue(isPortfolioMargin) && ((stock != true)))
+        if (((marketType == "spot") || (marketType == "margin")) && !(isPortfolioMargin == true) && ((stock != true)))
         {
             request["newOrderRespType"] = this.safeString((this.options.ContainsKey("newOrderRespType") ? this.options["newOrderRespType"] : null), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else if ((stock != true))
@@ -9410,7 +9410,7 @@ public partial class binance : Exchange
             }
             if ((stopPrice != null))
             {
-                if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && !isTrue(isPortfolioMargin))
+                if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && !(isPortfolioMargin == true))
                 {
                     request["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
                 } else
@@ -9423,7 +9423,7 @@ public partial class binance : Exchange
         {
             request["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (!isTrue(isPortfolioMargin) && ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && (postOnly == true))
+        if (!(isPortfolioMargin == true) && ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && (postOnly == true))
         {
             request["timeInForce"] = "GTX";
         }
@@ -10281,7 +10281,7 @@ public partial class binance : Exchange
         IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable[1]);
         bool? isConditional = this.safeBoolN(paramsPapi, new List<object>() {"stop", "trigger", "conditional"});
         Dictionary<string, object> paramsOmitted = this.omit(paramsPapi, new List<object>() {"stop", "trigger", "conditional"});
-        bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && (isConditional == true));
+        bool isPortfolioMarginConditional = ((isPortfolioMargin == true) && (isConditional == true));
         string orderIdRequest = "orderId";
         if ((isPortfolioMarginConditional == true))
         {
@@ -10291,7 +10291,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 if ((isConditional == true))
                 {
@@ -10306,7 +10306,7 @@ public partial class binance : Exchange
             }
         } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 if ((isConditional == true))
                 {
@@ -11609,7 +11609,7 @@ public partial class binance : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate));
         }
@@ -12775,7 +12775,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if (isLinear)
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetUmCommissionRate(this.extend(request, paramsPapi));
             } else
@@ -12784,7 +12784,7 @@ public partial class binance : Exchange
             }
         } else if (isInverse)
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmCommissionRate(this.extend(request, paramsPapi));
             } else
@@ -13159,7 +13159,7 @@ public partial class binance : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
         }
@@ -14016,7 +14016,7 @@ public partial class binance : Exchange
         List<object> response = null;
         if (this.isLinear(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetUmLeverageBracket(paramsPapi);
             } else
@@ -14025,7 +14025,7 @@ public partial class binance : Exchange
             }
         } else if (this.isInverse(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmLeverageBracket(paramsPapi);
             } else
@@ -14401,7 +14401,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if (this.isLinear(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiV2GetUmAccount(paramsPapi);
             } else
@@ -14409,7 +14409,7 @@ public partial class binance : Exchange
                 IList<object> useV2paramsUseV2Variable = (IList<object>)this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "useV2", false);
                 bool? useV2 = (bool?)useV2paramsUseV2Variable[0];
                 IDictionary<string, object> paramsUseV2 = ((IDictionary<string, object>)useV2paramsUseV2Variable[1]);
-                if (!isTrue(useV2))
+                if (!(useV2 == true))
                 {
                     response = await this.fapiPrivateV3GetAccount(paramsUseV2);
                 } else
@@ -14419,7 +14419,7 @@ public partial class binance : Exchange
             }
         } else if (this.isInverse(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmAccount(paramsPapi);
             } else
@@ -14676,7 +14676,7 @@ public partial class binance : Exchange
         List<object> response = null;
         if (this.isLinear(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetUmIncome(this.extend(requestUntil, paramsOmitted));
             } else
@@ -14685,7 +14685,7 @@ public partial class binance : Exchange
             }
         } else if (this.isInverse(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmIncome(this.extend(requestUntil, paramsOmitted));
             } else
@@ -14741,7 +14741,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiPostUmLeverage(this.extend(request, paramsPapi));
             } else
@@ -14750,7 +14750,7 @@ public partial class binance : Exchange
             }
         } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiPostCmLeverage(this.extend(request, paramsPapi));
             } else
@@ -14902,7 +14902,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if (this.isInverse(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiPostCmPositionSideDual(this.extend(request, paramsPapi));
             } else
@@ -14911,7 +14911,7 @@ public partial class binance : Exchange
             }
         } else if (this.isLinear(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiPostUmPositionSideDual(this.extend(request, paramsPapi));
             } else
@@ -14969,7 +14969,7 @@ public partial class binance : Exchange
         object response = null;
         if (this.isLinear(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetUmAccount(paramsPapi);
             } else
@@ -14978,7 +14978,7 @@ public partial class binance : Exchange
             }
         } else if (this.isInverse(type, subType))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmAccount(paramsPapi);
             } else
@@ -16423,7 +16423,7 @@ public partial class binance : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(isPortfolioMargin))
+        if ((isPortfolioMargin == true))
         {
             response = await this.papiGetMarginMarginInterestHistory(this.extend(requestUntil, paramsUntil));
         } else
@@ -16618,7 +16618,7 @@ public partial class binance : Exchange
         IList<object> isPortfolioMarginparamsPapiVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = (bool?)isPortfolioMarginparamsPapiVariable[0];
         IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable[1]);
-        if (isTrue(isPortfolioMargin))
+        if ((isPortfolioMargin == true))
         {
             response = await this.papiPostMarginLoan(this.extend(request, paramsPapi));
         } else
@@ -16735,7 +16735,7 @@ public partial class binance : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit,timeframeVar, paramsPaginate, 500));
         }
@@ -16940,7 +16940,7 @@ public partial class binance : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "current", 100));
         }
@@ -16970,7 +16970,7 @@ public partial class binance : Exchange
             {
                 symbolKey = "isolatedSymbol";
             }
-            if (!isTrue(isPortfolioMargin))
+            if (!(isPortfolioMargin == true))
             {
                 request[(string)symbolKey] = (market.ContainsKey("id") ? market["id"] : null);
             }
@@ -16995,7 +16995,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if ((type == "spot"))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetMarginForceOrders(this.extend(requestUntil, paramsUntil));
             } else
@@ -17004,7 +17004,7 @@ public partial class binance : Exchange
             }
         } else if ((subType == "linear"))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetUmForceOrders(this.extend(requestUntil, paramsUntil));
             } else
@@ -17013,7 +17013,7 @@ public partial class binance : Exchange
             }
         } else if ((subType == "inverse"))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmForceOrders(this.extend(requestUntil, paramsUntil));
             } else
@@ -18287,7 +18287,7 @@ public partial class binance : Exchange
         List<object> response = null;
         if ((subType == "linear"))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetUmAdlQuantile(paramsPapi);
             } else
@@ -18296,7 +18296,7 @@ public partial class binance : Exchange
             }
         } else if ((subType == "inverse"))
         {
-            if (isTrue(isPortfolioMargin))
+            if ((isPortfolioMargin == true))
             {
                 response = await this.papiGetCmAdlQuantile(paramsPapi);
             } else

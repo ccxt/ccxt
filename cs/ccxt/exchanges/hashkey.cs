@@ -1686,7 +1686,7 @@ public partial class hashkey : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
         }
@@ -2906,7 +2906,7 @@ public partial class hashkey : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarketOrder, typeValue == "LIMIT_MAKER", paramsCost);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if (isTrue(postOnly) && (typeValue == "LIMIT"))
+        if (postOnly && (typeValue == "LIMIT"))
         {
             request["type"] = "LIMIT_MAKER";
         }
@@ -2975,7 +2975,7 @@ public partial class hashkey : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         string? timeInForce = timeInForceParam;
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             timeInForce = "LIMIT_MAKER";
         }

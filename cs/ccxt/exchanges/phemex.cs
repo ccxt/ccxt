@@ -1627,7 +1627,7 @@ public partial class phemex : Exchange
         return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
     }
 
-    public virtual string? fromEr(object er, object market = null)
+    public virtual string? fromEr(object er, IDictionary<string, object> market = null)
     {
         if (((er == null)) || ((market == null)))
         {
@@ -5700,7 +5700,7 @@ public partial class phemex : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100));
         }

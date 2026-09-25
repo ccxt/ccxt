@@ -1892,7 +1892,7 @@ public partial class bithumb : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsTimeInForce);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        bool isPostOnly = isTrue(postOnly) || (timeInForce == "PO");
+        bool isPostOnly = postOnly || (timeInForce == "PO");
         object paramsOrder = paramsPostOnly;
         if (isPostOnly)
         {
@@ -1925,7 +1925,7 @@ public partial class bithumb : Exchange
                 bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
                 var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
                 paramsOrder = paramsRequiresPrice;
-                if (isTrue(createMarketBuyOrderRequiresPrice))
+                if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if (((price == null)) && ((cost == null)))
                     {
