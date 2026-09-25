@@ -709,7 +709,7 @@ impl BinanceCore {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (ends_with(&baseUrl, &Value::Str("/ws".into()))) {
+            if (matches!(&baseUrl, Value::Str(__s) if __s.ends_with("/ws"))) {
                 let mut prefix: Value = slice(&baseUrl, &Value::Int(0), &(match (&(Value::Int(baseUrl.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
                 return Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", prefix, Value::Str("/".into())).into()), &category), Value::Str("/ws".into())).into());
             }

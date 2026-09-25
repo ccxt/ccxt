@@ -6801,7 +6801,7 @@ impl BingxCore {
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (address != Value::Null) {
-            let mut isPrefixed: bool = (starts_with(&address, &Value::Str("0x".into()))) || (starts_with(&address, &Value::Str("0X".into())));
+            let mut isPrefixed: bool = (matches!(&address, Value::Str(__s) if __s.starts_with("0x"))) || (matches!(&address, Value::Str(__s) if __s.starts_with("0X")));
             let mut evmNetworks: Value = Value::from(vec![Value::Str("BEP20".into()), Value::Str("BSC".into()), Value::Str("ERC20".into()), Value::Str("ETH".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("ARB".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()), Value::Str("FTM".into()), Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
             if !isPrefixed && self.in_array(networkCode.clone(), evmNetworks).as_bool() == Some(true) {
                 address = Value::Str(format!("{}{}", Value::Str("0x".into()), address).into());

@@ -899,7 +899,7 @@ impl DeltaCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: bool = (marketId != Value::Null) && ((ends_with(&marketId, &Value::Str("-C".into()))) || (ends_with(&marketId, &Value::Str("-P".into()))) || (starts_with(&marketId, &Value::Str("C-".into()))) || (starts_with(&marketId, &Value::Str("P-".into()))));
+        let mut isOption: bool = (marketId != Value::Null) && ((matches!(&marketId, Value::Str(__s) if __s.ends_with("-C"))) || (matches!(&marketId, Value::Str(__s) if __s.ends_with("-P"))) || (matches!(&marketId, Value::Str(__s) if __s.starts_with("C-"))) || (matches!(&marketId, Value::Str(__s) if __s.starts_with("P-"))));
         if isOption && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
             return self.create_expired_option_market(marketId.clone());
         }

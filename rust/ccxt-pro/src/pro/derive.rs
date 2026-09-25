@@ -545,7 +545,7 @@ impl DeriveCore {
         })]);
         let mut topic: Value = self.safe_string_k(params, "channel", &[]);
         let mut ticker: Value = Value::Null;
-        if (topic != Value::Null) && (starts_with(&topic, &Value::Str("ticker_slim".into()))) {
+        if (topic != Value::Null) && (matches!(&topic, Value::Str(__s) if __s.starts_with("ticker_slim"))) {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
             let mut parts: Value = split(&topic, &Value::Str(".".into()));

@@ -3861,7 +3861,7 @@ impl OkxCore {
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = (partsLength > ((3i64) as f64)) && ((ends_with(&marketId, &Value::Str("-C".into()))) || (ends_with(&marketId, &Value::Str("-P".into()))));
+            isOption = (partsLength > ((3i64) as f64)) && ((matches!(&marketId, Value::Str(__s) if __s.ends_with("-C"))) || (matches!(&marketId, Value::Str(__s) if __s.ends_with("-P"))));
         }
         if isOption && (marketId != Value::Null) && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
             return self.create_expired_option_market(marketId.clone());
@@ -4393,7 +4393,7 @@ impl OkxCore {
             }
             if is_true(&self.isSandboxModeEnabled) {
                 let mut instFamily: Value = self.safe_string_k(data.clone(), "instFamily", &[Value::Str("".into())]);
-                if (starts_with(&instFamily, &Value::Str("TEST".into()))) {
+                if (matches!(&instFamily, Value::Str(__s) if __s.starts_with("TEST"))) {
                     continue;
                 }
             }

@@ -4045,7 +4045,7 @@ impl NadoCore {
         if (marketId == Value::Null) {
             return Value::Null;
         }
-        if (ends_with(&marketId, &Value::Str("-PERP".into()))) {
+        if (matches!(&marketId, Value::Str(__s) if __s.ends_with("-PERP"))) {
             return marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 5).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         return marketId;

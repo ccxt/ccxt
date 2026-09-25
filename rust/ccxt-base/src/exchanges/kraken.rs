@@ -1400,7 +1400,7 @@ impl KrakenCore {
             if (id == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".into()))));
             }
-            if (id.as_str() != altName.as_str()) && ((starts_with(&id, &Value::Str("X".into()))) || (starts_with(&id, &Value::Str("Z".into())))) {
+            if (id.as_str() != altName.as_str()) && ((matches!(&id, Value::Str(__s) if __s.starts_with("X"))) || (matches!(&id, Value::Str(__s) if __s.starts_with("Z")))) {
                 code = self.safe_currency_code(altName, &[]);
                 // also, add map in commonCurrencies:
                 if (id != Value::Null) && (code != Value::Null) {
@@ -2845,7 +2845,7 @@ impl KrakenCore {
         // const cost = this.safeString (order, 'cost');
         price = self.safe_string_k(description.clone(), "price", &[price.clone()]);
         // when type = trailing stop returns price = '+50.0000%'
-        if (price != Value::Null) && ((ends_with(&price, &Value::Str("%".into()))) || is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0.00000".into()))) || is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())))) {
+        if (price != Value::Null) && ((matches!(&price, Value::Str(__s) if __s.ends_with("%"))) || is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0.00000".into()))) || is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())))) {
             price = Value::Null; // this is not the price we want
         }
         if (price == Value::Null) {
@@ -2874,7 +2874,7 @@ impl KrakenCore {
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut id: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("txid".into()), Value::Str("order_id".into()), Value::Str("amend_id".into())]), &[]);
-        if (id == Value::Null) || (starts_with(&id, &Value::Str("[".into()))) {
+        if (id == Value::Null) || (matches!(&id, Value::Str(__s) if __s.starts_with("["))) {
             let mut txid: Value = self.safe_list_k(order.clone(), "txid", &[]);
             id = self.safe_string(txid, Value::Int(0), &[]);
         }
@@ -2911,10 +2911,10 @@ impl KrakenCore {
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if (rawType != Value::Null) {
-            if (starts_with(&rawType, &Value::Str("take-profit".into()))) {
+            if (matches!(&rawType, Value::Str(__s) if __s.starts_with("take-profit"))) {
                 takeProfitPrice = self.safe_string_k(description.clone(), "price", &[]);
                 price = self.omit_zero(self.safe_string_k(description.clone(), "price2", &[]));
-            }  else if (starts_with(&rawType, &Value::Str("stop-loss".into()))) {
+            }  else if (matches!(&rawType, Value::Str(__s) if __s.starts_with("stop-loss"))) {
                 stopLossPrice = self.safe_string_k(description.clone(), "price", &[]);
                 price = self.omit_zero(self.safe_string_k(description, "price2", &[]));
             }  else if (rawType.as_str() == Some("take profit")) {
@@ -2989,7 +2989,7 @@ impl KrakenCore {
         let mut trailingLimitPercent: Value = self.safe_string_k(params.clone(), "trailingLimitPercent", &[]);
         let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
         let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
-        let mut isLimitOrder: bool = (type_var != Value::Null) && (ends_with(&type_var, &Value::Str("limit".into()))); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        let mut isLimitOrder: bool = (type_var != Value::Null) && (matches!(&type_var, Value::Str(__s) if __s.ends_with("limit"))); // supporting limit, stop-loss-limit, take-profit-limit, etc
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         let mut flags: Value = self.safe_string_k(params.clone(), "oflags", &[]);
@@ -3029,7 +3029,7 @@ impl KrakenCore {
         }  else if isTrailingAmountOrder || isTrailingPercentOrder {
             let mut trailingPercentString: Value = Value::Null;
             if (trailingPercent != Value::Null) {
-                trailingPercentString = (if (ends_with(&trailingPercent, &Value::Str("%".into()))) { (Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent).into()), Value::Str("%".into())).into())) });
+                trailingPercentString = (if (matches!(&trailingPercent, Value::Str(__s) if __s.ends_with("%"))) { (Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent).into()), Value::Str("%".into())).into())) });
             }
             let mut trailingAmountString: Value = (if (trailingAmount != Value::Null) { Value::Str(format!("{}{}", Value::Str("+".into()), trailingAmount).into()) } else { Value::Null }); // must use + for this
             let mut offset: Value = self.safe_string_k(params.clone(), "offset", &[Value::Str("-".into())]); // can use + or - for this
@@ -3039,7 +3039,7 @@ impl KrakenCore {
             if isLimitOrder || (trailingLimitAmount != Value::Null) || (trailingLimitPercent != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordertype".into(), Value::Str("trailing-stop-limit".into())); }
                 if (trailingLimitPercent != Value::Null) {
-                    let mut trailingLimitPercentString: Value = (if (ends_with(&trailingLimitPercent, &Value::Str("%".into()))) { (Value::Str(format!("{}{}", offset, trailingLimitPercent).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", offset, trailingLimitPercent).into()), Value::Str("%".into())).into())) });
+                    let mut trailingLimitPercentString: Value = (if (matches!(&trailingLimitPercent, Value::Str(__s) if __s.ends_with("%"))) { (Value::Str(format!("{}{}", offset, trailingLimitPercent).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", offset, trailingLimitPercent).into()), Value::Str("%".into())).into())) });
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingPercentString.clone()); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price2".into(), trailingLimitPercentString); }
                 }  else if (trailingLimitAmount != Value::Null) {
@@ -4802,7 +4802,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
             let mut isTriggerPercent: Value = Value::Bool(false);
             if (price != Value::Null) {
-                isTriggerPercent = (if (ends_with(&price, &Value::Str("%".into()))) { Value::Bool(true) } else { Value::Bool(false) });
+                isTriggerPercent = (if (matches!(&price, Value::Str(__s) if __s.ends_with("%"))) { Value::Bool(true) } else { Value::Bool(false) });
             }
             let mut isCancelOrderBatch: bool = path.as_str() == Some("CancelOrderBatch");
             let mut isBatchOrder: bool = path.as_str() == Some("AddOrderBatch");

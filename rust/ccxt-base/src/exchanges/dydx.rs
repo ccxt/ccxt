@@ -1884,7 +1884,7 @@ impl DydxCore {
         if (self.walletAddress.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz".into()))));
         }
-        if !(starts_with(&self.walletAddress, &Value::Str("dydx".into()))) {
+        if !(matches!(&self.walletAddress, Value::Str(__s) if __s.starts_with("dydx"))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.".into()))));
         }
         let mut request: Value = Value::Map({

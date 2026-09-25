@@ -5525,7 +5525,7 @@ impl WeexCore {
         if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &marketId)) {
             return marketId.as_str().map(str::to_owned);
         }
-        if (ends_with(&marketId, &Value::Str("SUSDT".into()))) {
+        if (matches!(&marketId, Value::Str(__s) if __s.ends_with("SUSDT"))) {
             let mut baseLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(5))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             return Value::Str(format!("{}{}", slice(&marketId, &Value::Int(0), &baseLength), Value::Str("USDT".into())).into()).as_str().map(str::to_owned);
         }

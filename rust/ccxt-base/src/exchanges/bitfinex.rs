@@ -1734,7 +1734,7 @@ impl BitfinexCore {
             let mut __for_first_317: bool = true;
             while { if !__for_first_317 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (ends_with(&id, &Value::Str("F0".into()))) {
+            if (matches!(&id, Value::Str(__s) if __s.ends_with("F0"))) {
                 continue;
             }
             append_to_array(&mut allowedIds, id);
@@ -2216,7 +2216,7 @@ impl BitfinexCore {
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
         let mut firstValue: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
-        let mut hasMarketId: bool = (firstValue != Value::Null) && ((starts_with(&firstValue, &Value::Str("t".into()))) || (starts_with(&firstValue, &Value::Str("f".into()))));
+        let mut hasMarketId: bool = (firstValue != Value::Null) && ((matches!(&firstValue, Value::Str(__s) if __s.starts_with("t"))) || (matches!(&firstValue, Value::Str(__s) if __s.starts_with("f"))));
         let mut isFetchTicker: bool = !hasMarketId;
         let mut symbol: Value = Value::Null;
         let mut minusIndex: Value = Value::Int(0);

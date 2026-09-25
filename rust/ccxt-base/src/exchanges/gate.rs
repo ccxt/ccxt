@@ -9521,7 +9521,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = get_value(&api, &Value::Int(1)); // spot, margin, future, delivery
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut containsSettle: bool = get_index_of(&path, &Value::Str("settle".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        if containsSettle && (is_equal(&Value::Bool(ends_with(&path, &Value::Str("batch_cancel_orders".into()))), &Value::Bool(true))) {
+        if containsSettle && (is_equal(&Value::Bool(matches!(&path, Value::Str(__s) if __s.ends_with("batch_cancel_orders"))), &Value::Bool(true))) {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             let mut settle: Value = self.safe_dict(params.clone(), Value::Int(0), &[]);

@@ -1543,7 +1543,7 @@ impl BitvavoCore {
             if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &key)) {
                 continue;
             }
-            if !(starts_with(&key, &Value::Str("unsubscribe:".into()))) {
+            if !(matches!(&key, Value::Str(__s) if __s.starts_with("unsubscribe:"))) {
                 continue;
             }
             let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &key);

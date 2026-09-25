@@ -4490,7 +4490,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn format_signature_rs(&self, mut value: Value) -> Value {
         let mut padded: Value = pad_start(&value, &Value::Int(64), &Value::Str("0".into()));
-        if (starts_with(&padded, &Value::Str("0x".into()))) {
+        if (matches!(&padded, Value::Str(__s) if __s.starts_with("0x"))) {
             return padded;
         }  else {
             return Value::Str(format!("{}{}", Value::Str("0x".into()), padded).into());
@@ -4572,7 +4572,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 body = json_stringify(&params);
             }
         }
-        let mut isPrivate: bool = starts_with(&api, &Value::Str("private".into()));
+        let mut isPrivate: bool = matches!(&api, Value::Str(__s) if __s.starts_with("private"));
         if (isPrivate) {
             self.check_required_credentials(&[]);
             if (queryString.as_str() != Some("")) {
@@ -4583,7 +4583,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
-            if (is_equal(&Value::Bool(ends_with(&path, &Value::Str("auth/api_key/login".into()))), &Value::Bool(true))) || (is_equal(&Value::Bool(ends_with(&path, &Value::Str("auth/wallet/login".into()))), &Value::Bool(true))) {
+            if (is_equal(&Value::Bool(matches!(&path, Value::Str(__s) if __s.ends_with("auth/api_key/login"))), &Value::Bool(true))) || (is_equal(&Value::Bool(matches!(&path, Value::Str(__s) if __s.ends_with("auth/wallet/login"))), &Value::Bool(true))) {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Cookie".into(), Value::Str("rm=true;".into())); }
             }  else {
                 let mut accountId: Value = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]);
@@ -4608,7 +4608,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if (ends_with(&url, &Value::Str("auth/api_key/login".into()))) || (ends_with(&url, &Value::Str("auth/wallet/login".into()))) {
+        if (matches!(&url, Value::Str(__s) if __s.ends_with("auth/api_key/login"))) || (matches!(&url, Value::Str(__s) if __s.ends_with("auth/wallet/login"))) {
             let mut accountId: Value = self.safe_string2(headers.clone(), Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]);
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("AuthAccountId".into(), accountId); }
             let mut cookie: Value = self.safe_string2(headers, Value::Str("Set-Cookie".into()), Value::Str("set-cookie".into()), &[]);

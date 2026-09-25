@@ -3330,7 +3330,7 @@ impl ToobitCore {
         let mut amountRaw: Value = self.safe_string_k(item.clone(), "change", &[Value::Str("".into())]);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
         let mut direction: Value = Value::Str("in".into());
-        if (starts_with(&amountRaw, &Value::Str("-".into()))) {
+        if (matches!(&amountRaw, Value::Str(__s) if __s.starts_with("-"))) {
             direction = Value::Str("out".into());
         }
         return self.safe_ledger_entry(Value::Map({

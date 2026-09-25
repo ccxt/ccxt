@@ -878,7 +878,7 @@ impl HyperliquidCore {
         // add in wrapped map
         let mut fullName: Value = self.safe_string_k(rawCurrency, "fullName", &[]);
         if (fullName != Value::Null) && (name != Value::Null) {
-            let mut isWrapped: bool = (starts_with(&fullName, &Value::Str("Unit ".into()))) && (starts_with(&name, &Value::Str("U".into())));
+            let mut isWrapped: bool = (matches!(&fullName, Value::Str(__s) if __s.starts_with("Unit "))) && (matches!(&name, Value::Str(__s) if __s.starts_with("U")));
             if isWrapped {
                 let mut parts: Value = split(&name, &Value::Str("U".into()));
                 let mut nameWithoutU: Value = Value::Str("".into());
@@ -4744,10 +4744,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("marginCanceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        if (ends_with(&status, &Value::Str("Rejected".into()))) {
+        if (matches!(&status, Value::Str(__s) if __s.ends_with("Rejected"))) {
             return Value::Str("rejected".into());
         }
-        if (ends_with(&status, &Value::Str("Canceled".into()))) {
+        if (matches!(&status, Value::Str(__s) if __s.ends_with("Canceled"))) {
             return Value::Str("canceled".into());
         }
         return self.safe_string(statuses, status.clone(), &[status.clone()]);
@@ -5197,7 +5197,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("setMarginMode".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (vaultAddress != Value::Null) {
-            if (starts_with(&vaultAddress, &Value::Str("0x".into()))) {
+            if (matches!(&vaultAddress, Value::Str(__s) if __s.starts_with("0x"))) {
                 vaultAddress = replace_str(&vaultAddress, &Value::Str("0x".into()), &Value::Str("".into()));
             }
         }
@@ -6404,7 +6404,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (address == Value::Null) {
             return Value::Null;
         }
-        if (starts_with(&address, &Value::Str("0x".into()))) {
+        if (matches!(&address, Value::Str(__s) if __s.starts_with("0x"))) {
             return replace_str(&address, &Value::Str("0x".into()), &Value::Str("".into()));
         }
         return address;

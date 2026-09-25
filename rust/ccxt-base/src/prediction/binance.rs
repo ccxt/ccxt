@@ -1486,10 +1486,10 @@ impl BinanceCore {
         if (status == Value::Null) {
             return None;
         }
-        if (ends_with(&status, &Value::Str("Rejected".into()))) {
+        if (matches!(&status, Value::Str(__s) if __s.ends_with("Rejected"))) {
             return Value::Str("rejected".into()).as_str().map(str::to_owned);
         }
-        if (ends_with(&status, &Value::Str("Canceled".into()))) {
+        if (matches!(&status, Value::Str(__s) if __s.ends_with("Canceled"))) {
             return Value::Str("canceled".into()).as_str().map(str::to_owned);
         }
         return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);

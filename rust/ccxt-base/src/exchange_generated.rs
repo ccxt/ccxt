@@ -6801,7 +6801,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
             return get_value(&marketsList, &Value::Int(0));
-        }  else if (ends_with(&symbol, &Value::Str("-C".into()))) || (ends_with(&symbol, &Value::Str("-P".into()))) || (starts_with(&symbol, &Value::Str("C-".into()))) || (starts_with(&symbol, &Value::Str("P-".into()))) {
+        }  else if (matches!(&symbol, Value::Str(__s) if __s.ends_with("-C"))) || (matches!(&symbol, Value::Str(__s) if __s.ends_with("-P"))) || (matches!(&symbol, Value::Str(__s) if __s.starts_with("C-"))) || (matches!(&symbol, Value::Str(__s) if __s.starts_with("P-"))) {
             return <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, symbol.clone());
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have market symbol ".into())).into()), symbol)));

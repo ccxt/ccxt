@@ -4887,7 +4887,7 @@ impl BtseCore {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (is_equal(&Value::Bool(starts_with(&path, &Value::Str("futures/api/v3/".into()))), &Value::Bool(true)));
+        let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (is_equal(&Value::Bool(matches!(&path, Value::Str(__s) if __s.starts_with("futures/api/v3/"))), &Value::Bool(true)));
         let mut queryString: Value = Value::Str("".into());
         if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -4909,7 +4909,7 @@ impl BtseCore {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             let mut signPath: Value = Value::Null;
-            if is_equal(&Value::Bool(starts_with(&path, &Value::Str("public-api/".into()))), &Value::Bool(true)) {
+            if is_equal(&Value::Bool(matches!(&path, Value::Str(__s) if __s.starts_with("public-api/"))), &Value::Bool(true)) {
                 signPath = add(&Value::Str("/".into()), &path);
             }  else {
                 signPath = self.clean_path(path);

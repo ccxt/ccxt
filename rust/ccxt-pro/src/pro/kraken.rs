@@ -415,7 +415,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isLimitOrder: bool = ends_with(&type_var, &Value::Str("limit".into())); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        let mut isLimitOrder: bool = matches!(&type_var, Value::Str(__s) if __s.ends_with("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if isLimitOrder {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" limit orders require a price argument".into()))));

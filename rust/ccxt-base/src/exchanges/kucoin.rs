@@ -13183,7 +13183,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-            let mut isFundingIndex: bool = (marketId != Value::Null) && (starts_with(&marketId, &Value::Str(".".into())));
+            let mut isFundingIndex: bool = (marketId != Value::Null) && (matches!(&marketId, Value::Str(__s) if __s.starts_with(".")));
             if !isFundingIndex {
                 append_to_array(&mut rates, entry);
             }

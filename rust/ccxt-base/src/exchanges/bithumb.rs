@@ -4119,7 +4119,7 @@ impl BithumbCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut isVersionedApi: bool = (starts_with(&endpoint, &Value::Str("/v1/".into()))) || (starts_with(&endpoint, &Value::Str("/v2/".into())));
+            let mut isVersionedApi: bool = (matches!(&endpoint, Value::Str(__s) if __s.starts_with("/v1/"))) || (matches!(&endpoint, Value::Str(__s) if __s.starts_with("/v2/")));
             if isVersionedApi {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();

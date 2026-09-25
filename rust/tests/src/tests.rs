@@ -1776,7 +1776,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut key: Value = keyValue.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut value: Value = keyValue.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-            if (value != Value::Null) && ((starts_with(&value, &Value::Str("[".into()))) || (starts_with(&value, &Value::Str("{".into())))) {
+            if (value != Value::Null) && ((matches!(&value, Value::Str(__s) if __s.starts_with("["))) || (matches!(&value, Value::Str(__s) if __s.starts_with("{")))) {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value.clone());
             }
@@ -1891,7 +1891,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         // if needed convert stringified jsons to objects
-        if (matches!(&storedOutput, Value::Str(_))) && (matches!(&newOutput, Value::Str(_))) && (starts_with(&storedOutput, &Value::Str("{".into()))) && (starts_with(&newOutput, &Value::Str("{".into()))) {
+        if (matches!(&storedOutput, Value::Str(_))) && (matches!(&newOutput, Value::Str(_))) && (matches!(&storedOutput, Value::Str(__s) if __s.starts_with("{"))) && (matches!(&newOutput, Value::Str(__s) if __s.starts_with("{"))) {
             storedOutput = jsonParse(storedOutput.clone());
             newOutput = jsonParse(newOutput.clone());
         }
@@ -2114,7 +2114,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             storedOutput = self.urlencoded_to_dict(storedOutput.clone());
             newOutput = self.urlencoded_to_dict(newOutput.clone());
         }  else if (type_var.as_str() == Some("both")) {
-            if (is_equal(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".into()))), &Value::Bool(true))) || (is_equal(&Value::Bool(starts_with(&storedOutput, &Value::Str("[".into()))), &Value::Bool(true))) {
+            if (is_equal(&Value::Bool(matches!(&storedOutput, Value::Str(__s) if __s.starts_with("{"))), &Value::Bool(true))) || (is_equal(&Value::Bool(matches!(&storedOutput, Value::Str(__s) if __s.starts_with("["))), &Value::Bool(true))) {
                 storedOutput = jsonParse(storedOutput.clone());
                 newOutput = jsonParse(newOutput.clone());
             }  else {

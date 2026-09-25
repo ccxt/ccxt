@@ -3737,7 +3737,7 @@ impl BybitCore {
         }  else {
             base = self.safe_string(optionParts.clone(), Value::Int(0), &[]);
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts.clone(), Value::Int(1), &[]));
-            if (ends_with(&symbol, &Value::Str("-USDT".into()))) {
+            if (matches!(&symbol, Value::Str(__s) if __s.ends_with("-USDT"))) {
                 quote = Value::Str("USDT".into());
                 settle = Value::Str("USDT".into());
             }  else {

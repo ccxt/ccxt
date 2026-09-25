@@ -3481,7 +3481,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (id == Value::Null) {
                 // try to parse it from the stringified json inside msg
                 let mut msg: Value = self.safe_string_k(message.clone(), "msg", &[]);
-                if (msg != Value::Null) && (starts_with(&msg, &Value::Str("Illegal request: {".into()))) {
+                if (msg != Value::Null) && (matches!(&msg, Value::Str(__s) if __s.starts_with("Illegal request: {"))) {
                     let mut stringifiedJson: Value = replace_str(&msg, &Value::Str("Illegal request: ".into()), &Value::Str("".into()));
                     let mut parsedJson: Value = self.parse_json_value(stringifiedJson);
                     id = self.safe_string_k(parsedJson, "id", &[]);
@@ -3674,11 +3674,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         if (channel.as_str() == Some("trades")) || (channel.as_str() == Some("trades-all")) {
             self.handle_un_subscription_trades(client.clone(), symbol.clone(), channel.clone());
-        }  else if (starts_with(&channel, &Value::Str("bbo".into()))) || (starts_with(&channel, &Value::Str("book".into()))) {
+        }  else if (matches!(&channel, Value::Str(__s) if __s.starts_with("bbo"))) || (matches!(&channel, Value::Str(__s) if __s.starts_with("book"))) {
             self.handle_unsubscription_order_book(client.clone(), symbol.clone(), channel.clone());
         }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             self.handle_unsubscription_ticker(client.clone(), symbol.clone(), channel.clone());
-        }  else if (starts_with(&channel, &Value::Str("candle".into()))) {
+        }  else if (matches!(&channel, Value::Str(__s) if __s.starts_with("candle"))) {
             self.handle_unsubscription_ohlcv(client, symbol, channel.clone());
         }
 }

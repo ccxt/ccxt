@@ -17451,11 +17451,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marketType: Value = Value::Null;
         let mut hostname: Value = (if (self.hostname.clone() != Value::Null) { self.hostname.clone() } else { Value::Str("binance.com".into()) });
-        if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://api.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (starts_with(&url, &Value::Str("https://demo-api".into()))) || (starts_with(&url, &Value::Str("https://testnet.binance.vision".into()))) {
+        if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://api.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (matches!(&url, Value::Str(__s) if __s.starts_with("https://demo-api"))) || (matches!(&url, Value::Str(__s) if __s.starts_with("https://testnet.binance.vision"))) {
             marketType = Value::Str("spot".into());
-        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://dapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (starts_with(&url, &Value::Str("https://demo-dapi".into()))) || (starts_with(&url, &Value::Str("https://testnet.binancefuture.com/dapi".into()))) {
+        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://dapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (matches!(&url, Value::Str(__s) if __s.starts_with("https://demo-dapi"))) || (matches!(&url, Value::Str(__s) if __s.starts_with("https://testnet.binancefuture.com/dapi"))) {
             marketType = Value::Str("inverse".into());
-        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://fapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (starts_with(&url, &Value::Str("https://demo-fapi".into()))) || (starts_with(&url, &Value::Str("https://testnet.binancefuture.com/fapi".into()))) {
+        }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://fapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) || (matches!(&url, Value::Str(__s) if __s.starts_with("https://demo-fapi"))) || (matches!(&url, Value::Str(__s) if __s.starts_with("https://testnet.binancefuture.com/fapi"))) {
             marketType = Value::Str("linear".into());
         }  else if (matches!(&url, Value::Str(__s) if __s.starts_with(format!("{}{}", Value::Str(format!("{}{}", Value::Str("https://eapi.".into()), hostname).into()), Value::Str("/".into())).as_str()))) {
             marketType = Value::Str("option".into());
