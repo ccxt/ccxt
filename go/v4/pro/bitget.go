@@ -1134,11 +1134,11 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(ob, "symbol", symbol)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 		}
-		var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var asks []any = ccxt.SafeList2Typed(rawOrderBook, "asks", "a", []any{})
 		var bids []any = ccxt.SafeList2Typed(rawOrderBook, "bids", "b", []any{})
-		this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
+		this.HandleDeltas(storedOrderBook.GetAsks(), asks)
+		this.HandleDeltas(storedOrderBook.GetBids(), bids)
 		ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
 		ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
@@ -1147,8 +1147,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")
 		if !isSnapshot && (checksum == true) && (responseChecksum != nil) {
-			var storedAsks any = ccxt.GetValue(storedOrderBook, "asks")
-			var storedBids any = ccxt.GetValue(storedOrderBook, "bids")
+			var storedAsks ccxt.IOrderBookSide = storedOrderBook.GetAsks()
+			var storedBids ccxt.IOrderBookSide = storedOrderBook.GetBids()
 			var asksLength int = ccxt.GetArrayLength(storedAsks)
 			var bidsLength int = ccxt.GetArrayLength(storedBids)
 			var payloadArray []any = []any{}

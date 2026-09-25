@@ -2086,7 +2086,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 			}
 		}
 	}
-	var withdrawalFees any = this.SafeValue(payload, "withdrawal_fees", []any{})
+	var withdrawalFees map[string]any = SafeMapTyped(payload, "withdrawal_fees")
 	var currencyIds []string = ObjectKeys(withdrawalFees)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
@@ -2232,7 +2232,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 	_ = currencyIdKey
 	var result map[string]any = map[string]any{}
 	var depositResponse []any = SafeListTyped(response, "deposit_fees")
-	var withdrawalResponse any = this.SafeValue(response, "withdrawal_fees", []any{})
+	var withdrawalResponse map[string]any = SafeMapTyped(response, "withdrawal_fees")
 	for i := 0; i < len(depositResponse); i++ {
 		var entry any = func() any {
 			if i >= 0 && i < len(depositResponse) {
@@ -2264,7 +2264,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var currencyId string = GetValue(withdrawalKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
-			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(GetValue(withdrawalResponse, currencyId)))
+			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(withdrawalResponse[currencyId]))
 			var resultValue map[string]any = SafeMapTyped(result, code)
 			if resultValue == nil {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))

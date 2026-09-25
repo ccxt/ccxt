@@ -131,7 +131,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
 		snapshot["nonce"] = nonce
@@ -147,8 +147,8 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "b", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "a", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "b", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "a", []any{}))
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
