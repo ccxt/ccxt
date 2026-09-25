@@ -3574,7 +3574,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.postOnly] true if the order should be post only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const positionId = this.safeString (params, 'positionId');

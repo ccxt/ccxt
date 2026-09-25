@@ -3826,7 +3826,7 @@ export default class hitbtc extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

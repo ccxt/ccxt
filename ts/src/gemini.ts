@@ -1686,12 +1686,12 @@ export default class gemini extends Exchange {
             'type': 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
-        type = this.safeString (params, 'type', type);
+        const orderType = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
         params = this.omit (params, [ 'triggerPrice', 'stop_price', 'stopPrice', 'type' ]);
-        if (type === 'stopLimit') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
+        if (orderType === 'stopLimit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + orderType + ' orders');
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);

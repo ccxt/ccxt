@@ -1269,7 +1269,7 @@ export default class derive extends Exchange {
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1468,7 +1468,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

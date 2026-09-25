@@ -4788,9 +4788,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
+        this.checkRequiredArgument ('editOrder', symbol, 'symbol');
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const response = await this.privatePostV5OrderAmend (this.extend (request, params));

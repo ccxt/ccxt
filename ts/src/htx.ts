@@ -9772,7 +9772,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

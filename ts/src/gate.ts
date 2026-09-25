@@ -8350,7 +8350,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'close': true,
         };

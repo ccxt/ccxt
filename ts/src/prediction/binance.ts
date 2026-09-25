@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1703,7 +1703,7 @@ export default class binance extends Exchange {
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")

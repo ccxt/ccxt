@@ -5203,7 +5203,7 @@ export class BaseExchange {
         return trade as Trade;
     }
 
-    createCcxtTradeId (timestamp: Int = undefined, side: OrderSide = undefined, amount: Str = undefined, price: Str = undefined, takerOrMaker: Str = undefined): Str {
+    createCcxtTradeId (timestamp: Int = undefined, side: Str = undefined, amount: Str = undefined, price: Str = undefined, takerOrMaker: Str = undefined): Str {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         let id: Str = undefined;
         if (timestamp !== undefined) {
@@ -9370,7 +9370,7 @@ export class BaseExchange {
 // independent sibling — so a prediction instance is NOT `instanceof Exchange`, while still reusing
 // every base helper via BaseExchange.
 export default class Exchange extends BaseExchange {
-    async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         throw new NotSupported (this.id + ' closePosition() is not supported yet');
     }
 

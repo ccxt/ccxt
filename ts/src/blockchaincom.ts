@@ -646,9 +646,7 @@ export default class blockchaincom extends Exchange {
         const uppercaseOrderType = orderType.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date

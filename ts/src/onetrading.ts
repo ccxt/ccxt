@@ -1411,9 +1411,7 @@ export default class onetrading extends Exchange {
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP

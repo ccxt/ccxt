@@ -2973,9 +2973,7 @@ export default class coinex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
+        this.checkRequiredArgument ('editOrder', symbol, 'symbol');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6143,7 +6141,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.clientOrderId] the client id of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

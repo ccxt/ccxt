@@ -1822,9 +1822,7 @@ export default class coinbaseinternational extends Exchange {
         const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
         clientOrderId = clientOrderId.slice (0, 17);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase (),
