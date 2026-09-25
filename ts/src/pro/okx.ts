@@ -7,6 +7,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, Inva
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -863,7 +864,7 @@ export default class okx extends okxRest {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new ArrayCache (limit);
             }
-            const cache = this.liquidations;
+            const cache: ArrayCache = this.liquidations;
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);
@@ -968,7 +969,7 @@ export default class okx extends okxRest {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new ArrayCache (limit);
             }
-            const cache = this.liquidations;
+            const cache: ArrayCache = this.liquidations;
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'myLiquidations');
             client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
@@ -1313,7 +1314,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
-        const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, request, messageHashes);
         return orderbook.limit ();
     }
 
@@ -1969,7 +1970,7 @@ export default class okx extends okxRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];

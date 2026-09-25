@@ -6,6 +6,7 @@ import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -208,7 +209,7 @@ export default class lighter extends lighterRest {
             'channel': 'order_book/' + market['id'],
         };
         const messageHash = this.getMessageHash ('orderbook', symbol);
-        const orderbook = await this.subscribePublic (messageHash, this.extend (request, params));
+        const orderbook: Ob = await this.subscribePublic (messageHash, this.extend (request, params));
         return orderbook.limit ();
     }
 

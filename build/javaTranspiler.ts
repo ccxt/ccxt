@@ -151,7 +151,8 @@ export function nativeJavaWsCacheCalls (content: string): string {
                 continue;
             }
             const args = line.slice(argsAt, j - 1).trim();
-            const argc = args === '' ? 0 : splitTopLevelArgs(args).length;
+            // generic type arguments (`new HashMap<String, Object>()`) carry no top-level comma
+            const argc = args === '' ? 0 : splitTopLevelArgs(args.replace(/<[\w.<>?, ]*>/g, '')).length;
             // void methods only in statement position: the helper's Object result is unused there
             const statement = /^\s*$/.test(line.slice(0, m.index)) && /^\s*;/.test(line.slice(j + 1));
             if (!spec.argc.includes(argc) || (!spec.value && !statement)) {

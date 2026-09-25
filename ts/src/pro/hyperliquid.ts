@@ -5,6 +5,7 @@ import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.j
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -247,7 +248,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -1254,7 +1255,7 @@ export default class hyperliquid extends hyperliquidRest {
         const message = this.extend (request, params);
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions = await this.watch (url, messageHash, message, topic);
         if (this.newUpdates) {
             return newPositions;
@@ -1273,7 +1274,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'data', {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
         const newPositions: Position[] = [];

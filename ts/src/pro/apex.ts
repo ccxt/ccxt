@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -240,7 +241,7 @@ export default class apex extends apexRest {
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
         }
-        const orderbook = await this.watchTopics (url, messageHashes, topics, params);
+        const orderbook: Ob = await this.watchTopics (url, messageHashes, topics, params);
         return orderbook.limit ();
     }
 
@@ -660,7 +661,7 @@ export default class apex extends apexRest {
         const client = this.client (url);
         await this.authenticate (url);
         this.setPositionsCache (client, symbols);
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         if (cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -813,7 +814,7 @@ export default class apex extends apexRest {
         ];
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < promises.length; i++) {
             const positions = promises[i];
             for (let ii = 0; ii < positions.length; ii++) {
@@ -855,7 +856,7 @@ export default class apex extends apexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < lists.length; i++) {
             const rawPosition = lists[i];

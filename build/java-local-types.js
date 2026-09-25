@@ -1205,10 +1205,13 @@ const WS_TS_CLASS_JAVA_TYPES = {
 const WS_BASE_SOURCE_FILE = /[\\/]ts[\\/]src[\\/]base[\\/](ws[\\/]\w+|Exchange)\.ts$/;
 
 // Java type of a local whose checker type (undefined stripped) is one ws class of ts/src/base/ws
+// (the declared type when the local is annotated: `const cache: ArrayCache = this.positions`)
 function wsCheckerLocalType (printer, initializer) {
     let type;
     try {
-        type = printer.getChecker ().getNonNullableType (printer.getChecker ().getTypeAtLocation (initializer));
+        const declaration = initializer.parent;
+        const at = ts.isVariableDeclaration (declaration) && declaration.type !== undefined ? declaration.name : initializer;
+        type = printer.getChecker ().getNonNullableType (printer.getChecker ().getTypeAtLocation (at));
     } catch (e) {
         return undefined;
     }

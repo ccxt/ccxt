@@ -8,6 +8,7 @@ import { ExchangeError, AuthenticationError, ChecksumError } from '../base/error
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -666,7 +667,7 @@ export default class bitfinex extends bitfinexRest {
         if (limit !== undefined) {
             request['len'] = limit; // string, number of price points, '25', '100', default = '25'
         }
-        const orderbook = await this.subscribe ('book', symbol, this.deepExtend (request, params));
+        const orderbook: Ob = await this.subscribe ('book', symbol, this.deepExtend (request, params));
         return orderbook.limit ();
     }
 

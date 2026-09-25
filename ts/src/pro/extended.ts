@@ -428,7 +428,7 @@ export default class extended extends extendedRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const stored = this.positions;
+        const stored: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'data', {});
         const rawPositions = this.safeList (data, 'positions', []);
         const newPositions: Position[] = [];

@@ -8,6 +8,7 @@ import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers
 import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
 import { NotSupported } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,7 +164,7 @@ export default class upbit extends upbitRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const orderbook = await this.watchPublicMultiple ([ symbol ], 'orderbook');
+        const orderbook: Ob = await this.watchPublicMultiple ([ symbol ], 'orderbook');
         return orderbook.limit ();
     }
 

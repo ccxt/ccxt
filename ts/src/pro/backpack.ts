@@ -163,7 +163,7 @@ export default class backpack extends backpackRest {
                 }
             } else if (messageHash.indexOf ('positions') >= 0) {
                 if (messageHash === 'unsubscribe:positions') {
-                    const cache = this.positions;
+                    const cache: ArrayCacheBySymbolById = this.positions;
                     const keys = Object.keys (cache);
                     for (let j = 0; j < keys.length; j++) {
                         const symbol = keys[j];
@@ -1277,7 +1277,7 @@ export default class backpack extends backpackRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolById ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolById = this.positions;
         const parsedPosition = this.parseWsPosition (data);
         const microseconds = this.safeInteger (data, 'E', 0);
         const timestamp = this.parseToInt (microseconds / 1000);

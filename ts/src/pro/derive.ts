@@ -5,6 +5,7 @@ import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/er
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -103,7 +104,7 @@ export default class derive extends deriveRest {
             'limit': limit,
             'params': params,
         };
-        const orderbook = await this.watchPublic (topic, request, subscription);
+        const orderbook: Ob = await this.watchPublic (topic, request, subscription);
         return orderbook.limit ();
     }
 

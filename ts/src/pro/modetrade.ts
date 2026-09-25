@@ -8,6 +8,7 @@ import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
 import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -115,7 +116,7 @@ export default class modetrade extends modetradeRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchPublic (topic, message);
+        const orderbook: Ob = await this.watchPublic (topic, message);
         return orderbook.limit ();
     }
 
@@ -1072,7 +1073,7 @@ export default class modetrade extends modetradeRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1126,7 +1127,7 @@ export default class modetrade extends modetradeRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = this.safeDict (rawPositions, i);

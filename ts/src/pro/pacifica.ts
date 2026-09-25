@@ -5,6 +5,7 @@ import { ArgumentsRequired, NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -457,7 +458,7 @@ export default class pacifica extends pacificaRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 

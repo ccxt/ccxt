@@ -5,6 +5,7 @@ import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, List, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -260,7 +261,7 @@ export default class p2b extends p2bRest {
             limit,
             interval,
         ];
-        const orderbook = await this.subscribe (name, messageHash, request, params);
+        const orderbook: Ob = await this.subscribe (name, messageHash, request, params);
         return orderbook.limit ();
     }
 

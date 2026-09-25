@@ -6,6 +6,7 @@ import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.j
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -589,7 +590,7 @@ export default class deribit extends deribitRest {
         } else {
             descriptor = interval;
         }
-        const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
+        const orderbook: Ob = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
     }
 
