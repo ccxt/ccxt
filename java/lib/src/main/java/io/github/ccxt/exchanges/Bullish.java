@@ -1583,7 +1583,7 @@ public class Bullish extends BullishApi
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
             Object errors = 0;
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxRetries, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsMaxRetries, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
             while (Helpers.isLessThanOrEqual(errors, maxRetries))
@@ -1885,7 +1885,7 @@ public class Bullish extends BullishApi
         {
             throw new BadRequest((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "paginate");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "paginate");
         Map<String, Object> paramsExtended = this.extend(paramsOmitted, new HashMap<String, Object>() {{
             put( "paginationDirection", "backward" );
         }});
@@ -2173,7 +2173,7 @@ public class Bullish extends BullishApi
                 request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 orderType = "STOP_LIMIT";
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsTimeInForce, "triggerPrice") : paramsTimeInForce;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsTimeInForce, "triggerPrice") : paramsTimeInForce;
             request.put("type", orderType.toUpperCase());
             Map<String, Object> response = (this.privatePostV2Orders(this.extend(request, paramsOmitted))).join();
             //
@@ -2241,7 +2241,7 @@ public class Bullish extends BullishApi
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            Object paramsOmitted = (((java.util.Objects.equals(postOnly, true)))) ? this.omit(parameters, "postOnly") : parameters;
+            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(postOnly, true)))) ? this.omit(parameters, "postOnly") : parameters;
             Map<String, Object> response = (this.privatePostV2Command(this.extend(request, paramsOmitted))).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);

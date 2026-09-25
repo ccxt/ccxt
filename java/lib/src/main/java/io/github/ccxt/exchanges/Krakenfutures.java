@@ -1111,7 +1111,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 "price_type", priceType,
                 "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))
             );
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "price");
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "price");
             Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? 2000 : Math.min(limit, 2000);
             Object limitResolved = null;
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)))
@@ -1573,7 +1573,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             request.put("limitPrice", this.priceToPrecision(symbolValue, priceValue));
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2147,7 +2147,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Map<String, Object> response = null;
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.historyGetTriggers(this.extend(request, paramsOmitted))).join();
@@ -2225,7 +2225,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> response = null;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.historyGetTriggers(this.extend(request, paramsOmitted))).join();
@@ -2974,7 +2974,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 request.put("before", until);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             Map<String, Object> response = (this.historyGetAccountLog(this.extend(request, paramsOmitted))).join();
             //
             //    {
@@ -3064,7 +3064,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 request.put("before", until);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             Map<String, Object> response = (this.historyGetAccountLog(this.extend(request, paramsOmitted))).join();
             //
             //    {
@@ -3256,7 +3256,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             String type = this.safeString2(parameters, "type", "account");
             String symbol = this.safeString(parameters, "symbol");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "account", "symbol")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "account", "symbol")));
             Map<String, Object> response = (this.privateGetAccounts(paramsOmitted)).join();
             //
             //    {
@@ -3786,7 +3786,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 request.put("before", until);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             Map<String, Object> response = (this.historyGetPositions(this.extend(request, paramsOmitted))).join();
             //
             //    {

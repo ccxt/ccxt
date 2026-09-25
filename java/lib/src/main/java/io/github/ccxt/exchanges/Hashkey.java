@@ -3125,7 +3125,7 @@ public class Hashkey extends HashkeyApi
             request.put("clientOrderId", this.uuid());
         }
         String triggerPrice = this.safeString(paramsPostOnly, "triggerPrice");
-        Object paramsOmitted = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsPostOnly, "triggerPrice") : paramsPostOnly;
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsPostOnly, "triggerPrice") : paramsPostOnly;
         if (!java.util.Objects.equals(triggerPrice, null))
         {
             request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));

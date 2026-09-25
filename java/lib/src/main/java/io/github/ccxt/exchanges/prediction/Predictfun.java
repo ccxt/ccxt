@@ -700,7 +700,7 @@ public class Predictfun extends PredictfunApi
                 includeResolved = "true";
             }
             // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
             Integer queriesLength = ((List<?>)queries).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             // the venue answers every term separately and the same category comes back for each term
@@ -1649,7 +1649,7 @@ public class Predictfun extends PredictfunApi
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 request.put("marketId", this.safeString(info, "marketId"));
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "signerAddress");
+            Map<String, Object> query = this.omit(parameters, "signerAddress");
             // the endpoint carries no time filter, it pages back from the most recent match, so
             // since is applied client side by parsePredictionTrades
             Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, query))).join();
@@ -2283,7 +2283,7 @@ public class Predictfun extends PredictfunApi
             }
             // every param the method consumes itself has to come out, otherwise it survives into the
             // extend below and is posted as a top level key next to 'data'
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
             // the JWT authorises the order, the api key only authorises the request
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "data", data );
@@ -2365,7 +2365,7 @@ public class Predictfun extends PredictfunApi
                 Map<String, Object> request = Helpers.newMap(
                     "address", address
                 );
-                Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, "address");
+                Map<String, Object> rest = this.omit(parameters, "address");
                 response = (this.predictfunGetV1PositionsAddress(this.extend(request, rest))).join();
             } else
             {

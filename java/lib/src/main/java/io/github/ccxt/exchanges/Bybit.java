@@ -2314,7 +2314,7 @@ public class Bybit extends BybitApi
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
             Helpers.addElementToObject(this.urls, "api", this.urls.get("apiBackupDemoTrading"));
-            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackupDemoTrading");
+            Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -3910,7 +3910,7 @@ public class Bybit extends BybitApi
             } else
             {
                 String price = this.safeString(paramsUntil, "price");
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "price");
+                Map<String, Object> paramsOmitted = this.omit(paramsUntil, "price");
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     request.put("category", "linear");
@@ -4193,7 +4193,7 @@ public class Bybit extends BybitApi
             }
             Long until = this.safeInteger(paramsValue, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsValue, "endTime", until); // exchange-specific in milliseconds
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -6223,8 +6223,8 @@ public class Bybit extends BybitApi
         {
             request.put("orderId", id);
         }
-        Object paramsOmitted = (((java.util.Objects.equals(market.get("spot"), true)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger"))) : parameters;
-        var categoryparamsCategoryVariable = this.getBybitType("cancelOrderRequest", market, Helpers.toMapArg(paramsOmitted));
+        Map<String, Object> paramsOmitted = (((java.util.Objects.equals(market.get("spot"), true)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger"))) : parameters;
+        var categoryparamsCategoryVariable = this.getBybitType("cancelOrderRequest", market, paramsOmitted);
         String category = (String) ((List<Object>) categoryparamsCategoryVariable).get(0);
         var paramsCategory = ((List<Object>) categoryparamsCategoryVariable).get(1);
         request.put("category", category);
@@ -6318,7 +6318,7 @@ public class Bybit extends BybitApi
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsValue, "clientOrderIds", "clientOids", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
             for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
                 ((List<Object>)ordersRequests).add(Helpers.newMap(
@@ -6587,7 +6587,7 @@ public class Bybit extends BybitApi
                 }
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -6853,7 +6853,7 @@ public class Bybit extends BybitApi
             }
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -6868,7 +6868,7 @@ public class Bybit extends BybitApi
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsOmitted, "endTime", until); // exchange-specific in milliseconds
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -7066,7 +7066,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -7081,7 +7081,7 @@ public class Bybit extends BybitApi
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsOmitted, "endTime", until); // exchange-specific in milliseconds
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -7284,7 +7284,7 @@ public class Bybit extends BybitApi
             }
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -7390,7 +7390,7 @@ public class Bybit extends BybitApi
             {
                 request.put("orderId", id);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderLinkId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderLinkId")));
             return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, paramsOmitted)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -8433,7 +8433,7 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", 200); // max limit
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("type")));
+            Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("type")));
             request.put("category", type);
             Map<String, Object> response = (this.privateGetV5PositionList(this.extend(request, paramsOmitted))).join();
             //
@@ -9070,7 +9070,7 @@ public class Bybit extends BybitApi
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -9224,7 +9224,7 @@ public class Bybit extends BybitApi
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", (Object) null);
             if (java.util.Objects.equals(paginate, true))
             {
-                Map<String, Object> paramsPaginate = (Map<String, Object>) this.omit(parameters, "paginate");
+                Map<String, Object> paramsPaginate = this.omit(parameters, "paginate");
                 Helpers.addElementToObject(paramsPaginate, "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1h"));
                 return (this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 200L)).join();
             }
@@ -9454,7 +9454,7 @@ public class Bybit extends BybitApi
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - (86400000L * 30L)) : since; // last 30 days
             request.put("startTime", sinceResolved);
             Object endTime = this.safeInteger2(parameters, "until", "endTime");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (java.util.Objects.equals(endTime, null))
             {
                 endTime = Helpers.add(sinceResolved, (86400000L * 30L)); // since + 30 days
@@ -11328,7 +11328,7 @@ public class Bybit extends BybitApi
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsSubType, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", subType );
             }};

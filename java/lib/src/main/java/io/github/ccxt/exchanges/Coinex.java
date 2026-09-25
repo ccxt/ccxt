@@ -3184,7 +3184,7 @@ public class Coinex extends CoinexApi
                 put( "market", market.get("id") );
             }};
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> response = null;
             List<Object> requestIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -3274,7 +3274,7 @@ public class Coinex extends CoinexApi
             }
             Map<String, Object> response = null;
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "trigger_price")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice")));
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             if (Boolean.TRUE.equals(isTriggerOrder))
             {
@@ -3670,7 +3670,7 @@ public class Coinex extends CoinexApi
                 request.put("limit", limit);
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
@@ -3819,7 +3819,7 @@ public class Coinex extends CoinexApi
             {
                 throw new ArgumentsRequired((this.id + " createDepositAddress() requires a network parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> request = Helpers.newMap(
                 "ccy", currency.get("id"),
                 "chain", this.networkCodeToId(network, Helpers.toStringArg(currency.get("code")))
@@ -5567,7 +5567,7 @@ public class Coinex extends CoinexApi
             {
                 throw new ArgumentsRequired((this.id + " fetchIsolatedBorrowRate() requires a code parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "code");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "code");
             Map<String, Object> currency = this.currency(code);
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5715,7 +5715,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> currency = this.currency((String) (code));
             Boolean isAutoRenew = (Boolean) this.safeBool2(parameters, "isAutoRenew", "is_auto_renew", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "isAutoRenew");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "isAutoRenew");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
                 put( "ccy", currency.get("id") );
@@ -6066,7 +6066,7 @@ public class Coinex extends CoinexApi
             {
                 throw new ArgumentsRequired((this.id + " fetchLeverage() requires a code parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "code");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "code");
             Map<String, Object> currency = this.currency(code);
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6240,7 +6240,7 @@ public class Coinex extends CoinexApi
             {
                 request.put("client_id", clientOrderId);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderId");
             Map<String, Object> response = (this.v2PrivatePostFuturesClosePosition(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -6490,7 +6490,7 @@ public class Coinex extends CoinexApi
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a symbol argument")) ;
             }
             Long positionId = (Long) this.safeInteger2(parameters, "positionId", "position_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "positionId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "positionId");
             if (java.util.Objects.equals(positionId, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;

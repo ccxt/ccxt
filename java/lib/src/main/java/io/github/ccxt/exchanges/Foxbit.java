@@ -1182,7 +1182,7 @@ public class Foxbit extends FoxbitApi
             {
                 request.put("client_order_id", clientOrderId);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly", "triggerPrice", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly", "triggerPrice", "clientOrderId")));
             Map<String, Object> response = (this.v3PrivatePostOrders(this.extend(request, paramsOmitted))).join();
             // {
             //     "id": 1234567890,

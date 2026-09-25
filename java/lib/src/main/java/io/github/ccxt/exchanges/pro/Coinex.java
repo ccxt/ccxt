@@ -939,7 +939,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 throw new NotSupported(((this.id + " watchOrderBookForSymbols() aggregation must be one of ") + String.join(", ", (List<String>)aggregations))) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "aggregation");
+            Map<String, Object> paramsOmitted = this.omit(paramsCallerMethodName, "aggregation");
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
             if (!Boolean.TRUE.equals(symbolsDefined))
             {
@@ -1105,7 +1105,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             String messageHash = "orders";
             Map<String, Object> market = null;
             List<Object> marketList = null;

@@ -6683,7 +6683,7 @@ public class Bitget extends BitgetApi
             Boolean limitDefined = !java.util.Objects.equals(limit, null);
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
             Boolean untilDefined = !java.util.Objects.equals(until, null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUTA, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsUTA, new ArrayList<Object>(Arrays.asList("until")));
             // retrievable periods listed here:
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -9244,7 +9244,7 @@ public class Bitget extends BitgetApi
             {
                 request.put("orderId", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
             Object response = null;
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsOmitted), "fetchOrder", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
@@ -12382,7 +12382,7 @@ public class Bitget extends BitgetApi
                 put( "holdSide", holdSide );
                 put( "productType", productType );
             }};
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsProductType, "holdSide");
+            Map<String, Object> paramsOmitted = this.omit(paramsProductType, "holdSide");
             Map<String, Object> response = (this.privateMixPostV2MixAccountSetMargin(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -12963,7 +12963,7 @@ public class Bitget extends BitgetApi
                 put( "coin", currency.get("id") );
             }};
             String symbol = this.safeString(paramsUTA, "symbol");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUTA, "symbol");
+            Map<String, Object> paramsOmitted = this.omit(paramsUTA, "symbol");
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -14355,7 +14355,7 @@ public class Bitget extends BitgetApi
             {
                 throw new ArgumentsRequired((this.id + " createConvertTrade() requires a toAmount parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "toAmount")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "toAmount")));
             Map<String, Object> request = Helpers.newMap(
                 "traceId", id,
                 "fromCoin", fromCode,
@@ -14428,7 +14428,7 @@ public class Bitget extends BitgetApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> response = (this.privateConvertGetV2ConvertConvertRecord(this.extend(request, paramsOmitted))).join();
             //
             //     {

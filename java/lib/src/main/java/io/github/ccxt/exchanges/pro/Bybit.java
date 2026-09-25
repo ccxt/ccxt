@@ -273,7 +273,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     public Object cleanParams(Map<String, Object> parameters)
     {
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType", "settle", "defaultSettle", "unifiedMargin")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType", "settle", "defaultSettle", "unifiedMargin")));
         return paramsOmitted;
     }
 
@@ -1133,7 +1133,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String channel = "orderbook.";
             Object limit = this.safeInteger(parameters, "limit");
-            Object paramsOmitted = (((!java.util.Objects.equals(limit, null)))) ? this.omit(parameters, "limit") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(limit, null)))) ? this.omit(parameters, "limit") : parameters;
             if (java.util.Objects.equals(limit, null))
             {
                 Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1153,8 +1153,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 subMessageHashes.add(("orderbook:" + symbol));
                 ((List<Object>)topics).add(topic);
             }
-            String url = (this.getUrlByMarketType(Helpers.toStringArg((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0))), false, "watchOrderBook", Helpers.toMapArg(paramsOmitted))).join();
-            return (this.unWatchTopics(url, "orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, Helpers.toMapArg(paramsOmitted), new HashMap<String, Object>() {{}})).join();
+            String url = (this.getUrlByMarketType(Helpers.toStringArg((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0))), false, "watchOrderBook", paramsOmitted)).join();
+            return (this.unWatchTopics(url, "orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted, new HashMap<String, Object>() {{}})).join();
         });
 
     }

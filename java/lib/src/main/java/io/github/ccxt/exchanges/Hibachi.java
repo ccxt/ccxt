@@ -1095,7 +1095,7 @@ public class Hibachi extends HibachiApi
         {
             request.put("triggerPrice", triggerPrice);
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 

@@ -843,7 +843,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 topic = "algoexecutionreport";
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -896,7 +896,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 topic = "algoexecutionreport";
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "stop");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "stop");
             String messageHash = "myTrades";
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))

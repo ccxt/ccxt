@@ -1560,7 +1560,7 @@ public class Bigone extends BigoneApi
             {
                 request.put("time", this.iso8601((until + 1L)));
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> response = (this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1634,7 +1634,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String type = this.safeString(parameters, "type", "");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "funding") || java.util.Objects.equals(type, "fund"))
             {

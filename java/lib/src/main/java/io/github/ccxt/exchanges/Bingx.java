@@ -1737,7 +1737,7 @@ public class Bingx extends BingxApi
                 request.put("limit", requestLimit);
             }
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "endTime");
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -1767,7 +1767,7 @@ public class Bingx extends BingxApi
                 } else
                 {
                     String price = this.safeString(paramsUntil, "price");
-                    Object paramsPrice = this.omit(paramsUntil, "price");
+                    Map<String, Object> paramsPrice = this.omit(paramsUntil, "price");
                     if (java.util.Objects.equals(price, "mark"))
                     {
                         response = (this.swapV1PublicGetMarketMarkPriceKlines(this.extend(request, paramsPrice))).join();
@@ -2569,7 +2569,7 @@ public class Bingx extends BingxApi
                 request.put("limit", limit);
             }
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "endTime");
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -4038,7 +4038,7 @@ public class Bingx extends BingxApi
             {
                 throw new NotSupported((this.id + " createOrder() only supports test orders for linear swap markets")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "test");
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
             Object response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
@@ -4750,7 +4750,7 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTwapOrder = (Boolean) this.safeBool(parameters, "twap", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "twap");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "twap");
             Map<String, Object> response = null;
             Map<String, Object> market = null;
             if (java.util.Objects.equals(isTwapOrder, true))
@@ -4770,7 +4770,7 @@ public class Bingx extends BingxApi
                     "symbol", market.get("id")
                 );
                 String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+                Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
                     request.put("clientOrderID", clientOrderId);
@@ -4996,7 +4996,7 @@ public class Bingx extends BingxApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderIds");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
             Object idsToParse = ids;
             Boolean areClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null));
             if (Boolean.TRUE.equals(areClientOrderIds))
@@ -5125,7 +5125,7 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTwapOrder = (Boolean) this.safeBool(parameters, "twap", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "twap");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "twap");
             Map<String, Object> response = null;
             Map<String, Object> market = null;
             if (java.util.Objects.equals(isTwapOrder, true))
@@ -5324,7 +5324,7 @@ public class Bingx extends BingxApi
             } else
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsSubType, "twap", false);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "twap");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "twap");
                 if (java.util.Objects.equals(isTwapOrder, true))
                 {
                     response = (this.swapV1PrivateGetTwapOpenOrders(this.extend(request, paramsOmitted))).join();
@@ -5602,7 +5602,7 @@ public class Bingx extends BingxApi
                 {
                     request.put("endTime", until);
                 }
-                Map<String, Object> paramsSpot = (Map<String, Object>) this.omit(paramsStandard, new ArrayList<Object>(Arrays.asList("until", "till")));
+                Map<String, Object> paramsSpot = this.omit(paramsStandard, new ArrayList<Object>(Arrays.asList("until", "till")));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("pageSize", limit);
@@ -5611,14 +5611,14 @@ public class Bingx extends BingxApi
             } else
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsStandard, "twap", false);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsStandard, "twap");
+                Map<String, Object> paramsOmitted = this.omit(paramsStandard, "twap");
                 if (java.util.Objects.equals(isTwapOrder, true))
                 {
                     request.put("pageIndex", 1);
                     request.put("pageSize", (((java.util.Objects.equals(limit, null)))) ? 100 : limit);
                     request.put("startTime", (((java.util.Objects.equals(since, null)))) ? 1 : since);
                     Long until = this.safeInteger(paramsOmitted, "until", this.milliseconds());
-                    Map<String, Object> paramsUntil = (Map<String, Object>) this.omit(paramsOmitted, "until");
+                    Map<String, Object> paramsUntil = this.omit(paramsOmitted, "until");
                     request.put("endTime", until);
                     response = (this.swapV1PrivateGetTwapHistoryOrders(this.extend(request, paramsUntil))).join();
                 } else if (java.util.Objects.equals(subType, "inverse"))
@@ -5775,7 +5775,7 @@ public class Bingx extends BingxApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit, true)).join();
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("fromAccount", "toAccount")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("fromAccount", "toAccount")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -5912,7 +5912,7 @@ public class Bingx extends BingxApi
         return BaseExchange.supplyAsync(() -> {
 
             String network = this.safeString(parameters, "network");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
             Object addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             if (!java.util.Objects.equals(network, null))
             {
@@ -6478,7 +6478,7 @@ public class Bingx extends BingxApi
             }
             String side = this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new ArrayList<Object>(Arrays.asList("LONG", "SHORT", "BOTH")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "side");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "side");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -6564,7 +6564,7 @@ public class Bingx extends BingxApi
                     request.put("startTs", (now - ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
                 }
                 Long until = this.safeInteger(paramsSubType, "until");
-                Map<String, Object> paramsUntil = (Map<String, Object>) this.omit(paramsSubType, "until");
+                Map<String, Object> paramsUntil = this.omit(paramsSubType, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
                     String endTimeReq = "endTs";
@@ -6737,7 +6737,7 @@ public class Bingx extends BingxApi
             {
                 request.put("addressTag", tagWithdrawTag);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWalletType, new ArrayList<Object>(Arrays.asList("walletType", "network")));
+            Map<String, Object> paramsOmitted = this.omit(paramsWalletType, new ArrayList<Object>(Arrays.asList("walletType", "network")));
             Map<String, Object> response = (this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             //    {

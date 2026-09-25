@@ -124,7 +124,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + market.get("symbol"));
             String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "tickTypes");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
             Object request = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((market.get("base") + "_") + market.get("quote")))) );
@@ -198,7 +198,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 messageHashes.add(("ticker:" + market.get("symbol")));
             }
             String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "tickTypes");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
             Object message = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
                 put( "symbols", streamMarketIds );

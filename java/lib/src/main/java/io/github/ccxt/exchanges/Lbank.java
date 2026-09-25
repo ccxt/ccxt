@@ -1360,7 +1360,7 @@ public class Lbank extends LbankApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPublicGetTrades");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "spotPublicGetSupplementTrades"))
             {
@@ -2377,7 +2377,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             Object sinceValue = this.safeValue(parameters, "start_date", since);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "start_date");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "start_date");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -2575,7 +2575,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -2687,7 +2687,7 @@ public class Lbank extends LbankApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchDepositAddress", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "fetchDepositAddressDefault");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             Object response = null;
             if (java.util.Objects.equals(method, "fetchDepositAddressSupplement"))
             {
@@ -2715,7 +2715,7 @@ public class Lbank extends LbankApi
                 put( "assetCode", currency.get("id") );
             }};
             Object network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
-            Object paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             if (!java.util.Objects.equals(network, null))
             {
                 request.put("netWork", network); // ... yes, really lol
@@ -2765,7 +2765,7 @@ public class Lbank extends LbankApi
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
             String network = this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
-            Object paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             if (!java.util.Objects.equals(network, null))
             {
                 request.put("networkName", network);
@@ -2823,7 +2823,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String fee = this.safeString(paramsWithdrawTag, "fee");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, "fee");
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "fee");
             // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
             this.checkRequiredArgument("withdraw", fee, "fee", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> currency = this.currency((String) (code));
@@ -2838,7 +2838,7 @@ public class Lbank extends LbankApi
                 request.put("memo", tagWithdrawTag);
             }
             String network = this.safeStringUpper2(paramsOmitted, "network", "networkName");
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("network", "networkName")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("network", "networkName")));
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
             String networkId = this.safeString(networks, network, network);
             if (!java.util.Objects.equals(networkId, null))
@@ -3129,7 +3129,7 @@ public class Lbank extends LbankApi
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTransactionFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
                 String method = this.safeString(parameters, "method", defaultMethod);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+                Map<String, Object> paramsOmitted = this.omit(parameters, "method");
                 if (java.util.Objects.equals(method, "fetchPublicTransactionFees"))
                 {
                     result = (this.fetchPublicTransactionFees(paramsOmitted)).join();
@@ -3238,7 +3238,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String code = this.safeString2(parameters, "coin", "assetCode");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("coin", "assetCode")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("coin", "assetCode")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
@@ -3331,7 +3331,7 @@ public class Lbank extends LbankApi
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchDepositWithdrawFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");
                 String method = this.safeString(parameters, "method", defaultMethod);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+                Map<String, Object> paramsOmitted = this.omit(parameters, "method");
                 if (java.util.Objects.equals(method, "fetchPublicDepositWithdrawFees"))
                 {
                     response = (this.fetchPublicDepositWithdrawFees(codes, paramsOmitted)).join();

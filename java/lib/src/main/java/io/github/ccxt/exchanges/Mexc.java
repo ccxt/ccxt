@@ -2041,7 +2041,7 @@ public class Mexc extends MexcApi
                 }
                 String method = this.safeString(this.options, "fetchTradesMethod", "spotPublicGetAggTrades");
                 method = this.safeString(parameters, "method", method); // AggTrades, HistoricalTrades, Trades
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method")));
+                Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method")));
                 if (java.util.Objects.equals(method, "spotPublicGetAggTrades"))
                 {
                     trades = (this.spotPublicGetAggTrades(this.extend(request, paramsOmitted))).join();
@@ -2885,7 +2885,7 @@ public class Mexc extends MexcApi
             request.put("type", "LIMIT_MAKER");
         }
         String tif = this.safeString(paramsPostOnly, "timeInForce");
-        Object paramsWithoutTif = (((!java.util.Objects.equals(tif, null)))) ? this.omit(paramsPostOnly, "timeInForce") : paramsPostOnly;
+        Map<String, Object> paramsWithoutTif = (((!java.util.Objects.equals(tif, null)))) ? this.omit(paramsPostOnly, "timeInForce") : paramsPostOnly;
         if (!java.util.Objects.equals(tif, null))
         {
             if (java.util.Objects.equals(tif, "IOC"))
@@ -3096,14 +3096,14 @@ public class Mexc extends MexcApi
                 }
             }
             request.put("side", sideInteger);
-            Object paramsReduceOnly = (((java.util.Objects.equals(reduceOnly, true)))) ? this.omit(paramsPostOnly, "reduceOnly") : paramsPostOnly; // hedged mode does not accept this parameter
+            Map<String, Object> paramsReduceOnly = (((java.util.Objects.equals(reduceOnly, true)))) ? this.omit(paramsPostOnly, "reduceOnly") : paramsPostOnly; // hedged mode does not accept this parameter
             String clientOrderId = this.safeString2(paramsReduceOnly, "clientOrderId", "externalOid");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("externalOid", clientOrderId);
             }
             Double triggerPrice = this.safeNumber2(paramsReduceOnly, "triggerPrice", "stopPrice", (Object) null);
-            Object paramsOmitted = this.omit(paramsReduceOnly, new ArrayList<Object>(Arrays.asList("clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged")));
+            Map<String, Object> paramsOmitted = this.omit(paramsReduceOnly, new ArrayList<Object>(Arrays.asList("clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged")));
             Map<String, Object> response = null;
             if ((!java.util.Objects.equals(triggerPrice, null)) && ((triggerPrice == null || triggerPrice != 0)))
             {
@@ -3256,8 +3256,8 @@ public class Mexc extends MexcApi
                 {
                     request.put("orderId", id);
                 }
-                Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
-                List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", Helpers.toMapArg(paramsOmitted), (String) null);
+                Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+                List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", paramsOmitted, (String) null);
                 var marginMode = ((List<Object>) marginModequeryVariable).get(0);
                 var query = ((List<Object>) marginModequeryVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
@@ -3346,7 +3346,7 @@ public class Mexc extends MexcApi
                 request.put("symbol", market.get("id"));
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, paramsOmitted, (Object) null);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
@@ -4654,7 +4654,7 @@ public class Mexc extends MexcApi
             paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             String marginMode = this.safeString(paramsMarketType, "marginMode");
             Boolean isMargin = (Boolean) this.safeBool(paramsMarketType, "margin", false);
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
             Map<String, Object> response = null;
             if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(isMargin, true)) || (java.util.Objects.equals(marketType, "margin")))
             {
@@ -4679,7 +4679,7 @@ public class Mexc extends MexcApi
                 this.checkRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols", new ArrayList<Object>(Arrays.asList()));
                 marketType = "margin";
                 request.put("symbols", parsedSymbols);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("symbol", "symbols")));
+                Map<String, Object> paramsOmitted = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("symbol", "symbols")));
                 response = (this.spotPrivateGetMarginIsolatedAccount(this.extend(request, paramsOmitted))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4829,7 +4829,7 @@ public class Mexc extends MexcApi
                 {
                     request.put("endTime", until);
                 }
-                Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, "until") : paramsMarketType;
+                Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, "until") : paramsMarketType;
                 trades = (this.spotPrivateGetMyTrades(this.extend(request, paramsUntil))).join();
             } else
             {
@@ -5574,7 +5574,7 @@ public class Mexc extends MexcApi
             {
                 request.put("network", networkId);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             List<Object> response = (this.spotPrivateGetCapitalDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //    [
@@ -5638,7 +5638,7 @@ public class Mexc extends MexcApi
             {
                 request.put("network", networkId);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> response = (this.spotPrivatePostCapitalDepositAddress(this.extend(request, paramsOmitted))).join();
             //     {
             //        "coin": "EOS",
@@ -5746,7 +5746,7 @@ public class Mexc extends MexcApi
                 }
                 request.put("limit", limit);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(rawNetwork, null)))) ? this.omit(parameters, "network") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(rawNetwork, null)))) ? this.omit(parameters, "network") : parameters;
             List<Object> response = (this.spotPrivateGetCapitalDepositHisrec(this.extend(request, paramsOmitted))).join();
             //
             // [
@@ -6572,7 +6572,7 @@ public class Mexc extends MexcApi
             Boolean intern = (Boolean) this.safeBool(paramsWithdrawTag, "internal", false);
             if (java.util.Objects.equals(intern, true))
             {
-                Map<String, Object> paramsInternal = (Map<String, Object>) this.omit(paramsWithdrawTag, "internal");
+                Map<String, Object> paramsInternal = this.omit(paramsWithdrawTag, "internal");
                 Map<String, Object> requestForInternal = new HashMap<String, Object>() {{
                     put( "asset", currency.get("id") );
                     put( "amount", amount );
@@ -6609,7 +6609,7 @@ public class Mexc extends MexcApi
             {
                 request.put("netWork", network);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("network", "netWork"))) : paramsWithdrawTag;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("network", "netWork"))) : paramsWithdrawTag;
             Map<String, Object> response = (this.spotPrivatePostCapitalWithdraw(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -7148,7 +7148,7 @@ public class Mexc extends MexcApi
             {
                 request.put("positionType", (((java.util.Objects.equals(direction, "short")))) ? 2 : 1);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "direction");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "direction");
             Map<String, Object> response = (this.contractPrivatePostPositionChangeLeverage(this.extend(request, paramsOmitted))).join();
             //
             // { success: true, code: '0' }

@@ -216,7 +216,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Map<String, Object> market = this.market(symbol);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -262,7 +262,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -564,7 +564,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "raw");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
             String channel = ("user.trades.any.any." + interval);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -859,7 +859,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String currency = this.safeString(parameters, "currency", "any");
             String interval = this.safeString(parameters, "interval", "raw");
             String kind = this.safeString(parameters, "kind", "any");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "interval", "currency", "kind");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "interval", "currency", "kind");
             String channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

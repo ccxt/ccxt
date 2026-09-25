@@ -1299,7 +1299,7 @@ public class Bitfinex extends BitfinexApi
                 throw new ExchangeError(((this.id + " fetchBalance() type parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Boolean isDerivative = java.util.Objects.equals(requestedType, "derivatives");
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> query = this.omit(parameters, "type");
             List<Object> response = (this.privatePostAuthRWallets(query)).join();
             List<Object> balances = this.toArray(response);
             Map<String, Object> result = new HashMap<String, Object>() {{
@@ -2262,7 +2262,7 @@ public class Bitfinex extends BitfinexApi
         {
             request.put("cid", clientOrderId);
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId")));
+        Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2517,7 +2517,7 @@ public class Bitfinex extends BitfinexApi
                     put( "id", Helpers.parseInt(id) );
                 }};
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(cid, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("cid", "clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(cid, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("cid", "clientOrderId"))) : parameters;
             List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted))).join();
             Object order = this.safeValue(response, 4);
             Map<String, Object> newOrder = new HashMap<String, Object>() {{
@@ -3028,7 +3028,7 @@ public class Bitfinex extends BitfinexApi
                 throw new ArgumentsRequired((((this.id + " fetchDepositAddress() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
             }
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network", "wallet");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network", "wallet");
             Map<String, Object> request = Helpers.newMap(
                 "method", networkId,
                 "wallet", wallet,
@@ -3466,7 +3466,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> currency = this.currency((String) (code));
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             Map<String, Object> currencyNetwork = (Map<String, Object>) this.safeDict(currencyNetworks, network, (Object) null);
             String networkId = this.safeString(currencyNetwork, "id");
@@ -3475,7 +3475,7 @@ public class Bitfinex extends BitfinexApi
                 throw new ArgumentsRequired((((this.id + " withdraw() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
             }
             String wallet = this.safeString(paramsOmitted, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, "network", "wallet");
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "network", "wallet");
             Map<String, Object> request = Helpers.newMap(
                 "method", networkId,
                 "wallet", wallet,
@@ -4831,7 +4831,7 @@ public class Bitfinex extends BitfinexApi
             {
                 request.put("lev", leverage);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage")));
             List<Object> response = (this.privatePostAuthWOrderUpdate(this.extend(request, paramsOmitted))).join();
             //
             //     [

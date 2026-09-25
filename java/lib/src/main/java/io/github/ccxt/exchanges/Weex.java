@@ -1921,7 +1921,7 @@ public class Weex extends WeexApi
                 put( "interval", Weex.this.safeString(contractTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             String priceType = this.safeStringUpper(paramsHistorical, "price");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsHistorical, new ArrayList<Object>(Arrays.asList("historical", "until", "price")));
+            Map<String, Object> paramsOmitted = this.omit(paramsHistorical, new ArrayList<Object>(Arrays.asList("historical", "until", "price")));
             List<Object> response = null;
             // hardcap threshold
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
@@ -2695,7 +2695,7 @@ public class Weex extends WeexApi
             request.put("price", this.priceToPrecision(symbol, price));
         }
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderId");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderId");
         if (java.util.Objects.equals(clientOrderId, null))
         {
             String partner = this.safeString(paramsOmitted, "partner", "b-WEEX111125");
@@ -2972,7 +2972,7 @@ public class Weex extends WeexApi
                 }
             }
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName")));
         return this.extend(request, paramsOmitted);
     }
 
@@ -3023,7 +3023,7 @@ public class Weex extends WeexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString(paramsMarketType, "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -3101,7 +3101,7 @@ public class Weex extends WeexApi
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool(paramsMarketType, "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "trigger");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "trigger");
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3158,7 +3158,7 @@ public class Weex extends WeexApi
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             List<Object> clientOrderIds = (List<Object>) this.safeList(paramsMarketType, "clientOrderIds", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "clientOrderIds");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "clientOrderIds");
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 if (Boolean.TRUE.equals(isSpot))
@@ -3235,7 +3235,7 @@ public class Weex extends WeexApi
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument for non-spot markets")) ;
             }
             String clientOrderId = this.safeString(paramsMarketType, "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "clientOrderId");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -3371,7 +3371,7 @@ public class Weex extends WeexApi
                 Boolean trigger = (Boolean) this.safeBool(paramsUntil, "trigger", false);
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "trigger");
+                    Map<String, Object> paramsOmitted = this.omit(paramsUntil, "trigger");
                     //
                     //     [
                     //         {
@@ -5107,7 +5107,7 @@ public class Weex extends WeexApi
             {
                 throw new ArgumentsRequired((this.id + " modifyMarginHelper() requires a positionId parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("positionId", "id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("positionId", "id")));
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "isolatedPositionId", isolatedPositionId,

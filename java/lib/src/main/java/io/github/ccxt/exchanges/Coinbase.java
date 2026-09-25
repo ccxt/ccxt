@@ -714,7 +714,7 @@ public class Coinbase extends CoinbaseApi
 
             String defaultMethod = this.safeString(this.options, "fetchTime", "v2PublicGetTime");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "v2PublicGetTime"))
             {
@@ -1026,7 +1026,7 @@ public class Coinbase extends CoinbaseApi
         return BaseExchange.supplyAsync(() -> {
 
             String accountId = this.safeString(parameters, "account_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "account_id");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "account_id");
             if (java.util.Objects.equals(accountId, null))
             {
                 (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
@@ -1121,7 +1121,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             Map<String, Object> sells = (this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query))).join();
             List<Object> sellsData = (List<Object>) this.safeList(sells, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(sellsData, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
@@ -1152,7 +1152,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             Map<String, Object> buys = (this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query))).join();
             List<Object> buysData = (List<Object>) this.safeList(buys, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(buysData, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
@@ -2961,7 +2961,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Boolean isV3 = (Boolean) this.safeBool(parameters, "v3", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("v3")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("v3")));
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsOmitted, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
@@ -3502,7 +3502,7 @@ public class Coinbase extends CoinbaseApi
         return BaseExchange.supplyAsync(() -> {
 
             String accountId = this.safeString2(parameters, "account_id", "accountId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
                 if (java.util.Objects.equals(code, null))
@@ -3605,7 +3605,7 @@ public class Coinbase extends CoinbaseApi
             Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
             if (java.util.Objects.equals(reduceOnly, true))
             {
-                Map<String, Object> paramsClose = (Map<String, Object>) this.omit(parameters, "reduceOnly");
+                Map<String, Object> paramsClose = this.omit(parameters, "reduceOnly");
                 Helpers.addElementToObject(paramsClose, "amount", amount);
                 return (this.closePosition(symbol, side, paramsClose)).join();
             }
@@ -4300,7 +4300,7 @@ public class Coinbase extends CoinbaseApi
             {
                 request.put("end_date", this.iso8601(until));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             Map<String, Object> response = (this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -4389,7 +4389,7 @@ public class Coinbase extends CoinbaseApi
             {
                 request.put("end_date", this.iso8601(until));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
             Map<String, Object> response = (this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -4575,7 +4575,7 @@ public class Coinbase extends CoinbaseApi
                 put( "granularity", Coinbase.this.safeString(Coinbase.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object requestedDuration = Helpers.multiply(limitValue, duration);
             String sinceString = null;
@@ -4773,7 +4773,7 @@ public class Coinbase extends CoinbaseApi
             {
                 request.put("end_sequence_timestamp", this.iso8601(until));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             Map<String, Object> response = (this.v3PrivateGetBrokerageOrdersHistoricalFills(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -4967,7 +4967,7 @@ public class Coinbase extends CoinbaseApi
                 put( "currency", currency.get("id") );
             }};
             String accountId = this.safeString2(paramsWithdrawTag, "account_id", "accountId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
                 if (java.util.Objects.equals(code, null))
@@ -5236,7 +5236,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String accountId = this.safeString2(parameters, "account_id", "accountId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
                 if (java.util.Objects.equals(code, null))
@@ -5321,7 +5321,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String accountId = this.safeString2(parameters, "account_id", "accountId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
                 if (java.util.Objects.equals(code, null))
@@ -5589,7 +5589,7 @@ public class Coinbase extends CoinbaseApi
             {
                 throw new ArgumentsRequired((this.id + " fetchConvertTrade() requires a toCode parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "toCode");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "toCode");
             Map<String, Object> request = Helpers.newMap(
                 "trade_id", id,
                 "from_account", code,
@@ -5712,7 +5712,7 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", market.get("id") );
             }};

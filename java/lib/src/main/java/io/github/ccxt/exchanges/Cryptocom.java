@@ -1316,7 +1316,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
@@ -1410,7 +1410,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("count", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
@@ -1490,7 +1490,7 @@ public class Cryptocom extends CryptocomApi
             Object now = this.microseconds();
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long until = this.safeInteger(paramsPaginate, "until", now);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_ts", (since - (((long) duration) * 1000L)));
@@ -1882,7 +1882,7 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("type", uppercaseType);
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2237,7 +2237,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("orig_client_oid", originalClientOrderId);
             }
         }
-        Object paramsOmitted = (((java.util.Objects.equals(id, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("orig_client_oid", "clientOrderId"))) : parameters;
+        Map<String, Object> paramsOmitted = (((java.util.Objects.equals(id, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("orig_client_oid", "clientOrderId"))) : parameters;
         if ((java.util.Objects.equals(amount, null)) || (java.util.Objects.equals(price, null)))
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
@@ -2530,7 +2530,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
@@ -2749,7 +2749,7 @@ public class Cryptocom extends CryptocomApi
         return BaseExchange.supplyAsync(() -> {
 
             String network = this.safeStringUpper(parameters, "network");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             Object depositAddresses = depositAddressesRaw;
             if (((Map<?, ?>)depositAddresses).containsKey(network))
@@ -2800,7 +2800,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("page_size", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
@@ -2873,7 +2873,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("page_size", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
@@ -3307,7 +3307,7 @@ public class Cryptocom extends CryptocomApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "margin");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "margin");
         String marginMode = null;
         Map<String, Object> paramsMarginMode = null;
         List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams(methodName, paramsOmitted, (String) null);
@@ -3454,7 +3454,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
@@ -3922,7 +3922,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("count", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);

@@ -879,7 +879,7 @@ public class Alpaca extends AlpacaApi
                 put( "symbols", marketId );
                 put( "loc", loc );
             }};
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
             List<Object> symbolTrades = null;
             if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocTrades"))
             {
@@ -1240,7 +1240,7 @@ public class Alpaca extends AlpacaApi
                 put( "symbols", String.join(",", (List<String>)ids) );
                 put( "loc", loc );
             }};
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "loc");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "loc");
             Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1489,7 +1489,7 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("qty", this.amountToPrecision(symbol, amount));
             }
-            Object paramsCost = (((!java.util.Objects.equals(cost, null)))) ? this.omit(parameters, "cost") : parameters;
+            Map<String, Object> paramsCost = (((!java.util.Objects.equals(cost, null)))) ? this.omit(parameters, "cost") : parameters;
             List<Object> defaultTIFparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce", (String) null);
             String defaultTIF = (String) ((List<Object>) defaultTIFparamsTimeInForceVariable).get(0);
             var paramsTimeInForce = ((List<Object>) defaultTIFparamsTimeInForceVariable).get(1);
@@ -1667,7 +1667,7 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("until", this.iso8601(until));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("after", this.iso8601(since));
@@ -1823,7 +1823,7 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
             }
-            Object paramsTrigger = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(parameters, "triggerPrice") : parameters;
+            Map<String, Object> paramsTrigger = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(parameters, "triggerPrice") : parameters;
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("limit_price", this.priceToPrecision(symbol, price));
@@ -2004,7 +2004,7 @@ public class Alpaca extends AlpacaApi
             {
                 request.put("until", this.iso8601(until));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("after", this.iso8601(since));

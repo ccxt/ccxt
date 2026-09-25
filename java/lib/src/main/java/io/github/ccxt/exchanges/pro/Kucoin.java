@@ -1878,7 +1878,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             Long limit = this.safeInteger(parameters, "limit");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "limit");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "limit");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2357,7 +2357,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             } else
             {
                 Boolean trigger = (Boolean) this.safeBool2(paramsUta, "stop", "trigger", (Object) null);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUta, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+                Map<String, Object> paramsOmitted = this.omit(paramsUta, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
                 List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, (Object) null);
                 String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
                 var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
@@ -3071,7 +3071,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 defaultType = this.safeString(this.options, "defaultType", defaultType);
                 type = this.safeString(paramsUta, "type", defaultType);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUta, "type");
+            Map<String, Object> paramsOmitted = this.omit(paramsUta, "type");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String uniformType = this.safeString(accountsByType, type, type);
             Object isClassicFuturesMethod = (java.util.Objects.equals(uniformType, "contract"));

@@ -338,7 +338,7 @@ public class Limitless extends LimitlessApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> queries = this.parseSearchQueries(parameters);
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             // scope the listing: without a search query loadMarkets would otherwise page through
             // every active limitless market. Cap the total number of markets collected.
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
@@ -350,7 +350,7 @@ public class Limitless extends LimitlessApi
                 // the search endpoint rejects limit > 50 - cap the per-query request and let
                 // maxMarkets bound the overall collection
                 Object limit = Math.min(requestedLimit, 50);
-                Map<String, Object> searchRest = (Map<String, Object>) this.omit(rest, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> searchRest = this.omit(rest, new ArrayList<Object>(Arrays.asList("limit")));
                 Map<String, Object> seen = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
                 {
@@ -2819,7 +2819,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> request = Helpers.newMap(
                 "conditionId", conditionId
             );
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
             Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
             return Helpers.newMap(
                 "info", response,
@@ -3568,7 +3568,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> searchParams = this.extend(new HashMap<String, Object>() {{
                 put( "searchIn", "both" );
             }}, parameters);
-            Map<String, Object> postParams = (Map<String, Object>) this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
+            Map<String, Object> postParams = this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
             return this.applyEventFetchParams(result, postParams, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
@@ -3591,7 +3591,7 @@ public class Limitless extends LimitlessApi
 
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
             Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             Object page = 1;
             Object collected = 0;

@@ -1624,7 +1624,7 @@ public class Bitrue extends BitrueApi
                 {
                     request.put("fromIdx", until);
                 }
-                Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+                Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
                 response = (this.spotV1PublicGetMarketKline(this.extend(request, paramsOmitted))).join();
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
@@ -2342,13 +2342,13 @@ public class Bitrue extends BitrueApi
                 {
                     request.put("newClientOrderId", clientOrderId);
                 }
-                Object paramsNoClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId"))) : parameters;
+                Map<String, Object> paramsNoClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId"))) : parameters;
                 Double triggerPrice = this.safeNumber2(paramsNoClientOrderId, "triggerPrice", "stopPrice", (Object) null);
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
                     request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
-                Object paramsSpot = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsNoClientOrderId, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice"))) : paramsNoClientOrderId;
+                Map<String, Object> paramsSpot = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsNoClientOrderId, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice"))) : paramsNoClientOrderId;
                 response = (this.spotV1PrivatePostOrder(this.extend(request, paramsSpot))).join();
                 data = response;
             } else
@@ -2407,7 +2407,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = this.market(symbol);
             String origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> response = null;
             Object data = new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2688,7 +2688,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = this.market(symbol);
             String origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> response = null;
             Object data = new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3448,7 +3448,7 @@ public class Bitrue extends BitrueApi
             {
                 request.put("endTime", until);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             Map<String, Object> response = (this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, paramsOmitted))).join();
             //
             //     {

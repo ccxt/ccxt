@@ -1033,7 +1033,7 @@ public class Hyperliquid extends HyperliquidApi
                     "endTime", until
                 )
             );
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -1642,7 +1642,7 @@ public class Hyperliquid extends HyperliquidApi
             Long assetId = this.safeInteger(outcomeInfo, "assetId");
             Object nonce = this.incrementingNonce();
             Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             List<Object> cancelReq = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> cancelAction = new HashMap<String, Object>() {{
                 put( "type", "cancel" );

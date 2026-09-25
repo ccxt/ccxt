@@ -217,7 +217,7 @@ public class Binance extends BinanceApi
             Integer queriesLength = ((List<?>)queries).size();
             if ((queriesLength != null && queriesLength > 0))
             {
-                Map<String, Object> eventParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
                 Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
@@ -233,7 +233,7 @@ public class Binance extends BinanceApi
                 return queryMarkets;
             }
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
@@ -1399,7 +1399,7 @@ public class Binance extends BinanceApi
                 request.put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxEntriesPerRequest, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endDate", this.yyyymmdd(until));
@@ -1704,7 +1704,7 @@ public class Binance extends BinanceApi
                 request.put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxEntriesPerRequest, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endDate", this.yyyymmdd(until));
@@ -2067,7 +2067,7 @@ public class Binance extends BinanceApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
             Map<String, Object> quoteRequest = this.extend(commonRequest, Helpers.newMap(
                 "tokenId", outcomeObj.get("id"),
                 "side", sideUpper,

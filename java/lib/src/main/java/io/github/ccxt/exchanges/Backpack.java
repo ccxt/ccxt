@@ -1228,7 +1228,7 @@ public class Backpack extends BackpackApi
                 request.put("startTime", this.parseToInt((((double) since) / ((double) 1000)))); // convert milliseconds to seconds
             }
             String price = this.safeString(paramsUntil, "price");
-            Object paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("priceType", this.capitalize(price));
@@ -1533,7 +1533,7 @@ public class Backpack extends BackpackApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to", until);

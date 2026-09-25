@@ -1494,7 +1494,7 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String code = this.safeString(parameters, "code");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "code");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "code");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
@@ -1817,7 +1817,7 @@ public class Deribit extends DeribitApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String code = this.safeString2(parameters, "code", "currency");
             String type = null;
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -1964,7 +1964,7 @@ public class Deribit extends DeribitApi
                 }
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_timestamp", until);
@@ -2126,7 +2126,7 @@ public class Deribit extends DeribitApi
                 request.put("count", Math.min(limit, 1000)); // default 10
             }
             Long until = (Long) this.safeInteger2(parameters, "until", "end_timestamp");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_timestamp", until);
@@ -2704,7 +2704,7 @@ public class Deribit extends DeribitApi
                     request.put("time_in_force", "fill_or_kill");
                 }
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(this.capitalize(side), "Buy"))
             {
@@ -3512,7 +3512,7 @@ public class Deribit extends DeribitApi
             }
             String code = this.safeString(parameters, "currency");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object paramsOmitted = (((!java.util.Objects.equals(code, null)))) ? this.omit(parameters, "currency") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(code, null)))) ? this.omit(parameters, "currency") : parameters;
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> currency = this.currency(code);
@@ -3730,7 +3730,7 @@ public class Deribit extends DeribitApi
                 put( "destination", toAccount );
             }};
             String method = this.safeString(parameters, "method");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
                 Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
@@ -4015,7 +4015,7 @@ public class Deribit extends DeribitApi
                 "start_timestamp", Helpers.subtract(sinceResolved, 1)
             );
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_timestamp", until);
@@ -4023,7 +4023,7 @@ public class Deribit extends DeribitApi
             {
                 request.put("end_timestamp", time);
             }
-            Boolean isPaginationCall = (((Map<?, ?>)paramsUntil).containsKey("isDeribitPaginationCall"));
+            Boolean isPaginationCall = (paramsUntil.containsKey("isDeribitPaginationCall"));
             Object paramsOmitted = paramsUntil;
             if (Boolean.TRUE.equals(isPaginationCall))
             {
