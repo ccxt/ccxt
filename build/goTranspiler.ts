@@ -48,7 +48,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createTakeProfitOrderWs': [ 0, 1, 2 ], 'createTrailingAmountOrder': [ 0, 1, 2 ],
     'createTrailingAmountOrderWs': [ 0, 1, 2 ], 'createTrailingPercentOrder': [ 0, 1, 2 ],
     'createTrailingPercentOrderWs': [ 0, 1, 2 ], 'createTriggerOrder': [ 0, 1, 2 ], 'createTriggerOrderWs': [ 0, 1, 2 ],
-    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
+    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'handleErrors': [ 5 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
     'editOrderWs': [ 1, 2, 3 ], 'setTakeProfitAndStopLossParams': [ 1, 2 ], 'editLimitBuyOrder': [ 1 ],
     'editLimitSellOrder': [ 1 ], 'watchOHLCV': [ 0 ], 'unWatchOrderBook': [ 0 ], 'unWatchTrades': [ 0 ],
     'unWatchOHLCV': [ 0 ], 'unWatchTicker': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchFundingRate': [ 0 ],

@@ -6716,6 +6716,33 @@ function installCcxtGoGetArgOverloadDefaults (goTranspiler) {
     goTranspiler.__ccxtGoGetArgOverloadDefaultsInstalled = true;
 }
 
+// A unified string argument the printer proves a non-nil `*string` (checker narrowing or a
+// literal-defaulted SafeString) is passed dereferenced instead of through StringArg.
+function installCcxtGoUnifiedStringDerefArgs (goTranspiler) {
+    if ((typeof goTranspiler.goUnifiedStringCallArgs !== 'function') || (typeof goTranspiler.goDerefableStringOperand !== 'function')) {
+        return;
+    }
+    goTranspiler.goUnifiedStringCallArgs = function (node, identation, flat = false) {
+        const callee = node.expression;
+        const name = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) ? callee.name?.text : undefined;
+        if ((typeof name !== 'string') || !Object.prototype.hasOwnProperty.call (this.unifiedStringParams, name)) {
+            return undefined;
+        }
+        const args = node.arguments ?? [];
+        if (args.some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+            return undefined;
+        }
+        const depth = this.goExprDepth + ((args.length > 1) ? 1 : 0);
+        return args.map ((a, i) => {
+            const printed = flat ? this.printNode (a, 0) : this.goWithExprDepth (depth, () => this.printNode (a, identation)).trim ();
+            if (!this.goIsUnifiedStringParameter (name, i) || (this.goPrintedArgType (a) === 'string')) {
+                return printed;
+            }
+            return this.goDerefableStringOperand (a) ? ('*' + printed) : `StringArg(${printed})`;
+        }).join (', ');
+    };
+}
+
 export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = undefined) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -6733,6 +6760,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     installCcxtGoGetArgOverloadDefaults (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
     installCcxtGoStringParamNilGuards (goTranspiler);
+    installCcxtGoUnifiedStringDerefArgs (goTranspiler);
     installCcxtGoUnifiedInt64Params (goTranspiler, unifiedInt64Params);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {

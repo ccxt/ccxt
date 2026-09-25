@@ -1852,13 +1852,16 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const error = this.safeString (message, 'error');
+        if (error === undefined) {
+            return undefined;
+        }
         const code = this.safeInteger (error, 'errorCode');
         const action = this.safeString (message, 'action');
         const buildMessage = this.buildMessageHash (action, message);
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code as number, error as string, client.url, '', {}, error as string, message, {}, {});
+            this.handleErrors (code as number, error, client.url, '', {}, error, message, {}, {});
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);

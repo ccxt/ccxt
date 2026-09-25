@@ -445,7 +445,7 @@ type IDerivedExchange interface {
 	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) any
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
-	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any
+	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
 	HandleMessage(client any, message any)
 	OnError(client any, err any)
 	OnClose(client any, err any)
