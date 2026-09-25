@@ -21,7 +21,7 @@ import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RE
 type dict = { [key: string]: string };
 
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
-    'createOrder': [ 1, 2 ], 'createOrderWs': [ 1 ], 'createLimitOrder': [ 1 ], 'createLimitOrderWs': [ 1 ],
+    'createOrder': [ 1, 2 ], 'createOrderWs': [ 1, 2 ], 'createLimitOrder': [ 1 ], 'createLimitOrderWs': [ 1 ],
     'createMarketOrder': [ 1 ], 'createMarketOrderWs': [ 1 ], 'createMarketOrderWithCost': [ 1 ], 'createMarketOrderWithCostWs': [ 1 ],
     'createOrderWithTakeProfitAndStopLoss': [ 1, 2 ], 'createOrderWithTakeProfitAndStopLossWs': [ 1, 2 ],
     'createPostOnlyOrder': [ 1, 2 ], 'createPostOnlyOrderWs': [ 1, 2 ], 'createReduceOnlyOrder': [ 1, 2 ], 'createReduceOnlyOrderWs': [ 1, 2 ],

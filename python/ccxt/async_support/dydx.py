@@ -1266,7 +1266,7 @@ class dydx(Exchange, ImplicitAPI):
             r = Precise.string_mul(r, n)
         return r
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> list[object]:
+    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> list[object]:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
