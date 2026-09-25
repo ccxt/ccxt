@@ -3106,7 +3106,7 @@ impl BittradeCore {
         let mut requestBody: Value = Value::Null;
         let mut url: Value = Value::Str("/".into());
         if (api.as_str() == Some("market")) {
-            url = Value::Str(format!("{}{}", url, api).into());
+            url = Value::Str(format!("{}{}", url, Value::Str("market".into())).into());
         }  else if (api.as_str() == Some("public")) || (api.as_str() == Some("private")) {
             url = Value::Str(format!("{}{}", url, self.version.clone()).into());
         }  else if (api.as_str() == Some("v2Public")) || (api.as_str() == Some("v2Private")) {

@@ -3036,10 +3036,9 @@ impl CoinsphCore {
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = apiUrl;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpoint: Value = self.implode_params(path, params);
-        url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("/".into())).into()), endpoint).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), endpoint).into());
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             add_element_to_object(&mut query, &Value::Str("timestamp".into()), self.milliseconds());

@@ -15216,7 +15216,6 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = apiUrl;
         let mut tradeType: Value = self.safe_string_k(query.clone(), "tradeType", &[]);
         if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
             if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && (path.as_str() != Some("orders/multi-cancel")) {
@@ -15230,7 +15229,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut headersBase, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
             }
         }
-        url = Value::Str(format!("{}{}", url, endpoint).into());
+        let mut headersResult: Value = headersBase.clone();
         let mut isFuturePrivate: bool = api.as_str() == Some("futuresPrivate");
         let mut isPrivate: bool = api.as_str() == Some("private");
         let mut isBroker: bool = api.as_str() == Some("broker");
@@ -15244,7 +15243,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                     m.insert("KC-API-KEY".to_string(), self.apiKey.clone());
                     m.insert("KC-API-TIMESTAMP".to_string(), timestamp.clone());
                 m
-            }), &[headersBase.clone()]);
+            }), &[headersBase]);
             let mut apiKeyVersion: Option<String> = self.safe_string_k(headersSigned.clone(), "KC-API-KEY-VERSION", &[]).as_str().map(str::to_owned);
             if (apiKeyVersion.as_deref() == Some("2")) {
                 let mut passphrase: Value = self.hmac(self.encode(self.password.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
@@ -15277,21 +15276,14 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                     add_element_to_object(&mut headersSigned, &Value::Str("KC-BROKER-NAME".into()), brokerName);
                 }
             }
-            return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
-        m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyJson.clone());
-        m.insert("headers".to_string(), headersSigned);
-    m
-});
+            headersResult = headersSigned;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::Str(format!("{}{}", apiUrl, endpoint).into()));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyJson);
-        m.insert("headers".to_string(), headersBase);
+        m.insert("headers".to_string(), headersResult);
     m
 });
 

@@ -3005,7 +3005,7 @@ impl GeminiCore {
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        url = Value::Str(format!("{}{}", apiUrl, url).into());
+        let mut fullUrl: Value = Value::Str(format!("{}{}", apiUrl, url).into());
         let mut headersResolved: Value = (if (api.as_str() == Some("private")) { headersSigned } else { headers });
         let mut bodyResolved: Value = body;
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("DELETE")) {
@@ -3013,7 +3013,7 @@ impl GeminiCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), fullUrl);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), headersResolved);

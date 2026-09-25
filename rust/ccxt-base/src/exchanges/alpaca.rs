@@ -3066,7 +3066,6 @@ impl AlpacaCore {
         if (baseApiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = self.implode_hostname(baseApiUrl);
         let mut headersValue: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3089,7 +3088,7 @@ impl AlpacaCore {
                 add_element_to_object(&mut headersValue, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
             }
         }
-        url = Value::Str(format!("{}{}", url, endpoint).into());
+        let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl), endpoint).into());
         let mut bodyResolved: Value = (if (bodyJson == Value::Null) { body } else { bodyJson });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

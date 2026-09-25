@@ -4795,8 +4795,8 @@ impl WooCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut version: Value = get_value(&section, &Value::Int(0));
-        let mut access: Value = get_value(&section, &Value::Int(1));
+        let mut version: Value = self.safe_string(section.clone(), Value::Int(0), &[]);
+        let mut access: Value = self.safe_string(section, Value::Int(1), &[]);
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
         let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone(), &[]);
         if (baseApiUrl == Value::Null) {
@@ -4806,7 +4806,7 @@ impl WooCore {
         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version).into()), Value::Str("/".into())).into())).into());
         let mut paramsSorted: Value = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]);
         if (access.as_str() == Some("public")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", access, Value::Str("/".into())).into()), pathWithParams).into())).into());
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("public/".into()), pathWithParams).into())).into());
             if ((object_keys(&paramsSorted).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());
             }

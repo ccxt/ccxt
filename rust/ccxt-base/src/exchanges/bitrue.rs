@@ -3872,21 +3872,15 @@ impl BitrueCore {
         let mut type_var: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut version: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
         let mut access: Option<String> = self.safe_string(api, Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut url: Value = Value::Null;
-        if ((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))) || ((type_var.as_str() == Some("open")) && Value::Int(path.as_str().and_then(|__s| __s.find("listenKey")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
-            let mut apiUrl2: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
-            if (apiUrl2 == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
-            }
-            url = apiUrl2;
-        }  else {
-            let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
-            if (apiUrl == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
-            }
-            url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), version).into());
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
+        if (apiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut url: Value = apiUrl;
+        if !(((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))) || ((type_var.as_str() == Some("open")) && Value::Int(path.as_str().and_then(|__s| __s.find("listenKey")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), version).into())).into());
+        }
+        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);

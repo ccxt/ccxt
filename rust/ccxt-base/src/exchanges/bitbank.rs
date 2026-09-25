@@ -1595,11 +1595,9 @@ impl BitbankCore {
             let mut requestTime: Value = to_string_val(&self.milliseconds());
             let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]);
             let mut nonce: Value = to_string_val(&self.incrementing_nonce());
-            let mut auth: Value = Value::Null;
+            let mut auth: Value = nonce.clone();
             if isTimeWindow {
                 auth = Value::Str(format!("{}{}", requestTime, timeWindow).into());
-            }  else {
-                auth = nonce.clone();
             }
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params)).into())).into());
             if (method.as_str() == Some("POST")) {

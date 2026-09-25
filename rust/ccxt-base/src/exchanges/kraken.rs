@@ -4888,10 +4888,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        url = Value::Str(format!("{}{}", apiUrl, url).into());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::Str(format!("{}{}", apiUrl, url).into()));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), body);
         m.insert("headers".to_string(), headers);
