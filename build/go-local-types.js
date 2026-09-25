@@ -3267,14 +3267,41 @@ function ccxtGoGeneralAnnotatedMethodIsClosed (node, name) {
     return true;
 }
 
-// a nil map/slice boxed into an `any` caller is not nil: outside parse*, a
-// container return is only taken when no path is absent or a bare local
-function ccxtGoGeneralReturnKeepsAbsence (node, goType) {
+// a nil pointer/map/slice boxed into an `any` caller is not nil: outside parse*,
+// pointers are never taken; a container only when every path is a literal, extend, or such a method
+function ccxtGoGeneralReturnKeepsAbsence (goTranspiler, node, goType) {
+    if (goType.charAt (0) === '*') {
+        return false;
+    }
     if ((goType !== 'map[string]any') && (goType !== '[]any')) {
         return true;
     }
-    return collectReturnStatements (node.body).every ((statement) => (statement.expression !== undefined)
-        && !isAbsentExpression (statement.expression) && (statement.expression.kind !== ts.SyntaxKind.Identifier));
+    return collectReturnStatements (node.body).every ((statement) => ccxtGoContainerNeverNil (goTranspiler, statement.expression));
+}
+
+function ccxtGoContainerNeverNil (goTranspiler, expression) {
+    while ((expression !== undefined) && (expression.kind === ts.SyntaxKind.ParenthesizedExpression)) {
+        expression = expression.expression;
+    }
+    if ((expression === undefined) || ts.isObjectLiteralExpression (expression) || ts.isArrayLiteralExpression (expression)) {
+        return expression !== undefined;
+    }
+    if (!ts.isCallExpression (expression) || !ts.isPropertyAccessExpression (expression.expression)
+        || (expression.expression.expression.kind !== ts.SyntaxKind.ThisKeyword)) {
+        return false;
+    }
+    const callee = expression.expression.name.text;
+    if ((callee === 'extend') || (callee === 'deepExtend')) {
+        return true; // ExtendMap / DeepExtend always build a fresh map
+    }
+    let declaration;
+    try {
+        declaration = goTranspiler.getChecker ().getResolvedSignature (expression)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    return (declaration?.kind === ts.SyntaxKind.MethodDeclaration) && !CCXT_GO_PARSE_METHOD.test (callee)
+        && (ccxtGoAnnotatedMethodReturnType (goTranspiler, declaration) !== undefined);
 }
 
 function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
@@ -3312,7 +3339,7 @@ function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
     let result;
     try {
         result = ccxtGoProveReturnPaths (goTranspiler, node, allowed);
-        if ((result !== undefined) && !CCXT_GO_PARSE_METHOD.test (name) && !ccxtGoGeneralReturnKeepsAbsence (node, result)) {
+        if ((result !== undefined) && !CCXT_GO_PARSE_METHOD.test (name) && !ccxtGoGeneralReturnKeepsAbsence (goTranspiler, node, result)) {
             result = undefined;
         }
     } finally {
