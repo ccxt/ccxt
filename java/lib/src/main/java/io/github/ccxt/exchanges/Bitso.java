@@ -898,12 +898,12 @@ public class Bitso extends BitsoApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "book", ((Map<String, Object>)market).get("id") );
+                put( "book", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "payload", (Object) null);
             Long timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount", 2);
+            return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", "price", "amount", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -974,7 +974,7 @@ public class Bitso extends BitsoApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "book", ((Map<String, Object>)market).get("id") );
+                put( "book", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "payload", (Object) null);
@@ -1022,7 +1022,7 @@ public class Bitso extends BitsoApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "book", ((Map<String, Object>)market).get("id") );
+                put( "book", market.get("id") );
                 put( "time_bucket", Bitso.this.safeString(Bitso.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             if (!java.util.Objects.equals(since, null))
@@ -1222,7 +1222,7 @@ public class Bitso extends BitsoApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "book", ((Map<String, Object>)market).get("id") );
+                put( "book", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
@@ -1354,7 +1354,7 @@ public class Bitso extends BitsoApi
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "book", ((Map<String, Object>)market).get("id") );
+                put( "book", market.get("id") );
                 put( "limit", java.util.Objects.requireNonNullElse(limit, 25L) );
             }};
             Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, paramsMarker))).join();
@@ -1388,14 +1388,14 @@ public class Bitso extends BitsoApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
-                "book", ((Map<String, Object>)market).get("id"),
+                "book", market.get("id"),
                 "side", side,
                 "type", type,
-                "major", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount)
+                "major", this.amountToPrecision(market.get("symbol"), amount)
             );
             if (java.util.Objects.equals(type, "limit"))
             {
-                request.put("price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
+                request.put("price", this.priceToPrecision(market.get("symbol"), price));
             }
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
@@ -1632,7 +1632,7 @@ public class Bitso extends BitsoApi
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "book", ((Map<String, Object>)market).get("id") );
+                put( "book", market.get("id") );
                 put( "limit", java.util.Objects.requireNonNullElse(limit, 25L) );
             }};
             Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, paramsMarker))).join();
@@ -1838,7 +1838,7 @@ public class Bitso extends BitsoApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "fund_currency", ((Map<String, Object>)currency).get("id") );
+                put( "fund_currency", currency.get("id") );
             }};
             Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
             Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
@@ -2251,7 +2251,7 @@ public class Bitso extends BitsoApi
         String networkId = this.safeString2(transaction, "network", "method");
         String status = this.safeString(transaction, "status");
         String withdrawId = this.safeString(transaction, "wid");
-        String networkCode = this.networkIdToCode(networkId, Helpers.toStringArg(((Map<String, Object>)currencyResolved).get("code")));
+        String networkCode = this.networkIdToCode(networkId, Helpers.toStringArg(currencyResolved.get("code")));
         String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
         return Helpers.newMap(
             "id", this.safeString2(transaction, "wid", "fid"),

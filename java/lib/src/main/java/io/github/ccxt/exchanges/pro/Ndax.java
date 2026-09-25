@@ -80,7 +80,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
             Map<String, Object> market = this.market(symbol);
             String name = "SubscribeLevel1";
-            String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -128,14 +128,14 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     }
         //
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(payload, (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        String symbol = (String) ticker.get("symbol");
         Map<String, Object> market = this.market(symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
         String name = "SubscribeLevel1";
-        String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+        String messageHash = ((name + ":") + market.get("id"));
         client.resolve(ticker, messageHash);
     }
 
@@ -161,9 +161,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String name = "SubscribeTrades";
-            String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -216,7 +216,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)trade).get("symbol");
+            String symbol = (String) trade.get("symbol");
             Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
             {
@@ -238,7 +238,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + ":") + market.get("id"));
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
         }
@@ -267,9 +267,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String name = "SubscribeTicker";
-            String messageHash = ((((name + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((((name + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -329,7 +329,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             List<Object> ohlcv = (List<Object>) this.safeList(payload, i, (Object) null);
             String marketId = this.safeString(ohlcv, 8);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbol = (String) market.get("symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
                 updates.put((String)marketId, new HashMap<String, Object>() {{}});
@@ -406,7 +406,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));
                 String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                String symbol = (String) ((Map<String, Object>)market).get("symbol");
+                String symbol = (String) market.get("symbol");
                 List<Object> stored = (List<Object>) this.safeList(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 client.resolve(stored, messageHash);
             }
@@ -434,9 +434,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String name = "SubscribeLevel2";
-            String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
@@ -456,7 +456,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 "messageHash", messageHash,
                 "name", name,
                 "symbol", symbolValue,
-                "marketId", ((Map<String, Object>)market).get("id"),
+                "marketId", market.get("id"),
                 "method", "handleOrderBookSubscription",
                 "limit", limitValue,
                 "params", parameters
@@ -500,7 +500,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             return;
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {

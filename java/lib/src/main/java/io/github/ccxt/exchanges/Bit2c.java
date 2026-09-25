@@ -377,7 +377,7 @@ public class Bit2c extends Bit2cApi
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> account = this.account();
             Map<String, Object> currency = this.currency((String) (code));
-            String uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
+            String uppercase = ((String)currency.get("id")).toUpperCase();
             if (Helpers.inOp(response, uppercase))
             {
                 account.put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
@@ -474,7 +474,7 @@ public class Bit2c extends Bit2cApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
             // the full orderbook.json snapshot can contain dead orders - rows
@@ -565,7 +565,7 @@ public class Bit2c extends Bit2cApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
@@ -598,7 +598,7 @@ public class Bit2c extends Bit2cApi
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
             Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
@@ -723,7 +723,7 @@ public class Bit2c extends Bit2cApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "Amount", amount );
-                put( "Pair", ((Map<String, Object>)market).get("id") );
+                put( "Pair", market.get("id") );
             }};
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
@@ -799,10 +799,10 @@ public class Bit2c extends Bit2cApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
+            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, market.get("id"), new HashMap<String, Object>() {{}});
             List<Object> asks = (List<Object>) this.safeList(orders, "ask", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit, new HashMap<String, Object>() {{}});
@@ -1017,7 +1017,7 @@ public class Bit2c extends Bit2cApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", market.get("id"));
             }
             List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
             //
@@ -1181,7 +1181,7 @@ public class Bit2c extends Bit2cApi
             "id", id,
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "order", orderId,
             "type", null,
             "side", side,
@@ -1222,7 +1222,7 @@ public class Bit2c extends Bit2cApi
                 throw new NotSupported((this.id + " fetchDepositAddress() does not support fiat currencies")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "Coin", ((Map<String, Object>)currency).get("id") );
+                put( "Coin", currency.get("id") );
             }};
             Map<String, Object> response = (this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters))).join();
             //

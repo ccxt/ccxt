@@ -100,8 +100,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
-                ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
+                messageHash = (messageHash + (":" + market.get("id")));
+                ((List<Object>)productIds).add(market.get("id"));
             }
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(url, null))
@@ -145,8 +145,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 market = this.market(symbol);
-                ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
-                ((List<Object>)messageHashes).add(((messageHashStart + ":") + ((Map<String, Object>)market).get("symbol")));
+                ((List<Object>)productIds).add(market.get("id"));
+                ((List<Object>)messageHashes).add(((messageHashStart + ":") + market.get("symbol")));
             }
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(url, null))
@@ -520,19 +520,19 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = ((name + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = Helpers.newMap(
                 "type", "subscribe",
-                "product_ids", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))),
+                "product_ids", new ArrayList<Object>(Arrays.asList(market.get("id"))),
                 "channels", new ArrayList<Object>(Arrays.asList(name))
             );
             Map<String, Object> request = this.extend(subscribe, parameters);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
                 put( "symbol", symbolValue );
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+                put( "marketId", market.get("id") );
                 put( "limit", limit );
             }};
             Object authentication = this.authenticate();
@@ -562,7 +562,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         if (!java.util.Objects.equals(marketId, null))
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)trade).get("symbol");
+            String symbol = (String) trade.get("symbol");
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
@@ -684,7 +684,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }
         Helpers.addElementToObject(parsed, "order", this.safeString(trade, idKey));
         Map<String, Object> marketResolved = this.market(((Map<String, Object>)parsed).get("symbol"));
-        String feeCurrency = (String) ((Map<String, Object>)marketResolved).get("quote");
+        String feeCurrency = (String) marketResolved.get("quote");
         String feeCost = null;
         if ((!java.util.Objects.equals(((Map<String, Object>)parsed).get("cost"), null)) && (!java.util.Objects.equals(feeRate, null)))
         {
@@ -839,7 +839,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             ((Map<String, Object>)previousOrder).put("trades", new ArrayList<Object>(Arrays.asList()));
                         }
                         ((List<Object>)((Map<String, Object>)previousOrder).get("trades")).add(trade);
-                        Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", ((Map<String, Object>)trade).get("timestamp"));
+                        Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                         String totalCost = "0";
                         String totalAmount = "0";
                         Object trades = ((Map<String, Object>)previousOrder).get("trades");
@@ -867,12 +867,12 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         {
                             ((Map<String, Object>)previousOrder).put("fee", new HashMap<String, Object>() {{
     put( "cost", 0 );
-    put( "currency", Coinbaseexchange.this.safeString(((Map<String, Object>)trade).get("fee"), "currency") );
+    put( "currency", Coinbaseexchange.this.safeString(trade.get("fee"), "currency") );
 }});
                         }
-                        if ((!java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost", (Object) null), null)))
+                        if ((!java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                         {
-                            Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.sum(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost", (Object) null)));
+                            Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.sum(Helpers.GetValue(((Map<String, Object>)previousOrder).get("fee"), "cost"), this.safeNumber(trade.get("fee"), "cost", (Object) null)));
                             Map<String, Object> previousOrderFee = (Map<String, Object>) this.safeDict(previousOrder, "fee", (Object) null);
                             Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", (Object) null);
                             Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost"))));
@@ -986,7 +986,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         if (!java.util.Objects.equals(marketId, null))
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+            String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -1100,7 +1100,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String type = this.safeString(message, "type");
         String marketId = this.safeString(message, "product_id");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String name = "level2";
         String messageHash = ((name + ":") + marketId);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});

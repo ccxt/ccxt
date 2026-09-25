@@ -242,7 +242,7 @@ public class Paymium extends PaymiumApi
         {
             Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
             Map<String, Object> currency = this.currency((String) (code));
-            String currencyId = (String) ((Map<String, Object>)currency).get("id");
+            String currencyId = (String) currency.get("id");
             String free = ("balance_" + currencyId);
             if (Helpers.inOp(response, free))
             {
@@ -300,10 +300,10 @@ public class Paymium extends PaymiumApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("id") );
+                put( "currency", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", "price", "amount", 2);
+            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", "price", "amount", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -378,7 +378,7 @@ public class Paymium extends PaymiumApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("id") );
+                put( "currency", market.get("id") );
             }};
             Map<String, Object> ticker = (this.publicGetDataCurrencyTicker(this.extend(request, parameters))).join();
             //
@@ -411,7 +411,7 @@ public class Paymium extends PaymiumApi
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String side = this.safeString(trade, "side");
         String price = this.safeString(trade, "price");
-        String amountField = ("traded_" + ((String)((Map<String, Object>)marketResolved).get("base")).toLowerCase());
+        String amountField = ("traded_" + ((String)marketResolved.get("base")).toLowerCase());
         String amount = this.safeString(trade, amountField);
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
@@ -419,7 +419,7 @@ public class Paymium extends PaymiumApi
             put( "order", null );
             put( "timestamp", timestamp );
             put( "datetime", Paymium.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", null );
@@ -452,7 +452,7 @@ public class Paymium extends PaymiumApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("id") );
+                put( "currency", market.get("id") );
             }};
             List<Object> response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
@@ -607,7 +607,7 @@ public class Paymium extends PaymiumApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "type", (this.capitalize(type) + "Order"),
-                "currency", ((Map<String, Object>)market).get("id"),
+                "currency", market.get("id"),
                 "direction", side,
                 "amount", amount
             );
@@ -681,7 +681,7 @@ public class Paymium extends PaymiumApi
                 throw new ExchangeError((this.id + " transfer() only allows BTC or EUR")) ;
             }
             Map<String, Object> request = Helpers.newMap(
-                "currency", ((Map<String, Object>)currency).get("id"),
+                "currency", currency.get("id"),
                 "amount", this.currencyToPrecision((String) (code), amount, (String) null),
                 "email", toAccount
             );

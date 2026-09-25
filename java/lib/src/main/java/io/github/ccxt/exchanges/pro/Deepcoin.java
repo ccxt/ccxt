@@ -946,11 +946,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             if (java.util.Objects.equals(side, "0"))
             {
                 // bid
-                ((List<Object>)((Map<String, Object>)orderedEntries).get("bids")).add(new ArrayList<Object>(Arrays.asList(price, volume)));
+                ((List<Object>)orderedEntries.get("bids")).add(new ArrayList<Object>(Arrays.asList(price, volume)));
             } else if (java.util.Objects.equals(side, "1"))
             {
                 // ask
-                ((List<Object>)((Map<String, Object>)orderedEntries).get("asks")).add(new ArrayList<Object>(Arrays.asList(price, volume)));
+                ((List<Object>)orderedEntries.get("asks")).add(new ArrayList<Object>(Arrays.asList(price, volume)));
             }
         }
         Long timestamp = this.safeInteger(message, "mt", 0);

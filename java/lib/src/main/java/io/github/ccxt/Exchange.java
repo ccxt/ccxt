@@ -259,7 +259,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) ((Map<String, Object>)market).get("symbol");
+                String symbolResolved = (String) market.get("symbol");
                 Tickers tickers = (this.fetchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(ticker, null))
@@ -893,7 +893,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) ((Map<String, Object>)market).get("symbol");
+                String symbolResolved = (String) market.get("symbol");
                 Tickers tickers = (this.fetchTickersWs(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(ticker, null))
@@ -1131,7 +1131,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) ((Map<String, Object>)market).get("symbol");
+                String symbolResolved = (String) market.get("symbol");
                 Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(ticker, null))

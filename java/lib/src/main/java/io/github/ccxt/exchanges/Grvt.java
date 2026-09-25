@@ -1362,7 +1362,7 @@ public class Grvt extends GrvtApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1471,7 +1471,7 @@ public class Grvt extends GrvtApi
         {
             fee = Helpers.newMap(
                 "cost", this.parseNumber(feeString),
-                "currency", ((Map<String, Object>)marketResolved).get("quote"),
+                "currency", marketResolved.get("quote"),
                 "rate", this.safeNumber(trade, "fee_rate", (Object) null)
             );
         }
@@ -1480,7 +1480,7 @@ public class Grvt extends GrvtApi
             "id", this.safeString(trade, "trade_id"),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "side", side,
             "takerOrMaker", takerOrMaker,
             "price", this.safeString(trade, "price"),
@@ -1524,7 +1524,7 @@ public class Grvt extends GrvtApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
                 put( "interval", Grvt.this.safeString(Grvt.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             Map<String, Object> priceTypeMap = new HashMap<String, Object>() {{
@@ -1625,7 +1625,7 @@ public class Grvt extends GrvtApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1824,7 +1824,7 @@ public class Grvt extends GrvtApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("currency", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
+                request.put("currency", new ArrayList<Object>(Arrays.asList(currency.get("code"))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1895,7 +1895,7 @@ public class Grvt extends GrvtApi
             } else
             {
                 currency = this.currency((String) (code));
-                request.put("currency", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
+                request.put("currency", new ArrayList<Object>(Arrays.asList(currency.get("code"))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2260,7 +2260,7 @@ public class Grvt extends GrvtApi
                 "from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount),
                 "to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId),
                 "to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount),
-                "currency", ((Map<String, Object>)currency).get("id"),
+                "currency", currency.get("id"),
                 "num_tokens", this.currencyToPrecision((String) (code), amount, (String) null),
                 "signature", this.defaultSignature(),
                 "transfer_type", "STANDARD",
@@ -2439,7 +2439,7 @@ public class Grvt extends GrvtApi
             Object request = new HashMap<String, Object>() {{
                 put( "to_eth_address", address );
                 put( "from_account_id", defaultFromAccountId );
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
                 put( "num_tokens", Grvt.this.currencyToPrecision((String) (code), amount, (String) null) );
                 put( "signature", Grvt.this.defaultSignature() );
             }};
@@ -2495,7 +2495,7 @@ public class Grvt extends GrvtApi
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> orderLeg = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
                 put( "size", Grvt.this.amountToPrecision(symbol, amount) );
             }};
             if (!java.util.Objects.equals(price, null))
@@ -2725,7 +2725,7 @@ public class Grvt extends GrvtApi
             Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
             Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
-            Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));
+            Object precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
             String precisionValueStr = String.valueOf(precisionValue);
             Object sizeMultiplier = Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = ((Map<String, Object>)leg).get("size");
@@ -2735,7 +2735,7 @@ public class Grvt extends GrvtApi
             String sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)size), ".", "")), sizeMultiplier), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
-                put( "assetID", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instrument_hash") );
+                put( "assetID", Helpers.GetValue(market.get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
                 put( "isBuyingContract", ((Map<String, Object>)leg).get("is_buying_asset") );
             }};
@@ -2757,19 +2757,19 @@ public class Grvt extends GrvtApi
             ((List<Object>)legs).add(legOrder);
         }
         Map<String, Object> returnValue = new HashMap<String, Object>() {{
-            put( "subAccountID", ((Map<String, Object>)order).get("sub_account_id") );
-            put( "isMarket", ((Map<String, Object>)order).get("is_market") );
-            put( "timeInForce", Grvt.this.timeInForceToInt((String) (((Map<String, Object>)order).get("time_in_force"))) );
-            put( "postOnly", ((Map<String, Object>)order).get("post_only") );
-            put( "reduceOnly", ((Map<String, Object>)order).get("reduce_only") );
+            put( "subAccountID", order.get("sub_account_id") );
+            put( "isMarket", order.get("is_market") );
+            put( "timeInForce", Grvt.this.timeInForceToInt((String) (order.get("time_in_force"))) );
+            put( "postOnly", order.get("post_only") );
+            put( "reduceOnly", order.get("reduce_only") );
             put( "legs", legs );
-            put( "nonce", Helpers.GetValue(((Map<String, Object>)order).get("signature"), "nonce") );
-            put( "expiration", Helpers.GetValue(((Map<String, Object>)order).get("signature"), "expiration") );
+            put( "nonce", Helpers.GetValue(order.get("signature"), "nonce") );
+            put( "expiration", Helpers.GetValue(order.get("signature"), "expiration") );
         }};
         if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
-            returnValue.put("builder", ((Map<String, Object>)order).get("builder"));
-            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Helpers.parseFloat(((Map<String, Object>)order).get("builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.put("builder", order.get("builder"));
+            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Helpers.parseFloat(order.get("builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -2808,9 +2808,9 @@ public class Grvt extends GrvtApi
             {
                 market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
+                ((List<Object>)request.get("base")).add(market.get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("quote")).add(((Map<String, Object>)market).get("quoteId"));
+                ((List<Object>)request.get("quote")).add(market.get("quoteId"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2888,12 +2888,12 @@ public class Grvt extends GrvtApi
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+                    if (!java.util.Objects.equals(market.get("contract"), true))
                     {
                         throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
                     }
-                    ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
-                    ((List<Object>)((Map<String, Object>)request).get("quote")).add(((Map<String, Object>)market).get("quoteId"));
+                    ((List<Object>)request.get("base")).add(market.get("baseId"));
+                    ((List<Object>)request.get("quote")).add(market.get("quoteId"));
                 }
             }
             Map<String, Object> response = (this.privateTradingPostFullV1Positions(this.extend(request, parameters))).join();
@@ -3050,7 +3050,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
                 put( "leverage", Grvt.this.numberToString(leverage) );
             }};
             Map<String, Object> response = (this.privateTradingPostFullV1SetInitialLeverage(this.extend(request, parameters))).join();
@@ -3186,9 +3186,9 @@ public class Grvt extends GrvtApi
             {
                 market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
+                ((List<Object>)request.get("base")).add(market.get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("quote")).add(((Map<String, Object>)market).get("quoteId"));
+                ((List<Object>)request.get("quote")).add(market.get("quoteId"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3277,9 +3277,9 @@ public class Grvt extends GrvtApi
             {
                 market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
+                ((List<Object>)request.get("base")).add(market.get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("quote")).add(((Map<String, Object>)market).get("quoteId"));
+                ((List<Object>)request.get("quote")).add(market.get("quoteId"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3740,9 +3740,9 @@ public class Grvt extends GrvtApi
             {
                 Map<String, Object> market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
+                ((List<Object>)request.get("base")).add(market.get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)((Map<String, Object>)request).get("quote")).add(((Map<String, Object>)market).get("quoteId"));
+                ((List<Object>)request.get("quote")).add(market.get("quoteId"));
             }
             Map<String, Object> response = (this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters))).join();
             //

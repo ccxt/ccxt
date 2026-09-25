@@ -85,11 +85,11 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("orderbook:" + market.get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", (((Map<String, Object>)market).get("id") + "-orderbook") );
+                put( "channel", (market.get("id") + "-orderbook") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
@@ -159,12 +159,12 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = ("trade:" + market.get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", (((Map<String, Object>)market).get("id") + "-trades") );
+                put( "channel", (market.get("id") + "-trades") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();

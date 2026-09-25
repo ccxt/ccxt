@@ -644,7 +644,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
                 put( "granularity", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             if (!java.util.Objects.equals(since, null))
@@ -737,7 +737,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequestOption));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "instrument", market.get("id") );
                 put( "result_offset", offSet );
             }};
             if (!java.util.Objects.equals(limit, null))
@@ -890,7 +890,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "code", code );
             put( "timestamp", timestamp );
             put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
@@ -1043,7 +1043,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             if (java.util.Objects.equals(method, "v1PrivatePostTransfersAddress"))
             {
                 Map<String, Object> currency = this.currency((String) (code));
-                request.put("asset", ((Map<String, Object>)currency).get("id"));
+                request.put("asset", currency.get("id"));
                 List<Object> networkIdparamsNetworkIdVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "createDepositAddress", Helpers.toMapArg(paramsPortfolio))).join();
                 var networkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(0);
                 var paramsNetworkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(1);
@@ -1111,7 +1111,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 return false;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
+                put( "asset", currency.get("id") );
             }};
             List<Object> rawNetworks = (this.v1PublicGetAssetsAssetNetworks(request)).join();
             //
@@ -1399,7 +1399,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return this.safePosition(Helpers.newMap(
             "info", position,
             "id", this.safeString(position, "id"),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "entryPrice", null,
             "markPrice", this.safeNumber(position, "mark_price", (Object) null),
             "notional", null,
@@ -2114,7 +2114,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
+                put( "asset", currency.get("id") );
                 put( "amount", amount );
                 put( "from", fromAccount );
                 put( "to", toAccount );
@@ -2175,8 +2175,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> request = Helpers.newMap(
                 "client_order_id", clientOrderId,
                 "side", ((String)side).toUpperCase(),
-                "instrument", ((Map<String, Object>)market).get("id"),
-                "size", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount)
+                "instrument", market.get("id"),
+                "size", this.amountToPrecision(market.get("symbol"), amount)
             );
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -2437,7 +2437,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(symbol, "")))
             {
                 market = this.market(symbol);
-                request.put("instrument", ((Map<String, Object>)market).get("id"));
+                request.put("instrument", market.get("id"));
             }
             List<Object> orders = (this.v1PrivateDeleteOrders(this.extend(request, paramsPortfolio))).join();
             return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -2819,10 +2819,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
                 put( "type", "send" );
-                put( "asset", ((Map<String, Object>)currency).get("id") );
+                put( "asset", currency.get("id") );
                 put( "address", address );
                 put( "amount", amount );
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
                 put( "network_arn_id", networkId );
                 put( "nonce", Coinbaseinternational.this.nonce() );
             }};

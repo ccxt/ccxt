@@ -943,7 +943,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Long timestamp = this.safeInteger(data, "t");
             fundingRate.put("timestamp", timestamp);
             fundingRate.put("datetime", this.iso8601(timestamp));
-            Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
+            Object symbol = fundingRate.get("symbol");
             Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
             String messageHash = (eventVar + "::contract");
@@ -1124,7 +1124,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String cv = this.safeString(data, "cv");
             Boolean isSpot = !java.util.Objects.equals(cv, null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+            String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -1223,7 +1223,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Object tickerData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+            String symbol = (String) ticker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -1300,7 +1300,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "spot";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            String symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbol = (String) market.get("symbol");
             List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -1362,7 +1362,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "spot";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            String symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbol = (String) market.get("symbol");
             String eventVar = this.safeString(message, "event");
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
@@ -1452,7 +1452,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "contract";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            String symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbol = (String) market.get("symbol");
             List<Object> obAsks = (List<Object>) this.safeList(data, "a", (Object) null);
             List<Object> obBids = (List<Object>) this.safeList(data, "b", (Object) null);
             String messageHash = ((eventVar + "::") + tradeType);
@@ -1553,7 +1553,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             put( "id", null );
             put( "timestamp", timestamp );
             put( "datetime", Xt.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "order", Xt.this.safeString(trade, "i", "orderId") );
             put( "type", Xt.this.parseOrderStatus(Xt.this.safeString(trade, "st", "state")) );
             put( "side", Xt.this.safeStringLower(trade, "sd", "orderSide") );
@@ -1628,8 +1628,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             put( "timestamp", timestamp );
             put( "datetime", Xt.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
-            put( "type", ((Map<String, Object>)marketResolved).get("type") );
+            put( "symbol", marketResolved.get("symbol") );
+            put( "type", marketResolved.get("type") );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", Xt.this.safeStringLower2(order, "sd", "orderSide") );
@@ -1820,7 +1820,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             this.myTrades = stored;
         }
         Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
-        String tradeSymbol = (String) ((Map<String, Object>)parsedTrade).get("symbol");
+        String tradeSymbol = (String) parsedTrade.get("symbol");
         if (java.util.Objects.equals(tradeSymbol, null))
         {
             return;
@@ -1828,7 +1828,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> market = this.market(tradeSymbol);
         stored.append(parsedTrade);
         String tradeType = "spot";
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+        if (java.util.Objects.equals(market.get("contract"), true))
         {
             tradeType = "contract";
         }

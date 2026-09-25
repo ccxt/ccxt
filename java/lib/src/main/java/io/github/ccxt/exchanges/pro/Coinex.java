@@ -495,7 +495,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -507,7 +507,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = (messageHash + (":" + symbolResolved));
-                ((List<Object>)subscribedSymbols).add(((Map<String, Object>)market).get("id"));
+                ((List<Object>)subscribedSymbols).add(market.get("id"));
             } else
             {
                 if (java.util.Objects.equals(type, "spot"))
@@ -567,9 +567,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             defaultType = "spot";
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, defaultType);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String messageHash = ("myTrades:" + symbol);
-        String messageWithType = ("myTrades:" + ((Map<String, Object>)market).get("type"));
+        String messageWithType = ("myTrades:" + market.get("type"));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -635,7 +635,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             defaultType = "spot";
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, defaultType);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -706,7 +706,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String feeCost = this.omitZero(this.safeString(trade, "fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
-            String feeCurrencyId = this.safeString(trade, "fee_ccy", ((Map<String, Object>)marketResolved).get("quote"));
+            String feeCurrencyId = this.safeString(trade, "fee_ccy", marketResolved.get("quote"));
             fee = Helpers.newMap(
                 "currency", this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null),
                 "cost", feeCost
@@ -750,7 +750,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             Map<String, Object> market = this.market(symbol);
             Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
-            return Helpers.GetValue(tickers, ((Map<String, Object>)market).get("symbol"));
+            return Helpers.GetValue(tickers, market.get("symbol"));
         }).thenApply(Ticker::new);
 
     }
@@ -784,7 +784,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     market = this.market(symbol);
-                    messageHashes.add(("tickers::" + ((Map<String, Object>)market).get("symbol")));
+                    messageHashes.add(("tickers::" + market.get("symbol")));
                 }
             } else
             {
@@ -870,8 +870,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 {
                     Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     market = this.market(symbol);
-                    ((List<Object>)subscribedSymbols).add(((Map<String, Object>)market).get("id"));
-                    messageHashes.add(("trades:" + ((Map<String, Object>)market).get("symbol")));
+                    ((List<Object>)subscribedSymbols).add(market.get("id"));
+                    messageHashes.add(("trades:" + market.get("symbol")));
                 }
             } else
             {
@@ -949,8 +949,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 market = this.market(symbol);
-                messageHashes.add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
-                watchOrderBookSubscriptions.put((String)symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limitResolved, aggregation, true)));
+                messageHashes.add(("orderbook:" + market.get("symbol")));
+                watchOrderBookSubscriptions.put((String)symbol, new ArrayList<Object>(Arrays.asList(market.get("id"), limitResolved, aggregation, true)));
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -1050,7 +1050,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> depth = (Map<String, Object>) this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, defaultType);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String name = "orderbook";
         String messageHash = ((name + ":") + symbol);
         Long timestamp = this.safeInteger(depth, "updated_at");
@@ -1113,7 +1113,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -1285,7 +1285,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "status", Coinex.this.safeString(data, "event") );
         }}, this.safeDict2(data, "order", "stop", new HashMap<String, Object>() {{}}));
         Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)parsedOrder).get("symbol");
+        String symbol = (String) parsedOrder.get("symbol");
         Map<String, Object> market = this.market(symbol);
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -1295,7 +1295,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(parsedOrder);
         String messageHash = "orders";
-        String messageWithType = ((messageHash + ":") + ((Map<String, Object>)market).get("type"));
+        String messageWithType = ((messageHash + ":") + market.get("type"));
         client.resolve(this.orders, messageWithType);
         messageHash = (messageHash + (":" + symbol));
         client.resolve(this.orders, messageHash);
@@ -1405,7 +1405,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
-            String feeCurrencyId = this.safeString(order, "fee_ccy", ((Map<String, Object>)marketResolved).get("quote"));
+            String feeCurrencyId = this.safeString(order, "fee_ccy", marketResolved.get("quote"));
             fee = Helpers.newMap(
                 "currency", this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null),
                 "cost", feeCost
@@ -1418,7 +1418,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             "datetime", this.iso8601(timestamp),
             "timestamp", timestamp,
             "lastTradeTimestamp", this.safeInteger(order, "updated_at"),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", this.safeString(order, "type"),
             "timeInForce", null,
             "postOnly", null,
@@ -1480,7 +1480,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     market = this.market(symbol);
-                    messageHashes.add(("bidsasks:" + ((Map<String, Object>)market).get("symbol")));
+                    messageHashes.add(("bidsasks:" + market.get("symbol")));
                 }
             } else
             {

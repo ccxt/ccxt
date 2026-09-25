@@ -107,10 +107,10 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("ticker:" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "quotes", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "quotes", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         }).thenApply(Ticker::new);
@@ -131,7 +131,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    ]
         //
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        String symbol = (String) ticker.get("symbol");
         String messageHash = ("ticker:" + symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -203,10 +203,10 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "bars", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "bars", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
             String messageHash = ("ohlcv:" + symbolValue);
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
@@ -273,11 +273,11 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = (("orderbook" + ":") + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "orderbooks", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "orderbooks", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             return orderbook.limit();
@@ -373,11 +373,11 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = ("trade:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "trades", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "trades", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             Long limitResolved = limit;
@@ -490,7 +490,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
                 messageHash = ("orders:" + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -575,7 +575,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         orders.append(order);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = ("orders:" + ((Map<String, Object>)order).get("symbol"));
+        messageHash = ("orders:" + order.get("symbol"));
         client.resolve(orders, messageHash);
     }
 

@@ -612,10 +612,10 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), (Long) null, "buy", "sell", 0, 1, 2);
+            return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "buy", "sell", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -683,7 +683,7 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetApiTickerPair(this.extend(request, parameters))).join();
             //
@@ -800,7 +800,7 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             List<Object> response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
@@ -852,7 +852,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "to", until );
                 put( "tf", selectedTimeframe );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
             if (!java.util.Objects.equals(since, null))
@@ -950,14 +950,14 @@ public class Indodax extends IndodaxApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         if (!java.util.Objects.equals(marketResolved, null))
         {
-            symbol = ((Map<String, Object>)marketResolved).get("symbol");
-            String quoteId = (String) ((Map<String, Object>)marketResolved).get("quoteId");
-            String baseId = (String) ((Map<String, Object>)marketResolved).get("baseId");
-            if ((java.util.Objects.equals(((Map<String, Object>)marketResolved).get("quoteId"), "idr")) && (((Map<?, ?>)order).containsKey("order_rp")))
+            symbol = marketResolved.get("symbol");
+            String quoteId = (String) marketResolved.get("quoteId");
+            String baseId = (String) marketResolved.get("baseId");
+            if ((java.util.Objects.equals(marketResolved.get("quoteId"), "idr")) && (((Map<?, ?>)order).containsKey("order_rp")))
             {
                 quoteId = "rp";
             }
-            if ((java.util.Objects.equals(((Map<String, Object>)marketResolved).get("baseId"), "idr")) && (((Map<?, ?>)order).containsKey("remain_rp")))
+            if ((java.util.Objects.equals(marketResolved.get("baseId"), "idr")) && (((Map<?, ?>)order).containsKey("remain_rp")))
             {
                 baseId = "rp";
             }
@@ -1021,14 +1021,14 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
-            }}, ((Map<String, Object>)orders).get("order")), market);
+            }}, orders.get("order")), market);
             Helpers.addElementToObject(order, "info", response);
             return order;
         }).thenApply(Order::new);
@@ -1060,11 +1060,11 @@ public class Indodax extends IndodaxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", market.get("id"));
             }
             Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
             Map<String, Object> openOrdersResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            Object rawOrders = ((Map<String, Object>)openOrdersResult).get("orders");
+            Object rawOrders = openOrdersResult.get("orders");
             // { success: 1, return: { orders: null }} if no orders
             if ((java.util.Objects.equals(rawOrders, null)) || (java.util.Objects.equals(rawOrders, null)))
             {
@@ -1117,11 +1117,11 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
             Map<String, Object> historyResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            Object orders = this.parseOrders(((Map<String, Object>)historyResult).get("orders"), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            Object orders = this.parseOrders(historyResult.get("orders"), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1152,7 +1152,7 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
-                "pair", ((Map<String, Object>)market).get("id"),
+                "pair", market.get("id"),
                 "type", side,
                 "price", price
             );
@@ -1184,7 +1184,7 @@ public class Indodax extends IndodaxApi
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
-                    request.put((String)((String)((Map<String, Object>)market).get("quoteId")), quoteAmount);
+                    request.put((String)((String)market.get("quoteId")), quoteAmount);
                 } else
                 {
                     quantityIsRequired = true;
@@ -1195,7 +1195,7 @@ public class Indodax extends IndodaxApi
                 quantityIsRequired = true;
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    request.put((String)((String)((Map<String, Object>)market).get("quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
+                    request.put((String)((String)market.get("quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
                 }
             }
             if (Boolean.TRUE.equals(priceIsRequired))
@@ -1208,7 +1208,7 @@ public class Indodax extends IndodaxApi
             }
             if (Boolean.TRUE.equals(quantityIsRequired))
             {
-                request.put((String)((String)((Map<String, Object>)market).get("baseId")), this.amountToPrecision(symbol, amount));
+                request.put((String)((String)market.get("baseId")), this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> result = (this.privatePostTrade(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
@@ -1252,7 +1252,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "order_id", id,
-                "pair", ((Map<String, Object>)market).get("id"),
+                "pair", market.get("id"),
                 "type", side
             );
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
@@ -1301,7 +1301,7 @@ public class Indodax extends IndodaxApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
             }};
             Map<String, Object> response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
             //
@@ -1342,7 +1342,7 @@ public class Indodax extends IndodaxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
             }};
             Map<String, Object> response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
             //
@@ -1473,8 +1473,8 @@ public class Indodax extends IndodaxApi
             } else
             {
                 currency = this.currency((String) (code));
-                List<Object> withdraws = (List<Object>) this.safeList(withdraw, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
-                List<Object> deposits = (List<Object>) this.safeList(deposit, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
+                List<Object> withdraws = (List<Object>) this.safeList(withdraw, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
+                List<Object> deposits = (List<Object>) this.safeList(deposit, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
                 transactions = (List<Object>) this.arrayConcat(withdraws, deposits);
             }
             return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -1516,7 +1516,7 @@ public class Indodax extends IndodaxApi
             // Alternatively:
             // let requestId = this.uuid ();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
                 put( "withdraw_amount", amount );
                 put( "withdraw_address", address );
                 put( "request_id", String.valueOf(requestId) );

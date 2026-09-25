@@ -1303,7 +1303,7 @@ public class Kalshi extends KalshiApi
             for (var i = 0; i < ((List<?>)targets).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
-                String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+                String ticker = this.safeString(outcomeObj.get("info"), "ticker");
                 if (java.util.Objects.equals(ticker, null))
                 {
                     continue;
@@ -1383,8 +1383,8 @@ public class Kalshi extends KalshiApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
-            Boolean isNo = java.util.Objects.equals(((Map<String, Object>)outcomeObj).get("label"), "NO");
+            String ticker = this.safeString(outcomeObj.get("info"), "ticker");
+            Boolean isNo = java.util.Objects.equals(outcomeObj.get("label"), "NO");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
@@ -1654,7 +1654,7 @@ public class Kalshi extends KalshiApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+            String ticker = this.safeString(outcomeObj.get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
@@ -2493,8 +2493,8 @@ public class Kalshi extends KalshiApi
             }
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
-            Boolean isNo = (java.util.Objects.equals(((Map<String, Object>)outcomeObj).get("label"), "NO"));
+            String ticker = this.safeString(outcomeObj.get("info"), "ticker");
+            Boolean isNo = (java.util.Objects.equals(outcomeObj.get("label"), "NO"));
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
             // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
             // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -2695,7 +2695,7 @@ public class Kalshi extends KalshiApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(outcomeObj.get("info"), "ticker"));
             }
             Map<String, Object> restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
             List<Object> restingOrders = (List<Object>) this.safeList(restingResponse, "orders", new ArrayList<Object>(Arrays.asList()));

@@ -131,8 +131,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             } else if (java.util.Objects.equals(symbolsLength, 1))
             {
                 market = this.market((symbolsResolved == null || 0 >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(0)));
-                messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
-                productIds = new ArrayList<String>(Arrays.asList(((String)((Map<String, Object>)market).get("id"))));
+                messageHash = ((name + "::") + market.get("symbol"));
+                productIds = new ArrayList<String>(Arrays.asList(((String)market.get("id"))));
             }
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(url, null))
@@ -311,7 +311,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("active"), true))
+            if (java.util.Objects.equals(market.get("active"), true))
             {
                 ((List<Object>)output).add(symbol);
             }
@@ -496,7 +496,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message, (Map<String, Object>) null);
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
-        client.resolve(ticker, Helpers.add((channel + "::"), ((Map<String, Object>)ticker).get("symbol")));
+        client.resolve(ticker, Helpers.add((channel + "::"), ticker.get("symbol")));
     }
 
     public Object parseWsTicker(Object ticker, Map<String, Object> market)
@@ -562,7 +562,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(options, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object ohlcv = (this.subscribe(interval, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
@@ -599,7 +599,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String messageHash = this.safeString(message, "channel");
         String marketId = this.safeString(message, "product_id");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Object timeframe = this.findTimeframe(messageHash, (Object) null);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, (Object) null), null))
@@ -688,7 +688,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //    }
         //
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)trade).get("symbol");
+        Object symbol = trade.get("symbol");
         String channel = this.safeString(message, "channel");
         if (!(((Map<?, ?>)this.trades).containsKey(((String)symbol))))
         {
@@ -700,7 +700,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         client.resolve(tradesArray, channel);
-        client.resolve(tradesArray, Helpers.add((channel + "::"), ((Map<String, Object>)trade).get("symbol")));
+        client.resolve(tradesArray, Helpers.add((channel + "::"), trade.get("symbol")));
         return message;
     }
 

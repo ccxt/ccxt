@@ -1293,7 +1293,7 @@ public class Binance extends BinanceApi
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
-                request.put("marketId", ((Map<String, Object>)market).get("id"));
+                request.put("marketId", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1573,7 +1573,7 @@ public class Binance extends BinanceApi
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
-                request.put("marketTopicId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "marketTopicId"));
+                request.put("marketTopicId", Helpers.GetValue(market.get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
             request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
@@ -2069,7 +2069,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
             Map<String, Object> quoteRequest = this.extend(commonRequest, Helpers.newMap(
-                "tokenId", ((Map<String, Object>)outcomeObj).get("id"),
+                "tokenId", outcomeObj.get("id"),
                 "side", sideUpper,
                 "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000")
             ));

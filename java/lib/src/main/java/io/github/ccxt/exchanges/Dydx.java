@@ -842,7 +842,7 @@ public class Dydx extends DydxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -916,7 +916,7 @@ public class Dydx extends DydxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
                 put( "resolution", Dydx.this.safeString(Dydx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             if (!java.util.Objects.equals(limit, null))
@@ -988,7 +988,7 @@ public class Dydx extends DydxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1207,7 +1207,7 @@ public class Dydx extends DydxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("ticker", ((Map<String, Object>)market).get("id"));
+                request.put("ticker", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1322,7 +1322,7 @@ public class Dydx extends DydxApi
         //
         String marketId = this.safeString(position, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         if (!java.util.Objects.equals(side, "long"))
@@ -1556,7 +1556,7 @@ public class Dydx extends DydxApi
             Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
             Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "info", new HashMap<String, Object>() {{}});
             account.put("pub_key", new HashMap<String, Object>() {{
-        put( "key", Helpers.GetValue(((Map<String, Object>)account).get("pub_key"), "key") );
+        put( "key", Helpers.GetValue(account.get("pub_key"), "key") );
     }});
             Helpers.addElementToObject(this.options, "dydxAccount", account);
             return account;
@@ -1608,10 +1608,10 @@ public class Dydx extends DydxApi
         String amountStr = this.amountToPrecision(symbol, amount);
         String priceStr = this.priceToPrecision(symbol, price);
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-        Object atomicResolution = ((Map<String, Object>)marketInfo).get("atomicResolution");
+        Object atomicResolution = marketInfo.get("atomicResolution");
         String quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         String quantums = Precise.stringMul(amountStr, quantumScale);
-        Object quantumConversionExponent = ((Map<String, Object>)marketInfo).get("quantumConversionExponent");
+        Object quantumConversionExponent = marketInfo.get("quantumConversionExponent");
         String priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
         String subticks = Precise.stringMul(priceStr, priceScale);
         Integer clientMetadata = 0;
@@ -1711,7 +1711,7 @@ public class Dydx extends DydxApi
                     ),
                     "clientId", clientOrderId,
                     "orderFlags", orderFlag,
-                    "clobPairId", ((Map<String, Object>)marketInfo).get("clobPairId")
+                    "clobPairId", marketInfo.get("clobPairId")
                 ),
                 "side", sideNumber,
                 "quantums", this.toDydxLong(quantums),
@@ -1938,7 +1938,7 @@ public class Dydx extends DydxApi
                     }},
                     "clientId", clientOrderId,
                     "orderFlags", orderFlags,
-                    "clobPairId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "clobPairId")
+                    "clobPairId", Helpers.GetValue(market.get("info"), "clobPairId")
                 ),
                 "goodTilBlock", goodTillBlock,
                 "goodTilBlockTime", goodTillBlockTime
@@ -2015,7 +2015,7 @@ public class Dydx extends DydxApi
             Map<String, Object> account = (this.fetchDydxAccount()).join();
             Map<String, Object> cancelOrders = Helpers.newMap(
                 "clientIds", clientOrderIds,
-                "clobPairId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "clobPairId")
+                "clobPairId", Helpers.GetValue(market.get("info"), "clobPairId")
             );
             Map<String, Object> cancelPayload = Helpers.newMap(
                 "subaccountId", new HashMap<String, Object>() {{
@@ -2078,7 +2078,7 @@ public class Dydx extends DydxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
             //
@@ -2097,7 +2097,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
+            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
         }).thenApply(OrderBook::new);
 
     }

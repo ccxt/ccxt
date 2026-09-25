@@ -233,9 +233,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String marketId = (String) ((Map<String, Object>)market).get("id");
+                String marketId = (String) market.get("id");
                 ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), String.valueOf(intervalOption)));
-                messageHashes.add(("ticker::" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("ticker::" + market.get("symbol")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", channel );
@@ -336,7 +336,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, ("ticker::" + symbol));
@@ -397,10 +397,10 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String marketId = (String) ((Map<String, Object>)market).get("id");
+                String marketId = (String) market.get("id");
                 Long limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
                 ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), String.valueOf(limitRaw)));
-                messageHashes.add(("trade::" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("trade::" + market.get("symbol")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.trade" );
@@ -448,7 +448,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -522,11 +522,11 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String symbolString = this.safeString(data, 0);
                 Map<String, Object> market = this.market(symbolString);
-                String marketId = (String) ((Map<String, Object>)market).get("id");
+                String marketId = (String) market.get("id");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((List<Object>)rawHashes).add((Helpers.add((marketId + "@"), timeframeId) + "-TRADE"));
-                messageHashes.add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + unfiedTimeframe));
+                messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + unfiedTimeframe));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.candle" );
@@ -574,7 +574,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String secondPart = this.safeString(parts, 1, "");
         String timeframeId = Helpers.replace(secondPart, (String)"-TRADE", (String)"");
         Object timeframe = this.findTimeframe(timeframeId, (Object) null);
@@ -681,9 +681,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String marketId = (String) ((Map<String, Object>)market).get("id");
+                String marketId = (String) market.get("id");
                 ((List<Object>)rawHashes).add(((marketId + "@") + extraPart));
-                messageHashes.add(("orderbook::" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("orderbook::" + market.get("symbol")));
             }
             Map<String, Object> request = Helpers.newMap(
                 "stream", channel,
@@ -728,7 +728,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -829,8 +829,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)rawHashes).add(((subAccountId + "-") + ((Map<String, Object>)market).get("id")));
-                messageHashes.add(("myTrades::" + ((Map<String, Object>)market).get("symbol")));
+                ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                messageHashes.add(("myTrades::" + market.get("symbol")));
             } else
             {
                 messageHashes.add("myTrades");
@@ -936,8 +936,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    ((List<Object>)rawHashes).add(((subAccountId + "-") + ((Map<String, Object>)market).get("id")));
-                    messageHashes.add(("positions::" + ((Map<String, Object>)market).get("symbol")));
+                    ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                    messageHashes.add(("positions::" + market.get("symbol")));
                 }
             } else
             {
@@ -1039,8 +1039,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             } else
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHashes.add(("order::" + ((Map<String, Object>)market).get("symbol")));
-                ((List<Object>)rawHashes).add(((subAccountId + "-") + ((Map<String, Object>)market).get("id")));
+                messageHashes.add(("order::" + market.get("symbol")));
+                ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.order" );
@@ -1132,7 +1132,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), (Map<String, Object>) null);
         Helpers.callDynamically(this.orders, "append", new Object[]{order});
         client.resolve(this.orders, "orders");
-        client.resolve(this.orders, ("order::" + ((Map<String, Object>)order).get("symbol")));
+        client.resolve(this.orders, ("order::" + order.get("symbol")));
     }
 
     public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)

@@ -648,7 +648,7 @@ public class Hibachi extends HibachiApi
         //      }
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String id = this.safeString(trade, "id");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
@@ -720,7 +720,7 @@ public class Hibachi extends HibachiApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketDataTrades(this.extend(request, parameters))).join();
             //
@@ -767,7 +767,7 @@ public class Hibachi extends HibachiApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
             Object promises = (Helpers.promiseAll(rawPromises)).join();
@@ -877,7 +877,7 @@ public class Hibachi extends HibachiApi
             "lastTradeTimestamp", null,
             "lastUpdateTimestamp", lastUpdateTimestamp,
             "status", this.parseOrderStatus(status),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", timeInForce,
             "side", side,
@@ -1606,7 +1606,7 @@ public class Hibachi extends HibachiApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketDataOrderbook(this.extend(request, parameters))).join();
             Map<String, Object> formattedResponse = new HashMap<String, Object>() {{}};
@@ -1952,7 +1952,7 @@ public class Hibachi extends HibachiApi
             Map<String, Object> market = this.market(symbol);
             String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "interval", timeframeValue );
             }};
             if (!java.util.Objects.equals(since, null))
@@ -2072,7 +2072,7 @@ public class Hibachi extends HibachiApi
         //
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String side = this.safeStringLower(position, "direction");
         String quantity = this.safeString(position, "quantity");
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
@@ -2610,8 +2610,8 @@ public class Hibachi extends HibachiApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("contractId", ((Map<String, Object>)market).get("numericId"));
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                request.put("contractId", market.get("numericId"));
+                symbolResolved = market.get("symbol");
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2694,7 +2694,7 @@ public class Hibachi extends HibachiApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketDataOpenInterest(this.extend(request, parameters))).join();
             //
@@ -2733,7 +2733,7 @@ public class Hibachi extends HibachiApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketDataPrices(this.extend(request, parameters))).join();
             //
@@ -2755,7 +2755,7 @@ public class Hibachi extends HibachiApi
             Long nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
             return new HashMap<String, Object>() {{
                 put( "info", funding );
-                put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                put( "symbol", market.get("symbol") );
                 put( "markPrice", null );
                 put( "indexPrice", null );
                 put( "interestRate", Hibachi.this.parseNumber("0") );
@@ -2799,7 +2799,7 @@ public class Hibachi extends HibachiApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketDataFundingRates(this.extend(request, parameters))).join();
             //

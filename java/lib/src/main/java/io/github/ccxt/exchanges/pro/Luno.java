@@ -77,8 +77,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
+            String symbolValue = (String) market.get("symbol");
+            String subscriptionHash = ("/stream/" + market.get("id"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", symbolValue );
             }};
@@ -128,7 +128,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object symbol = ((Map<String, Object>)subscription).get("symbol");
+        Object symbol = subscription.get("symbol");
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -208,8 +208,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
+            String symbolValue = (String) market.get("symbol");
+            String subscriptionHash = ("/stream/" + market.get("id"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", symbolValue );
             }};
@@ -265,7 +265,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object symbol = ((Map<String, Object>)subscription).get("symbol");
+        Object symbol = subscription.get("symbol");
         String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))

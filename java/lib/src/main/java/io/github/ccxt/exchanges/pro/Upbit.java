@@ -298,7 +298,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        String symbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -382,7 +382,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)trade).get("symbol");
+        String symbol = (String) trade.get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -466,7 +466,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolResolved));
                 List<String> marketIds = this.marketIds(symbols);
                 request.put("codes", marketIds);
@@ -644,7 +644,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         if (!java.util.Objects.equals(feeCost, null))
         {
             fee = Helpers.newMap(
-                "currency", ((Map<String, Object>)marketResolved).get("quote"),
+                "currency", marketResolved.get("quote"),
                 "cost", feeCost
             );
         }
@@ -655,7 +655,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "lastTradeTimestamp", this.safeString(order, "trade_timestamp"),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", this.safeString(order, "order_type"),
             "timeInForce", this.safeString(order, "time_in_force"),
             "postOnly", null,
@@ -693,7 +693,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         if (!java.util.Objects.equals(feeCost, null))
         {
             fee = Helpers.newMap(
-                "currency", ((Map<String, Object>)marketResolved).get("quote"),
+                "currency", marketResolved.get("quote"),
                 "cost", feeCost
             );
         }
@@ -701,7 +701,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             "id", this.safeString(trade, "trade_uuid"),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "side", side,
             "price", this.safeString(trade, "price"),
             "amount", this.safeString(trade, "volume"),
@@ -738,7 +738,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         myTrades.append(trade);
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
-        messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
+        messageHash = ("myTrades:" + trade.get("symbol"));
         client.resolve(myTrades, messageHash);
     }
 

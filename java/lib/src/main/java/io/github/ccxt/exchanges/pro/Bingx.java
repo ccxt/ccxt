@@ -154,7 +154,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> symbols = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(market, null))
             {
-                ((List<Object>)symbols).add(((Map<String, Object>)market).get("symbol"));
+                ((List<Object>)symbols).add(market.get("symbol"));
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -210,8 +210,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
             }
-            String dataType = (((Map<String, Object>)market).get("id") + "@ticker");
-            String messageHash = this.getMessageHash("ticker", Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), (String) null);
+            String dataType = (market.get("id") + "@ticker");
+            String messageHash = this.getMessageHash("ticker", Helpers.toStringArg(market.get("symbol")), (String) null);
             String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
@@ -327,7 +327,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             marketType = "swap";
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
@@ -375,14 +375,14 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object inverse = false;
         if (java.util.Objects.equals(isInverse, null))
         {
-            inverse = java.util.Objects.equals(((Map<String, Object>)marketResolved).get("inverse"), true);
+            inverse = java.util.Objects.equals(marketResolved.get("inverse"), true);
         } else
         {
             inverse = isInverse;
         }
         String baseVolumeKey = ((Helpers.isTrue(inverse))) ? "m" : "v";
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "high", Bingx.this.safeString(message, "h") );
@@ -461,7 +461,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String url = null;
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTrades", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
@@ -476,7 +476,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
             }
-            String rawHash = (((Map<String, Object>)market).get("id") + "@trade");
+            String rawHash = (market.get("id") + "@trade");
             String messageHash = ("trade::" + symbolValue);
             String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -634,7 +634,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             marketType = "swap";
         }
         Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String messageHash = ("trade::" + symbol);
         List<Object> trades = null;
         if ((data instanceof List))
@@ -696,8 +696,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
-            String subscriptionHash = (((((Map<String, Object>)market).get("id") + "@") + "depth") + this.numberToString(depth));
-            String messageHash = this.getMessageHash("orderbook", Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), (String) null);
+            String subscriptionHash = (((market.get("id") + "@") + "depth") + this.numberToString(depth));
+            String messageHash = this.getMessageHash("orderbook", Helpers.toStringArg(market.get("symbol")), (String) null);
             String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
@@ -708,7 +708,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 request.put("reqType", "sub");
             }
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
+            if (java.util.Objects.equals(market.get("inverse"), true))
             {
                 subscriptionArgs = new HashMap<String, Object>() {{
                     put( "id", uuid );
@@ -852,7 +852,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             marketType = "swap";
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -868,7 +868,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object snapshot = null;
         Long timestamp = (Long) this.safeInteger2(message, "timestamp", "ts");
         timestamp = (Long) this.safeInteger2(data, "timestamp", "ts", timestamp);
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
+        if (java.util.Objects.equals(market.get("inverse"), true))
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a", 2);
         } else
@@ -998,7 +998,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> candles = null;
         if (Boolean.TRUE.equals(isSwap))
         {
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
+            if (java.util.Objects.equals(market.get("inverse"), true))
             {
                 candles = new ArrayList<Object>(Arrays.asList(this.safeDict(message, "data", new HashMap<String, Object>() {{}})));
             } else
@@ -1010,7 +1010,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             candles = new ArrayList<Object>(Arrays.asList(this.safeDict(data, "K", new HashMap<String, Object>() {{}})));
         }
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object rawTimeframe = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)dataType).split(java.util.regex.Pattern.quote("_")))), 1);
         Map<String, Object> marketOptions = (Map<String, Object>) this.safeDict(this.options, marketType, (Object) null);
@@ -1089,8 +1089,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, marketType, new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             String rawTimeframe = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String messageHash = this.getMessageHash("ohlcv", Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")));
-            String subscriptionHash = Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), rawTimeframe);
+            String messageHash = this.getMessageHash("ohlcv", Helpers.toStringArg(market.get("symbol")), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            String subscriptionHash = Helpers.add((market.get("id") + "@kline_"), rawTimeframe);
             String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
@@ -1182,7 +1182,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
+            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
@@ -1274,7 +1274,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
+            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
@@ -2009,7 +2009,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
         }
         stored.append(parsedOrder);
-        String symbol = (String) ((Map<String, Object>)parsedOrder).get("symbol");
+        String symbol = (String) parsedOrder.get("symbol");
         String spotHash = "spot:order";
         String swapHash = "swap:order";
         String messageHash = swapHash;
@@ -2096,7 +2096,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String marketId = this.safeString(result, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", type);
         Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(result, market);
-        String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
+        String symbol = (String) parsed.get("symbol");
         String spotHash = "spot:mytrades";
         String swapHash = "swap:mytrades";
         String messageHash = swapHash;

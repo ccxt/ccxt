@@ -938,7 +938,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.v1PublicGetInfoMarketsMarketStats(this.extend(request, parameters))).join();
             //
@@ -1006,7 +1006,7 @@ public class Extended extends ExtendedApi
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-                    ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
+                    ((List<Object>)marketIds).add(market.get("id"));
                 }
                 request.put("market", marketIds);
             }
@@ -1037,7 +1037,7 @@ public class Extended extends ExtendedApi
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(stats, market);
-                String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+                String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     tickers.put((String)symbol, ticker);
@@ -1131,7 +1131,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.v1PublicGetInfoMarketsMarketOrderbook(this.extend(request, parameters))).join();
             //
@@ -1156,11 +1156,11 @@ public class Extended extends ExtendedApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bid", "ask", "price", "qty", 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, market.get("symbol"), timestamp, "bid", "ask", "price", "qty", 2);
             if (!java.util.Objects.equals(limit, null))
             {
-                orderbook.put("bids", this.arraySlice(((Map<String, Object>)orderbook).get("bids"), 0, limit));
-                orderbook.put("asks", this.arraySlice(((Map<String, Object>)orderbook).get("asks"), 0, limit));
+                orderbook.put("bids", this.arraySlice(orderbook.get("bids"), 0, limit));
+                orderbook.put("asks", this.arraySlice(orderbook.get("asks"), 0, limit));
             }
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1186,7 +1186,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.v1PublicGetInfoMarketsMarketTrades(this.extend(request, parameters))).join();
             //
@@ -1241,7 +1241,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1325,7 +1325,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -1403,8 +1403,8 @@ public class Extended extends ExtendedApi
         Long timestamp = this.safeInteger(history, "paidTime");
         return new HashMap<String, Object>() {{
             put( "info", history );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
-            put( "code", ((Map<String, Object>)marketResolved).get("settle") );
+            put( "symbol", marketResolved.get("symbol") );
+            put( "code", marketResolved.get("settle") );
             put( "timestamp", timestamp );
             put( "datetime", Extended.this.iso8601(timestamp) );
             put( "id", Extended.this.safeString(history, "id") );
@@ -1467,7 +1467,7 @@ public class Extended extends ExtendedApi
         String feeCost = this.safeString(trade, "fee");
         Map<String, Object> fee = (((java.util.Objects.equals(feeCost, null)))) ? null : Helpers.newMap(
     "cost", feeCost,
-    "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : ((Map<String, Object>)marketResolved).get("settle")
+    "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle")
 );
         Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
         String takerOrMaker = null;
@@ -1480,7 +1480,7 @@ public class Extended extends ExtendedApi
             "info", trade,
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "order", this.safeString(trade, "orderId"),
             "type", null,
             "side", side,
@@ -1532,7 +1532,7 @@ public class Extended extends ExtendedApi
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
             Map<String, Object> request = Helpers.newMap(
-                "market", ((Map<String, Object>)market).get("id"),
+                "market", market.get("id"),
                 "candleType", candleType,
                 "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
                 "limit", (((!java.util.Objects.equals(limit, null)))) ? limit : 100
@@ -1611,14 +1611,14 @@ public class Extended extends ExtendedApi
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 10000L)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
             Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limitResolved, 60), 60), 1000))) : since;
             Map<String, Object> request = Helpers.newMap(
-                "market", ((Map<String, Object>)market).get("id"),
+                "market", market.get("id"),
                 "startTime", sinceResolved,
                 "endTime", endTime,
                 "limit", limitResolved
@@ -1676,7 +1676,7 @@ public class Extended extends ExtendedApi
         Long timestamp = this.safeInteger(info, "T");
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "fundingRate", Extended.this.safeNumber(info, "f", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Extended.this.iso8601(timestamp) );
@@ -1714,7 +1714,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(limitResolved, this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))), 1000))) : since;
             Map<String, Object> request = Helpers.newMap(
-                "market", ((Map<String, Object>)market).get("id"),
+                "market", market.get("id"),
                 "interval", interval,
                 "startTime", sinceResolved,
                 "endTime", endTime,
@@ -2206,7 +2206,7 @@ public class Extended extends ExtendedApi
                 "accountId", accountId,
                 "amount", amountString,
                 "chainId", chainId,
-                "asset", ((Map<String, Object>)currency).get("id"),
+                "asset", currency.get("id"),
                 "settlement", settlement
             );
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
@@ -2232,7 +2232,7 @@ public class Extended extends ExtendedApi
                 "tagTo", tag,
                 "type", "withdrawal",
                 "amount", this.parseNumber(amountString),
-                "currency", ((Map<String, Object>)currency).get("code"),
+                "currency", currency.get("code"),
                 "status", "pending",
                 "updated", now,
                 "fee", null,
@@ -2345,7 +2345,7 @@ public class Extended extends ExtendedApi
                 "fromAccount", fromAccountResolved,
                 "toAccount", toAccount,
                 "amount", amountString,
-                "transferredAsset", ((Map<String, Object>)currency).get("id"),
+                "transferredAsset", currency.get("id"),
                 "settlement", settlement
             );
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
@@ -2372,7 +2372,7 @@ public class Extended extends ExtendedApi
                 "id", this.safeString(data, "id"),
                 "timestamp", now,
                 "datetime", this.iso8601(now),
-                "currency", ((Map<String, Object>)currency).get("code"),
+                "currency", currency.get("code"),
                 "amount", this.parseNumber(amountString),
                 "fromAccount", fromAccountResolved,
                 "toAccount", toAccount,
@@ -2539,7 +2539,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.v1PrivateGetUserFees(this.extend(request, parameters))).join();
             //
@@ -2623,7 +2623,7 @@ public class Extended extends ExtendedApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "maker", Extended.this.safeNumber(fee, "makerFeeRate", (Object) null) );
             put( "taker", Extended.this.safeNumber(fee, "takerFeeRate", (Object) null) );
             put( "percentage", true );
@@ -2648,7 +2648,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
             }};
             Map<String, Object> response = (this.v1PrivateGetUserLeverage(this.extend(request, parameters))).join();
             //
@@ -2690,7 +2690,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
+                put( "market", market.get("id") );
                 put( "leverage", Extended.this.numberToString(leverage) );
             }};
             Map<String, Object> response = (this.v1PrivatePatchUserLeverage(this.extend(request, parameters))).join();
@@ -2719,7 +2719,7 @@ public class Extended extends ExtendedApi
         Double leverageValue = this.safeNumber(leverage, "leverage", (Object) null);
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -2930,7 +2930,7 @@ public class Extended extends ExtendedApi
         return this.safePosition(Helpers.newMap(
             "info", position,
             "id", this.safeString(position, "id"),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "lastUpdateTimestamp", lastUpdateTimestamp,
@@ -3120,7 +3120,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             String uppercaseSide = ((String)((String)side)).toUpperCase();
-            if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !java.util.Objects.equals(uppercaseType, "LIMIT"))
+            if ((java.util.Objects.equals(market.get("spot"), true)) && !java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 throw new BadRequest((this.id + " createOrder() supports limit orders for spot markets only")) ;
             }
@@ -3197,7 +3197,7 @@ public class Extended extends ExtendedApi
             String clientOrderId = this.safeString2(paramsBuilder, "clientOrderId", "client_id", this.uuid());
             Map<String, Object> request = Helpers.newMap(
                 "id", clientOrderId,
-                "market", ((Map<String, Object>)market).get("id"),
+                "market", market.get("id"),
                 "type", uppercaseType,
                 "side", uppercaseSide,
                 "qty", amountString,
@@ -3559,7 +3559,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             Object orderId = (((java.util.Objects.equals(clientOrderId, null)))) ? id : null;
-            Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : ((Map<String, Object>)market).get("symbol");
+            Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : market.get("symbol");
             return this.safeOrder(Helpers.newMap(
                 "info", response,
                 "id", orderId,
@@ -3655,7 +3655,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("markets", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))));
+                request.put("markets", new ArrayList<Object>(Arrays.asList(market.get("id"))));
             }
             (this.v1PrivatePostUserOrderMassCancel(this.extend(request, parameters))).join();
             //
@@ -3772,7 +3772,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             }
             Map<String, Object> response = (this.v1PrivateGetUserOrders(this.extend(request, parameters))).join();
             //
@@ -3839,7 +3839,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4019,7 +4019,7 @@ public class Extended extends ExtendedApi
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(order, "stopLoss", new HashMap<String, Object>() {{}});
         Map<String, Object> fee = Helpers.newMap(
             "cost", feeCost,
-            "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : ((Map<String, Object>)marketResolved).get("settle")
+            "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle")
         );
         return this.safeOrder(Helpers.newMap(
             "info", order,
@@ -4029,7 +4029,7 @@ public class Extended extends ExtendedApi
             "datetime", this.iso8601(timestamp),
             "lastTradeTimestamp", null,
             "lastUpdateTimestamp", lastUpdateTimestamp,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", this.safeString(order, "timeInForce"),
             "postOnly", this.safeBool(order, "postOnly", (Object) null),

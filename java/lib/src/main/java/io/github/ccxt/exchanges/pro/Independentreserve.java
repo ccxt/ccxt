@@ -78,13 +78,13 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
             }
-            String url = ((((wsUrl + "?subscribe=ticker-") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
+            String url = ((((wsUrl + "?subscribe=ticker-") + market.get("base")) + "-") + market.get("quote"));
             String messageHash = ("trades:" + symbolValue);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -181,7 +181,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             String limitString = this.numberToString(limitResolved);
             String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
@@ -189,7 +189,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
             }
-            String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
+            String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + market.get("base")) + "-") + market.get("quote"));
             String messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );

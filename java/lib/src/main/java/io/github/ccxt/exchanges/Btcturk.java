@@ -548,7 +548,7 @@ public class Btcturk extends BtcturkApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pairSymbol", ((Map<String, Object>)market).get("id") );
+                put( "pairSymbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //     {
@@ -564,7 +564,7 @@ public class Btcturk extends BtcturkApi
             //     }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
-            return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(data, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -593,7 +593,7 @@ public class Btcturk extends BtcturkApi
         //
         String marketId = this.safeString(ticker, "pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -757,7 +757,7 @@ public class Btcturk extends BtcturkApi
             Map<String, Object> market = this.market(symbol);
             // let maxCount = 50;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pairSymbol", ((Map<String, Object>)market).get("id") );
+                put( "pairSymbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -831,7 +831,7 @@ public class Btcturk extends BtcturkApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
-                "symbol", ((Map<String, Object>)market).get("id"),
+                "symbol", market.get("id"),
                 "resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h"))
             );
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
@@ -857,7 +857,7 @@ public class Btcturk extends BtcturkApi
                 if (!java.util.Objects.equals(since, null))
                 {
                     Object to = Helpers.add(this.parseToInt((((double) since) / ((double) 1000))), limitSeconds);
-                    request.put("to", Helpers.mathMin(((Map<String, Object>)request).get("to"), to));
+                    request.put("to", Helpers.mathMin(request.get("to"), to));
                 } else
                 {
                     request.put("from", Helpers.subtract(this.parseToInt((((double) 0) / ((double) 1000))), limitSeconds));
@@ -955,7 +955,7 @@ public class Btcturk extends BtcturkApi
             Map<String, Object> request = Helpers.newMap(
                 "orderType", side,
                 "orderMethod", type,
-                "pairSymbol", ((Map<String, Object>)market).get("id"),
+                "pairSymbol", market.get("id"),
                 "quantity", this.amountToPrecision(symbol, amount)
             );
             if (!java.util.Objects.equals(type, "market"))
@@ -1034,7 +1034,7 @@ public class Btcturk extends BtcturkApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("pairSymbol", ((Map<String, Object>)market).get("id"));
+                request.put("pairSymbol", market.get("id"));
             }
             Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -1067,7 +1067,7 @@ public class Btcturk extends BtcturkApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pairSymbol", ((Map<String, Object>)market).get("id") );
+                put( "pairSymbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {

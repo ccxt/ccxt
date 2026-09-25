@@ -184,7 +184,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
-            Object symbol = ((Map<String, Object>)trade).get("symbol");
+            Object symbol = trade.get("symbol");
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
@@ -284,7 +284,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String messageHash = ((channelName + ":") + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -327,7 +327,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
             ((Map<String, Object>)parameters).put("callerMethodName", "watchTicker");
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Tickers result = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
             return Helpers.GetValue(result, symbolValue);
         }).thenApply(Ticker::new);
@@ -386,7 +386,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
-            Object symbol = ((Map<String, Object>)ticker).get("symbol");
+            Object symbol = ticker.get("symbol");
             String messageHash = Helpers.add((channelName + ":"), symbol);
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
@@ -429,10 +429,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsList == null || i < 0 || i >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(i)));
-                messageHashes.add(("bidask:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("bidask:" + market.get("symbol")));
                 ((List<Object>)args).add(new HashMap<String, Object>() {{
                     put( "channel", channel );
-                    put( "instId", ((Map<String, Object>)market).get("id") );
+                    put( "instId", market.get("id") );
                 }});
             }
             Object request = this.getSubscriptionRequest(args);
@@ -562,7 +562,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         String interval = Helpers.replace(channelName, (String)"candle", (String)"");
         Object unifiedTimeframe = this.findTimeframe(interval, (Object) null);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -736,7 +736,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)order).get("symbol");
+            String symbol = (String) order.get("symbol");
             String messageHash = ((channelName + ":") + symbol);
             orders.append(order);
             client.resolve(orders, messageHash);
@@ -804,7 +804,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
-            String messageHash = Helpers.add((channelName + ":"), ((Map<String, Object>)position).get("symbol"));
+            String messageHash = Helpers.add((channelName + ":"), position.get("symbol"));
             client.resolve(position, messageHash);
         }
     }
@@ -836,10 +836,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchFundingRate", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            String messageHash = ("fundingRate:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("fundingRate:" + market.get("symbol"));
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "channel", "funding-rate" );
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", market.get("id") );
             }};
             Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "public");
@@ -868,7 +868,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(first, (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
+        Object symbol = fundingRate.get("symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         String messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
@@ -931,10 +931,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     }
                     Map<String, Object> topic = Helpers.newMap(
                         "channel", channel,
-                        "instId", ((Map<String, Object>)market).get("id")
+                        "instId", market.get("id")
                     );
                     ((List<Object>)rawSubscriptions).add(topic);
-                    ((List<Object>)messageHashes).add(((channel + ":") + ((Map<String, Object>)market).get("symbol")));
+                    ((List<Object>)messageHashes).add(((channel + ":") + market.get("symbol")));
                 }
             } else
             {

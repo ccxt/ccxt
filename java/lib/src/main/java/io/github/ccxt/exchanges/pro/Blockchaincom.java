@@ -181,13 +181,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ("ohlcv:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "prices" );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "granularity", Blockchaincom.this.parseNumber(interval) );
             }};
             request = this.deepExtend(request, parameters);
@@ -273,13 +273,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("ticker:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "ticker" );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             request = this.deepExtend(request, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -320,7 +320,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String eventVar = this.safeString(message, "event");
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Object ticker = null;
         if (java.util.Objects.equals(eventVar, "subscribed"))
         {
@@ -397,13 +397,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("trades:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "trades" );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             request = this.deepExtend(request, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
@@ -516,7 +516,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -760,7 +760,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", type );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, paramsOmitted);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();

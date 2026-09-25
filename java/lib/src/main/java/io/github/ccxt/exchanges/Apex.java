@@ -1071,7 +1071,7 @@ public class Apex extends ApexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, market.get("symbol"), timestamp, "b", "a", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(data, "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1162,7 +1162,7 @@ public class Apex extends ApexApi
             put( "order", null );
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "type", type );
             put( "takerOrMaker", null );
             put( "side", side );
@@ -1264,7 +1264,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = this.market(symbol);
-            request.put("symbol", ((Map<String, Object>)market).get("id"));
+            request.put("symbol", market.get("id"));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("beginTimeInclusive", since);
@@ -1381,7 +1381,7 @@ public class Apex extends ApexApi
         String clientOrderId = this.safeString(order, "clientId");
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
@@ -1416,7 +1416,7 @@ public class Apex extends ApexApi
             put( "trades", null );
             put( "fee", new HashMap<String, Object>() {{
                 put( "cost", Apex.this.safeString(order, "fee") );
-                put( "currency", ((Map<String, Object>)marketResolved).get("settleId") );
+                put( "currency", marketResolved.get("settleId") );
             }} );
             put( "info", order );
         }}, marketResolved);
@@ -1591,7 +1591,7 @@ public class Apex extends ApexApi
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
-            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"))), TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
+            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(((Map<String, Object>)market.get("precision")).get("price"))), TRUNCATE, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1641,7 +1641,7 @@ public class Apex extends ApexApi
                 put( "accountId", accountId );
                 put( "slotId", finalClientOrderId );
                 put( "nonce", finalClientOrderId );
-                put( "pairId", ((Map<String, Object>)market).get("quoteId") );
+                put( "pairId", market.get("quoteId") );
                 put( "size", orderSize );
                 put( "price", finalOrderPrice );
                 put( "direction", orderSide );
@@ -1654,7 +1654,7 @@ public class Apex extends ApexApi
             }
             Void signature = (this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
             Map<String, Object> request = Helpers.newMap(
-                "symbol", ((Map<String, Object>)market).get("id"),
+                "symbol", market.get("id"),
                 "side", orderSide,
                 "type", orderType,
                 "size", orderSize,
@@ -1878,7 +1878,7 @@ public class Apex extends ApexApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             Map<String, Object> response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -2017,7 +2017,7 @@ public class Apex extends ApexApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2109,7 +2109,7 @@ public class Apex extends ApexApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2161,7 +2161,7 @@ public class Apex extends ApexApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2244,7 +2244,7 @@ public class Apex extends ApexApi
             String leverageString = this.numberToString(leverage);
             String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "initialMarginRate", initialMarginRate );
             }};
             Map<String, Object> response = (this.privatePostV3SetInitialMarginRate(this.extend(request, parameters))).join();
@@ -2299,7 +2299,7 @@ public class Apex extends ApexApi
         // }
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         Long timestamp = this.safeInteger(position, "updatedTime");

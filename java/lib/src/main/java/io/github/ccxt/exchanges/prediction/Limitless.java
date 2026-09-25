@@ -1098,7 +1098,7 @@ public class Limitless extends LimitlessApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
+            String slug = this.safeString(outcomeObj.get("info"), "slug");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "addressOrSlug", slug );
             }};
@@ -1391,7 +1391,7 @@ public class Limitless extends LimitlessApi
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
+                String slug = this.safeString(outcomeObj.get("info"), "slug");
                 if (java.util.Objects.equals(slug, null))
                 {
                     throw new ExchangeError((this.id + " fetchTickers() missing slug")) ;
@@ -1468,7 +1468,7 @@ public class Limitless extends LimitlessApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
+            String slug = this.safeString(outcomeObj.get("info"), "slug");
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "slug", slug );
@@ -1534,7 +1534,7 @@ public class Limitless extends LimitlessApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
+            String slug = this.safeString(outcomeObj.get("info"), "slug");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "slug", slug );
             }};
@@ -1562,7 +1562,7 @@ public class Limitless extends LimitlessApi
             Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
             // sizes are scaled by 10^decimals, USDC uses 6 decimals
             Object scaleStr = this.parsePrecision(this.numberToString(Helpers.opNeg(decimals)));
-            String outcomeLabel = this.safeStringLower(((Map<String, Object>)outcomeObj).get("info"), "outcomeLabel", "yes");
+            String outcomeLabel = this.safeStringLower(outcomeObj.get("info"), "outcomeLabel", "yes");
             Boolean isYes = !java.util.Objects.equals(outcomeLabel, "no");
             List<Object> rawBids = (List<Object>) this.safeList(response, "bids", new ArrayList<Object>(Arrays.asList()));
             List<Object> rawAsks = (List<Object>) this.safeList(response, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -1639,8 +1639,8 @@ public class Limitless extends LimitlessApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
-            String outcomeLabel = this.safeStringUpper(((Map<String, Object>)outcomeObj).get("info"), "outcomeLabel");
+            String slug = this.safeString(outcomeObj.get("info"), "slug");
+            String outcomeLabel = this.safeStringUpper(outcomeObj.get("info"), "outcomeLabel");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "1d");
             Map<String, Object> response = (this.limitlessPublicGetMarketsSlugHistoricalPrice(this.extend(new HashMap<String, Object>() {{
                 put( "slug", slug );
@@ -2485,7 +2485,7 @@ public class Limitless extends LimitlessApi
                 "maker", maker,
                 "signer", signer,
                 "taker", taker,
-                "tokenId", ((Map<String, Object>)outcomeObj).get("outcomeId"),
+                "tokenId", outcomeObj.get("outcomeId"),
                 "nonce", 0,
                 "feeRateBps", this.safeInteger(rank, "feeRateBps", 0),
                 "side", sideValue,
@@ -2566,7 +2566,7 @@ public class Limitless extends LimitlessApi
             {
                 signRequest.put("price", this.parseNumber(priceString));
             }
-            String slug = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug");
+            String slug = this.safeString(outcomeObj.get("info"), "slug");
             Map<String, Object> request = Helpers.newMap(
                 "ownerId", this.safeInteger(account, "id"),
                 "order", signRequest,
@@ -2899,7 +2899,7 @@ public class Limitless extends LimitlessApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                request.put("slug", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug"));
+                request.put("slug", this.safeString(outcomeObj.get("info"), "slug"));
             } else if (java.util.Objects.equals(slug, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;

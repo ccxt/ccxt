@@ -284,7 +284,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
+        Object symbol = ticker.get("symbol");
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
@@ -354,7 +354,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -538,7 +538,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         orders.append(parsed);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
-        String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
+        String symbol = (String) parsed.get("symbol");
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
@@ -560,7 +560,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
-        if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("contract"), true))
+        if (java.util.Objects.equals(marketResolved.get("contract"), true))
         {
             type = null;
         }
@@ -572,7 +572,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             "lastTradeTimestamp", null,
             "lastUpdateTimestamp", null,
             "status", this.parseOrderStatus(this.safeString(order, "X")),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", timeInForce,
             "side", side,
@@ -663,7 +663,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         this.myTrades = tradesArray;
         String messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
-        String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
+        String symbol = (String) parsed.get("symbol");
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
@@ -810,7 +810,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         positions.append(parsed);
         String messageHash = "positions";
         client.resolve(parsed, messageHash);
-        String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
+        String symbol = (String) parsed.get("symbol");
         client.resolve(parsed, ((messageHash + ":") + symbol));
     }
 
@@ -820,7 +820,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(position, "E");
         return this.safePosition(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );

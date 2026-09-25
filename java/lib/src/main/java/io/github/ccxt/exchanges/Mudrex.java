@@ -396,7 +396,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> market = this.market(symbol);
             String priceType = this.safeString(parameters, "price");
             // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-            String assetPair = Helpers.add((((Map<String, Object>)market).get("baseId") + "/"), ((Map<String, Object>)market).get("quoteId"));
+            String assetPair = Helpers.add((market.get("baseId") + "/"), market.get("quoteId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assets", assetPair );
                 put( "aggregation", Mudrex.this.safeString(Mudrex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -503,7 +503,7 @@ public class Mudrex extends MudrexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", ((Map<String, Object>)market).get("id") );
+                put( "asset_id", market.get("id") );
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
@@ -545,7 +545,7 @@ public class Mudrex extends MudrexApi
                     continue;
                 }
                 Map<String, Object> m = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
-                String symbol = (String) ((Map<String, Object>)m).get("symbol");
+                String symbol = (String) m.get("symbol");
                 if (!java.util.Objects.equals(symbols, null) && !this.inArray(symbol, symbols))
                 {
                     continue;
@@ -561,7 +561,7 @@ public class Mudrex extends MudrexApi
     {
         String ms = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(ms, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Double pct = this.safeNumber(ticker, "change_perc", (Object) null);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -827,7 +827,7 @@ public class Mudrex extends MudrexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", ((Map<String, Object>)market).get("id") );
+                put( "asset_id", market.get("id") );
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
@@ -870,7 +870,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> market = this.market(symbol);
             String marginType = this.safeString(parameters, "marginType", "ISOLATED");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", ((Map<String, Object>)market).get("id") );
+                put( "asset_id", market.get("id") );
                 put( "is_symbol", 1 );
                 put( "margin_type", marginType );
                 put( "leverage", leverage );
@@ -950,7 +950,7 @@ public class Mudrex extends MudrexApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
             }
             Map<String, Object> request = Helpers.newMap(
-                "asset_id", ((Map<String, Object>)market).get("id"),
+                "asset_id", market.get("id"),
                 "is_symbol", 1,
                 "leverage", this.numberToString(lev),
                 "quantity", this.amountToPrecision(symbol, amount),
@@ -977,8 +977,8 @@ public class Mudrex extends MudrexApi
             Object data = this.safeDict(response, "data", response);
             // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
             Map<String, Object> merged = this.extend(data, new HashMap<String, Object>() {{
-                put( "order_type", ((Map<String, Object>)request).get("order_type") );
-                put( "trigger_type", ((Map<String, Object>)request).get("trigger_type") );
+                put( "order_type", request.get("order_type") );
+                put( "trigger_type", request.get("trigger_type") );
             }});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
@@ -1095,7 +1095,7 @@ public class Mudrex extends MudrexApi
         }
         Long ts = this.parse8601(this.safeString(order, "created_at"));
         String status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        String sym = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String sym = (String) marketResolved.get("symbol");
         return this.safeOrder(Helpers.newMap(
             "info", order,
             "id", oid,
@@ -1498,7 +1498,7 @@ public class Mudrex extends MudrexApi
                     {
                         continue;
                     }
-                    if (java.util.Objects.equals(((Map<String, Object>)p).get("symbol"), ((Map<String, Object>)market).get("symbol")))
+                    if (java.util.Objects.equals(((Map<String, Object>)p).get("symbol"), market.get("symbol")))
                     {
                         positionId = this.safeString(p, "id");
                         break;
@@ -1661,7 +1661,7 @@ public class Mudrex extends MudrexApi
                     if (java.util.Objects.equals(this.safeString(entry, "fee_type"), "TRANSACTION"))
                     {
                         // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                        if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), ((Map<String, Object>)market).get("id"))))
+                        if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), market.get("id"))))
                         {
                             transactionsCount = this.sum(transactionsCount, 1);
                         }
@@ -1745,7 +1745,7 @@ public class Mudrex extends MudrexApi
         //
         String ms = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(ms, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         String side = this.safeStringLower(trade, "order_type");

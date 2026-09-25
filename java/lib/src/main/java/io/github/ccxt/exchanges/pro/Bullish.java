@@ -181,11 +181,11 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("trades::" + market.get("symbol"));
             String url = "/trading-api/v1/market-data/trades";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "anonymousTrades" );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Object trades = (this.watchPublic(url, messageHash, request, parameters)).join();
             Long limitResolved = limit;
@@ -242,7 +242,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             tradesArray.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
-        String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));
+        String messageHash = ("trades::" + market.get("symbol"));
         client.resolve(tradesArray, messageHash);
     }
 
@@ -265,13 +265,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchTicker() has no public websocket url")) ;
             }
-            String url = ((wsUrl + "/trading-api/v1/market-data/tick/") + ((Map<String, Object>)market).get("id"));
+            String url = ((wsUrl + "/trading-api/v1/market-data/tick/") + market.get("id"));
             String messageHash = ("ticker::" + symbolValue);
             return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
         }).thenApply(Ticker::new);
@@ -328,7 +328,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Object parsed = this.parseTicker(data, market);
         if (java.util.Objects.equals(updateType, "update"))
         {
@@ -363,10 +363,10 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             Map<String, Object> market = this.market(symbol);
             String url = "/trading-api/v1/market-data/orderbook";
-            String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("orderbook::" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "l2Orderbook" );
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Object orderbook = (this.watchPublic(url, messageHash, request, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});

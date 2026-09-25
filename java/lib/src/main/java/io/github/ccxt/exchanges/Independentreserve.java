@@ -597,12 +597,12 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", market.get("baseId") );
+                put( "secondaryCurrencyCode", market.get("quoteId") );
             }};
             Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume", 2);
+            return this.parseOrderBook(response, market.get("symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -631,7 +631,7 @@ public class Independentreserve extends IndependentreserveApi
             defaultMarketId = ((baseId + "/") + quoteId);
         }
         Map<String, Object> marketResolved = this.safeMarket(defaultMarketId, market, "/", (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -676,8 +676,8 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", market.get("baseId") );
+                put( "secondaryCurrencyCode", market.get("quoteId") );
             }};
             Map<String, Object> response = (this.publicGetGetMarketSummary(this.extend(request, parameters))).join();
             // {
@@ -905,8 +905,8 @@ public class Independentreserve extends IndependentreserveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("primaryCurrencyCode", ((Map<String, Object>)market).get("baseId"));
-                request.put("secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId"));
+                request.put("primaryCurrencyCode", market.get("baseId"));
+                request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
             Object limitResolved = limit;
             if (java.util.Objects.equals(limitResolved, null))
@@ -946,8 +946,8 @@ public class Independentreserve extends IndependentreserveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("primaryCurrencyCode", ((Map<String, Object>)market).get("baseId"));
-                request.put("secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId"));
+                request.put("primaryCurrencyCode", market.get("baseId"));
+                request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
             Object limitResolved = limit;
             if (java.util.Objects.equals(limitResolved, null))
@@ -1071,8 +1071,8 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", market.get("baseId") );
+                put( "secondaryCurrencyCode", market.get("quoteId") );
                 put( "numberOfRecentTradesToRetrieve", 50 );
             }};
             Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
@@ -1130,7 +1130,7 @@ public class Independentreserve extends IndependentreserveApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, ((Map<String, Object>)market).get("base"), new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, market.get("base"), new HashMap<String, Object>() {{}});
                 result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", Independentreserve.this.safeDict(fee, "info", (Object) null) );
         put( "symbol", symbol );
@@ -1170,8 +1170,8 @@ public class Independentreserve extends IndependentreserveApi
             String orderType = this.capitalize(type);
             orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
             Map<String, Object> request = Helpers.newMap(
-                "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId"),
-                "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId"),
+                "primaryCurrencyCode", market.get("baseId"),
+                "secondaryCurrencyCode", market.get("quoteId"),
                 "orderType", orderType
             );
             Map<String, Object> response = null;
@@ -1255,7 +1255,7 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)currency).get("id") );
+                put( "primaryCurrencyCode", currency.get("id") );
             }};
             Map<String, Object> response = (this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters))).join();
             //
@@ -1321,7 +1321,7 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)currency).get("id") );
+                put( "primaryCurrencyCode", currency.get("id") );
                 put( "withdrawalAddress", address );
                 put( "amount", Independentreserve.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};

@@ -826,8 +826,8 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("baseId") );
-                put( "quote", ((Map<String, Object>)market).get("quoteId") );
+                put( "currency", market.get("baseId") );
+                put( "quote", market.get("quoteId") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -958,8 +958,8 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "base", ((Map<String, Object>)market).get("baseId") );
-                put( "quote", ((Map<String, Object>)market).get("quoteId") );
+                put( "base", market.get("baseId") );
+                put( "quote", market.get("quoteId") );
             }};
             Map<String, Object> response = (this.publicGetTickerBaseQuote(this.extend(request, parameters))).join();
             //
@@ -1154,8 +1154,8 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("baseId") );
-                put( "quote", ((Map<String, Object>)market).get("quoteId") );
+                put( "currency", market.get("baseId") );
+                put( "quote", market.get("quoteId") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1218,8 +1218,8 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("baseId") );
-                put( "quote", ((Map<String, Object>)market).get("quoteId") );
+                put( "currency", market.get("baseId") );
+                put( "quote", market.get("quoteId") );
             }};
             Map<String, Object> response = (this.publicGetTradeFeeCurrencyQuote(this.extend(request, parameters))).join();
             //
@@ -1232,7 +1232,7 @@ public class Latoken extends LatokenApi
             //
             return new HashMap<String, Object>() {{
                 put( "info", response );
-                put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                put( "symbol", market.get("symbol") );
                 put( "maker", Latoken.this.safeNumber(response, "makerFee", (Object) null) );
                 put( "taker", Latoken.this.safeNumber(response, "takerFee", (Object) null) );
                 put( "percentage", null );
@@ -1253,8 +1253,8 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("baseId") );
-                put( "quote", ((Map<String, Object>)market).get("quoteId") );
+                put( "currency", market.get("baseId") );
+                put( "quote", market.get("quoteId") );
             }};
             Map<String, Object> response = (this.privateGetAuthTradeFeeCurrencyQuote(this.extend(request, parameters))).join();
             //
@@ -1267,7 +1267,7 @@ public class Latoken extends LatokenApi
             //
             return new HashMap<String, Object>() {{
                 put( "info", response );
-                put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                put( "symbol", market.get("symbol") );
                 put( "maker", Latoken.this.safeNumber(response, "makerFee", (Object) null) );
                 put( "taker", Latoken.this.safeNumber(response, "takerFee", (Object) null) );
                 put( "percentage", null );
@@ -1308,8 +1308,8 @@ public class Latoken extends LatokenApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("currency", ((Map<String, Object>)market).get("baseId"));
-                request.put("quote", ((Map<String, Object>)market).get("quoteId"));
+                request.put("currency", market.get("baseId"));
+                request.put("quote", market.get("quoteId"));
                 response = (this.privateGetAuthTradePairCurrencyQuote(this.extend(request, parameters))).join();
             } else
             {
@@ -1513,8 +1513,8 @@ public class Latoken extends LatokenApi
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("baseId") );
-                put( "quote", ((Map<String, Object>)market).get("quoteId") );
+                put( "currency", market.get("baseId") );
+                put( "quote", market.get("quoteId") );
             }};
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -1586,8 +1586,8 @@ public class Latoken extends LatokenApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("currency", ((Map<String, Object>)market).get("baseId"));
-                request.put("quote", ((Map<String, Object>)market).get("quoteId"));
+                request.put("currency", market.get("baseId"));
+                request.put("quote", market.get("quoteId"));
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     response = (this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, paramsOmitted))).join();
@@ -1723,8 +1723,8 @@ public class Latoken extends LatokenApi
             String uppercaseType = ((String)type).toUpperCase();
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = Helpers.newMap(
-                "baseCurrency", ((Map<String, Object>)market).get("baseId"),
-                "quoteCurrency", ((Map<String, Object>)market).get("quoteId"),
+                "baseCurrency", market.get("baseId"),
+                "quoteCurrency", market.get("quoteId"),
                 "side", ((String)side).toUpperCase(),
                 "condition", "GTC",
                 "type", uppercaseType,
@@ -1840,8 +1840,8 @@ public class Latoken extends LatokenApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("currency", ((Map<String, Object>)market).get("baseId"));
-                request.put("quote", ((Map<String, Object>)market).get("quoteId"));
+                request.put("currency", market.get("baseId"));
+                request.put("quote", market.get("quoteId"));
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     response = (this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted))).join();
@@ -2105,7 +2105,7 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
                 put( "recipient", toAccount );
                 put( "value", Latoken.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};

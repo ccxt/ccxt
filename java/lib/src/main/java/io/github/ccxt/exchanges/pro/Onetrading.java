@@ -184,7 +184,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String subscriptionHash = "MARKET_TICKER";
             String messageHash = ("ticker." + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -331,7 +331,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             (this.authenticate(parameters)).join();
@@ -383,7 +383,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = ("book:" + symbolValue);
             String subscriptionHash = "ORDER_BOOK";
             Object depth = 0;
@@ -525,7 +525,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             (this.authenticate(parameters)).join();
@@ -1179,8 +1179,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            String marketId = (String) ((Map<String, Object>)market).get("id");
+            String symbolValue = (String) market.get("symbol");
+            String marketId = (String) market.get("id");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), (Object) null);

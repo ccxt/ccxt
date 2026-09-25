@@ -618,10 +618,10 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
             }};
             Map<String, Object> orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
+            return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -675,7 +675,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetGetticker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
@@ -742,7 +742,7 @@ public class Bitflyer extends BitflyerApi
             "info", trade,
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "order", order,
             "type", null,
             "side", side,
@@ -776,7 +776,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -821,7 +821,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
             }};
             Map<String, Object> response = (this.privateGetGettradingcommission(this.extend(request, parameters))).join();
             //
@@ -832,7 +832,7 @@ public class Bitflyer extends BitflyerApi
             Double fee = this.safeNumber(response, "commission_rate", (Object) null);
             return new HashMap<String, Object>() {{
                 put( "info", response );
-                put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                put( "symbol", market.get("symbol") );
                 put( "maker", fee );
                 put( "taker", fee );
                 put( "percentage", null );
@@ -1006,7 +1006,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
                 put( "count", java.util.Objects.requireNonNullElse(limit, 100L) );
             }};
             List<Object> response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
@@ -1124,7 +1124,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1227,7 +1227,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_code", ((Map<String, Object>)currency).get("id") );
+                put( "currency_code", currency.get("id") );
                 put( "amount", amount );
             }};
             Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, parameters))).join();
@@ -1468,7 +1468,7 @@ public class Bitflyer extends BitflyerApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", ((Map<String, Object>)market).get("id") );
+                put( "product_code", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetGetfundingrate(this.extend(request, parameters))).join();
             //

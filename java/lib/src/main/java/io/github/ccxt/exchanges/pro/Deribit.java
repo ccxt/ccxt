@@ -225,12 +225,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            String channel = ((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval);
+            String channel = ((("ticker." + market.get("id")) + ".") + interval);
             Map<String, Object> message = Helpers.newMap(
                 "jsonrpc", "2.0",
                 "method", "public/subscribe",
                 "params", Helpers.newMap(
-                    "channels", new ArrayList<Object>(Arrays.asList(((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval)))
+                    "channels", new ArrayList<Object>(Arrays.asList(((("ticker." + market.get("id")) + ".") + interval)))
                 ),
                 "id", this.requestId()
             );
@@ -275,7 +275,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
                 Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
-                channels.add(((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval));
+                channels.add(((("ticker." + market.get("id")) + ".") + interval));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -363,7 +363,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
                 Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
-                channels.add(("quote." + ((Map<String, Object>)market).get("id")));
+                channels.add(("quote." + market.get("id")));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -1032,7 +1032,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String marketId = this.safeString(parts, 2);
         String rawTimeframe = this.safeString(parts, 3);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
@@ -1107,9 +1107,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                     market = this.market(current);
                     currentDescriptor = channelDescriptor;
                 }
-                String message = ((((channelName + ".") + ((Map<String, Object>)market).get("id")) + ".") + currentDescriptor);
+                String message = ((((channelName + ".") + market.get("id")) + ".") + currentDescriptor);
                 ((List<Object>)rawSubscriptions).add(message);
-                ((List<Object>)messageHashes).add(((((channelName + "|") + ((Map<String, Object>)market).get("symbol")) + "|") + currentDescriptor));
+                ((List<Object>)messageHashes).add(((((channelName + "|") + market.get("symbol")) + "|") + currentDescriptor));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

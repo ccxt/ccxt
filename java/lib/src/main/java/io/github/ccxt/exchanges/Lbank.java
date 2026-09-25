@@ -934,7 +934,7 @@ public class Lbank extends LbankApi
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object data = (((java.util.Objects.equals(((Map<String, Object>)marketResolved).get("contract"), true)))) ? ticker : tickerData;
+        Object data = (((java.util.Objects.equals(marketResolved.get("contract"), true)))) ? ticker : tickerData;
         return this.safeTicker(Helpers.newMap(
             "symbol", symbol,
             "timestamp", timestamp,
@@ -978,13 +978,13 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
-                Tickers responseForSwap = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), parameters)).join();
-                return this.safeDict(responseForSwap, ((Map<String, Object>)market).get("symbol"), (Object) null);
+                Tickers responseForSwap = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+                return this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.spotPublicGetTicker24hr(this.extend(request, parameters))).join();
             //
@@ -1132,7 +1132,7 @@ public class Lbank extends LbankApi
             Map<String, Object> market = this.market(symbol);
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 60 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -1197,11 +1197,11 @@ public class Lbank extends LbankApi
             //
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
-                return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "volume", 2);
+                return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", "price", "volume", 2);
             }
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1344,7 +1344,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
@@ -1435,7 +1435,7 @@ public class Lbank extends LbankApi
             Long parsedSince = this.parseToInt(Helpers.divide(sinceResolved, 1000));
             Object parsedLimit = Helpers.mathMin(Helpers.add(limitResolved, 1), 2000); // max 2000;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "type", Lbank.this.safeString(Lbank.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "time", parsedSince );
                 put( "size", parsedLimit );
@@ -1685,8 +1685,8 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            FundingRates responseForSwap = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), parameters)).join();
-            return this.safeDict(responseForSwap, ((Map<String, Object>)market).get("symbol"), (Object) null);
+            FundingRates responseForSwap = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+            return this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
         }).thenApply(FundingRate::new);
 
     }
@@ -1854,7 +1854,7 @@ public class Lbank extends LbankApi
 
             Map<String, Object> market = this.market(symbol);
             TradingFees result = (this.fetchTradingFees(Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
-                put( "category", ((Map<String, Object>)market).get("id") );
+                put( "category", market.get("id") );
             }})))).join();
             return this.safeDict(result, symbol, (Object) null);
         }).thenApply(TradingFeeInterface::new);
@@ -1885,7 +1885,7 @@ public class Lbank extends LbankApi
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
-                Object symbol = ((Map<String, Object>)fee).get("symbol");
+                Object symbol = fee.get("symbol");
                 result.put((String)((String)symbol), fee);
             }
             return result;
@@ -1914,7 +1914,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -1953,7 +1953,7 @@ public class Lbank extends LbankApi
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Object paramsRequest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
             Boolean fok = (java.util.Objects.equals(timeInForce, "FOK"));
@@ -2199,7 +2199,7 @@ public class Lbank extends LbankApi
             "timestamp", timestamp,
             "lastTradeTimestamp", null,
             "status", this.parseOrderStatus(rawStatus),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", timeInForce,
             "postOnly", postOnly,
@@ -2267,7 +2267,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "orderId", id );
             }};
             Map<String, Object> response = (this.spotPrivatePostSupplementOrdersInfo(this.extend(request, parameters))).join();
@@ -2314,7 +2314,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.spotPrivatePostOrdersInfo(this.extend(request, parameters))).join();
@@ -2379,7 +2379,7 @@ public class Lbank extends LbankApi
             Object sinceValue = this.safeValue(parameters, "start_date", since);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "start_date");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2446,7 +2446,7 @@ public class Lbank extends LbankApi
             Map<String, Object> market = this.market(symbol);
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "current_page", 1 );
                 put( "page_length", limitResolved );
             }};
@@ -2512,7 +2512,7 @@ public class Lbank extends LbankApi
             Map<String, Object> market = this.market(symbol);
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "current_page", 1 );
                 put( "page_length", limitResolved );
             }};
@@ -2578,7 +2578,7 @@ public class Lbank extends LbankApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "orderId", id );
             }};
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -2629,7 +2629,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.spotPrivatePostSupplementCancelOrderBySymbol(this.extend(request, parameters))).join();
             //
@@ -2712,7 +2712,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "assetCode", ((Map<String, Object>)currency).get("id") );
+                put( "assetCode", currency.get("id") );
             }};
             Object network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
             Object paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
@@ -2760,7 +2760,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin", ((Map<String, Object>)currency).get("id") );
+                put( "coin", currency.get("id") );
             }};
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
             String network = this.safeStringUpper(parameters, "network");
@@ -2829,7 +2829,7 @@ public class Lbank extends LbankApi
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
-                put( "coin", ((Map<String, Object>)currency).get("id") );
+                put( "coin", currency.get("id") );
                 put( "amount", amount );
                 put( "fee", fee );
             }};
@@ -3000,7 +3000,7 @@ public class Lbank extends LbankApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", currency.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3062,7 +3062,7 @@ public class Lbank extends LbankApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", currency.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3243,7 +3243,7 @@ public class Lbank extends LbankApi
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> currency = this.currency(code);
-                request.put("assetCode", ((Map<String, Object>)currency).get("id"));
+                request.put("assetCode", currency.get("id"));
             }
             Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(this.extend(request, paramsOmitted))).join();
             //
