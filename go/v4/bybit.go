@@ -9031,7 +9031,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 			typeVarparamsTypeVariable := this.GetBybitType("setPositionMode", market, params)
 			var typeVar *string = SafeStringPtr(GetValue(typeVarparamsTypeVariable, 0))
 			paramsType := GetValue(typeVarparamsTypeVariable, 1)
-			var tradeMode any = nil
+			var tradeMode int
 			if marginMode == "cross" {
 				tradeMode = 0
 			} else if marginMode == "isolated" {
@@ -9166,7 +9166,7 @@ func (this *Bybit) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var mode any = nil
+	var mode int
 	if EvalTruthy(hedged) {
 		mode = 3
 	} else {

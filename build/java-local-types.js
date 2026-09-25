@@ -1229,6 +1229,10 @@ function wsCheckerLocalType (printer, initializer) {
     return javaType;
 }
 
+function isPredictionWsFile (declaration) {
+    return /[\\/]ts[\\/]src[\\/]prediction[\\/]\w+\.ts$/.test (declaration.getSourceFile ().fileName);
+}
+
 function isWsType (javaType) {
     return WS_TYPES.has (javaType);
 }
@@ -2691,6 +2695,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             // through `super.` too — both print `(<receiver>.<m>(...)).join()`
             return { type: awaited, valuePrefixes: [ '(this.', '(super.' ], strictPlus: awaited === 'String' };
         }
+        // `const orderbook: Ob = await this.watch* (...)`: the annotated ws class, checkcast on the join
+        // (base `watch`/`watchMultiple` are generic: section 18 binds those through a witness)
+        const awaitedWs = (isProFile === true || isPredictionWsFile (declaration)) && wsReceiveCall (declaration) === undefined ? wsCheckerLocalType (printer, initializer) : undefined;
+        if (awaitedWs !== undefined) {
+            return { type: awaitedWs, cast: '(' + awaitedWs + ')', anyValueShape: true, skipInheritedAsyncGuard: true };
+        }
         return undefined;
     }
     // test tier: `exchange.safeString* (...)` on a base-typed receiver — section 9
@@ -2698,8 +2708,8 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (receiverAccessor !== undefined) {
         return receiverAccessor;
     }
-    // WS/pro families (see the section above)
-    if (isProFile === true) {
+    // WS/pro families (see the section above); prediction venues carry the same ws members
+    if (isProFile === true || isPredictionWsFile (declaration)) {
         if (isThisCall (initializer)) {
             const wsCall = WS_THIS_CALL_TYPES[initializer.expression.name.text];
             if (wsCall !== undefined && isBaseDeclaration (printer, initializer)) {
@@ -2719,7 +2729,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         if (checkerType !== undefined) {
             return { type: checkerType, cast: '(' + checkerType + ')', anyValueShape: true, skipInheritedAsyncGuard: true };
         }
-        if (/^messageHash\d*$/.test (declaration.name.text)
+        if (isProFile === true && /^messageHash\d*$/.test (declaration.name.text)
             && isProvablyStringExpression (printer, initializer, declaration.name.text, narrowed)) {
             // the checkcast is kept only for the producers whose printed Java is still
             // Object-declared (case accessors, implodeParams, ..); literals, Helpers.add
@@ -2899,7 +2909,9 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             const name = callee.name.text;
             if (isWsType (javaType)) {
                 // `x = this.safeValue(this.trades, key)` — a ws map read
-                return wsMapReadType (node) === javaType;
+                // or `x = this.orderBook (...)`: the base factory is declared with the (sub)class
+                return wsMapReadType (node) === javaType || (javaType === ORDERBOOK_TYPE
+                    && WS_THIS_CALL_TYPES[name]?.startsWith (ORDERBOOK_TYPE) === true && isBaseDeclaration (printer, node));
             }
             if (javaType === JAVA_STRUCTURE_TYPE) {
                 return (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name))

@@ -9255,7 +9255,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	} else {
 		request[clientOrderIdRequest] = clientOrderId
 	}
-	var postOnly any = nil
+	var postOnly bool
 	if !isPortfolioMargin {
 		postOnly = this.IsPostOnly(isMarketOrder, (initialUppercaseType == "LIMIT_MAKER"), paramsPapi)
 		if (market["spot"] == true) || (marketType != nil && *marketType == "margin") {

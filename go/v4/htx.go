@@ -2781,7 +2781,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		var costPrecision any = nil
 		var maker any = nil
 		var taker any = nil
-		var active any = nil
+		var active bool
 		if spot {
 			pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "price-precision")))
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount-precision")))

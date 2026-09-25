@@ -490,8 +490,8 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 								if i == maxRetries-1 {
 									var isOnMaintenance bool = (IsInstance(e, OnMaintenance))
 									var isExchangeNotAvailable bool = (IsInstance(e, ExchangeNotAvailable))
-									var shouldFail any = nil
-									var retSuccess any = nil
+									var shouldFail bool
+									var retSuccess bool
 									if isLoadMarkets {
 										// if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
 										retSuccess = false

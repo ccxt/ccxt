@@ -212,8 +212,8 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		}
 		return *method
 	}()
-	var isUsdcSettled any = nil
-	var isSpot any = nil
+	var isUsdcSettled bool
+	var isSpot bool
 	var typeVar *string = nil
 	var market map[string]any = nil
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
