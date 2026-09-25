@@ -5226,7 +5226,7 @@ impl BitfinexCore {
         //         ]
         //     ]
         //
-        let mut marginStatusRaw: Value = get_value(&data, &Value::Int(0));
+        let mut marginStatusRaw: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut marginStatus: Value = Value::Str("failed".into());
         if is_equal(&marginStatusRaw, &Value::Int(1)) {
             marginStatus = Value::Str("ok".into());
