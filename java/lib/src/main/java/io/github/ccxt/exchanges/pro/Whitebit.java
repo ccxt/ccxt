@@ -203,9 +203,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             String defaultPriceInterval = this.safeString(options, "priceInterval", "0");
             String priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
-            Object paramsOmitted = this.omit(parameters, "priceInterval");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "priceInterval");
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(market.get("id"), limitValue, priceInterval, true));
-            Object orderbook = (this.watchPublic(messageHash, method, reqParams, Helpers.toMapArg(paramsOmitted))).join();
+            Object orderbook = (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -314,11 +314,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String method = "market_subscribe";
             String messageHash = ("ticker:" + symbolValue);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-            return (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
+            return (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -438,11 +438,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = (("trades" + ":") + symbolValue);
             String method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-            Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
+            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -526,16 +526,16 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = ("myTrades:" + symbolValue);
             String method = "deals_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), true, parameters)).join();
+            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolValue), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -678,16 +678,16 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = ("orders:" + symbolValue);
             String method = "ordersPending_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
+            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolValue), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -883,7 +883,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             String messageHash = "wallet:";
-            Object method = null;
+            String method = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 method = "balanceSpot_subscribe";

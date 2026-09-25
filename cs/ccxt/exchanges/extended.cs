@@ -480,13 +480,13 @@ public partial class extended : Exchange
         });
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
-        if (((currenciesByNumericId == null)) || isTrue(reload))
+        if (((currenciesByNumericId == null)) || reload == true)
         {
             this.options["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
@@ -2449,7 +2449,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2802,7 +2802,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToDict(account);
     }
 
-    public virtual Dictionary<string, object> createOrderSettlementData(object isBuy, object amountString, object priceString, object parameters = null)
+    public virtual Dictionary<string, object> createOrderSettlementData(bool isBuy, object amountString, object priceString, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? totalFee = this.safeString(parameters, "totalFee");
@@ -2819,7 +2819,7 @@ public partial class extended : Exchange
         object quoteRoundUp = isBuy;
         string baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
         string collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
-        if (isTrue(isBuy))
+        if (isBuy)
         {
             collateralAmount = Precise.stringNeg(collateralAmount);
         } else
@@ -2848,7 +2848,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, object amountString, Dictionary<string, object> currency, object account, object parameters = null)
+    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, object amountString, Dictionary<string, object> currency, IDictionary<string, object> account, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
@@ -2884,7 +2884,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createTransferSettlementData(object amountString, Dictionary<string, object> currency, object account, object toVault, object toL2Key, object parameters = null)
+    public virtual Dictionary<string, object> createTransferSettlementData(object amountString, Dictionary<string, object> currency, IDictionary<string, object> account, object toVault, object toL2Key, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
@@ -3874,7 +3874,7 @@ public partial class extended : Exchange
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")}));
     }
 
-    public virtual string? getExtendedOrderMsgHash(object settlement)
+    public virtual string? getExtendedOrderMsgHash(IDictionary<string, object> settlement)
     {
         object orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();
@@ -3895,7 +3895,7 @@ public partial class extended : Exchange
         return ((string?)((object)(this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash}))));
     }
 
-    public virtual string? getExtendedWithdrawalMsgHash(object settlement, object starkKey)
+    public virtual string? getExtendedWithdrawalMsgHash(IDictionary<string, object> settlement, object starkKey)
     {
         object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();
@@ -3904,7 +3904,7 @@ public partial class extended : Exchange
         return ((string?)((object)(this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, this.convertToBigInt(starkKey), withdrawalHash}))));
     }
 
-    public virtual string? getExtendedTransferMsgHash(object settlement)
+    public virtual string? getExtendedTransferMsgHash(IDictionary<string, object> settlement)
     {
         object transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         object domainHash = this.getExtendedDomainHash();

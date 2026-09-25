@@ -436,7 +436,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                     put( "access_key", Upbit.this.apiKey );
                     put( "nonce", Upbit.this.uuid() );
                 }};
-                Object token = jwt(auth, this.encode(this.secret), sha256(), false);
+                String token = jwt(auth, this.encode(this.secret), sha256(), false);
                 wsOptions.put("token", token);
                 wsOptions.put("options", new HashMap<String, Object>() {{
         put( "headers", new HashMap<String, Object>() {{

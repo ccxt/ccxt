@@ -4030,7 +4030,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4039,7 +4039,7 @@ public partial class bingx : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         List<object> marketIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol", "");
@@ -6480,11 +6480,11 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data));
     }
 
-    public virtual object parseParams(object parameters)
+    public virtual object parseParams(IDictionary<string, object> parameters)
     {
         // const sortedParams = this.keysort (params);
         object copied = this.clone(parameters);
-        List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        List<object> rawKeys = new List<object>(parameters.Keys);
         List<string> keys = this.sort(rawKeys);
         for (int i = 0; i < (keys?.Count ?? 0); i++)
         {
@@ -6816,7 +6816,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> market = null;
@@ -6833,7 +6833,7 @@ public partial class bingx : Exchange
             throw new NotSupported ((this.id + " setPositionMode() is not supported for inverse swap markets")) ;
         }
         string? dualSidePosition = null;
-        if (isTrue(hedged))
+        if (hedged)
         {
             dualSidePosition = "true";
         } else
@@ -7041,7 +7041,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(commission, market));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -7060,10 +7060,10 @@ public partial class bingx : Exchange
         };
     }
 
-    public virtual string? customEncode(object parameters)
+    public virtual string? customEncode(IDictionary<string, object> parameters)
     {
         // const sortedParams = this.keysort (params);
-        List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        List<object> rawKeys = new List<object>(parameters.Keys);
         List<string> keys = this.sort(rawKeys);
         string? adjustedValue = null;
         object result = null;
@@ -7296,7 +7296,7 @@ public partial class bingx : Exchange
         return this.milliseconds();
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;

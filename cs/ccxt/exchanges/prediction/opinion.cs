@@ -1056,7 +1056,7 @@ public partial class opinion : PredictionExchange
         return ((string?)((object)(multiSignAddress)));
     }
 
-    public virtual string signOpinionOrder(object order, object exchangeAddress)
+    public virtual string signOpinionOrder(IDictionary<string, object> order, object exchangeAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "OPINION CTF Exchange" },
@@ -1108,7 +1108,7 @@ public partial class opinion : PredictionExchange
         return ((("0x" + this.remove0xPrefix(getValue(sig, "r"))) + this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
     }
 
-    public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, string? side, double? amount, double? price, object decimals)
+    public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string? side, double? amount, double? price, object decimals)
     {
         string decimalsStr = "1";
         for (int i = 0; isLessThan(i, decimals); i++)
@@ -1116,7 +1116,7 @@ public partial class opinion : PredictionExchange
             decimalsStr = (decimalsStr + "0");
         }
         string? amountStr = this.numberToString(amount);
-        if (isTrue(isMarket) && ((side == "BUY")))
+        if (isMarket && ((side == "BUY")))
         {
             string marketMakerAmountWei = this.decimalToPrecision(Precise.stringMul(amountStr, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
             return new Dictionary<string, object>() {
@@ -1807,7 +1807,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.opinionPrivatePostAuthApiKey(parameters);
@@ -1823,7 +1823,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {object} the api credentials { apiKey, walletAddress }
      */
-    public async virtual Task<Dictionary<string, object>> FetchApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.opinionPrivateGetAuthApiKey(parameters);
@@ -1839,7 +1839,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {object} raw response, result.deleted confirms revocation
      */
-    public async virtual Task<object> deleteApiKey(object parameters = null)
+    public async virtual Task<object> deleteApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.opinionPrivateDeleteAuthApiKey(parameters);
@@ -1890,7 +1890,7 @@ public partial class opinion : PredictionExchange
         return this.safeString(creds, "apiKey");
     }
 
-    public virtual Dictionary<string, object> setApiCredentials(object response)
+    public virtual Dictionary<string, object> setApiCredentials(IDictionary<string, object> response)
     {
         //
         //     { "apiKey": "...", "walletAddress": "..." }

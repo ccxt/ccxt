@@ -986,11 +986,11 @@ class backpack extends \ccxt\async\backpack {
         } elseif (($deltaNonce !== null) && ($nonce > $deltaNonce)) {
             return;
         }
-        $this->handle_delta($storedOrderBook, $data);
+        $this->handle_book_delta($storedOrderBook, $data);
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->parse_to_int($this->safe_integer($delta, 'T', 0) / 1000);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);

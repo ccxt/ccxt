@@ -884,11 +884,11 @@ public class Bydfi extends BydfiApi
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
-                Integer maxLimit = 500;
+                Long maxLimit = 500L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             List<Object> contractTypeparamsContractTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchMyTrades", "contractType", "FUTURE");
@@ -2057,11 +2057,11 @@ public class Bydfi extends BydfiApi
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
-                Integer maxLimit = 500;
+                Long maxLimit = 500L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             List<Object> contractTypeparamsContractTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchCanceledAndClosedOrders", "contractType", "FUTURE");
@@ -3221,11 +3221,11 @@ public class Bydfi extends BydfiApi
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
-                Integer maxLimit = 50;
+                Long maxLimit = 50L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", Helpers.toStringArg(currency.get("code")), since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", Helpers.toStringArg(currency.get("code")), since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3235,7 +3235,7 @@ public class Bydfi extends BydfiApi
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             // exchange requires endTime, and startTime but allows any value
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? 1 : since;
+            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? 1L : since;
             request.put("startTime", sinceResolved);
             request.put("endTime", (((java.util.Objects.equals(until, null)))) ? this.milliseconds() : until);
             if (!java.util.Objects.equals(limit, null))
@@ -3263,7 +3263,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(data, currency, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(data, currency, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3385,11 +3385,11 @@ public class Bydfi extends BydfiApi
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
-                Integer maxLimit = 50;
+                Long maxLimit = 50L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, Helpers.toStringArg(currency.get("code")), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, Helpers.toStringArg(currency.get("code")), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

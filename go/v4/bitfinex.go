@@ -1991,9 +1991,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["limit"] = mathMin(limit, 10000) // default 120, max 10000
 	}
 	request["sort"] = sort
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	response := (<-this.PublicGetTradesSymbolHist(this.Extend(requestUntil, paramsUntil)))
 	PanicOnError(response)
@@ -2084,9 +2082,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		request["start"] = since
 		request["sort"] = 1
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	response := (<-this.PublicGetCandlesTradeTimeframeSymbolHist(this.Extend(requestUntil, paramsUntil)))
 	PanicOnError(response)
@@ -2964,9 +2960,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		request["limit"] = limit // default 25, max 2500
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	var market map[string]any = nil
 	var response any = nil
 	if symbol == nil {
@@ -4171,9 +4165,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	var response any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4335,9 +4327,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	if since != nil {
 		request["start"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(requestUntil, paramsUntil)))
 	PanicOnError(response)
@@ -4693,9 +4683,7 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol string, o
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(requestUntil, paramsUntil)))
 	PanicOnError(response)
@@ -4860,9 +4848,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol string, optional
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))).Raw))
 

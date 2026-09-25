@@ -581,10 +581,9 @@ public partial class BaseExchange
         return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
     {
-        reload2 ??= false;
-        var reload = (bool)reload2;
+        var reload = reload2 == true;
         parameters2 ??= new dict();
         var parameters = (dict)parameters2;
         if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)

@@ -1865,7 +1865,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1873,7 +1873,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -1944,7 +1944,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result));
     }
 
-    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3546,7 +3546,7 @@ public partial class cryptocom : Exchange
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3617,7 +3617,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -3630,9 +3630,9 @@ public partial class cryptocom : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(settlements); i++)
+        for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
         }
         return result;
     }
@@ -4158,7 +4158,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(result));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(object response)
+    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response)
     {
         //
         // {
@@ -4200,7 +4200,7 @@ public partial class cryptocom : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         // {

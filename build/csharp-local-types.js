@@ -14633,6 +14633,9 @@ export function installCsharpConditionOperands (transpiler) {
         }
         const symbol = (typeof csharp.getChecker === 'function') ? csharp.getChecker ().getSymbolAtLocation (node) : undefined;
         const declaration = symbol?.valueDeclaration?.resolve ();
+        if (declaration?.kind === ts.SyntaxKind.Parameter) {
+            return csharpBooleanParamReadType (csharp, declaration, symbol) ?? printerType;
+        }
         if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
             return printerType;
         }
@@ -15904,7 +15907,7 @@ function csharpCorpus () {
     if (csharpCorpusCache !== undefined) {
         return csharpCorpusCache;
     }
-    const table = { 'occurrences': new Map (), 'imports': new Map () };
+    const table = { 'occurrences': new Map (), 'imports': new Map (), 'declarations': new Map (), 'parents': new Map () };
     csharpCorpusCache = table;
     try {
         const root = process.cwd ();
@@ -15932,6 +15935,12 @@ function csharpCorpus () {
                     }
                     files.set (rel, (files.get (rel) ?? 0) + 1);
                 }
+                const declRe = /^\s+(?:(?:public|protected|private|override|async|static)\s+)*([A-Za-z_$][\w$]*)\s*\(/gm;
+                while ((match = declRe.exec (text)) !== null) {
+                    const owners = table.declarations.get (match[1]) ?? new Set ();
+                    owners.add (rel);
+                    table.declarations.set (match[1], owners);
+                }
                 const imports = new Set ();
                 const importRe = /from\s*['"]([^'"]+)['"]/g;
                 while ((match = importRe.exec (text)) !== null) {
@@ -15940,6 +15949,22 @@ function csharpCorpus () {
                     imports.add (base.replace (/\.js$/, '').replace (/\.ts$/, ''));
                 }
                 table.imports.set (rel, imports);
+                // each class's `extends X` resolved through its import to the declaring file
+                const bindings = new Map ();
+                const bindRe = /import\s+(?:\{([^}]*)\}|([A-Za-z_$][\w$]*))\s+from\s*['"](\.[^'"]+)['"]/g;
+                while ((match = bindRe.exec (text)) !== null) {
+                    const target = path.relative (root, path.resolve (path.dirname (full), match[3].replace (/\.js$/, '.ts')));
+                    const names = (match[2] !== undefined) ? [ match[2] ] : match[1].split (',').map ((part) => part.trim ().split (/\s+as\s+/).pop ());
+                    for (const local of names) {
+                        bindings.set (local, target);
+                    }
+                }
+                const parents = new Set ();
+                const extendsRe = /class\s+[A-Za-z_$][\w$]*\s+extends\s+([A-Za-z_$][\w$]*)/g;
+                while ((match = extendsRe.exec (text)) !== null) {
+                    parents.add (bindings.get (match[1]) ?? rel); // unbound: a class of the same file
+                }
+                table.parents.set (rel, parents);
             }
         };
         walk (path.join (root, 'ts/src'));
@@ -16078,10 +16103,37 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
             }
         }
     }
+    // a same-named method in the base tier or a related module (base or subclass) keeps `object`
+    const declared = corpus.declarations.get (name);
+    // the whole class chain counts: an ancestor or a descendant file declaring the name overrides it
+    const ancestors = (start) => {
+        const seen = new Set ();
+        const queue = [ start ];
+        while (queue.length > 0) {
+            for (const parent of corpus.parents.get (queue.pop ()) ?? []) {
+                if (!seen.has (parent)) {
+                    seen.add (parent);
+                    queue.push (parent);
+                }
+            }
+        }
+        return seen;
+    };
+    const declaringChain = ancestors (declaringRel);
+    const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
+        || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
+        || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
+    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type)
+        && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
+        return false;
+    }
     let resolved = 0;
     for (const site of csharpFileCallSitesByName (csharp, declaringFile, name)) {
-        if (site.declarations.indexOf (parameter) < 0) {
-            continue;
+        if (site.declarations.indexOf (owner) < 0) {
+            continue; // a site binding another class's method
+        }
+        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type) {
+            return false; // a called method's non-Dict parameters are not this rule's
         }
         resolved++;
         const argument = site.call.arguments[position];
@@ -16128,7 +16180,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword)
+        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict'))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
@@ -16260,6 +16312,12 @@ export const CORE_LIST_ARGS = {
     'cancelOrdersWs': { 0: 'IList<object>' },
     'cancelUtaOrders': { 0: 'IList<object>' },
     'checkNoStockSymbols': { 0: 'IList<object>' },
+    'createOrders': { 0: 'IList<object>' },
+    'createOrdersRequest': { 0: 'IList<object>' },
+    'createOrdersWs': { 0: 'IList<object>' },
+    'customHandleDeltas': { 1: 'IList<object>' },
+    'editOrders': { 0: 'IList<object>' },
+    'editOrdersRequest': { 0: 'IList<object>' },
     'fetchAccountPositions': { 0: 'IList<object>' },
     'fetchAllGreeks': { 0: 'IList<object>' },  // FetchAllGreeks
     'fetchBidsAsks': { 0: 'IList<object>' },  // FetchBidsAsks
@@ -16287,8 +16345,10 @@ export const CORE_LIST_ARGS = {
     'fetchTradingLimits': { 0: 'IList<object>' },  // FetchTradingLimits
     'filterByOutcomesSinceLimit': { 1: 'IList<object>' },
     'filterBySymbolsSinceLimit': { 1: 'IList<object>' },
+    'getCacheIndex': { 1: 'IList<object>' },
     'getDexFromSymbols': { 1: 'IList<object>' },
     'getSubscriptionRequest': { 0: 'IList<object>' },
+    'handleBidAsks': { 1: 'IList<object>' },
     'handleOrderBookSubscriptions': { 2: 'IList<object>' },
     'idsQueryStrings': { 0: 'IList<object>' },
     'loadTradingLimits': { 0: 'IList<object>' },
@@ -16304,6 +16364,7 @@ export const CORE_LIST_ARGS = {
     'parseMarginModifications': { 1: 'IList<object>' },
     'parseOpenInterests': { 1: 'IList<object>' },
     'parsePositions': { 1: 'IList<object>' },
+    'parseSettlements': { 0: 'IList<object>' },
     'parseTickers': { 1: 'IList<object>' },
     'parseTickersForRolling': { 1: 'IList<object>' },
     'pruneCachedBySymbols': { 2: 'IList<object>' },
@@ -16391,4 +16452,165 @@ export function installCsharpGuardedMinMax (transpiler) {
         return native;
     };
     csharp._guardedMinMaxPatched = true;
+}
+
+// ===== boolean parameters =====
+//
+// A parameter ts/src declares `boolean` (or `Bool`, or an un-annotated `= true/false`) prints
+// `bool` when required and `bool?` when optional (callers pass null for a skipped optional).
+// Name-keyed so the base and every override move together (C# override invariance). A name is
+// listed with the type every C# call site's argument converts to: a `bool` slot only takes bool
+// values, a `bool?` slot bool / bool? / null (fixpoint over callers); the checker must agree.
+export const CSHARP_BOOLEAN_PARAMS = {
+    'adapterAddress': { 0: 'bool?' },
+    'applyScale': { 1: 'bool?' },
+    'checkRequiredUid': { 0: 'bool?' },
+    'cleanUnsubscription': { 3: 'bool?' },
+    'conditionalTokensAddress': { 0: 'bool?', 1: 'bool?' },
+    'constructPhantomAgent': { 1: 'bool?' },
+    'convertOHLCVToTradingView': { 7: 'bool?' },
+    'convertTradingViewToOHLCV': { 7: 'bool?' },
+    'createAuthToken': { 3: 'bool?' },
+    'createOrderAppendix': { 0: 'bool' },
+    'createOrderSettlementData': { 0: 'bool' },
+    'createPublicRequest': { 4: 'bool?' },
+    'enableDemoTrading': { 0: 'bool' },
+    'enableUserDexAbstraction': { 0: 'bool' },
+    'exchangeAddress': { 0: 'bool?', 1: 'bool?' },
+    'fetchPaginatedCallDynamic': { 6: 'bool?' },
+    'filterByArray': { 3: 'bool?' },
+    'filterByArrayADLRanks': { 3: 'bool?' },
+    'filterByArrayPositions': { 3: 'bool?' },
+    'filterByArrayTickers': { 3: 'bool?' },
+    'filterByCurrencySinceLimit': { 4: 'bool?' },
+    'filterByLimit': { 3: 'bool?' },
+    'filterByOutcomeSinceLimit': { 4: 'bool?' },
+    'filterByOutcomesSinceLimit': { 4: 'bool?' },
+    'filterBySinceLimit': { 4: 'bool?' },
+    'filterBySymbolSinceLimit': { 4: 'bool?' },
+    'filterBySymbolsSinceLimit': { 4: 'bool?' },
+    'filterByValueSinceLimit': { 6: 'bool?' },
+    'filterOutByArray': { 3: 'bool?' },
+    'filterTransfersByType': { 2: 'bool?' },
+    'getInstType': { 2: 'bool?' },
+    'getListenKey': { 0: 'bool' },
+    'getMarginMode': { 0: 'bool?' },
+    'getSymbolsForMarketType': { 2: 'bool?', 3: 'bool?' },
+    'handleParamBool': { 2: 'bool?' },
+    'handleParamBool2': { 3: 'bool?' },
+    'handleTradeType': { 2: 'bool?' },
+    'handleTriggerDirectionAndParams': { 2: 'bool?' },
+    'handleTriggerOptionAndParams': { 2: 'bool?' },
+    'handleTriggerPricesAndParams': { 2: 'bool?' },
+    'handleUTAAndParams': { 2: 'bool?' },
+    'isLeveragedCurrency': { 1: 'bool?' },
+    'loadAccountSettings': { 0: 'bool?' },
+    'loadAccounts': { 0: 'bool?' },
+    'loadEvents': { 0: 'bool?' },
+    'loadEventsHelper': { 0: 'bool?' },
+    'loadLeverageBrackets': { 0: 'bool?' },
+    'loadMarkets': { 0: 'bool?' },
+    'loadMigrationStatus': { 0: 'bool?' },
+    'loadOutcome': { 1: 'bool?' },
+    'loadOutcomes': { 1: 'bool?' },
+    'loadTradingLimits': { 1: 'bool?' },
+    'marketSymbols': { 3: 'bool?', 4: 'bool?' },
+    'multiOrderSpotPrepareRequest': { 1: 'bool?' },
+    'negotiate': { 0: 'bool' },
+    'opinionOrderRawAmounts': { 0: 'bool' },
+    'padHex': { 2: 'bool?' },
+    'parseAccountPositions': { 1: 'bool?' },
+    'parseDepositAddresses': { 2: 'bool?' },
+    'parseOHLCVs': { 5: 'bool?' },
+    'parseSxbetV3BookSides': { 1: 'bool' },
+    'parseTradesHelper': { 0: 'bool' },
+    'prepareParadexDomain': { 0: 'bool?' },
+    'prioritizedNetworkAliases': { 2: 'bool?' },
+    'removeRepeatedElementsFromArray': { 1: 'bool?' },
+    'safeBool2': { 3: 'bool?' },
+    'safeBoolN': { 2: 'bool?' },
+    'selectNetworkKeyFromNetworks': { 3: 'bool?' },
+    'setPositionMode': { 0: 'bool' },
+    'setSandboxMode': { 0: 'bool?' },
+    'signPredictfunOrder': { 1: 'bool?', 2: 'bool?' },
+    'spotOrderPrepareRequest': { 1: 'bool?' },
+    'watchMultiTickerHelper': { 4: 'bool?' },
+    'watchMultipleSubscription': { 3: 'bool?' },
+};
+
+function csharpBooleanParamType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.Parameter || node.parent?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const owner = node.parent;
+    const name = owner.name?.text;
+    const wanted = (name === undefined) ? undefined : CSHARP_BOOLEAN_PARAMS[name]?.[owner.parameters.indexOf (node)];
+    if (wanted === undefined || owner.getSourceFile ().fileName.replace (/\\/g, '/').includes ('/test/')) {
+        return undefined;
+    }
+    let type;
+    try {
+        type = csharp.getChecker ().getTypeAtLocation (node);
+    } catch (e) {
+        return undefined;
+    }
+    // `boolean` is itself the union true | false: test the flag before splitting a union
+    const parts = ((type?.flags & ts.TypeFlags.Union) && !(type.flags & ts.TypeFlags.Boolean)) ? (ts.typeParts (type) ?? []) : [ type ];
+    const arms = parts.filter ((t) => t !== undefined && !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    if (arms.length === 0 || !arms.every ((t) => t.flags & ts.TypeFlags.BooleanLike)) {
+        return undefined;
+    }
+    const optional = (node.initializer !== undefined) || (node.questionToken !== undefined) || (arms.length !== parts.length);
+    if (optional && wanted === 'bool') {
+        return undefined;
+    }
+    // an initializer prints `= null`, and the printer appends the `?` itself
+    return ((wanted === 'bool?') && (node.initializer !== undefined)) ? 'bool' : wanted;
+}
+
+// the printed type of a CSHARP_BOOLEAN_PARAMS parameter the body never writes (a written one
+// may print through a `<name>Var` copy), for native condition reads
+function csharpBooleanParamReadType (csharp, declaration, symbol) {
+    const own = csharpBooleanParamType (csharp, declaration);
+    if (own === undefined || declaration.parent?.body === undefined) {
+        return undefined;
+    }
+    const checker = csharp.getChecker ();
+    let written = false;
+    const visit = (n) => {
+        if (written) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.text === declaration.name?.text) && (checker.getSymbolAtLocation (n) === symbol)) {
+            const parent = n.parent;
+            written = ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                || (((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression) || (parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)) && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken)))
+                || (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) || (parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment);
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    declaration.parent.body.forEachChild (visit);
+    if (written) {
+        return undefined;
+    }
+    return (declaration.initializer !== undefined) ? 'bool?' : own;
+}
+
+export function installCsharpBooleanParams (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printParameterType !== 'function' || csharp._booleanParamsPatched) {
+        return;
+    }
+    const upstream = csharp.printParameterType.bind (csharp);
+    csharp.printParameterType = (node) => csharpBooleanParamType (csharp, node) ?? upstream (node);
+    // an override with an untyped first parameter prints its parent's parameters through this
+    // path, which never appends the nullable `?` for an `= null` default
+    const upstreamCustom = csharp.printParameteCustomName.bind (csharp);
+    csharp.printParameteCustomName = (node, name, defaultValue = true) => {
+        const printed = upstreamCustom (node, name, defaultValue);
+        const own = (node?.initializer !== undefined) ? csharpBooleanParamType (csharp, node) : undefined;
+        return (own === 'bool' && printed.startsWith ('bool ')) ? 'bool? ' + printed.slice (5) : printed;
+    };
+    csharp._booleanParamsPatched = true;
 }

@@ -660,7 +660,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String name = "market_trades";
             Object trades = (this.subscribe(name, false, symbolValue, parameters)).join();
             Long limitResolved = limit;
@@ -832,7 +832,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             String name = "level2";
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Object orderbook = (this.subscribe(name, false, symbolValue, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -857,7 +857,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String name = "level2";
             return (this.unSubscribe("orderbook", name, false, symbolValue)).join();
         });

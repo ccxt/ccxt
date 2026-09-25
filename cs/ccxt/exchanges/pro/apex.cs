@@ -992,7 +992,7 @@ public partial class apex : ccxt.apex
         client.resolve(newPositions, "positions");
     }
 
-    public async virtual Task<object> authenticate(string? url, object parameters = null)
+    public async virtual Task<object> authenticate(string? url, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

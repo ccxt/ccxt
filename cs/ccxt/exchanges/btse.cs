@@ -2615,7 +2615,7 @@ public partial class btse : Exchange
      * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3810,7 +3810,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         // NB!!! This method also sets margin mode to cross on btse
         // btse do not have specific endpoint for marginMode
@@ -3825,7 +3825,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         string positionMode = "ONE_WAY";
-        if (isTrue(hedged))
+        if (hedged)
         {
             positionMode = "HEDGE";
         }

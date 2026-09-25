@@ -787,11 +787,11 @@ public partial class phemex : ccxt.phemex
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public virtual void customHandleDeltas(object bookside, object deltas, IDictionary<string, object> market = null)
+    public virtual void customHandleDeltas(object bookside, IList<object> deltas, IDictionary<string, object> market = null)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.customHandleDelta(bookside, getValue(deltas, i), market);
+            this.customHandleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null), market);
         }
     }
 
@@ -1728,7 +1728,7 @@ public partial class phemex : ccxt.phemex
         return await this.watch(url, messageHash, request, channel);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

@@ -485,7 +485,7 @@ class bithumb extends \ccxt\async\bithumb {
                 $this->orderbooks[$legacySymbol] = $ob;
             }
             $legacyOrderbook = $this->orderbooks[$legacySymbol];
-            $this->handle_deltas($legacyOrderbook, $list);
+            $this->handle_book_deltas($legacyOrderbook, $list);
             $legacyOrderbook['timestamp'] = $legacyTimestamp;
             $legacyOrderbook['datetime'] = $this->iso8601($legacyTimestamp);
             $legacyMessageHash = 'orderbook' . ':' . $legacySymbol;
@@ -536,7 +536,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -556,9 +556,9 @@ class bithumb extends \ccxt\async\bithumb {
         $orderbookSide->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($orderbook, $deltas[$i]);
+            $this->handle_book_delta($orderbook, $deltas[$i]);
         }
     }
 

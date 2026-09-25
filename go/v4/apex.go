@@ -1030,9 +1030,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		return mathMin(limit, 200)
 	}()
 	request["limit"] = limitResolved
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params, 0.001)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params, 0.001)
 	if since != nil {
 		AddElementToObject(requestUntil, "start", MathFloor(Divide(since, 1000)))
 	}

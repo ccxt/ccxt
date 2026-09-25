@@ -208,7 +208,7 @@ impl BitstampCore {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_bid_asks" => { self.handle_bid_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -476,11 +476,11 @@ impl BitstampCore {
         }  else if nonce.as_f64().unwrap_or(f64::NAN) >= deltaNonce.as_f64().unwrap_or(f64::NAN) {
             return;
         }
-        self.handle_delta(storedOrderBook.clone(), delta);
+        self.handle_book_delta(storedOrderBook.clone(), delta);
         client.resolve(&[storedOrderBook, messageHash]);
 }
 
-    pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut timestamp: Value = self.safe_timestamp_k(delta.clone(), "timestamp", &[]);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));

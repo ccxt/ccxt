@@ -196,7 +196,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrdersWs(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrdersWs(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -204,7 +204,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         object request = this.createOrdersRequest(orders, parameters);
-        object firstOrder = getValue(orders, 0);
+        object firstOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
         Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
@@ -678,7 +678,7 @@ public partial class gate : ccxt.gate
             {
                 return;
             }
-            this.handleDelta(orderbook, result);
+            this.handleBookDelta(orderbook, result);
         }
         client.resolve(orderbook, messageHash);
     }
@@ -787,7 +787,7 @@ public partial class gate : ccxt.gate
             return;
         } else if (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))
         {
-            this.handleDelta(storedOrderBook, delta);
+            this.handleBookDelta(storedOrderBook, delta);
         } else
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -802,7 +802,7 @@ public partial class gate : ccxt.gate
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override object getCacheIndex(object orderBook, object cache)
+    public override object getCacheIndex(object orderBook, IList<object> cache)
     {
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
@@ -811,7 +811,7 @@ public partial class gate : ccxt.gate
         {
             return -1;
         }
-        for (int i = 0; i < getArrayLength(cache); i++)
+        for (int i = 0; i < (cache?.Count ?? 0); i++)
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
@@ -821,14 +821,14 @@ public partial class gate : ccxt.gate
                 return i;
             }
         }
-        return getArrayLength(cache);
+        return cache?.Count ?? 0;
     }
 
-    public virtual void handleBidAsks(object bookSide, object bidAsks)
+    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
     {
-        for (int i = 0; i < getArrayLength(bidAsks); i++)
+        for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
-            object bidAsk = getValue(bidAsks, i);
+            object bidAsk = (bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null);
             if (((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
@@ -841,7 +841,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeInteger(delta, "t");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -959,7 +959,7 @@ public partial class gate : ccxt.gate
         this.handleTickerAndBidAsk("bidask", client, message);
     }
 
-    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, object parameters = null)
+    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

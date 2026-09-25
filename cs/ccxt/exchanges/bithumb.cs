@@ -1784,7 +1784,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1798,14 +1798,14 @@ public partial class bithumb : Exchange
         {
             throw new BadRequest ((this.id + " createOrders is only supported for the generation 2 API")) ;
         }
-        int ordersCount = getArrayLength(orders);
+        int ordersCount = orders?.Count ?? 0;
         if ((ordersCount == 0))
         {
             throw new ArgumentsRequired ((this.id + " createOrders() requires a non-empty orders array")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         IList<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -3203,7 +3203,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3332,7 +3332,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

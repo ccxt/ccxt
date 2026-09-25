@@ -2784,9 +2784,7 @@ func (this *Toobit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2847,9 +2845,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var marketType *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)), 0))
 	var response any = []any{}
 	if marketType != nil && *marketType == "spot" {
@@ -2925,9 +2921,7 @@ func (this *Toobit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 	var response any = []any{}
 	if marketType != nil && *marketType == "spot" {
 
@@ -3055,9 +3049,7 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if limit != nil {
 		AddElementToObject(requestUntil, "limit", limit)
 	}
@@ -3293,9 +3285,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan any, typeVar an
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if !IsEqual(limit, nil) {
 		AddElementToObject(requestUntil, "limit", limit)
 	}

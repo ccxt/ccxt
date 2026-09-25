@@ -18,7 +18,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " closeAllPositions() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> EditOrders(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> EditOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " editOrders() is not supported yet")) ;
@@ -279,7 +279,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " createOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateOrdersWs(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateOrdersWs(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createOrdersWs () is not supported yet")) ;
@@ -1067,7 +1067,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createOrders() is not supported yet")) ;

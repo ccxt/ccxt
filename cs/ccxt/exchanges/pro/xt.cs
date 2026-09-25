@@ -71,16 +71,16 @@ public partial class xt : ccxt.xt
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    public async virtual Task<string?> getListenKey(object isContract)
+    public async virtual Task<string?> getListenKey(bool isContract)
     {
         this.checkRequiredCredentials();
         string tradeType = "spot";
-        if (isTrue(isContract))
+        if (isContract)
         {
             tradeType = "contract";
         }
         object url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
-        if (!isTrue(isContract))
+        if (!isContract)
         {
             url = add(url, "/private");
         }
@@ -105,7 +105,7 @@ public partial class xt : ccxt.xt
             try
             {
                 string? listenKey = null;
-                if (isTrue(isContract))
+                if (isContract)
                 {
                     Dictionary<string, object> response = await this.privateLinearGetFutureUserV1UserListenKey();
                     //
@@ -152,7 +152,7 @@ public partial class xt : ccxt.xt
         return ((string?)((object)(getValue(client.subscriptions, "token"))));
     }
 
-    public override object getCacheIndex(object orderbook, object cache)
+    public override object getCacheIndex(object orderbook, IList<object> cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
@@ -162,7 +162,7 @@ public partial class xt : ccxt.xt
         {
             return -1;
         }
-        for (int i = 0; i < getArrayLength(cache); i++)
+        for (int i = 0; i < (cache?.Count ?? 0); i++)
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaNonce = this.safeInteger2(delta, "i", "u");
@@ -171,10 +171,10 @@ public partial class xt : ccxt.xt
                 return i;
             }
         }
-        return getArrayLength(cache);
+        return cache?.Count ?? 0;
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger2(delta, "i", "u");
         List<object> obAsks = this.safeList(delta, "a", new List<object>() {});

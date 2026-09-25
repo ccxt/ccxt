@@ -1928,7 +1928,7 @@ public partial class gate : Exchange
         });
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;
@@ -1942,7 +1942,7 @@ public partial class gate : Exchange
      * @see https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    public async virtual Task<bool> loadUnifiedStatus(object parameters = null)
+    public async virtual Task<bool> loadUnifiedStatus(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool? unifiedAccount = this.safeBool(this.options, "unifiedAccount");
@@ -1975,7 +1975,7 @@ public partial class gate : Exchange
         return ((bool)((object)((this.options.ContainsKey("unifiedAccount") ? this.options["unifiedAccount"] : null)))!);
     }
 
-    public async virtual Task<Dictionary<string, object>> upgradeUnifiedTradeAccount(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> upgradeUnifiedTradeAccount(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ((Dictionary<string, object>)((object)(await this.privateUnifiedPutUnifiedMode(parameters))));
@@ -2315,7 +2315,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual Dictionary<string, object> parseContractMarket(object market, object settleId)
+    public virtual Dictionary<string, object> parseContractMarket(IDictionary<string, object> market, object settleId)
     {
         //
         //  Perpetual swap
@@ -2726,7 +2726,7 @@ public partial class gate : Exchange
         return new List<object>() {request, parameters};
     }
 
-    public virtual List<object> spotOrderPrepareRequest(IDictionary<string, object> market = null, object trigger = null, object parameters = null)
+    public virtual List<object> spotOrderPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2744,7 +2744,7 @@ public partial class gate : Exchange
         string? marginMode = (string)marginModequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isTrue(trigger))
+        if (trigger != true)
         {
             if ((market == null))
             {
@@ -2756,7 +2756,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual List<object> multiOrderSpotPrepareRequest(IDictionary<string, object> market = null, object trigger = null, object parameters = null)
+    public virtual List<object> multiOrderSpotPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2778,7 +2778,7 @@ public partial class gate : Exchange
         };
         if ((market != null))
         {
-            if (isTrue(trigger))
+            if (trigger == true)
             {
                 // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 request["market"] = (market != null && market.ContainsKey("id") ? market["id"] : null);
@@ -2790,7 +2790,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual List<object> getMarginMode(object trigger, object parameters)
+    public virtual List<object> getMarginMode(bool? trigger, object parameters)
     {
         /**
          * @ignore
@@ -2814,7 +2814,7 @@ public partial class gate : Exchange
         {
             marginMode = "spot";
         }
-        if (isEqual(trigger, true))
+        if ((trigger == true))
         {
             if (marginMode == "spot")
             {
@@ -3192,7 +3192,7 @@ public partial class gate : Exchange
         return this.safeString(intervals, interval, interval);
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchNetworkDepositAddress(string code, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchNetworkDepositAddress(string code, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3387,7 +3387,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(response));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(object response)
+    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
@@ -3400,7 +3400,7 @@ public partial class gate : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object info, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -5650,12 +5650,12 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object createOrdersRequest(object orders, object parameters = null)
+    public virtual object createOrdersRequest(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        int ordersLength = getArrayLength(orders);
+        int ordersLength = orders?.Count ?? 0;
         if ((ordersLength == 0))
         {
             throw new BadRequest ((this.id + " createOrders() requires at least one order")) ;
@@ -5664,7 +5664,7 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((this.id + " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -5703,7 +5703,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5712,7 +5712,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
-        object firstOrder = getValue(orders, 0);
+        object firstOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
         Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
         List<object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -8943,7 +8943,7 @@ public partial class gate : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -9005,7 +9005,7 @@ public partial class gate : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9148,7 +9148,7 @@ public partial class gate : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
     {
         //
         // fetchSettlementHistory
@@ -9181,9 +9181,9 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(settlements); i++)
+        for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
         }
         return result;
     }
@@ -9477,7 +9477,7 @@ public partial class gate : Exchange
      * @param {string} params.settle settle currency
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;
@@ -9497,7 +9497,7 @@ public partial class gate : Exchange
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    public async virtual Task<List<string>> FetchUnderlyingAssets(object parameters = null)
+    public async virtual Task<List<string>> FetchUnderlyingAssets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

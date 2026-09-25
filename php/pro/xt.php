@@ -176,7 +176,7 @@ class xt extends \ccxt\async\xt {
         return count($cache);
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $orderbook['nonce'] = $this->safe_integer_2($delta, 'i', 'u');
         $obAsks = $this->safe_list($delta, 'a', array());
         $obBids = $this->safe_list($delta, 'b', array());

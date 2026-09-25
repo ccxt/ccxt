@@ -876,7 +876,7 @@ class mexc(ccxt.async_support.mexc):
             storedOrderBook.cache.append(data)
             return
         try:
-            self.handle_delta(storedOrderBook, data)
+            self.handle_book_delta(storedOrderBook, data)
             timestamp = self.safe_integer_n(message, ['t', 'ts', 'sendTime'])
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
@@ -905,7 +905,7 @@ class mexc(ccxt.async_support.mexc):
                 amount = self.safe_float_2(bidask, 'v', 'quantity')
                 bookside.store(price, amount)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         existingNonce = self.safe_integer(orderbook, 'nonce')
         deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
         if (deltaNonce is not None) and (existingNonce is not None) and (deltaNonce < existingNonce):

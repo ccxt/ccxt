@@ -222,7 +222,7 @@ impl XtCore {
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "get_listen_key" => { crate::exchange_stubs::enqueue_spawn("get_listen_key", args.to_vec()); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => { crate::exchange_stubs::enqueue_spawn("handle_error_message", args.to_vec()); crate::Value::Null },
             "handle_funding_rate" => self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -457,7 +457,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
         let mut obAsks: Value = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]);
         let mut obBids: Value = self.safe_list_k(delta, "b", &[Value::from(vec![])]);

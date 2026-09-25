@@ -4747,9 +4747,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFundingRateHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -5521,9 +5519,7 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
 	}

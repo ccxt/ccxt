@@ -1493,7 +1493,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "spot");
@@ -1869,7 +1869,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

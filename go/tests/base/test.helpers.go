@@ -364,7 +364,7 @@ func SafeStringPtr(v any) *string {
 	return ccxt.SafeStringPtr(v)
 }
 
-func TupleSlice(value *string, params map[string]any) []any {
+func TupleSlice[T any](value T, params map[string]any) []any {
 	return ccxt.TupleSlice(value, params)
 }
 

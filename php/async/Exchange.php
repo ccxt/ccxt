@@ -965,14 +965,24 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
     }
 
-    public function handle_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($orderbook, $deltas[$i]);
+            $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
         throw new NotSupported($this->id . ' handleDelta not supported yet');
+    }
+
+    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_book_delta($orderbook, $deltas[$i]);
+        }
+    }
+
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
+        throw new NotSupported($this->id . ' handleBookDelta not supported yet');
     }
 
     public function handle_deltas_with_keys(mixed $bookSide, mixed $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {

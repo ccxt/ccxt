@@ -3140,7 +3140,7 @@ public partial class nado : Exchange
         return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
-    public virtual string? createOrderAppendix(object isTriggerOrder, object parameters = null)
+    public virtual string? createOrderAppendix(bool isTriggerOrder, object parameters = null)
     {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
@@ -3180,7 +3180,7 @@ public partial class nado : Exchange
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, "281474976710656")); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, "274877906944")); // 1<<32
         }
-        if (isEqual(isTriggerOrder, true))
+        if ((isTriggerOrder == true))
         {
             appendix = Precise.stringAdd(appendix, "4096");
         }
@@ -3230,7 +3230,7 @@ public partial class nado : Exchange
         return ("0x" + this.padHex(this.intToBase16(productId), 40));
     }
 
-    public virtual string padHex(object value, object length, object left = null)
+    public virtual string padHex(object value, object length, bool? left = null)
     {
         left ??= true;
         if ((length == null))
@@ -3239,14 +3239,14 @@ public partial class nado : Exchange
         }
         string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         object padded = null;
-        if (isTrue(left))
+        if (left == true)
         {
             padded = ((zeros + (value)));
         } else
         {
             padded = (add(value, zeros));
         }
-        if (isTrue(left))
+        if (left == true)
         {
             object start = subtract(((string)padded).Length, length);
             return slice(padded, start, ((string)padded).Length);
@@ -3254,7 +3254,7 @@ public partial class nado : Exchange
         return slice(padded, 0, length);
     }
 
-    public virtual string? signOrder(object order, object productId, object chainId)
+    public virtual string? signOrder(IDictionary<string, object> order, object productId, object chainId)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3288,7 +3288,7 @@ public partial class nado : Exchange
         return ((string?)((object)(this.signHash(hash, this.privateKey))));
     }
 
-    public virtual object signCancellation(object cancellation, object chainId, object endpointAddress)
+    public virtual object signCancellation(IDictionary<string, object> cancellation, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3316,7 +3316,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signCancellationProducts(object cancellation, object chainId, object endpointAddress)
+    public virtual object signCancellationProducts(IDictionary<string, object> cancellation, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3341,7 +3341,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signFetchTriggerOrders(object tx, object chainId, object endpointAddress)
+    public virtual object signFetchTriggerOrders(IDictionary<string, object> tx, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },

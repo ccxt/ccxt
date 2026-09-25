@@ -726,18 +726,18 @@ public partial class delta : Exchange
         });
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
-        if (((currenciesByNumericId == null)) || isTrue(reload))
+        if (((currenciesByNumericId == null)) || reload == true)
         {
             this.options["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId");
-        if (((marketsByNumericId == null)) || isTrue(reload))
+        if (((marketsByNumericId == null)) || reload == true)
         {
             this.options["marketsByNumericId"] = this.indexByStringifiedNumericId(this.markets);
         }
@@ -3413,7 +3413,7 @@ public partial class delta : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3560,12 +3560,12 @@ public partial class delta : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(settlements); i++)
+        for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
         }
         return result;
     }

@@ -1124,7 +1124,7 @@ public partial class nado : ccxt.nado
         return ccxt.BaseExchange.ToOrderList(result);
     }
 
-    public async virtual Task<object> watchExecuteRequest(object requestIdString, object request)
+    public async virtual Task<object> watchExecuteRequest(object requestIdString, IDictionary<string, object> request)
     {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
@@ -1172,7 +1172,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(string? streamType, object stream, object messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(string? streamType, IDictionary<string, object> stream, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
@@ -1199,7 +1199,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash);
     }
 
-    public async virtual Task<object> unWatchPrivate(object stream, object messageHash, object parameters = null)
+    public async virtual Task<object> unWatchPrivate(IDictionary<string, object> stream, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
@@ -1222,7 +1222,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1270,7 +1270,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash, this.extend(request, paramsSubaccount), messageHash);
     }
 
-    public virtual object signStreamAuthentication(object tx, object chainId, object endpointAddress)
+    public virtual object signStreamAuthentication(IDictionary<string, object> tx, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },

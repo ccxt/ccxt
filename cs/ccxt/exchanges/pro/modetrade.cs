@@ -75,7 +75,7 @@ public partial class modetrade : ccxt.modetrade
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, object message)
+    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
     {
         // the default id
         object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
@@ -192,7 +192,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, message));
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -391,7 +391,7 @@ public partial class modetrade : ccxt.modetrade
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -713,7 +713,7 @@ public partial class modetrade : ccxt.modetrade
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object message, object parameters = null)
+    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
@@ -731,7 +731,7 @@ public partial class modetrade : ccxt.modetrade
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
-    public async virtual Task<object> watchPrivateMultiple(IList<object> messageHashes, object message, object parameters = null)
+    public async virtual Task<object> watchPrivateMultiple(IList<object> messageHashes, IDictionary<string, object> message, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);

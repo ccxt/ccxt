@@ -1510,7 +1510,7 @@ public class Grvt extends GrvtApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Integer maxLimit = 1000;
+            Long maxLimit = 1000L;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1520,7 +1520,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, maxLimit)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2134,13 +2134,13 @@ public class Grvt extends GrvtApi
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = this.currency((String) (code));
-            Integer maxLimit = 1000;
+            Long maxLimit = 1000L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", (String) null, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", (String) null, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3885,10 +3885,10 @@ public class Grvt extends GrvtApi
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        Object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
-        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(Helpers.GetValue(signature, "r")));
-        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(Helpers.GetValue(signature, "s")));
-        Helpers.addElementToObject(request.get("signature"), "v", this.sum(27, Helpers.GetValue(signature, "v")));
+        Map<String,Object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
+        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(signature.get("r")));
+        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(signature.get("s")));
+        Helpers.addElementToObject(request.get("signature"), "v", this.sum(27, signature.get("v")));
         Helpers.addElementToObject(request.get("signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
         return request;
     }

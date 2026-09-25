@@ -3031,7 +3031,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3041,7 +3041,7 @@ public partial class mexc : Exchange
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
         object paramsLoop = parameters;
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -3426,7 +3426,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4305,7 +4305,7 @@ public partial class mexc : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", data },             { "symbol", symbol },             { "maker", this.safeNumber(data, "makerCommission") },             { "taker", this.safeNumber(data, "takerCommission") },             { "percentage", null },             { "tierBased", null },         });
     }
 
-    public virtual object customParseBalance(object response, object marketType)
+    public virtual object customParseBalance(IDictionary<string, object> response, object marketType)
     {
         //
         // spot
@@ -4435,7 +4435,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public virtual object parseBalanceHelper(object entry)
+    public virtual object parseBalanceHelper(IDictionary<string, object> entry)
     {
         Dictionary<string, object> account = this.account();
         account["used"] = this.safeString(entry, "locked");
@@ -6352,11 +6352,11 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "positionMode", isTrue(hedged) ? 1 : 2 },
+            { "positionMode", hedged ? 1 : 2 },
         };
         Dictionary<string, object> response = await this.contractPrivatePostPositionChangePositionMode(this.extend(request, parameters));
         //

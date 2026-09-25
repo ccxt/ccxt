@@ -2245,14 +2245,14 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/demo
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    public override void enableDemoTrading(object enable)
+    public override void enableDemoTrading(bool enable)
     {
         if (this.isSandboxModeEnabled)
         {
             throw new NotSupported ((this.id + " demo trading does not support in sandbox environment")) ;
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
-        if (isTrue(enable))
+        if (enable)
         {
             ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
             ((IDictionary<string,object>)this.urls)["api"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("demotrading") ? ((IDictionary<string, object>)this.urls)["demotrading"] : null);
@@ -2270,7 +2270,7 @@ public partial class bybit : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public virtual List<object> addPaginationCursorToResult(object response)
+    public virtual List<object> addPaginationCursorToResult(IDictionary<string, object> response)
     {
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeListN(result, new List<object>() {"list", "rows", "data", "dataList"}, new List<object>() {});
@@ -2389,7 +2389,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} nothing
      */
-    public async virtual Task<Dictionary<string, object>> upgradeUnifiedTradeAccount(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> upgradeUnifiedTradeAccount(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ((Dictionary<string, object>)((object)(await this.privatePostV5AccountUpgradeToUta(parameters))));
@@ -2979,7 +2979,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<List<ccxt.MarketInterface>> FetchFutureMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchFutureMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {});
@@ -5720,7 +5720,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5731,7 +5731,7 @@ public partial class bybit : Exchange
         object isUta = (accounts != null && 1 < accounts.Count ? accounts[1] : null);
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -5960,7 +5960,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> EditOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> EditOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5969,7 +5969,7 @@ public partial class bybit : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         IList<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -6636,7 +6636,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersClassic(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersClassic(object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6756,7 +6756,7 @@ public partial class bybit : Exchange
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchClosedOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchClosedOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6798,7 +6798,7 @@ public partial class bybit : Exchange
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8712,7 +8712,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8725,7 +8725,7 @@ public partial class bybit : Exchange
             market = this.market(symbol);
         }
         int? mode = null;
-        if (isTrue(hedged))
+        if (hedged)
         {
             mode = 3;
         } else
@@ -9153,7 +9153,7 @@ public partial class bybit : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9426,7 +9426,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(IDictionary<string, object> info, Dictionary<string, object> currency = null)
     {
         //
         // borrowCrossMargin
@@ -9842,7 +9842,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9908,7 +9908,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10001,7 +10001,7 @@ public partial class bybit : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
     {
         //
         // fetchSettlementHistory
@@ -10030,9 +10030,9 @@ public partial class bybit : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(settlements); i++)
+        for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
         }
         return result;
     }
@@ -10047,7 +10047,7 @@ public partial class bybit : Exchange
      * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchVolatilityHistory(string code, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchVolatilityHistory(string code, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10453,7 +10453,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public async virtual Task<object> getLeverageTiersPaginated(object symbol = null, object parameters = null)
+    public async virtual Task<object> getLeverageTiersPaginated(object symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -2264,12 +2264,12 @@ public partial class limitless : PredictionExchange
         return this.safeString(sides, side, side);
     }
 
-    public virtual string? applyScale(object amount, object multiply = null)
+    public virtual string? applyScale(object amount, bool? multiply = null)
     {
         multiply ??= false;
         Int64? decimals = this.safeInteger(this.options, "usdcDecimals", 6);
         string? scale = this.numberToString(Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimals)));
-        if (isTrue(multiply))
+        if (multiply == true)
         {
             return Precise.stringMul(amount, scale);
         } else
@@ -2506,7 +2506,7 @@ public partial class limitless : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrder(parsedOrder);
     }
 
-    public virtual object signOrderRequest(object signRequest, object marketSymbol)
+    public virtual object signOrderRequest(IDictionary<string, object> signRequest, object marketSymbol)
     {
         this.checkRequiredCredentials();
         if ((this.privateKey == null))
@@ -2625,7 +2625,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
      * @returns {object} the transaction receipt
      */
-    public async virtual Task<object> approve(object parameters = null)
+    public async virtual Task<object> approve(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2705,7 +2705,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
      * @returns {object} the raw redemption response
      */
-    public async virtual Task<Dictionary<string, object>> redeem(object outcome = null, Dictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> redeem(object outcome = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? conditionId = this.safeString2(parameters, "conditionId", "condition_id");

@@ -1231,7 +1231,7 @@ public class Onetrading extends OnetradingApi
             var unit = ((List<Object>) periodunitVariable).get(1);
             int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long duration = (((long) durationInSeconds) * 1000L);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", market.get("id") );
                 put( "period", period );
@@ -1256,7 +1256,7 @@ public class Onetrading extends OnetradingApi
             //     ]
             //
             List<Object> ohlcv = (List<Object>) this.safeList(response, "candlesticks", (Object) null);
-            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

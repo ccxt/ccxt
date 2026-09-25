@@ -303,7 +303,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, object market = null, object isInverse = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> message, object market = null, object isInverse = null)
     {
         //
         //     {
@@ -1659,7 +1659,7 @@ public partial class bingx : ccxt.bingx
         return true;
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = this.safeString(this.options, "listenKey");
@@ -1702,7 +1702,7 @@ public partial class bingx : ccxt.bingx
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();

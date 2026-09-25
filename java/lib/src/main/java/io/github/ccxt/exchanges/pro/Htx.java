@@ -187,7 +187,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "market.{marketId}.detail");
             if (java.util.Objects.equals(topic, "market.{marketId}.ticker") && !java.util.Objects.equals(market.get("type"), "spot"))
@@ -198,7 +198,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "marketId", market.get("id") );
             }});
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            return (this.subscribePublic((String) (url), (String) (symbolValue), (String) (messageHash), (Object) null, parameters)).join();
+            return (this.subscribePublic((String) (url), symbolValue, (String) (messageHash), (Object) null, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -222,16 +222,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String topic = "ticker";
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
             String channel = this.safeString(options, "name", "market.{marketId}.detail");
-            if (java.util.Objects.equals(channel, "market.{marketId}.ticker") && !java.util.Objects.equals(((Map<String, Object>)market).get("type"), "spot"))
+            if (java.util.Objects.equals(channel, "market.{marketId}.ticker") && !java.util.Objects.equals(market.get("type"), "spot"))
             {
                 throw new BadRequest((this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
             }
-            Object subMessageHash = this.implodeParams(channel, new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+            String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
+                put( "marketId", market.get("id") );
             }});
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
@@ -317,10 +317,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = (("market." + market.get("id")) + ".trade.detail");
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            Object trades = (this.subscribePublic((String) (url), (String) (symbolValue), messageHash, (Object) null, parameters)).join();
+            Object trades = (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -351,12 +351,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String topic = "trades";
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
             String channel = this.safeString(options, "name", "market.{marketId}.trade.detail");
-            Object subMessageHash = this.implodeParams(channel, new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+            String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
+                put( "marketId", market.get("id") );
             }});
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
@@ -436,11 +436,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("market." + market.get("id")) + ".kline.") + interval);
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            Object ohlcv = (this.subscribePublic((String) (url), (String) (symbolValue), messageHash, (Object) null, parameters)).join();
+            Object ohlcv = (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -473,11 +473,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String subMessageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
+            String subMessageHash = ((("market." + market.get("id")) + ".kline.") + interval);
             String topic = "ohlcv";
-            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
+            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
@@ -551,7 +551,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = market.get("symbol");
+            String symbolValue = (String) market.get("symbol");
             List<Object> allowedLimits = new ArrayList<Object>(Arrays.asList(5, 20, 150, 400));
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
             // which means whenever there is an order book change at that level, it pushes an update;
@@ -584,7 +584,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 method = null;
             }
-            Object orderbook = (this.subscribePublic((String) (url), (String) (symbolValue), messageHash, method, Helpers.toMapArg(paramsExtended))).join();
+            Object orderbook = (this.subscribePublic((String) (url), symbolValue, messageHash, method, Helpers.toMapArg(paramsExtended))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -611,19 +611,19 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String topic = "orderbook";
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 150);
-            Object subMessageHash = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            String subMessageHash = null;
+            if (java.util.Objects.equals(market.get("spot"), true))
             {
-                subMessageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".mbp.") + this.numberToString(depth));
+                subMessageHash = ((("market." + market.get("id")) + ".mbp.") + this.numberToString(depth));
             } else
             {
-                subMessageHash = (((("market." + ((Map<String, Object>)market).get("id")) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
+                subMessageHash = (((("market." + market.get("id")) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
             }
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 ((Map<String, Object>)parameters).put("data_type", "incremental");
             }
@@ -1022,13 +1022,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object type = null;
+            String type = null;
             Object marketId = "*"; // wildcard
             Map<String, Object> market = null;
-            Object messageHash = null;
+            String messageHash = null;
             Object channel = null;
             Object trades = null;
-            Object subType = null;
+            String subType = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -1202,8 +1202,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object type = null;
-            Object subType = null;
+            String type = null;
+            String subType = null;
             Map<String, Object> market = null;
             Object suffix = "*"; // wildcard
             if (!java.util.Objects.equals(symbol, null))

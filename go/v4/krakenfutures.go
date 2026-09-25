@@ -1239,9 +1239,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var rawTrades []any = []any{}
 	var isFullHistoryEndpoint bool = (method != nil && *method == "historyGetMarketSymbolExecutions")
 	if isFullHistoryEndpoint {
-		var requestUntilparamsUntilVariable []any = this.HandleUntilOption("before", request, paramsMethod)
-		requestUntil := GetValue(requestUntilparamsUntilVariable, 0)
-		paramsUntil := GetValue(requestUntilparamsUntilVariable, 1)
+		requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsMethod)
 		if since != nil {
 			AddElementToObject(requestUntil, "since", since)
 			AddElementToObject(requestUntil, "sort", "asc")
@@ -1314,9 +1312,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 			rawTrades = append(rawTrades, rawTrade)
 		}
 	} else {
-		var requestUntilparamsUntilVariable []any = this.HandleUntilOption("lastTime", request, paramsMethod)
-		requestUntil := GetValue(requestUntilparamsUntilVariable, 0)
-		paramsUntil := GetValue(requestUntilparamsUntilVariable, 1)
+		requestUntil, paramsUntil := this.HandleUntilOption("lastTime", request, paramsMethod)
 
 		response := (<-this.PublicGetHistory(this.Extend(requestUntil, paramsUntil))).Raw
 		PanicOnError(response)

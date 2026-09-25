@@ -851,13 +851,13 @@ export default class deepcoin extends deepcoinRest {
         const currentTimestamp = this.safeInteger (orderbook, 'timestamp');
         if ((currentTimestamp !== undefined) && (timestamp > currentTimestamp)) {
             const response = this.safeList (message, 'r', []);
-            this.handleDeltas (orderbook, response);
+            this.handleBookDeltas (orderbook, response);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
     }
 
-    override handleDelta (orderbook: any, entry: any) {
+    override handleBookDelta (orderbook: any, entry: any) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];

@@ -911,14 +911,14 @@ impl ApexCore {
         let mut chains: Value = self.options.as_map().and_then(|__m| __m.get("_temp_currencies_chains")).cloned().unwrap_or(Value::Null);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&chains).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_219: bool = true;
+            while { if !__for_first_219 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&chains).as_f64().unwrap_or(f64::NAN) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
-                let mut __for_first_217: bool = true;
-                while { if !__for_first_217 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; f.as_f64().unwrap_or(f64::NAN) < ((tokens.len() as i64) as f64) } {
+                let mut __for_first_218: bool = true;
+                while { if !__for_first_218 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; f.as_f64().unwrap_or(f64::NAN) < ((tokens.len() as i64) as f64) } {
                 let mut token: Value = self.safe_dict(tokens.clone(), f.clone(), &[]);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
                 if (tokenName.as_str() == currencyId.as_str()) {
@@ -1608,8 +1608,8 @@ impl ApexCore {
         let mut resultList: Value = self.safe_list_k(data, "historyFunds", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_219: bool = true;
-            while { if !__for_first_219 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
             let mut entry: Value = resultList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -2067,8 +2067,8 @@ impl ApexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
+            let mut __for_first_221: bool = true;
+            while { if !__for_first_221 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
             if (self.safe_string(assets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("token".into()), &[Value::Str("".into())]).as_str() == code.as_str()) {
                 currency = assets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             }

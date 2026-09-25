@@ -206,11 +206,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_place");
             Object url = this.getUrlByMarket(market);
             ((Map<String, Object>)parameters).put("textIsRequired", true);
-            Object request = this.createOrderRequest(symbolValue, (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest(symbolValue, (String) (type), (String) (side), amount, price, parameters);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (request), channel, (String) null)).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
@@ -245,7 +245,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 throw new NotSupported((this.id + " createOrdersWs is not supported for swap markets")) ;
             }
             // todo add swap support
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_batch_place");
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -288,7 +288,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = this.market(symbol);
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_cancel_cp");
             List<Object> channelOptionparamsChannelVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
             var channelOption = ((List<Object>) channelOptionparamsChannelVariable).get(0);
@@ -345,7 +345,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_cancel");
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -381,8 +381,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object extendedRequest = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            Map<String, Object> extendedRequest = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_amend");
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -427,7 +427,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_status");
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -517,7 +517,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Object newRequest = this.omit(request, new ArrayList<Object>(Arrays.asList("settle")));
-            Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_list");
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -750,7 +750,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 return;
             }
-            this.handleDelta(orderbook, result);
+            this.handleBookDelta(orderbook, result);
         }
         client.resolve(orderbook, messageHash);
     }
@@ -859,7 +859,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             return;
         } else if ((!java.util.Objects.equals(deltaStart, null)) && (((nonce != null && nonce >= (deltaStart - 1L)))))
         {
-            this.handleDelta(storedOrderBook, delta);
+            this.handleBookDelta(storedOrderBook, delta);
         } else
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
@@ -913,7 +913,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Long timestamp = this.safeInteger(delta, "t");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);

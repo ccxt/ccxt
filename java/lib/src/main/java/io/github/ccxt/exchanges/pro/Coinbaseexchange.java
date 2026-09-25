@@ -248,9 +248,9 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String name = "matches";
-            Object trades = (this.subscribe(name, Helpers.toStringArg(symbolValue), name, parameters)).join();
+            Object trades = (this.subscribe(name, symbolValue, name, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -323,11 +323,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String name = "user";
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
-            Object trades = (this.subscribe(name, Helpers.toStringArg(symbolValue), messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
+            Object trades = (this.subscribe(name, symbolValue, messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -433,11 +433,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String name = "user";
             String messageHash = "orders";
             Object authentication = this.authenticate();
-            Object orders = (this.subscribe(name, Helpers.toStringArg(symbolValue), messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
+            Object orders = (this.subscribe(name, symbolValue, messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

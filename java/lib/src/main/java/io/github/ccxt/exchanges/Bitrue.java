@@ -2837,7 +2837,7 @@ public class Bitrue extends BitrueApi
             {
                 request.put("startTime", since);
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
             if (!java.util.Objects.equals(limitResolved, null))
             {
                 request.put("limit", limitResolved);
@@ -2907,7 +2907,7 @@ public class Bitrue extends BitrueApi
             //         ]
             //     }
             //
-            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3438,7 +3438,7 @@ public class Bitrue extends BitrueApi
             {
                 request.put("beginTime", since);
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 200);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 200);
             if (!java.util.Objects.equals(limitResolved, null))
             {
                 request.put("limit", limitResolved);
@@ -3464,7 +3464,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(data, currency, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTransfers(data, currency, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }

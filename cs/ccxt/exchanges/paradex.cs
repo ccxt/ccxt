@@ -1778,11 +1778,11 @@ public partial class paradex : Exchange
         return this.safeDict(this.options, "systemConfig", new Dictionary<string, object>() {});
     }
 
-    public async virtual Task<Dictionary<string, object>> prepareParadexDomain(object l1 = null)
+    public async virtual Task<Dictionary<string, object>> prepareParadexDomain(bool? l1 = null)
     {
         l1 ??= false;
         IDictionary<string, object> systemConfig = await this.getSystemConfig();
-        if (isEqual(l1, true))
+        if ((l1 == true))
         {
             Dictionary<string, object> l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },
@@ -1825,7 +1825,7 @@ public partial class paradex : Exchange
         return account;
     }
 
-    public async virtual Task<Dictionary<string, object>> onboarding(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> onboarding(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object account = await this.retrieveAccount();
@@ -1841,9 +1841,9 @@ public partial class paradex : Exchange
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, getValue(account, "address"));
         string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
-        ((IDictionary<string,object>)parameters)["signature"] = signature;
-        ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
-        ((IDictionary<string,object>)parameters)["public_key"] = getValue(account, "publicKey");
+        parameters["signature"] = signature;
+        parameters["account"] = getValue(account, "address");
+        parameters["public_key"] = getValue(account, "publicKey");
         Dictionary<string, object> response = await this.privatePostOnboarding(parameters);
         return response;
     }
@@ -2368,7 +2368,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2377,7 +2377,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");

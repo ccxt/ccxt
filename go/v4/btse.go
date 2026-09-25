@@ -2013,9 +2013,7 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "count", limit)
 	}
 	var paramsUntil any = nil
-	var requestparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsUntilVariable, 0)
-	paramsUntil = GetValue(requestparamsUntilVariable, 1)
+	request, paramsUntil = this.HandleUntilOption("endTime", request, params)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot")
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {

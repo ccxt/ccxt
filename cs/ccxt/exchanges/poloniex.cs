@@ -945,13 +945,13 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
-        if (((currenciesByNumericId == null)) || isTrue(reload))
+        if (((currenciesByNumericId == null)) || reload == true)
         {
             this.options["currenciesByNumericId"] = this.indexBy(this.currencies, "numericId");
         }
@@ -2386,7 +2386,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, object request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
@@ -2409,7 +2409,7 @@ public partial class poloniex : Exchange
             if ((marginMode != null))
             {
                 this.checkRequiredArgument("createOrder", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
-                ((IDictionary<string,object>)request)["mgnMode"] = marginMode.ToUpper();
+                request["mgnMode"] = marginMode.ToUpper();
             }
             if (((hedged != null)) && (!(hedged == "")))
             {
@@ -2434,12 +2434,12 @@ public partial class poloniex : Exchange
                 throw new InvalidOrder ((((this.id + " createOrder() does not support trigger orders for ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
             }
             upperCaseType = ((price == null)) ? "STOP" : "STOP_LIMIT";
-            ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
+            request["stopPrice"] = triggerPrice;
         } else if (isPostOnly)
         {
             upperCaseType = "LIMIT_MAKER";
         }
-        ((IDictionary<string,object>)request)["type"] = upperCaseType;
+        request["type"] = upperCaseType;
         if (isMarket)
         {
             if ((side == "buy"))
@@ -2475,7 +2475,7 @@ public partial class poloniex : Exchange
                 {
                     amountKey = "amount";
                 }
-                ((IDictionary<string,object>)request)[amountKey] = quoteAmount;
+                request[amountKey] = quoteAmount;
             } else
             {
                 string amountKey = "sz";
@@ -2483,7 +2483,7 @@ public partial class poloniex : Exchange
                 {
                     amountKey = "quantity";
                 }
-                ((IDictionary<string,object>)request)[amountKey] = this.amountToPrecision(symbol, amount);
+                request[amountKey] = this.amountToPrecision(symbol, amount);
             }
         } else
         {
@@ -2492,13 +2492,13 @@ public partial class poloniex : Exchange
             {
                 amountKey = "quantity";
             }
-            ((IDictionary<string,object>)request)[amountKey] = this.amountToPrecision(symbol, amount);
+            request[amountKey] = this.amountToPrecision(symbol, amount);
             string priceKey = "px";
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 priceKey = "price";
             }
-            ((IDictionary<string,object>)request)[priceKey] = this.priceToPrecision(symbol, price);
+            request[priceKey] = this.priceToPrecision(symbol, price);
         }
         string? clientOrderId = this.safeString2(queryOmitted, "clientOrderId", "clOrdId");
         if ((clientOrderId != null))
@@ -2509,7 +2509,7 @@ public partial class poloniex : Exchange
             {
                 clientOrderIdKey = "clientOrderId";
             }
-            ((IDictionary<string,object>)request)[clientOrderIdKey] = clientOrderId;
+            request[clientOrderIdKey] = clientOrderId;
             queryOmitted = this.omit(queryOmitted, new List<object>() {"clientOrderId", "clOrdId"});
         }
         // remember the timestamp before issuing the request
@@ -3184,7 +3184,7 @@ public partial class poloniex : Exchange
         return new List<object>() {request, query, currency, networkEntry};
     }
 
-    public virtual object parseDepositAddressSpecial(Dictionary<string, object> response, object currency, object networkEntry)
+    public virtual object parseDepositAddressSpecial(IDictionary<string, object> response, object currency, object networkEntry)
     {
         string? address = this.safeString(response, "address");
         if ((address == null))
@@ -3923,11 +3923,11 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string mode = "ONE_WAY";
-        if (isTrue(hedged))
+        if (hedged)
         {
             mode = "HEDGE";
         }

@@ -886,7 +886,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	} else {
 		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
-		this.HandleDeltas(orderbook, changes)
+		this.HandleBookDeltas(orderbook, changes)
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "sequence"))
 	ccxt.AddElementToObject(orderbook, "datetime", datetime)
@@ -896,7 +896,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 		client.(ccxt.ClientInterface).Resolve(orderbook, *channel+"::"+*symbol)
 	}
 }
-func (this *Coinbaseinternational) HandleDelta(orderbook any, delta any) {
+func (this *Coinbaseinternational) HandleBookDelta(orderbook any, delta any) {
 	var rawSide *string = this.SafeStringLower(delta, 0)
 	var side string = "asks"
 	if rawSide != nil && *rawSide == "buy" {
@@ -907,9 +907,9 @@ func (this *Coinbaseinternational) HandleDelta(orderbook any, delta any) {
 	var bookside any = ccxt.GetValue(orderbook, side)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Coinbaseinternational) HandleDeltas(orderbook any, deltas any) {
+func (this *Coinbaseinternational) HandleBookDeltas(orderbook any, deltas any) {
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(orderbook, ccxt.GetValue(deltas, i))
+		this.HandleBookDelta(orderbook, ccxt.GetValue(deltas, i))
 	}
 }
 func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message map[string]any) any {

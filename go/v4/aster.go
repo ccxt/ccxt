@@ -1571,9 +1571,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1500)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	AddElementToObject(requestUntil, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 	var price *string = this.SafeString(paramsUntil, "price")
 	var isMark bool = (price != nil && *price == "mark")
@@ -1764,7 +1762,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		AddElementToObject(request, "startTime", since)
 	}
 	if untilDefined {
-		request = this.HandleUntilOption("endTime", request, params)
+		request = TupleSlice(this.HandleUntilOption("endTime", request, params))
 	}
 	// use historical endpoint for targeted requests
 	if InOp(request, "startTime") {
@@ -1833,9 +1831,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 	var response []any = nil
 	if marketType != nil && *marketType == "swap" {
 
@@ -2587,9 +2583,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingRate(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -3201,9 +3195,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response []any = nil
 	if GetValue(market, "swap") == true {
 
@@ -4353,9 +4345,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
 	}

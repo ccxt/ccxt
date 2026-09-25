@@ -413,7 +413,7 @@ public partial class cex : ccxt.cex
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //  public
@@ -867,7 +867,7 @@ public partial class cex : ccxt.cex
         client.resolve(storedOrders, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsOrderUpdate(object order, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsOrderUpdate(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //      {

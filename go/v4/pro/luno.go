@@ -278,7 +278,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
 	} else {
 		var ob any = ccxt.GetValue(this.Orderbooks, symbol)
-		this.HandleDelta(ob, message)
+		this.HandleBookDelta(ob, message)
 		ccxt.AddElementToObject(ob, "timestamp", timestamp)
 		ccxt.AddElementToObject(ob, "datetime", this.Iso8601(timestamp))
 	}
@@ -346,7 +346,7 @@ func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Luno) HandleDelta(orderbook any, message any) {
+func (this *Luno) HandleBookDelta(orderbook any, message any) {
 	//
 	//  create
 	//     {

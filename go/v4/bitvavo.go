@@ -1000,9 +1000,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	if since != nil {
 		request["start"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -1343,9 +1341,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 		}()
 		request["end"] = this.Sum(since, Multiply(Multiply(sinceLimit, duration), 1000))
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	var limitResolved any = limit
 	if (since != nil) && (limit == nil) {
 		limitResolved = 1440
@@ -1649,9 +1645,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccountsTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -2364,9 +2358,7 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 500, max 1000
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
 }
 
@@ -2680,9 +2672,7 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 500, max 1000
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
 }
 
@@ -2801,9 +2791,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["maxItems"] = mathMin(limit, 100)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("toDate", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("toDate", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//

@@ -2621,7 +2621,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null, object isUnsubscribe = null)
+    public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null, bool? isUnsubscribe = null)
     {
         parameters ??= new Dictionary<string, object>();
         isUnsubscribe ??= false;
@@ -2706,7 +2706,7 @@ public partial class binance : ccxt.binance
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
                 messageHashes.Add(add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol));
-                if (isTrue(isUnsubscribe))
+                if (isUnsubscribe == true)
                 {
                     unsubscribeMessageHashes.Add(((((("unsubscribe::" + (unifiedPrefix)) + ":") + (channelName)) + "@") + symbol));
                 }
@@ -2797,7 +2797,7 @@ public partial class binance : ccxt.binance
         string? url = ((string)add(add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", isTrue(isUnsubscribe) ? "UNSUBSCRIBE" : "SUBSCRIBE" },
+            { "method", isUnsubscribe == true ? "UNSUBSCRIBE" : "SUBSCRIBE" },
             { "params", subscriptionArgs },
             { "id", requestId },
         };
@@ -2805,7 +2805,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        if (isTrue(isUnsubscribe))
+        if (isUnsubscribe == true)
         {
             subscription = new Dictionary<string, object>() {
                 { "unsubscribe", true },
@@ -2820,12 +2820,12 @@ public partial class binance : ccxt.binance
         // for option mark prices, the underlying stream delivers all contracts in one array message
         // wait on the batch hash so the resolved value is the full dict of new tickers
         List<object> waitHashes = hashes;
-        if (isOptionMarkPrice && !isTrue(isUnsubscribe))
+        if (isOptionMarkPrice && isUnsubscribe != true)
         {
             waitHashes = new List<object>() {add(add(unifiedPrefix, "s:"), channelName)};
         }
         object result = await this.watchMultiple(url, waitHashes, this.deepExtend(request, paramsSubType), hashes, subscription);
-        if (isTrue(isUnsubscribe))
+        if (isUnsubscribe == true)
         {
             return result;
         }
@@ -3163,19 +3163,19 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual Dictionary<string, object> signParams(object parameters = null)
+    public virtual Dictionary<string, object> signParams(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if ((defaultRecvWindow != null))
         {
-            ((IDictionary<string,object>)parameters)["recvWindow"] = defaultRecvWindow;
+            parameters["recvWindow"] = defaultRecvWindow;
         }
         Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
         if ((recvWindow != null))
         {
-            ((IDictionary<string,object>)parameters)["recvWindow"] = recvWindow;
+            parameters["recvWindow"] = recvWindow;
         }
         Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
             { "timestamp", this.nonce() },
@@ -3294,7 +3294,7 @@ public partial class binance : ccxt.binance
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, object parameters = null)
+    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, IDictionary<string, object>? parameters = null)
     {
         string? marketTypeVar = marketType;
         marketTypeVar ??= "margin";
@@ -3395,7 +3395,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task renewListenToken(object parameters = null)
+    public async virtual Task renewListenToken(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "margin");
@@ -3419,7 +3419,7 @@ public partial class binance : ccxt.binance
         await this.ensureUserDataStreamWsSubscribeListenToken(type, renewParams);
     }
 
-    public async virtual Task authenticate(object parameters = null)
+    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
@@ -3550,7 +3550,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         parameters ??= new Dictionary<string, object>();

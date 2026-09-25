@@ -108,7 +108,7 @@ public partial class deepcoin : ccxt.deepcoin
         return newValue;
     }
 
-    public virtual Dictionary<string, object> createPublicRequest(IDictionary<string, object> market, object requestId, object topicID, object suffix = null, object unWatch = null)
+    public virtual Dictionary<string, object> createPublicRequest(IDictionary<string, object> market, object requestId, object topicID, object suffix = null, bool? unWatch = null)
     {
         suffix ??= "";
         unWatch ??= false;
@@ -118,7 +118,7 @@ public partial class deepcoin : ccxt.deepcoin
             marketId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         string action = "1"; // subscribe
-        if (isTrue(unWatch))
+        if (unWatch == true)
         {
             action = "0"; // unsubscribe
         }
@@ -148,7 +148,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> unWatchPublic(IDictionary<string, object> market, object messageHash, object topicID, object parameters = null, object subscription = null, object suffix = null)
+    public async virtual Task<object> unWatchPublic(IDictionary<string, object> market, object messageHash, object topicID, object parameters = null, IDictionary<string, object>? subscription = null, object suffix = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
@@ -181,7 +181,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, messageHash, null, "private", parameters);
     }
 
-    public async virtual Task<string?> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -343,7 +343,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -925,13 +925,13 @@ public partial class deepcoin : ccxt.deepcoin
         if (((currentTimestamp != null)) && (isGreaterThan(timestamp, currentTimestamp)))
         {
             List<object> response = this.safeList(message, "r", new List<object>() {});
-            this.handleDeltas(orderbook, response);
+            this.handleBookDeltas(orderbook, response);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
     }
 
-    public override void handleDelta(object orderbook, object entry)
+    public override void handleBookDelta(object orderbook, object entry)
     {
         IDictionary<string, object> data = this.safeDict(entry, "d", new Dictionary<string, object>() {});
         object bids = getValue(orderbook, "bids");
@@ -1280,7 +1280,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

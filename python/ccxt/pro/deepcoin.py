@@ -791,11 +791,11 @@ class deepcoin(ccxt.async_support.deepcoin):
         currentTimestamp = self.safe_integer(orderbook, 'timestamp')
         if (currentTimestamp is not None) and (timestamp > currentTimestamp):
             response = self.safe_list(message, 'r', [])
-            self.handle_deltas(orderbook, response)
+            self.handle_book_deltas(orderbook, response)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 
-    def handle_delta(self, orderbook: object, entry: object):
+    def handle_book_delta(self, orderbook: object, entry: object):
         data = self.safe_dict(entry, 'd', {})
         bids = orderbook['bids']
         asks = orderbook['asks']

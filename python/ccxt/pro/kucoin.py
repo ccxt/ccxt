@@ -1577,7 +1577,7 @@ class kucoin(ccxt.async_support.kucoin):
                 return
             elif nonce >= deltaEnd:
                 return
-        self.handle_delta(self.orderbooks[symbol], data)
+        self.handle_book_delta(self.orderbooks[symbol], data)
         client.resolve(self.orderbooks[symbol], messageHash)
 
     def handle_uta_order_book(self, client: Client, message: dict):
@@ -1631,7 +1631,7 @@ class kucoin(ccxt.async_support.kucoin):
                 return
             elif nonce >= deltaEnd:
                 return
-        self.handle_delta(self.orderbooks[symbol], data)
+        self.handle_book_delta(self.orderbooks[symbol], data)
         client.resolve(self.orderbooks[symbol], messageHash)
 
     def get_cache_index(self, orderbook: object, cache: object) -> float:
@@ -1652,7 +1652,7 @@ class kucoin(ccxt.async_support.kucoin):
                 return i
         return len(cache)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         timestamp = self.safe_integer_product(delta, 'M', 0.000001)
         if timestamp is None:
             timestamp = self.safe_integer_2(delta, 'time', 'timestamp')

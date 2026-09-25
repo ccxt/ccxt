@@ -2358,7 +2358,7 @@ public partial class phemex : Exchange
         }, marketResolved);
     }
 
-    public virtual object parseSpotBalance(object response)
+    public virtual object parseSpotBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -2415,7 +2415,7 @@ public partial class phemex : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual object parseSwapBalance(object response)
+    public virtual object parseSwapBalance(IDictionary<string, object> response)
     {
         // usdt
         //   {
@@ -5130,7 +5130,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setPositionMode", symbol, "symbol");
@@ -5146,7 +5146,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isTrue(hedged))
+        if (hedged)
         {
             request["targetPosMode"] = "Hedged";
         } else

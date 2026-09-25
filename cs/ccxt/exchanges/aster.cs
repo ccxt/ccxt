@@ -2550,11 +2550,11 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string strValue = "false";
-        if (isTrue(hedged))
+        if (hedged)
         {
             strValue = "true";
         }
@@ -2570,7 +2570,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToDict(await this.fapiPrivatePostV3PositionSideDual(this.extend(request, parameters)));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(fee, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -2830,7 +2830,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -3130,17 +3130,17 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        if (getArrayLength(orders) > 5)
+        if ((orders?.Count ?? 0) > 5)
         {
             throw new InvalidOrder ((this.id + " createOrders() order list max 5 orders")) ;
         }
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -4360,7 +4360,7 @@ public partial class aster : Exchange
         }
     }
 
-    public virtual List<object> parseAccountPositions(Dictionary<string, object> account, object filterClosed = null)
+    public virtual List<object> parseAccountPositions(IDictionary<string, object> account, bool? filterClosed = null)
     {
         filterClosed ??= false;
         List<object> positions = this.safeList(account, "positions", new List<object>() {});
@@ -4391,7 +4391,7 @@ public partial class aster : Exchange
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = (maintenanceMargin != "0") && (maintenanceMargin != "0.00000000");
-            if (!isTrue(filterClosed) || isPositionOpen)
+            if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
                 if (inOp(balances, code))
@@ -4407,7 +4407,7 @@ public partial class aster : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseAccountPosition(Dictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseAccountPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
@@ -4626,7 +4626,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
     }
 
-    public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)
+    public async virtual Task<object> loadLeverageBrackets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -5040,10 +5040,10 @@ public partial class aster : Exchange
         };
     }
 
-    public virtual string encodeValuesWithJson(object values)
+    public virtual string encodeValuesWithJson(IDictionary<string, object> values)
     {
         object encodedString = "";
-        List<object> keys = new List<object>(((IDictionary<string,object>)values).Keys);
+        List<object> keys = new List<object>(values.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             object key = keys[i];
@@ -5056,10 +5056,10 @@ public partial class aster : Exchange
         return ((encodedString == null) ? null : ((string)encodedString).Substring(0, Math.Max(((string)encodedString).Length - 1, 0)));
     }
 
-    public virtual Dictionary<string, object> capitalizeKeys(object dict)
+    public virtual Dictionary<string, object> capitalizeKeys(IDictionary<string, object> dict)
     {
         Dictionary<string, object> capitalized = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
+        List<object> keys = new List<object>(dict.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);

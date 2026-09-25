@@ -674,8 +674,8 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", market.get("id") );
             }};
-            Integer level = 0;
-            List<Object> levelOptionparamsLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", Helpers.toLongOrNull(level));
+            Long level = 0L;
+            List<Object> levelOptionparamsLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
             Long levelOption = (Long) ((List<Object>) levelOptionparamsLevelVariable).get(0);
             Map<String, Object> paramsLevel = (Map<String, Object>) ((List<Object>) levelOptionparamsLevelVariable).get(1);
             request.put("level", levelOption);
