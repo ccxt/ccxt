@@ -819,7 +819,7 @@ func (this *Bitbank) ParseBalance(response any) any {
 		account["used"] = this.SafeString(balance, "locked_amount")
 		account["total"] = this.SafeString(balance, "onhand_amount")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

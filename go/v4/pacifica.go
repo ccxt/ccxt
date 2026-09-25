@@ -2838,7 +2838,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ticker map[string]any = MapTyped(this.ParseTicker(info))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
-			AddElementToObject(result, symbol, ticker)
+			result[*symbol] = ticker
 		}
 	}
 

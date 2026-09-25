@@ -1164,7 +1164,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 		account["total"] = total
 		account["used"] = used
 		if coin != nil {
-			ccxt.AddElementToObject(result, coin, account)
+			result[*coin] = account
 		}
 	}
 

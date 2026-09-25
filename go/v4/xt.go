@@ -2364,7 +2364,7 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}(), market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
-			AddElementToObject(result, symbol, ticker)
+			result[*symbol] = ticker
 		}
 	}
 
@@ -2483,7 +2483,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker, marketInner))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
-			AddElementToObject(result, symbol, ticker)
+			result[*symbol] = ticker
 		}
 	}
 
@@ -3165,7 +3165,7 @@ func (this *Xt) ParseBalance(response any) any {
 		account["used"] = used
 		account["total"] = total
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

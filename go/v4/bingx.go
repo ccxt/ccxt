@@ -1366,7 +1366,7 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 		}
 		var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision"))))
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      rawNetwork,
 				"id":        network,
 				"network":   networkCode,
@@ -1376,7 +1376,7 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 				"withdraw":  this.SafeBool(rawNetwork, "withdrawEnable"),
 				"precision": precision,
 				"limits":    limits,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -3396,7 +3396,7 @@ func (this *Bingx) ParseBalance(response any) any {
 			account["used"] = this.SafeString(balance, "usedMargin")
 			account["total"] = this.SafeString(balance, "maxWithdrawAmount")
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	} else {
@@ -3408,7 +3408,7 @@ func (this *Bingx) ParseBalance(response any) any {
 			account["free"] = this.SafeString(balance, "free")
 			account["used"] = this.SafeString(balance, "locked")
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

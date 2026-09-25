@@ -636,7 +636,7 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 		}
 		if symbol != nil {
-			ccxt.AddElementToObject(newTickers, symbol, parsed)
+			newTickers[*symbol] = parsed
 		}
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 		client.(ccxt.ClientInterface).Resolve(parsed, messageHash)

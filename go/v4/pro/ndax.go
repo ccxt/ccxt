@@ -230,7 +230,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 		}
 		if symbol != nil {
-			ccxt.AddElementToObject(updates, symbol, true)
+			updates[*symbol] = true
 		}
 	}
 	var symbols []string = ccxt.ObjectKeys(updates)
@@ -337,7 +337,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		if marketId != nil {
-			ccxt.AddElementToObject(updates, marketId, map[string]any{})
+			updates[*marketId] = map[string]any{}
 		}
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var keys []string = ccxt.ObjectKeys(this.Timeframes)

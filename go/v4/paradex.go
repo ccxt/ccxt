@@ -3202,7 +3202,7 @@ func (this *Paradex) ParseBalance(response any) any {
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "size")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

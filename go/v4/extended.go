@@ -1037,7 +1037,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ticker map[string]any = MapTyped(this.ParseTicker(stats, market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
-			AddElementToObject(tickers, symbol, ticker)
+			tickers[*symbol] = ticker
 		}
 	}
 
@@ -1966,7 +1966,7 @@ func (this *Extended) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "availableToWithdraw")
 		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

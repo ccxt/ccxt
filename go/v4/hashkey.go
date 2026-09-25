@@ -2151,7 +2151,7 @@ func (this *Hashkey) ParseBalance(balance any) any {
 		account["free"] = this.SafeString(balanceEntry, "free")
 		account["used"] = this.SafeString(balanceEntry, "locked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -2178,7 +2178,7 @@ func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
 		"info": balance,
 	}
 	if code != nil {
-		AddElementToObject(result, code, account)
+		result[*code] = account
 	}
 	return this.SafeBalance(result)
 }

@@ -4491,7 +4491,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 		}
 		var networkCode *string = this.NetworkIdToCode(uniqueChainId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":    chainEntry,
 				"id":      uniqueChainId,
 				"network": networkCode,
@@ -4510,7 +4510,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 				"withdraw":  (this.SafeString(chainEntry, "withdrawStatus") != nil && *this.SafeString(chainEntry, "withdrawStatus") == "allowed"),
 				"fee":       this.SafeNumber(chainEntry, "transactFeeWithdraw"),
 				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chainEntry, "withdrawPrecision"))),
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{

@@ -1273,7 +1273,7 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 			account["total"] = this.SafeString(balance, "wb")
 			account["used"] = this.SafeString(balance, "tfm")
 			if code != nil {
-				ccxt.AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 		var parsedBalance any = this.SafeBalance(result)

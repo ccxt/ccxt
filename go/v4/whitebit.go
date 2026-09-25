@@ -1009,7 +1009,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 		var networkDepositLimits map[string]any = SafeMapTyped(depositLimits, networkId)
 		var networkWithdrawLimits map[string]any = SafeMapTyped(withdrawLimits, networkId)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"active":    nil,
@@ -1027,7 +1027,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 						"max": this.SafeNumber(networkWithdrawLimits, "max"),
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -3132,13 +3132,13 @@ func (this *Whitebit) ParseBalance(response any) any {
 			account["used"] = this.SafeString(balance, "freeze")
 			account["total"] = this.SafeString(balance, "main_balance")
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		} else {
 			var account map[string]any = this.Account()
 			account["total"] = balance
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

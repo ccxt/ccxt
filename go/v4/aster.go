@@ -2696,7 +2696,7 @@ func (this *Aster) ParseBalance(response any) any {
 		account["used"] = this.SafeString(balance, "locked")
 		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -4829,10 +4829,10 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
 		var crossUnPnl *string = this.SafeString(entry, "crossUnPnl")
 		if code != nil {
-			AddElementToObject(balances, code, map[string]any{
+			balances[*code] = map[string]any{
 				"crossMargin":        Precise.StringAdd(crossWalletBalance, crossUnPnl),
 				"crossWalletBalance": crossWalletBalance,
-			})
+			}
 		}
 	}
 	var result []any = []any{}

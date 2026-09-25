@@ -1566,7 +1566,7 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 		var parsed any = this.ParseWsMyTrade(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		if symbol != nil {
-			ccxt.AddElementToObject(symbols, symbol, true)
+			symbols[*symbol] = true
 		}
 		trades.(ccxt.Appender).Append(parsed)
 	}
@@ -1817,7 +1817,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 		orders.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
-			ccxt.AddElementToObject(symbols, symbol, true)
+			symbols[*symbol] = true
 		}
 	}
 	var messageHash string = "orders"

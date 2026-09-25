@@ -2611,7 +2611,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 		if assetId != nil {
 			var lowerCaseName string = ToLower(name)
 			if code != nil {
-				AddElementToObject(networks, code, lowerCaseName)
+				networks[*code] = lowerCaseName
 			}
 			networksById[lowerCaseName] = code
 		}

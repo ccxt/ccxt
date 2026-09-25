@@ -432,7 +432,7 @@ func (this *Zaif) ParseBalance(response any) any {
 			}
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

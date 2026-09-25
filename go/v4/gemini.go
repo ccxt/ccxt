@@ -1748,7 +1748,7 @@ func (this *Gemini) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "available")
 		account["total"] = this.SafeString(balance, "amount")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

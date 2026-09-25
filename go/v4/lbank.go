@@ -610,7 +610,7 @@ func (this *Lbank) ParseCurrency(rawCurrency any) any {
 		}
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -629,7 +629,7 @@ func (this *Lbank) ParseCurrency(rawCurrency any) any {
 				"fee":       this.SafeNumber(networkEntry, "fee"),
 				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "transferAmtScale"))),
 				"info":      networkEntry,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1632,7 +1632,7 @@ func (this *Lbank) ParseBalance(response any) any {
 			account["used"] = this.SafeString(used, currencyId)
 			account["free"] = this.SafeString(free, currencyId)
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 		return this.SafeBalance(result)
@@ -3414,7 +3414,7 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
 		if code != nil {
-			AddElementToObject(withdrawFees, code, map[string]any{})
+			withdrawFees[*code] = map[string]any{}
 		}
 		for j := 0; j < len(networkList); j++ {
 			var networkEntry map[string]any = SafeMapTyped(networkList, j)

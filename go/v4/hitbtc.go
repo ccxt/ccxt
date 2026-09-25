@@ -1239,7 +1239,7 @@ func (this *Hitbtc) ParseBalance(response any) any {
 		account["free"] = this.SafeString(entry, "available")
 		account["used"] = this.SafeString(entry, "reserved")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

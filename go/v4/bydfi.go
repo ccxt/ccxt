@@ -3291,7 +3291,7 @@ func (this *Bydfi) ParseBalance(response any) any {
 		account["total"] = this.SafeString2(balance, "total", "balance")
 		account["free"] = this.SafeString2(balance, "available", "availableBalance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

@@ -1179,7 +1179,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
-			ccxt.AddElementToObject(symbols, symbol, true)
+			symbols[*symbol] = true
 		}
 		cachedOrders.(ccxt.Appender).Append(parsed)
 	}
@@ -1696,7 +1696,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			var newAccount map[string]any = this.Account()
 			newAccount["total"] = this.SafeString(holding, key)
 			if code != nil {
-				ccxt.AddElementToObject(holdingResult, code, newAccount)
+				holdingResult[*code] = newAccount
 			}
 		}
 		ccxt.AddElementToObject(this.Balance, "cash", holdingResult)
@@ -1746,7 +1746,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["used"] = this.SafeString(flexFuture, "collateral_value")
 			newAccount["total"] = this.SafeString(flexFuture, "quantity")
 			if code != nil {
-				ccxt.AddElementToObject(flexFuturesResult, code, newAccount)
+				flexFuturesResult[*code] = newAccount
 			}
 		}
 		ccxt.AddElementToObject(this.Balance, "flex", flexFuturesResult)

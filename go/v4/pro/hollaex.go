@@ -314,7 +314,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
-			ccxt.AddElementToObject(marketIds, marketId, true)
+			marketIds[*marketId] = true
 		}
 	}
 	// non-symbol specific
@@ -461,7 +461,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
-			ccxt.AddElementToObject(marketIds, marketId, true)
+			marketIds[*marketId] = true
 		}
 	}
 	// non-symbol specific

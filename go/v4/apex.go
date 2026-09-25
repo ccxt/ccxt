@@ -637,7 +637,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 				var networkId *string = this.SafeString(chain, "chainId")
 				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
-					AddElementToObject(networks, networkCode, map[string]any{
+					networks[*networkCode] = map[string]any{
 						"info":      chain,
 						"id":        networkId,
 						"network":   networkCode,
@@ -656,7 +656,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 								"max": nil,
 							},
 						},
-					})
+					}
 				}
 			}
 		}

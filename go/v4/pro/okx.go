@@ -2806,7 +2806,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		myTrades.(ccxt.Appender).Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		if symbol != nil {
-			ccxt.AddElementToObject(symbols, symbol, true)
+			symbols[*symbol] = true
 		}
 	}
 	var messageHash any = ccxt.Add(channel, "::myTrades")

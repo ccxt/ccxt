@@ -574,7 +574,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 			orders.(ccxt.Appender).Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {
-				ccxt.AddElementToObject(symbols, symbol, true)
+				symbols[*symbol] = true
 			}
 		}
 		var messageHash string = "orders"
@@ -708,7 +708,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 			trades.(ccxt.Appender).Append(parsedTrade)
 			var symbol *string = this.SafeString(parsedTrade, "symbol")
 			if symbol != nil {
-				ccxt.AddElementToObject(symbols, symbol, true)
+				symbols[*symbol] = true
 			}
 		}
 		var messageHash string = "myTrades"

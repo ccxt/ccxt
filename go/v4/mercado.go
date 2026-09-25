@@ -664,7 +664,7 @@ func (this *Mercado) ParseBalance(response any) any {
 			account["free"] = this.SafeString(balance, "available")
 			account["total"] = this.SafeString(balance, "total")
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

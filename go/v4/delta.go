@@ -725,7 +725,7 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":       networkId,
 				"network":  networkCode,
 				"name":     this.SafeString(chain, "name"),
@@ -744,7 +744,7 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1651,7 +1651,7 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
-			AddElementToObject(result, symbol, ticker)
+			result[*symbol] = ticker
 		}
 	}
 
