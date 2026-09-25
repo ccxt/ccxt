@@ -257,8 +257,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "spot");
                 } else if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
                 {
-                    List<Object> subTypeAndParams = (List<Object>) this.handleSubTypeAndParams(methodValue, market, parameters, "linear");
-                    String subType = (String) ((List<Object>)subTypeAndParams).get(0);
+                    String subType = (String) ((List<Object>)this.handleSubTypeAndParams(methodValue, market, parameters, "linear")).get(0);
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), ((String)subType));
                 } else
                 {

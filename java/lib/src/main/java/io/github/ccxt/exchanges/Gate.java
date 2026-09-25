@@ -6851,8 +6851,7 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) ((((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol));
-            Object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null);
-            String type = this.safeString(result, 0);
+            String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null)).get(0);
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
             var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -6973,8 +6972,7 @@ public class Gate extends GateApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
-            Object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null);
-            String type = this.safeString(res, 0);
+            String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null)).get(0);
             List<Object> useHistoricalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
             Boolean useHistorical = (Boolean) ((List<Object>) useHistoricalparamsHistoricalVariable).get(0);
             var paramsHistorical = ((List<Object>) useHistoricalparamsHistoricalVariable).get(1);
@@ -6982,7 +6980,7 @@ public class Gate extends GateApi
             {
                 return (this.fetchOrdersByStatus("finished", Helpers.toStringArg(symbolResolved), since, limit, Helpers.toMapArg(paramsHistorical))).join();
             }
-            var requestparamsRequestVariable = this.prepareRequest(market, type, Helpers.toMapArg(this.omit(paramsHistorical, "type")));
+            var requestparamsRequestVariable = this.prepareRequest(market, Helpers.toStringArg(type), Helpers.toMapArg(this.omit(paramsHistorical, "type")));
             var request = ((List<Object>) requestparamsRequestVariable).get(0);
             var paramsRequest = ((List<Object>) requestparamsRequestVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -7071,8 +7069,7 @@ public class Gate extends GateApi
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
-            Object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, (Object) null);
-            String type = this.safeString(res, 0);
+            String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, (Object) null)).get(0);
             // don't omit here, omits done in prepareOrdersByStatusRequest
             var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), Helpers.toStringArg(symbolResolved), since, limit, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
