@@ -1974,7 +1974,7 @@ public class Hyperliquid extends HyperliquidApi
         String tifRaw = this.safeString(entry, "tif");
         String tif = this.parseTimeInForce((String) (tifRaw));
         Boolean postOnly = (java.util.Objects.equals(tif, "PO"));
-        Boolean isTrigger = (java.util.Objects.equals(this.safeBool(entry, "isTrigger", (Object) null), true));
+        Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
         Double triggerPrice = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", (Object) null) : null;
         return this.safePredictionOrder(Helpers.newMap(
             "id", this.safeString(entry, "oid"),
@@ -2219,7 +2219,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
-        Boolean crossed = (java.util.Objects.equals(this.safeBool(trade, "crossed", (Object) null), true));
+        Boolean crossed = (Boolean) this.safeBool(trade, "crossed", false);
         String takerOrMaker = "maker";
         if (Boolean.TRUE.equals(crossed))
         {

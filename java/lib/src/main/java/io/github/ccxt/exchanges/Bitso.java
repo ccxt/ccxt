@@ -2102,7 +2102,7 @@ public class Bitso extends BitsoApi
                     result.put((String)code, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", Bitso.this.safeNumber(entry, "fee", (Object) null) );
-        put( "percentage", (!java.util.Objects.equals(Bitso.this.safeBool(entry, "is_fixed", (Object) null), true)) );
+        put( "percentage", (!Boolean.TRUE.equals(Bitso.this.safeBool(entry, "is_fixed", false))) );
     }} );
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", null );

@@ -1881,7 +1881,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object l1)
+    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Boolean l1)
     {
 
         return BaseExchange.supplyAsync(() -> {

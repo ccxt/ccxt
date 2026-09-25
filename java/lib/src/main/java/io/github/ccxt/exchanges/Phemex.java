@@ -3192,7 +3192,7 @@ public class Phemex extends PhemexApi
                 {
                     Object cost = this.safeNumber(orderParams, "cost", (Object) null);
                     orderParams = this.omit(orderParams, "cost");
-                    if (java.util.Objects.equals(this.safeBool(this.options, "createOrderByQuoteRequiresPrice", (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(this.options, "createOrderByQuoteRequiresPrice", false)))
                     {
                         if (!java.util.Objects.equals(price, null))
                         {
@@ -3219,7 +3219,7 @@ public class Phemex extends PhemexApi
                 orderParams = this.omit(orderParams, "hedged");
                 String posSide = this.safeStringLower(orderParams, "posSide");
                 // a hedged reduceOnly order without posSide closes the opposite side
-                Boolean flipSide = (java.util.Objects.equals(posSide, null)) && (java.util.Objects.equals(hedged, true)) && (java.util.Objects.equals(this.safeBool(orderParams, "reduceOnly", (Object) null), true));
+                Boolean flipSide = (java.util.Objects.equals(posSide, null)) && (java.util.Objects.equals(hedged, true)) && Boolean.TRUE.equals((this.safeBool(orderParams, "reduceOnly", false)));
                 String oppositeSide = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
                 String sideResolved = side;
                 if (Boolean.TRUE.equals(flipSide))

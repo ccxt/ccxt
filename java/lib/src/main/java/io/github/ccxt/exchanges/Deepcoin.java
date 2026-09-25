@@ -1098,9 +1098,9 @@ public class Deepcoin extends DeepcoinApi
     public String getProductGroupFromMarket(Map<String, Object> market)
     {
         String productGroup = "Spot";
-        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
-            if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 productGroup = "SwapU";
             } else

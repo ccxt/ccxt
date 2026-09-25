@@ -1040,7 +1040,7 @@ public class Woo extends WooApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -4721,10 +4721,10 @@ public class Woo extends WooApi
             {
                 market = this.market(symbol);
             }
-            if ((java.util.Objects.equals(symbol, null)) || (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true)))
+            if ((java.util.Objects.equals(symbol, null)) || Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
             {
                 return (this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("symbol", this.safeString(market, "id"));
                 List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");

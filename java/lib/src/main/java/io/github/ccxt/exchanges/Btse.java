@@ -4474,6 +4474,41 @@ public class Btse extends BtseApi
             "headers", headersResolved
         );
     }
+    //         "symbol": "ETH-PERP",
+    //         "side": "BUY",
+    //         "orderValue": 3.93495658,
+    //         "settleWithAsset": "USDT",
+    //         "unrealizedProfitLoss": -0.00260341,
+    //         "totalMaintenanceMargin": 0.0218963,
+    //         "size": 20,
+    //         "liquidationPrice": 0,
+    //         "isolatedLeverage": 25,
+    //         "adlScoreBucket": 1,
+    //         "contractSize": 0.0001,
+    //         "liquidationInProgress": false,
+    //         "timestamp": 1770880518034,
+    //         "takeProfitOrder": {
+    //             "orderId": "18b4056a-59de-424a-843e-c2df5c9f7265",
+    //             "side": "SELL",
+    //             "triggerPrice": 2500,
+    //             "triggerUseLastPrice": false
+    //         },
+    //         "stopLossOrder": {
+    //             "orderId": "e7ef1035-0773-446d-9a80-2de0e1de2c13",
+    //             "side": "SELL",
+    //             "triggerPrice": 1000,
+    //             "triggerUseLastPrice": false
+    //         },
+    //         "positionMode": "ONE_WAY",
+    //         "positionDirection": null,
+    //         "positionId": "ETH-PERP-USDT",
+    //         "walletName": "CROSS@",
+    //         "currentLeverage": 0.2,
+    //         "minimumRequiredMargin": 0
+    //     }
+    //
+    // rows echo the short symbol form, while positionId carries the full market
+    // id, optionally suffixed with the isolated wallet discriminator after a pipe
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));

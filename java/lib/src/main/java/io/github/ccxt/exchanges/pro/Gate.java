@@ -2671,9 +2671,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public Object getUrlByMarket(Object market)
     {
         Object baseUrl = Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type"));
-        if (java.util.Objects.equals(this.safeBool(market, "contract", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
-            return (((java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true)))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc");
+            return ((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc");
         } else
         {
             return baseUrl;

@@ -507,7 +507,7 @@ public class Bitopro extends BitoproApi
 
     public Object parseMarket(Object market)
     {
-        Boolean active = (!java.util.Objects.equals(this.safeBool(market, "maintain", (Object) null), true));
+        Boolean active = (!Boolean.TRUE.equals(this.safeBool(market, "maintain", false)));
         String id = this.safeString(market, "pair");
         if (java.util.Objects.equals(id, null))
         {

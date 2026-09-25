@@ -564,9 +564,9 @@ public class Zebpay extends ZebpayApi
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chainId");
             String networkCode = this.networkIdToCode(networkId, code);
-            Object depositAllowed = java.util.Objects.equals(this.safeBool(chain, "isDepositEnabled", (Object) null), true);
+            Boolean depositAllowed = (Boolean) this.safeBool(chain, "isDepositEnabled", false);
             deposit = ((Boolean.TRUE.equals(depositAllowed))) ? depositAllowed : deposit;
-            Object withdrawAllowed = java.util.Objects.equals(this.safeBool(chain, "isWithdrawEnabled", (Object) null), true);
+            Boolean withdrawAllowed = (Boolean) this.safeBool(chain, "isWithdrawEnabled", false);
             withdraw = ((Boolean.TRUE.equals(withdrawAllowed))) ? withdrawAllowed : withdraw;
             String withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if (!java.util.Objects.equals(withdrawFeeString, null))

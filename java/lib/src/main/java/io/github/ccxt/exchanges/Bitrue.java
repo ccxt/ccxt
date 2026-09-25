@@ -1441,7 +1441,7 @@ public class Bitrue extends BitrueApi
         String last = this.safeString2(ticker, "lastPrice", "last");
         Long timestamp = this.safeInteger(ticker, "time");
         String percentage = null;
-        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
         } else

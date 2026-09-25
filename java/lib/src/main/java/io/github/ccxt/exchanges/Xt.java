@@ -1461,7 +1461,7 @@ public class Xt extends XtApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -1842,7 +1842,7 @@ public class Xt extends XtApi
             isActive = this.safeBool(market, "isOpenApi", false);
         } else
         {
-            if ((java.util.Objects.equals(state, "ONLINE")) && (java.util.Objects.equals(this.safeBool(market, "tradingEnabled", (Object) null), true)) && (java.util.Objects.equals(this.safeBool(market, "openapiEnabled", (Object) null), true)))
+            if ((java.util.Objects.equals(state, "ONLINE")) && Boolean.TRUE.equals((this.safeBool(market, "tradingEnabled", false))) && Boolean.TRUE.equals((this.safeBool(market, "openapiEnabled", false))))
             {
                 isActive = true;
             }
@@ -7121,7 +7121,7 @@ public class Xt extends XtApi
             "headers", headersValue
         );
     }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body) //                     "triggerStopPrice": "20000",
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));
     }

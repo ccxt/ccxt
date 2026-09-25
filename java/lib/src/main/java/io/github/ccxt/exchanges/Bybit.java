@@ -9012,7 +9012,7 @@ public class Bybit extends BybitApi
             Object query = parameters;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Boolean isLinear = (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true));
+                Boolean isLinear = (Boolean) this.safeBool(market, "linear", false);
                 request.put("category", ((Boolean.TRUE.equals(isLinear))) ? "linear" : "inverse");
             } else
             {
@@ -9256,8 +9256,8 @@ public class Bybit extends BybitApi
         Long timestamp = this.safeInteger(interest, "timestamp");
         Double openInterest = this.safeNumber2(interest, "open_interest", "openInterest", (Object) null);
         // the openInterest is in the base asset for linear and quote asset for inverse
-        Boolean isLinear = (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true));
-        Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true));
+        Boolean isLinear = (Boolean) this.safeBool(market, "linear", false);
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
         Double amount = ((Boolean.TRUE.equals(isLinear))) ? openInterest : null;
         Double value = ((Boolean.TRUE.equals(isInverse))) ? openInterest : null;
         return this.safeOpenInterest(new HashMap<String, Object>() {{

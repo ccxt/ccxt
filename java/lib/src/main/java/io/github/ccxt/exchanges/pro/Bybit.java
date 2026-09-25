@@ -1022,7 +1022,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //         "timestamp": 1670363219614
         //     }
         //
-        Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true));
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
         String volumeIndex = "volume";
         if (Boolean.TRUE.equals(isInverse))
         {

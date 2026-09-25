@@ -2160,7 +2160,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -2335,7 +2335,7 @@ public class Gate extends GateApi
 
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-            if (java.util.Objects.equals(this.safeBool(this.options, "sandboxMode", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false)))
             {
                 swapSettlementCurrencies = new ArrayList<Object>(Arrays.asList("usdt")); // gate sandbox only has usdt-margined swaps
             }
@@ -2366,7 +2366,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "sandboxMode", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false)))
             {
                 return new ArrayList<Object>(Arrays.asList());  // right now sandbox does not have inverse swaps
             }
@@ -3014,8 +3014,8 @@ public class Gate extends GateApi
     "id", networkId,
     "network", networkCode,
     "active", null,
-    "deposit", !java.util.Objects.equals(this.safeBool(chain, "deposit_disabled", (Object) null), true),
-    "withdraw", !java.util.Objects.equals(this.safeBool(chain, "withdraw_disabled", (Object) null), true),
+    "deposit", !Boolean.TRUE.equals(this.safeBool(chain, "deposit_disabled", false)),
+    "withdraw", !Boolean.TRUE.equals(this.safeBool(chain, "withdraw_disabled", false)),
     "fee", null,
     "precision", this.parseNumber("0.0001"),
     "limits", new HashMap<String, Object>() {{
@@ -3036,9 +3036,9 @@ public class Gate extends GateApi
             "code", code,
             "name", this.safeString(rawCurrency, "name"),
             "type", type,
-            "active", !java.util.Objects.equals(this.safeBool(rawCurrency, "delisted", (Object) null), true),
-            "deposit", !java.util.Objects.equals(this.safeBool(rawCurrency, "deposit_disabled", (Object) null), true),
-            "withdraw", !java.util.Objects.equals(this.safeBool(rawCurrency, "withdraw_disabled", (Object) null), true),
+            "active", !Boolean.TRUE.equals(this.safeBool(rawCurrency, "delisted", false)),
+            "deposit", !Boolean.TRUE.equals(this.safeBool(rawCurrency, "deposit_disabled", false)),
+            "withdraw", !Boolean.TRUE.equals(this.safeBool(rawCurrency, "withdraw_disabled", false)),
             "fee", null,
             "networks", networks,
             "precision", this.parseNumber("0.0001"),
@@ -10249,7 +10249,7 @@ public class Gate extends GateApi
             Map<String, Object> response = null;
             Boolean isUnified = (Boolean) this.safeBool(parameters, "unified", (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, "unified");
-            if (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("currency_pair", this.safeString(market, "id"));
                 if (java.util.Objects.equals(isUnified, true))

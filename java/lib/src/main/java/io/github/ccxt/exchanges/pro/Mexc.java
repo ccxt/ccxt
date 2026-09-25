@@ -843,7 +843,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Double volume = this.safeNumber2(ohlcv, "v", "volume", (Object) null);
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true)) && (java.util.Objects.equals(volume, null)))
+        if ((!java.util.Objects.equals(market, null)) && (!Boolean.TRUE.equals(this.safeBool(market, "spot", false))) && (java.util.Objects.equals(volume, null)))
         {
             volume = this.safeNumber2(ohlcv, "q", "v", (Object) null);
         }

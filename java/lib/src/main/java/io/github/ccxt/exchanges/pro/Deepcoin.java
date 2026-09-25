@@ -134,7 +134,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return Helpers.toLongOrNull(newValue);
     }
 
-    public Object createPublicRequest(Object market, Object requestId, Object topicID, Object suffix, Object unWatch)
+    public Object createPublicRequest(Object market, Object requestId, Object topicID, Object suffix, Boolean unWatch)
     {
         String marketId = this.safeString(market, "symbol"); // spot markets use symbol with slash
         if (java.util.Objects.equals(this.safeString(market, "type"), "swap"))
@@ -142,7 +142,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             marketId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         String action = "1"; // subscribe
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unWatch, false)))
+        if (java.util.Objects.requireNonNullElse(unWatch, false))
         {
             action = "0"; // unsubscribe
         }
@@ -421,7 +421,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Double ask = this.safeNumber(ticker, "AP1", (Object) null);
         Object baseVolume = this.safeNumber(ticker, "V", (Object) null);
         Object quoteVolume = this.safeNumber(ticker, "T", (Object) null);
-        if (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;

@@ -634,7 +634,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
             String requestId = String.valueOf(this.requestId());
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Boolean isContract = (java.util.Objects.equals(this.safeBool(market, "contract", (Object) null), true));
+            Boolean isContract = (Boolean) this.safeBool(market, "contract", false);
             String urlType = "spot";
             if (Boolean.TRUE.equals(isContract))
             {
@@ -937,7 +937,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isFuturesMethod = (java.util.Objects.equals(this.safeBool(firstMarket, "contract", (Object) null), true));
+            Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
             String channelName = "/spotMarket/level1:";
             if (Boolean.TRUE.equals(isFuturesMethod))
             {
@@ -1391,7 +1391,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isFuturesMethod = (java.util.Objects.equals(this.safeBool(firstMarket, "contract", (Object) null), true));
+            Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1444,7 +1444,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isFuturesMethod = (java.util.Objects.equals(this.safeBool(firstMarket, "contract", (Object) null), true));
+            Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
@@ -1805,7 +1805,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isFuturesMethod = (java.util.Objects.equals(this.safeBool(firstMarket, "contract", (Object) null), true));
+            Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             String defaultMethod = "/market/level2";
             if (Boolean.TRUE.equals(isFuturesMethod))
@@ -1886,7 +1886,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isFuturesMethod = (java.util.Objects.equals(this.safeBool(firstMarket, "contract", (Object) null), true));
+            Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             String defaultMethod = "/market/level2";
             if (Boolean.TRUE.equals(isFuturesMethod))

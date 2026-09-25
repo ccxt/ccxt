@@ -790,7 +790,7 @@ public class Ndax extends NdaxApi
             "type", type,
             "precision", this.safeNumber(rawCurrency, "TickSize", (Object) null),
             "info", rawCurrency,
-            "active", (!java.util.Objects.equals(this.safeBool(rawCurrency, "IsDisabled", (Object) null), true)),
+            "active", (!Boolean.TRUE.equals(this.safeBool(rawCurrency, "IsDisabled", false))),
             "deposit", this.safeBool(rawCurrency, "DepositEnabled", (Object) null),
             "withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", (Object) null),
             "fee", null,

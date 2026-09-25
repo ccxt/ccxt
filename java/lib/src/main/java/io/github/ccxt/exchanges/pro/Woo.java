@@ -1100,11 +1100,11 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         ), marketResolved));
     }
 
-    public Boolean checkRequiredUid(Object error)
+    public Boolean checkRequiredUid(Boolean error)
     {
         if ((java.util.Objects.equals(this.uid, null)) || (java.util.Objects.equals(this.uid, "")))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(error, true)))
+            if (java.util.Objects.requireNonNullElse(error, true))
             {
                 throw new AuthenticationError((this.id + " requires `uid` credential (woox calls it `application_id`)")) ;
             } else

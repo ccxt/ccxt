@@ -1061,7 +1061,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method, String symbol, Object isNested, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method, String symbol, Boolean isNested, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1085,7 +1085,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     subscription.put((String)marketId, true);
                 }
                 marketIds = new ArrayList<Object>(Arrays.asList(marketId));
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isNested, false)))
+                if (java.util.Objects.requireNonNullElse(isNested, false))
                 {
                     marketIds = new ArrayList<Object>(Arrays.asList(marketIds));
                 }
@@ -1120,7 +1120,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     // resubscribe
                     Object marketIdsNew = new ArrayList<Object>(Arrays.asList());
                     marketIdsNew = new ArrayList<Object>(subscription.keySet());
-                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isNested, false)))
+                    if (java.util.Objects.requireNonNullElse(isNested, false))
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));
                     }

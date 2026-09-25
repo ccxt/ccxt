@@ -1442,7 +1442,7 @@ public class Hyperliquid extends HyperliquidApi
                 if (!java.util.Objects.equals(firstSymbol, null))
                 {
                     Map<String, Object> market = this.market(firstSymbol);
-                    if (java.util.Objects.equals(this.safeBool(this.safeDict(market, "info", (Object) null), "hip3", (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(this.safeDict(market, "info", (Object) null), "hip3", false)))
                     {
                         hip3 = true;
                     }
@@ -4118,7 +4118,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             postOnly = (java.util.Objects.equals(tif, "ALO"));
         }
-        Boolean isTrigger = (java.util.Objects.equals(this.safeBool(entry, "isTrigger", (Object) null), true));
+        Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
         Double triggerPx = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", (Object) null) : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318

@@ -1850,9 +1850,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             if (java.util.Objects.equals(side, null))
             {
-                side = (((java.util.Objects.equals(this.safeBool(trade, "m", (Object) null), true)))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((Boolean.TRUE.equals((this.safeBool(trade, "m", false))))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "m", (Object) null), true)))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "m", false))))) ? "maker" : "taker";
         }
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "n");
@@ -2799,7 +2799,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public CompletableFuture<Object> watchMultiTickerHelper(Object methodName, String channelName, List<String> symbols, Map<String, Object> parameters, Object isUnsubscribe)
+    public CompletableFuture<Object> watchMultiTickerHelper(Object methodName, String channelName, List<String> symbols, Map<String, Object> parameters, Boolean isUnsubscribe)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2885,7 +2885,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
                     ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channelName) + "@") + symbol));
-                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isUnsubscribe, false)))
+                    if (java.util.Objects.requireNonNullElse(isUnsubscribe, false))
                     {
                         ((List<Object>)unsubscribeMessageHashes).add(((((("unsubscribe::" + unifiedPrefix) + ":") + channelName) + "@") + symbol));
                     }
@@ -2976,7 +2976,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String url = ((this.getWsUrl(rawMarketType, this.getFutureWsCategory((String) (channelName))) + "/") + this.stream(rawMarketType, streamHash, 1L));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isUnsubscribe, false)))) ? "UNSUBSCRIBE" : "SUBSCRIBE" );
+                put( "method", ((java.util.Objects.requireNonNullElse(isUnsubscribe, false))) ? "UNSUBSCRIBE" : "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
                 put( "id", requestId );
             }};
@@ -2984,7 +2984,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isUnsubscribe, false)))
+            if (java.util.Objects.requireNonNullElse(isUnsubscribe, false))
             {
                 subscription = Helpers.newMap(
                     "unsubscribe", true,
@@ -2999,12 +2999,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // for option mark prices, the underlying stream delivers all contracts in one array message
             // wait on the batch hash so the resolved value is the full dict of new tickers
             List<Object> waitHashes = hashes;
-            if (Boolean.TRUE.equals(isOptionMarkPrice) && !Helpers.isTrue(java.util.Objects.requireNonNullElse(isUnsubscribe, false)))
+            if (Boolean.TRUE.equals(isOptionMarkPrice) && !java.util.Objects.requireNonNullElse(isUnsubscribe, false))
             {
                 waitHashes = new ArrayList<Object>(Arrays.asList(((unifiedPrefix + "s:") + channelName)));
             }
             Object result = (this.watchMultiple(url, waitHashes, this.deepExtend(request, paramsSubType), hashes, subscription)).join();
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isUnsubscribe, false)))
+            if (java.util.Objects.requireNonNullElse(isUnsubscribe, false))
             {
                 return result;
             }

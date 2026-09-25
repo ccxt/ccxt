@@ -1460,8 +1460,8 @@ public class Grvt extends GrvtApi
             takerOrMaker = "taker";
         } else
         {
-            Boolean isTaker = (java.util.Objects.equals(this.safeBool(trade, "is_taker", (Object) null), true));
-            Boolean isBuyer = (java.util.Objects.equals(this.safeBool(trade, "is_buyer", (Object) null), true));
+            Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", false);
+            Boolean isBuyer = (Boolean) this.safeBool(trade, "is_buyer", false);
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
@@ -2191,14 +2191,14 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object filterTransfersByType(Object transfers, Object transferType, Object onlyMainAccount)
+    public Object filterTransfersByType(Object transfers, Object transferType, Boolean onlyMainAccount)
     {
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(transfers); i++)
         {
             Object transfer = Helpers.GetValue(transfers, i);
-            if ((Helpers.isTrue(java.util.Objects.requireNonNullElse(onlyMainAccount, true)) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!Helpers.isTrue(java.util.Objects.requireNonNullElse(onlyMainAccount, true)) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
+            if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
             {
                 String metadata = this.safeString(Helpers.GetValue(transfer, "info"), "transfer_metadata");
                 Object parsedMetadata = this.parseJson(metadata);
@@ -3645,7 +3645,7 @@ public class Grvt extends GrvtApi
         if (!java.util.Objects.equals(firstLeg, null))
         {
             size = this.safeString(firstLeg, "size");
-            Boolean isBuyingAsset = (java.util.Objects.equals(this.safeBool(firstLeg, "is_buying_asset", (Object) null), true));
+            Boolean isBuyingAsset = (Boolean) this.safeBool(firstLeg, "is_buying_asset", false);
             side = ((Boolean.TRUE.equals(isBuyingAsset))) ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);

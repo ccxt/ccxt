@@ -503,7 +503,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-            if (!java.util.Objects.equals(this.safeBool(candidate, "swap", (Object) null), true))
+            if (!Boolean.TRUE.equals(this.safeBool(candidate, "swap", false)))
             {
                 continue;
             }

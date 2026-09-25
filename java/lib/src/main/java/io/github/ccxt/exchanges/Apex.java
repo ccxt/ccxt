@@ -649,7 +649,7 @@ public class Apex extends ApexApi
     "id", networkId,
     "network", networkCode,
     "active", null,
-    "deposit", (!java.util.Objects.equals(this.safeBool(chain, "depositDisable", (Object) null), true)),
+    "deposit", (!Boolean.TRUE.equals(this.safeBool(chain, "depositDisable", false))),
     "withdraw", this.safeBool(token, "withdrawEnable", (Object) null),
     "fee", this.safeNumber(token, "minFee", (Object) null),
     "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))),

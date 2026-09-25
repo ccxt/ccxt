@@ -1881,11 +1881,11 @@ public class Gemini extends GeminiApi
         String remaining = this.safeString(order, "remaining_amount");
         String filled = this.safeString(order, "executed_amount");
         String status = "closed";
-        if (java.util.Objects.equals(this.safeBool(order, "is_live", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(order, "is_live", false)))
         {
             status = "open";
         }
-        if (java.util.Objects.equals(this.safeBool(order, "is_cancelled", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(order, "is_cancelled", false)))
         {
             status = "canceled";
         }

@@ -2728,7 +2728,7 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -4411,7 +4411,7 @@ public class Okx extends OkxApi
         String trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         Boolean isTrailingPriceOrder = !java.util.Objects.equals(trailingPrice, null);
         Boolean trigger = (!java.util.Objects.equals(triggerPrice, null)) || (java.util.Objects.equals(type, "trigger"));
-        Boolean isReduceOnly = (java.util.Objects.equals(this.safeBool(parameters, "reduceOnly", false), true)) || (!java.util.Objects.equals(closeFraction, null));
+        Boolean isReduceOnly = Boolean.TRUE.equals((this.safeBool(parameters, "reduceOnly", false))) || (!java.util.Objects.equals(closeFraction, null));
         String defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         String marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         Object margin = false;

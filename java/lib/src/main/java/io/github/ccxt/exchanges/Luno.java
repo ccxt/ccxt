@@ -1246,10 +1246,10 @@ public class Luno extends LunoApi
             {
                 side = "buy";
             }
-            if ((java.util.Objects.equals(side, "sell")) && (java.util.Objects.equals(this.safeBool(trade, "is_buy", (Object) null), true)))
+            if ((java.util.Objects.equals(side, "sell")) && Boolean.TRUE.equals((this.safeBool(trade, "is_buy", false))))
             {
                 takerOrMaker = "maker";
-            } else if ((java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(this.safeBool(trade, "is_buy", (Object) null), true)))
+            } else if ((java.util.Objects.equals(side, "buy")) && (!Boolean.TRUE.equals(this.safeBool(trade, "is_buy", false))))
             {
                 takerOrMaker = "maker";
             } else
@@ -1258,7 +1258,7 @@ public class Luno extends LunoApi
             }
         } else
         {
-            side = (((java.util.Objects.equals(this.safeBool(trade, "is_buy", (Object) null), true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals((this.safeBool(trade, "is_buy", false))))) ? "buy" : "sell";
         }
         String feeBaseString = this.safeString(trade, "fee_base");
         String feeCounterString = this.safeString(trade, "fee_counter");

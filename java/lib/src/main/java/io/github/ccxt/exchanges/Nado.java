@@ -2894,7 +2894,7 @@ public class Nado extends NadoApi
             } else if (java.util.Objects.equals(code, currencyId))
             {
                 Map<String, Object> market = this.safeMarket(currencyId, (Map<String, Object>) null, (String) null, "spot");
-                if (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     code = this.safeString(market, "base", code);
                 }
@@ -3417,7 +3417,7 @@ public class Nado extends NadoApi
         return ("0x" + this.padHex(this.intToBase16(productId), 40, true));
     }
 
-    public String padHex(Object value, Object length, Object left)
+    public String padHex(Object value, Object length, Boolean left)
     {
         if (java.util.Objects.equals(length, null))
         {
@@ -3425,14 +3425,14 @@ public class Nado extends NadoApi
         }
         String zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         String padded = null;
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(left, true)))
+        if (java.util.Objects.requireNonNullElse(left, true))
         {
             padded = ((zeros + value));
         } else
         {
             padded = ((value + zeros));
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(left, true)))
+        if (java.util.Objects.requireNonNullElse(left, true))
         {
             Object start = Helpers.subtract(((String)padded).length(), length);
             return Helpers.slice(padded, start, ((String)padded).length());

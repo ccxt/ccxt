@@ -1123,7 +1123,7 @@ public class Hitbtc extends HitbtcApi
             put( "id", currencyId );
             put( "precision", Hitbtc.this.safeNumber(entry, "precision_transfer", (Object) null) );
             put( "name", Hitbtc.this.safeString(entry, "full_name") );
-            put( "active", !java.util.Objects.equals(Hitbtc.this.safeBool(entry, "delisted", (Object) null), true) );
+            put( "active", !Boolean.TRUE.equals(Hitbtc.this.safeBool(entry, "delisted", false)) );
             put( "deposit", Hitbtc.this.safeBool(entry, "payin_enabled", (Object) null) );
             put( "withdraw", Hitbtc.this.safeBool(entry, "payout_enabled", (Object) null) );
             put( "networks", networks );

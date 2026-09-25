@@ -2462,7 +2462,7 @@ public class Deribit extends DeribitApi
         String filledString = this.safeString(order, "filled_amount");
         String amount = this.safeString(order, "amount");
         String cost = Precise.stringMul(filledString, averageString);
-        if (java.util.Objects.equals(this.safeBool(marketResolved, "inverse", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "inverse", false)))
         {
             if (!java.util.Objects.equals(averageString, "0"))
             {

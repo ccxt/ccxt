@@ -651,7 +651,7 @@ public class Bigone extends BigoneApi
         }
         Integer chainLength = ((List<?>)chains).size();
         String type = null;
-        if (java.util.Objects.equals(this.safeBool(rawCurrency, "is_fiat", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(rawCurrency, "is_fiat", false)))
         {
             type = "fiat";
         } else if (java.util.Objects.equals(chainLength, 0))

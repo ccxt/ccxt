@@ -1421,7 +1421,7 @@ public class Mexc extends MexcApi
                 //
                 //     {"success":true,"code":"0","data":"1648124374985"}
                 //
-                Boolean success = (java.util.Objects.equals(this.safeBool(response, "success", (Object) null), true));
+                Boolean success = (Boolean) this.safeBool(response, "success", false);
                 status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
@@ -1606,7 +1606,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -2185,7 +2185,7 @@ public class Mexc extends MexcApi
                     put( "cost", Mexc.this.safeString(trade, "fee") );
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency"), (Map<String, Object>) null) );
                 }};
-                Boolean isTaker = (java.util.Objects.equals(this.safeBool2(trade, "isTaker", "taker", (Object) null), true));
+                Boolean isTaker = (Boolean) this.safeBool2(trade, "isTaker", "taker", false);
                 takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             } else
             {

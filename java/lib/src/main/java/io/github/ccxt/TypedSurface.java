@@ -102,7 +102,7 @@ public interface TypedSurface {
     CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<Account>> loadAccounts(Object reload, Map<String, Object> params);
+    CompletableFuture<List<Account>> loadAccounts(Boolean reload, Map<String, Object> params);
     CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<LedgerEntry> fetchLedgerEntry(String id, String code, Map<String, Object> params);
@@ -475,7 +475,7 @@ public interface TypedSurface {
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since) { return fetchContractOHLCVAsync(symbol, timeframe, since, (Long) null, new HashMap<String, Object>()); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchContractOHLCVAsync(symbol, timeframe, since, limit, new HashMap<String, Object>()); }
 
-    default CompletableFuture<List<Account>> loadAccountsAsync(Object reload, Map<String, Object> params) { return this.loadAccounts(reload, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Account>> loadAccountsAsync(Boolean reload, Map<String, Object> params) { return this.loadAccounts(reload, (params != null ? params : new HashMap<String, Object>())); }
 
     default CompletableFuture<List<BorrowInterest>> fetchBorrowInterestAsync(String code, String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchBorrowInterest(code, symbol, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 

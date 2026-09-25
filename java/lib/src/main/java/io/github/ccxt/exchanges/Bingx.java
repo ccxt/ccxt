@@ -1583,7 +1583,7 @@ public class Bingx extends BingxApi
         if ((java.util.Objects.equals(this.safeString(market, "apiStateOpen"), "true")) && (java.util.Objects.equals(this.safeString(market, "apiStateClose"), "true")))
         {
             isActive = true; // swap active
-        } else if ((java.util.Objects.equals(this.safeBool(market, "apiStateSell", (Object) null), true)) && (java.util.Objects.equals(this.safeBool(market, "apiStateBuy", (Object) null), true)) && (java.util.Objects.equals(this.safeString(market, "status"), "1")))
+        } else if (Boolean.TRUE.equals((this.safeBool(market, "apiStateSell", false))) && Boolean.TRUE.equals((this.safeBool(market, "apiStateBuy", false))) && (java.util.Objects.equals(this.safeString(market, "status"), "1")))
         {
             isActive = true; // spot active
         } else if (Boolean.TRUE.equals(checkIsInverse) && (java.util.Objects.equals(this.safeString(market, "status"), "1")))

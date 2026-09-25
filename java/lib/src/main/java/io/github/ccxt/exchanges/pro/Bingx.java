@@ -903,14 +903,14 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        Boolean isSpot = (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true));
-        Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true));
+        Boolean isSpot = (Boolean) this.safeBool(market, "spot", false);
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
         String timestamp = "T";
         if (Boolean.TRUE.equals(isSpot))
         {
             timestamp = "t";
         }
-        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             timestamp = ((Boolean.TRUE.equals(isInverse))) ? "t" : "T";
         }

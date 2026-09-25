@@ -1243,7 +1243,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public CompletableFuture<Object> loadAccountSettings(Object refresh, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadAccountSettings(Boolean refresh, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

@@ -3668,7 +3668,7 @@ public class Bitget extends BitgetApi
         return new ArrayList<Object>(Arrays.asList(productType, paramsSubType));
     }
 
-    public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters, String methodName, Object defaultValue)
+    public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters, String methodName, Boolean defaultValue)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3747,7 +3747,7 @@ public class Bitget extends BitgetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }

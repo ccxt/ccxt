@@ -1192,7 +1192,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     {
         String marketId = this.safeString(trade, "s");
         String ts = this.safeString(trade, "t");
-        Boolean isMaker = (java.util.Objects.equals(this.safeBool(trade, "m", (Object) null), true));
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", false);
         String takerOrMaker = "taker";
         if (Boolean.TRUE.equals(isMaker))
         {

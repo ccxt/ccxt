@@ -502,7 +502,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(this.safeBool(info, "is_default", (Object) null), true))
+                if (Boolean.TRUE.equals(this.safeBool(info, "is_default", false)))
                 {
                     String portfolioId = this.safeString(info, "portfolio_id");
                     Helpers.addElementToObject(this.options, "portfolio", portfolioId);
