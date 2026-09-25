@@ -1058,7 +1058,7 @@ public class Bydfi extends BydfiApi
             }};
             Object startTime = since;
             Object numberOfCandles = maxLimit;
-            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0))
+            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
             {
                 numberOfCandles = limit;
             }

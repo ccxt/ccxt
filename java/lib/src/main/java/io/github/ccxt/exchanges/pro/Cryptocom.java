@@ -174,7 +174,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object limitResolved = 50;
-            if ((!java.util.Objects.equals(limit, null)) && (!Helpers.isEqual(limit, 0)))
+            if ((!java.util.Objects.equals(limit, null)) && ((limit != 0)))
             {
                 limitResolved = limit;
             }

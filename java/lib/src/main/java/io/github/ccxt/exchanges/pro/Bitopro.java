@@ -101,7 +101,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
             if (!java.util.Objects.equals(limit, null))
             {
-                if ((!Helpers.isEqual(limit, 5)) && (!Helpers.isEqual(limit, 10)) && (!Helpers.isEqual(limit, 20)) && (!Helpers.isEqual(limit, 50)) && (!Helpers.isEqual(limit, 100)) && (!Helpers.isEqual(limit, 500)) && (!Helpers.isEqual(limit, 1000)))
+                if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 50)) && ((limit != 100)) && ((limit != 500)) && ((limit != 1000)))
                 {
                     throw new ExchangeError((this.id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
                 }

@@ -3404,14 +3404,14 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(limit, null))
                 {
                     // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                    if ((!Helpers.isEqual(limit, 5)) && (!Helpers.isEqual(limit, 10)) && (!Helpers.isEqual(limit, 20)) && (!Helpers.isEqual(limit, 150)))
+                    if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 150)))
                     {
                         throw new BadRequest((this.id + " fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150")) ;
                     }
                     // only set the depth if it is not 150
                     // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
                     // it is not accepted by the exchange if you set it explicitly
-                    if (!Helpers.isEqual(limit, 150))
+                    if ((limit != 150))
                     {
                         request.put("depth", limit);
                     }

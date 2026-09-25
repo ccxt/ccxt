@@ -2293,7 +2293,7 @@ public class Mexc extends MexcApi
             Object start = since;
             if (Boolean.TRUE.equals(omitUntil))
             {
-                Object usedLimit = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : maxLimit;
+                Object usedLimit = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0)))) ? limit : maxLimit;
                 start = Helpers.subtract(until, (Helpers.multiply(usedLimit, duration)));
             }
             if (java.util.Objects.equals(market.get("spot"), true))

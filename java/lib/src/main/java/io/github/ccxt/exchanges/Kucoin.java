@@ -4614,7 +4614,7 @@ public class Kucoin extends KucoinApi
                     // stream covers the whole book while depth20/depth100 truncate the snapshot,
                     // see https://github.com/ccxt/ccxt/issues/22063
                     response = (this.futuresPublicGetLevel2Snapshot(this.extend(request, paramsMarketType))).join();
-                } else if (Helpers.isEqual(limit, 20))
+                } else if ((limit == 20))
                 {
                     //
                     //     {
@@ -4635,7 +4635,7 @@ public class Kucoin extends KucoinApi
                     //     }
                     //
                     response = (this.futuresPublicGetLevel2Depth20(this.extend(request, paramsMarketType))).join();
-                } else if (Helpers.isEqual(limit, 100))
+                } else if ((limit == 100))
                 {
                     response = (this.futuresPublicGetLevel2Depth100(this.extend(request, paramsMarketType))).join();
                 } else
@@ -4649,7 +4649,7 @@ public class Kucoin extends KucoinApi
                     request.put("level", level);
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        if ((Helpers.isEqual(limit, 20)) || (Helpers.isEqual(limit, 100)))
+                        if (((limit == 20)) || ((limit == 100)))
                         {
                             request.put("limit", limit);
                         } else

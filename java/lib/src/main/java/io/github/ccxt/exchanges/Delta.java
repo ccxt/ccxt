@@ -1870,7 +1870,7 @@ public class Delta extends DeltaApi
             }};
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long limitValue = 2000L;
-            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0))
+            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
             {
                 limitValue = limit; // max 2000
             }

@@ -790,7 +790,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
             if (!java.util.Objects.equals(limit, null))
             {
-                if ((!Helpers.isEqual(limit, 25)) && (!Helpers.isEqual(limit, 100)))
+                if (((limit != 25)) && ((limit != 100)))
                 {
                     throw new ExchangeError((this.id + " watchOrderBook limit argument must be undefined, 25 or 100")) ;
                 }

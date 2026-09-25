@@ -17165,7 +17165,7 @@ public class Binance extends BinanceApi
             if ((!java.util.Objects.equals(endTime, null)) && ((endTime == null || endTime != 0)))
             {
                 request.put("endTime", endTime);
-            } else if ((!java.util.Objects.equals(since, null)) && (!Helpers.isEqual(since, 0)))
+            } else if ((!java.util.Objects.equals(since, null)) && ((since != 0)))
             {
                 // exchange default
                 Object limitDefault = (((java.util.Objects.equals(limit, null)))) ? 30 : limit;

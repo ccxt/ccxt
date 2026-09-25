@@ -1557,7 +1557,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", market.get("id") );
             }};
-            if ((!java.util.Objects.equals(limit, null)) && (!Helpers.isEqual(limit, 0)))
+            if ((!java.util.Objects.equals(limit, null)) && ((limit != 0)))
             {
                 request.put("depth", Math.min(limit, 50)); // max 50
             }

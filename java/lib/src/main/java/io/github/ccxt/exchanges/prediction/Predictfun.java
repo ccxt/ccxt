@@ -1130,7 +1130,7 @@ public class Predictfun extends PredictfunApi
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
         // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
-        if ((Helpers.isEqual(marketCount, 1)) && (!java.util.Objects.equals(topicSlug, null)))
+        if (((marketCount != null && marketCount == 1)) && (!java.util.Objects.equals(topicSlug, null)))
         {
             return topicSlug;
         }

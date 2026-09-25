@@ -1000,7 +1000,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "books";
             Boolean incrementalFeed = true;
-            if ((Helpers.isEqual(limit, 1)) || (Helpers.isEqual(limit, 5)) || (Helpers.isEqual(limit, 15)) || (Helpers.isEqual(limit, 50)))
+            if (((limit != null && limit == 1)) || ((limit != null && limit == 5)) || ((limit != null && limit == 15)) || ((limit != null && limit == 50)))
             {
                 channel = (channel + String.valueOf(limit));
                 incrementalFeed = false;

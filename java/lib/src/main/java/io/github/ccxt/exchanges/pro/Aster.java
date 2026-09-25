@@ -1194,7 +1194,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "params", subscriptionArgs );
             }};
             Object limitResolved = 20;
-            if (Helpers.isEqual(limit, 5) || Helpers.isEqual(limit, 10) || Helpers.isEqual(limit, 20))
+            if ((limit != null && limit == 5) || (limit != null && limit == 10) || (limit != null && limit == 20))
             {
                 limitResolved = limit;
             }

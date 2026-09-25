@@ -1793,7 +1793,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                if ((!Helpers.isEqual(limit, 20)) && (!Helpers.isEqual(limit, 100)) && (!Helpers.isEqual(limit, 50)) && (!Helpers.isEqual(limit, 5)))
+                if (((limit != 20)) && ((limit != 100)) && ((limit != 50)) && ((limit != 5)))
                 {
                     throw new ExchangeError((this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")) ;
                 }
@@ -1823,7 +1823,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String method = methodOption;
             if (((String)method).indexOf("Depth") < 0)
             {
-                if ((Helpers.isEqual(limit, 5)) || (Helpers.isEqual(limit, 50)))
+                if (((limit != null && limit == 5)) || ((limit != null && limit == 50)))
                 {
                     if (!Boolean.TRUE.equals(isFuturesMethod))
                     {

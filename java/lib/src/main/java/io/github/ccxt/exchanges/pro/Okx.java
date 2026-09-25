@@ -1551,16 +1551,16 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String depth = depthOption;
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isEqual(limit, 1))
+                if ((limit == 1))
                 {
                     depth = "bbo-tbt";
                 } else if ((limit > 1) && (limit <= 5))
                 {
                     depth = "books5";
-                } else if (Helpers.isEqual(limit, 50))
+                } else if ((limit == 50))
                 {
                     depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-                } else if (Helpers.isEqual(limit, 400))
+                } else if ((limit == 400))
                 {
                     depth = "books";
                 }

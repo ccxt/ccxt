@@ -119,7 +119,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + market.get("symbol"));
@@ -170,7 +170,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : ((List<?>)symbolsNormalized).size();
             if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
@@ -450,7 +450,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
@@ -662,7 +662,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
