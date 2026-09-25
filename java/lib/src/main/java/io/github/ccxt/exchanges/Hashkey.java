@@ -2947,7 +2947,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
             String cost = this.safeString(parameters, "cost");
-            if (Helpers.isTrue((!Boolean.TRUE.equals(isMarketBuy))) && (!java.util.Objects.equals(cost, null)))
+            if ((!Boolean.TRUE.equals(isMarketBuy)) && (!java.util.Objects.equals(cost, null)))
             {
                 throw new NotSupported((this.id + " createOrder() supports cost parameter for spot market buy orders only")) ;
             }

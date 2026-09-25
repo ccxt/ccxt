@@ -1518,7 +1518,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
             }
@@ -2140,7 +2140,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", (String) null, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
             }
@@ -4018,7 +4018,7 @@ public class Grvt extends GrvtApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(((String)url).endsWith("auth/api_key/login")) || Helpers.isTrue(((String)url).endsWith("auth/wallet/login")))
+        if (((String)url).endsWith("auth/api_key/login") || ((String)url).endsWith("auth/wallet/login"))
         {
             String accountId = this.safeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id");
             Helpers.addElementToObject(this.options, "AuthAccountId", accountId);

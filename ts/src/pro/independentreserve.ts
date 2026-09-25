@@ -199,6 +199,9 @@ export default class independentreserve extends independentreserveRest {
         const quoteId = this.safeString (parts, 3);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = base + '/' + quote;
         const orderBook = this.safeDict (message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;

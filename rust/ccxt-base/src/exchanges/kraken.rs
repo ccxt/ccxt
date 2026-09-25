@@ -2654,6 +2654,9 @@ impl KrakenCore {
         let mut quoteId: Value = slice(&id, &quoteIdStart, &quoteIdEnd);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         market = Value::Map({
             let mut m = indexmap::IndexMap::new();

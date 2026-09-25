@@ -1161,7 +1161,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     public void tryResolveUsdc(Client client, Object messageHash, Object result)
     {
-        if (Helpers.isTrue(((String)messageHash).endsWith("/USD")) || Helpers.isTrue(((String)messageHash).endsWith("-USD")))
+        if (((String)messageHash).endsWith("/USD") || ((String)messageHash).endsWith("-USD"))
         {
             client.resolve(result, (messageHash + "C")); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }

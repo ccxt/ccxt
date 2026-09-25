@@ -243,15 +243,18 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	var quoteId *string = this.SafeString(parts, 3)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
+	if (base == nil) || (quote == nil) {
+		return
+	}
+	var symbol string = *base + "/" + *quote
 	var orderBook map[string]any = ccxt.MapTyped(this.SafeDict(message, "Data", map[string]any{}))
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), depth)
+	var messageHash any = ccxt.Add("orderbook:"+symbol+":", depth)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if event != nil && *event == "OrderBookSnapshot" {

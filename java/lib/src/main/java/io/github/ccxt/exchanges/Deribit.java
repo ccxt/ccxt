@@ -922,7 +922,7 @@ public class Deribit extends DeribitApi
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (Helpers.isTrue((((String)marketId).endsWith("-C"))) || Helpers.isTrue((((String)marketId).endsWith("-P"))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (((String)marketId).endsWith("-C") || ((String)marketId).endsWith("-P"));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -1187,7 +1187,7 @@ public class Deribit extends DeribitApi
             List<Object> fetchAllMarketsparamsFetchAllMarketsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
             Boolean fetchAllMarkets = (Boolean) ((List<Object>) fetchAllMarketsparamsFetchAllMarketsVariable).get(0);
             Map<String, Object> paramsFetchAllMarkets = (Map<String, Object>) ((List<Object>) fetchAllMarketsparamsFetchAllMarketsVariable).get(1);
-            if (Helpers.isTrue(fetchAllMarkets))
+            if (Boolean.TRUE.equals(fetchAllMarkets))
             {
                 Map<String, Object> instrumentsResponse = (this.publicGetGetInstruments(paramsFetchAllMarkets)).join();
                 ((List<Object>)instrumentsResponses).add(instrumentsResponse);

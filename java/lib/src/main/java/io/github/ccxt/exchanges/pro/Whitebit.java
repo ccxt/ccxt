@@ -902,7 +902,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             List<Object> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = (List<Object>) this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true);
             Boolean awaitBalanceSnapshot = (Boolean) ((List<Object>) awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable).get(0);
             var paramsAwaitBalanceSnapshot = ((List<Object>) awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable).get(1);
-            if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }

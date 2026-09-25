@@ -1965,7 +1965,7 @@ public class Blofin extends BlofinApi
             List<Object> isTpslEndpointparamsTpslVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
             Boolean isTpslEndpoint = (Boolean) ((List<Object>) isTpslEndpointparamsTpslVariable).get(0);
             Map<String, Object> paramsTpsl = (Map<String, Object>) ((List<Object>) isTpslEndpointparamsTpslVariable).get(1);
-            Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Helpers.isTrue(isTpslEndpoint);
+            Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
             Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
             Map<String, Object> response = null;
             Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", (Object) null);

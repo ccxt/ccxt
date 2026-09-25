@@ -1559,7 +1559,7 @@ public class Pacifica extends PacificaApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(defaultMaxLimit))).join();
             }
@@ -1722,7 +1722,7 @@ public class Pacifica extends PacificaApi
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
             var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
@@ -2585,7 +2585,7 @@ public class Pacifica extends PacificaApi
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
@@ -2902,7 +2902,7 @@ public class Pacifica extends PacificaApi
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             Integer defaultLimit = 100; // max default 100
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
@@ -3716,7 +3716,7 @@ public class Pacifica extends PacificaApi
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
             var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
@@ -3847,7 +3847,7 @@ public class Pacifica extends PacificaApi
                 request.put("limit", limit);
             }
             Integer defaultLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }

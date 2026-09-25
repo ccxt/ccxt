@@ -1326,10 +1326,13 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				var currencyId string = GetValue(currencyIds, j).(string)
 				var ticker any = data[currencyId]
 				var base *string = this.SafeCurrencyCode(currencyId)
-				var symbol any = Add(Add(base, "/"), quote)
+				if (base == nil) || (IsEqual(quote, nil)) {
+					continue
+				}
+				var symbol string = *base + "/" + quote
 				var market map[string]any = this.SafeMarket(symbol)
 				AddElementToObject(ticker, "date", timestamp)
-				AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
+				result[symbol] = this.ParseTicker(ticker, market)
 			}
 		}
 	}
@@ -2146,8 +2149,8 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 	}
 	AddElementToObject(paramsGeneration, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes186115 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, paramsGeneration))))
-	ch <- BoxAbsent(retRes186115)
+	var retRes186415 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, paramsGeneration))))
+	ch <- BoxAbsent(retRes186415)
 	return nil
 }
 
@@ -3104,8 +3107,8 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan any, order any, optionalArgs
 		"side": GetValue(order, "side"),
 	}
 
-	var retRes265915 map[string]any = MapTyped(PanicOnError((<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes265915)
+	var retRes266215 map[string]any = MapTyped(PanicOnError((<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes266215)
 	return nil
 }
 

@@ -392,7 +392,9 @@ class cex(ccxt.async_support.cex):
             quoteId = self.safe_string(pair, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
         timestamp = self.safe_integer(ticker, 'timestamp')
         if timestamp is not None:
             timestamp = timestamp * 1000
@@ -605,10 +607,13 @@ class cex(ccxt.async_support.cex):
         quoteId = self.safe_string(trade, 'symbol2')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            if side == 'sell':
+                symbol = quote + '/' + base
         amount = self.safe_string(trade, 'amount')
         if side == 'sell':
-            symbol = quote + '/' + base
             amount = Precise.string_div(amount, price)  # due to rounding errors amount in not exact to trade
         parsedTrade = {
             'id': self.safe_string(trade, 'id'),
@@ -715,6 +720,8 @@ class cex(ccxt.async_support.cex):
             quoteId = self.safe_string(pair, 'symbol2')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = base + '/' + quote
         market = self.safe_market(symbol)
         remains = self.currency_from_precision(base, remains)
@@ -957,6 +964,8 @@ class cex(ccxt.async_support.cex):
         data = self.safe_dict(message, 'data', {})
         pair = self.safe_string(data, 'pair')
         symbol = self.pair_to_symbol(pair)
+        if symbol is None:
+            return
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer_2(data, 'timestamp_ms', 'timestamp')
         incrementalId = self.safe_integer(data, 'id')
@@ -970,12 +979,14 @@ class cex(ccxt.async_support.cex):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def pair_to_symbol(self, pair: object) -> str:
+    def pair_to_symbol(self, pair: object) -> Str:
         parts = pair.split(':')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         return symbol
 
@@ -998,6 +1009,8 @@ class cex(ccxt.async_support.cex):
         incrementalId = self.safe_integer(data, 'id')
         pair = self.safe_string(data, 'pair', '')
         symbol = self.pair_to_symbol(pair)
+        if symbol is None:
+            return
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         messageHash = 'orderbook:' + symbol
         nonce = self.safe_integer(storedOrderBook, 'nonce')
@@ -1081,6 +1094,8 @@ class cex(ccxt.async_support.cex):
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = base + '/' + quote
         market = self.safe_market(symbol)
         messageHash = 'ohlcv:' + symbol
@@ -1124,6 +1139,8 @@ class cex(ccxt.async_support.cex):
         data = self.safe_dict(message, 'data', {})
         pair = self.safe_string(data, 'pair')
         symbol = self.pair_to_symbol(pair)
+        if symbol is None:
+            return
         messageHash = 'ohlcv:' + symbol
         ohlcv = [
             self.safe_timestamp(data, 'time'),
@@ -1150,6 +1167,8 @@ class cex(ccxt.async_support.cex):
         data = self.safe_list(message, 'data', [])
         pair = self.safe_string(message, 'pair')
         symbol = self.pair_to_symbol(pair)
+        if symbol is None:
+            return
         messageHash = 'ohlcv:' + symbol
         # const stored = this.safeValue (this.ohlcvs, symbol);
         stored = self.ohlcvs[symbol]['unknown']

@@ -109,6 +109,8 @@ class coinone(ccxt.async_support.coinone):
         quoteId = self.safe_string_upper(data, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = self.symbol(base + '/' + quote)
         timestamp = self.safe_integer(data, 'timestamp')
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -190,6 +192,8 @@ class coinone(ccxt.async_support.coinone):
         data = self.safe_dict(message, 'data', {})
         ticker = self.parse_ws_ticker(data)
         symbol = ticker['symbol']
+        if symbol is None:
+            return
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
@@ -226,7 +230,9 @@ class coinone(ccxt.async_support.coinone):
         quoteId = self.safe_string(ticker, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = self.symbol(base + '/' + quote)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = self.symbol(base + '/' + quote)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,

@@ -1725,7 +1725,7 @@ public class Kraken extends KrakenApi
         String orderId = null;
         Map<String, Object> fee = null;
         String symbol = null;
-        Boolean isOrderTrade = Helpers.isTrue((!(trade instanceof List))) && (!(trade instanceof String)) && (((Map<?, ?>)trade).containsKey("ordertxid"));
+        Boolean isOrderTrade = (!(trade instanceof List)) && (!(trade instanceof String)) && (((Map<?, ?>)trade).containsKey("ordertxid"));
         Object marketResolved = market;
         if (Boolean.TRUE.equals(isOrderTrade))
         {
@@ -2198,6 +2198,10 @@ public class Kraken extends KrakenApi
         String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         market = Helpers.newMap(
             "symbol", symbol,
@@ -2400,7 +2404,7 @@ public class Kraken extends KrakenApi
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
         // when type = trailing stop returns price = '+50.0000%'
-        if ((!java.util.Objects.equals(price, null)) && (Helpers.isTrue(((String)price).endsWith("%")) || Precise.stringEquals(price, "0.00000") || Precise.stringEquals(price, "0")))
+        if ((!java.util.Objects.equals(price, null)) && (((String)price).endsWith("%") || Precise.stringEquals(price, "0.00000") || Precise.stringEquals(price, "0")))
         {
             price = null; // this is not the price we want
         }
@@ -2543,7 +2547,7 @@ public class Kraken extends KrakenApi
         String trailingLimitPercent = this.safeString(paramsOmitted, "trailingLimitPercent");
         Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
         Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-        Boolean isLimitOrder = (!java.util.Objects.equals(type, null)) && Helpers.isTrue(((String)type).endsWith("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        Boolean isLimitOrder = (!java.util.Objects.equals(type, null)) && ((String)type).endsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         String cost = this.safeString(paramsOmitted, "cost");
         String flags = this.safeString(paramsOmitted, "oflags");
@@ -2601,7 +2605,7 @@ public class Kraken extends KrakenApi
             String trailingPercentString = null;
             if (!java.util.Objects.equals(trailingPercent, null))
             {
-                trailingPercentString = ((Helpers.isTrue((((String)trailingPercent).endsWith(((String)"%")))))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
+                trailingPercentString = ((((String)trailingPercent).endsWith(((String)"%")))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
             }
             String trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? ("+" + trailingAmount) : null; // must use + for this
             String offset = this.safeString(paramsOmitted2, "offset", "-"); // can use + or - for this
@@ -2613,7 +2617,7 @@ public class Kraken extends KrakenApi
                 request.put("ordertype", "trailing-stop-limit");
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
-                    String trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
+                    String trailingLimitPercentString = ((((String)trailingLimitPercent).endsWith(((String)"%")))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
                     Helpers.addElementToObject(request, "price", trailingPercentString);
                     request.put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
@@ -3717,7 +3721,7 @@ public class Kraken extends KrakenApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 ((Map<String, Object>)paramsPaginate).put("cursor", true);
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, (Long) null)).join();
@@ -4293,7 +4297,7 @@ public class Kraken extends KrakenApi
             Boolean isTriggerPercent = false;
             if (!java.util.Objects.equals(price, null))
             {
-                isTriggerPercent = ((Helpers.isTrue((((String)price).endsWith(((String)"%")))))) ? true : false;
+                isTriggerPercent = ((((String)price).endsWith(((String)"%")))) ? true : false;
             }
             Boolean isCancelOrderBatch = (java.util.Objects.equals(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));

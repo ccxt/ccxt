@@ -691,12 +691,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String group = (String) ((List<Object>) groupparamsGroupVariable).get(0);
             Map<String, Object> paramsGroup = (Map<String, Object>) ((List<Object>) groupparamsGroupVariable).get(1);
             String descriptor = interval;
-            if (Helpers.isTrue(useDepthEndpoint))
+            if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 descriptor = ((((group + ".") + depth) + ".") + interval);
             }
             Object paramsResolved = paramsUseDepthEndpoint;
-            if (Helpers.isTrue(useDepthEndpoint))
+            if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 paramsResolved = paramsGroup;
             }

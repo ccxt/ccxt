@@ -2150,7 +2150,7 @@ public class Predictfun extends PredictfunApi
                 strategy = "MARKET";
             }
             Boolean isMarket = (java.util.Objects.equals(strategy, "MARKET"));
-            if (Helpers.isTrue((!Boolean.TRUE.equals(isMarket))) && (java.util.Objects.equals(price, null)))
+            if ((!Boolean.TRUE.equals(isMarket)) && (java.util.Objects.equals(price, null)))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a \"price\" argument for a limit order")) ;
             }
@@ -2173,7 +2173,7 @@ public class Predictfun extends PredictfunApi
             if (java.util.Objects.equals(price, null))
             {
                 // a priceless limit order already threw above, so this is a market order
-                if (Helpers.isTrue(warnOnMarketOrderWithoutPrice))
+                if (Boolean.TRUE.equals(warnOnMarketOrderWithoutPrice))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
                 }
@@ -4432,7 +4432,7 @@ public class Predictfun extends PredictfunApi
         Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
         Object headersValue = existingHeaders;
         Map<String, Object> authHeaders = new HashMap<String, Object>() {{}};
-        if ((!java.util.Objects.equals(apiKey, null)) && Helpers.isTrue((!Boolean.TRUE.equals(sandboxMode))))
+        if ((!java.util.Objects.equals(apiKey, null)) && (!Boolean.TRUE.equals(sandboxMode)))
         {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
             // since sign () has a parameter of that name - ending the literal right after it avoids that

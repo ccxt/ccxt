@@ -115,6 +115,9 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string_upper($data, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $this->symbol($base . '/' . $quote);
         $timestamp = $this->safe_integer($data, 'timestamp');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -205,6 +208,9 @@ class coinone extends \ccxt\async\coinone {
         $data = $this->safe_dict($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
         $symbol = $ticker['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve($this->tickers[$symbol], $messageHash);
@@ -242,7 +248,10 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string($ticker, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $this->symbol($base . '/' . $quote);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $this->symbol($base . '/' . $quote);
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

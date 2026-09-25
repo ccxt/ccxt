@@ -6955,7 +6955,7 @@ public class Binance extends BinanceApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000))).join();
             }
@@ -7919,7 +7919,7 @@ public class Binance extends BinanceApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiPutUmOrder(this.extend(request, paramsPapi))).join();
                 } else
@@ -7928,7 +7928,7 @@ public class Binance extends BinanceApi
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiPutCmOrder(this.extend(request, paramsPapi))).join();
                 } else
@@ -9174,7 +9174,7 @@ public class Binance extends BinanceApi
         Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
-        Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
+        Boolean isPortfolioMarginConditional = (Boolean.TRUE.equals(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
         Boolean isPriceMatch = !java.util.Objects.equals(priceMatch, null);
         Boolean priceRequiredForTrailing = true;
         String uppercaseType = ((String)type).toUpperCase();
@@ -9282,7 +9282,7 @@ public class Binance extends BinanceApi
         {
             clientOrderIdRequest = "newClientStrategyId";
         }
-        if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional) && !Helpers.isTrue(isPortfolioMargin))
+        if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional) && !Boolean.TRUE.equals(isPortfolioMargin))
         {
             clientOrderIdRequest = "clientAlgoId";
         } else if (java.util.Objects.equals(stock, true))
@@ -9310,7 +9310,7 @@ public class Binance extends BinanceApi
             request.put((String)clientOrderIdRequest, clientOrderId);
         }
         Object postOnly = null;
-        if (!Helpers.isTrue(isPortfolioMargin))
+        if (!Boolean.TRUE.equals(isPortfolioMargin))
         {
             postOnly = this.isPostOnly(isMarketOrder, java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), Helpers.toMapArg(paramsPapi));
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || java.util.Objects.equals(marketType, "margin"))
@@ -9340,7 +9340,7 @@ public class Binance extends BinanceApi
             }
         }
         // handle newOrderRespType response type
-        if (((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin"))) && !Helpers.isTrue(isPortfolioMargin) && (!java.util.Objects.equals(stock, true)))
+        if (((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin"))) && !Boolean.TRUE.equals(isPortfolioMargin) && (!java.util.Objects.equals(stock, true)))
         {
             request.put("newOrderRespType", this.safeString(((Map<String, Object>)this.options).get("newOrderRespType"), type, "FULL")); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else if (!java.util.Objects.equals(stock, true))
@@ -9551,7 +9551,7 @@ public class Binance extends BinanceApi
             }
             if (!java.util.Objects.equals(stopPrice, null))
             {
-                if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Helpers.isTrue(isPortfolioMargin))
+                if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     request.put("triggerPrice", this.priceToPrecision(symbol, stopPrice));
                 } else
@@ -9564,7 +9564,7 @@ public class Binance extends BinanceApi
         {
             request.put("timeInForce", this.handleOption("createOrder", "timeInForce", (Object) null)); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (!Helpers.isTrue(isPortfolioMargin) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && Boolean.TRUE.equals(postOnly))
+        if (!Boolean.TRUE.equals(isPortfolioMargin) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && Boolean.TRUE.equals(postOnly))
         {
             request.put("timeInForce", "GTX");
         }
@@ -10448,7 +10448,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsPapi = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
             Object paramsOmitted = this.omit(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
-            Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
+            Boolean isPortfolioMarginConditional = (Boolean.TRUE.equals(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
             String orderIdRequest = "orderId";
             if (java.util.Objects.equals(isPortfolioMarginConditional, true))
             {
@@ -10458,7 +10458,7 @@ public class Binance extends BinanceApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     if (java.util.Objects.equals(isConditional, true))
                     {
@@ -10473,7 +10473,7 @@ public class Binance extends BinanceApi
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     if (java.util.Objects.equals(isConditional, true))
                     {
@@ -13021,7 +13021,7 @@ public class Binance extends BinanceApi
             Map<String, Object> response = null;
             if (isLinear)
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetUmCommissionRate(this.extend(request, paramsPapi))).join();
                 } else
@@ -13030,7 +13030,7 @@ public class Binance extends BinanceApi
                 }
             } else if (isInverse)
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmCommissionRate(this.extend(request, paramsPapi))).join();
                 } else
@@ -14290,7 +14290,7 @@ public class Binance extends BinanceApi
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetUmLeverageBracket(paramsPapi)).join();
                 } else
@@ -14299,7 +14299,7 @@ public class Binance extends BinanceApi
                 }
             } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmLeverageBracket(paramsPapi)).join();
                 } else
@@ -14691,7 +14691,7 @@ public class Binance extends BinanceApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiV2GetUmAccount(paramsPapi)).join();
                 } else
@@ -14699,7 +14699,7 @@ public class Binance extends BinanceApi
                     List<Object> useV2paramsUseV2Variable = (List<Object>) this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "useV2", false);
                     Boolean useV2 = (Boolean) ((List<Object>) useV2paramsUseV2Variable).get(0);
                     Map<String, Object> paramsUseV2 = (Map<String, Object>) ((List<Object>) useV2paramsUseV2Variable).get(1);
-                    if (!Helpers.isTrue(useV2))
+                    if (!Boolean.TRUE.equals(useV2))
                     {
                         response = (this.fapiPrivateV3GetAccount(paramsUseV2)).join();
                     } else
@@ -14709,7 +14709,7 @@ public class Binance extends BinanceApi
                 }
             } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmAccount(paramsPapi)).join();
                 } else
@@ -14974,7 +14974,7 @@ public class Binance extends BinanceApi
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetUmIncome(this.extend(requestUntil, paramsOmitted))).join();
                 } else
@@ -14983,7 +14983,7 @@ public class Binance extends BinanceApi
                 }
             } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmIncome(this.extend(requestUntil, paramsOmitted))).join();
                 } else
@@ -15043,7 +15043,7 @@ public class Binance extends BinanceApi
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiPostUmLeverage(this.extend(request, paramsPapi))).join();
                 } else
@@ -15052,7 +15052,7 @@ public class Binance extends BinanceApi
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiPostCmLeverage(this.extend(request, paramsPapi))).join();
                 } else
@@ -15212,7 +15212,7 @@ public class Binance extends BinanceApi
             Object response = null;
             if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiPostCmPositionSideDual(this.extend(request, paramsPapi))).join();
                 } else
@@ -15221,7 +15221,7 @@ public class Binance extends BinanceApi
                 }
             } else if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiPostUmPositionSideDual(this.extend(request, paramsPapi))).join();
                 } else
@@ -15283,7 +15283,7 @@ public class Binance extends BinanceApi
             Object response = null;
             if (Boolean.TRUE.equals(this.isLinear(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetUmAccount(paramsPapi)).join();
                 } else
@@ -15292,7 +15292,7 @@ public class Binance extends BinanceApi
                 }
             } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmAccount(paramsPapi)).join();
                 } else
@@ -15857,7 +15857,7 @@ public class Binance extends BinanceApi
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             Object baseDomain = this.getBaseDomainFromUrl(siteUrl);
-            if (!java.util.Objects.equals(siteUrl, null) && !java.util.Objects.equals(baseDomain, null) && Helpers.isTrue(((String)depositUrl).startsWith(((String)baseDomain))))
+            if (!java.util.Objects.equals(siteUrl, null) && !java.util.Objects.equals(baseDomain, null) && ((String)depositUrl).startsWith(((String)baseDomain)))
             {
                 networkCode = currentNetworkCode;
             }
@@ -16086,19 +16086,19 @@ public class Binance extends BinanceApi
         }
         String marketType = null;
         Object hostname = (((!java.util.Objects.equals(this.hostname, null)))) ? this.hostname : "binance.com";
-        if (Helpers.isTrue(((String)url).startsWith((("https://api." + hostname) + "/"))) || Helpers.isTrue(((String)url).startsWith("https://demo-api")) || Helpers.isTrue(((String)url).startsWith("https://testnet.binance.vision")))
+        if (((String)url).startsWith((("https://api." + hostname) + "/")) || ((String)url).startsWith("https://demo-api") || ((String)url).startsWith("https://testnet.binance.vision"))
         {
             marketType = "spot";
-        } else if (Helpers.isTrue(((String)url).startsWith((("https://dapi." + hostname) + "/"))) || Helpers.isTrue(((String)url).startsWith("https://demo-dapi")) || Helpers.isTrue(((String)url).startsWith("https://testnet.binancefuture.com/dapi")))
+        } else if (((String)url).startsWith((("https://dapi." + hostname) + "/")) || ((String)url).startsWith("https://demo-dapi") || ((String)url).startsWith("https://testnet.binancefuture.com/dapi"))
         {
             marketType = "inverse";
-        } else if (Helpers.isTrue(((String)url).startsWith((("https://fapi." + hostname) + "/"))) || Helpers.isTrue(((String)url).startsWith("https://demo-fapi")) || Helpers.isTrue(((String)url).startsWith("https://testnet.binancefuture.com/fapi")))
+        } else if (((String)url).startsWith((("https://fapi." + hostname) + "/")) || ((String)url).startsWith("https://demo-fapi") || ((String)url).startsWith("https://testnet.binancefuture.com/fapi"))
         {
             marketType = "linear";
-        } else if (Helpers.isTrue(((String)url).startsWith((("https://eapi." + hostname) + "/"))))
+        } else if (((String)url).startsWith((("https://eapi." + hostname) + "/")))
         {
             marketType = "option";
-        } else if (Helpers.isTrue(((String)url).startsWith((("https://papi." + hostname) + "/"))))
+        } else if (((String)url).startsWith((("https://papi." + hostname) + "/")))
         {
             marketType = "portfolioMargin";
         }
@@ -16795,7 +16795,7 @@ public class Binance extends BinanceApi
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             Map<String, Object> response = null;
-            if (Helpers.isTrue(isPortfolioMargin))
+            if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 response = (this.papiGetMarginMarginInterestHistory(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -17002,7 +17002,7 @@ public class Binance extends BinanceApi
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(0);
             Map<String, Object> paramsPapi = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
-            if (Helpers.isTrue(isPortfolioMargin))
+            if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 response = (this.papiPostMarginLoan(this.extend(request, paramsPapi))).join();
             } else
@@ -17125,7 +17125,7 @@ public class Binance extends BinanceApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(500))).join();
             }
@@ -17370,7 +17370,7 @@ public class Binance extends BinanceApi
                 {
                     symbolKey = "isolatedSymbol";
                 }
-                if (!Helpers.isTrue(isPortfolioMargin))
+                if (!Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     request.put((String)symbolKey, ((Map<String, Object>)market).get("id"));
                 }
@@ -17395,7 +17395,7 @@ public class Binance extends BinanceApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetMarginForceOrders(this.extend(requestUntil, paramsUntil))).join();
                 } else
@@ -17404,7 +17404,7 @@ public class Binance extends BinanceApi
                 }
             } else if (java.util.Objects.equals(subType, "linear"))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetUmForceOrders(this.extend(requestUntil, paramsUntil))).join();
                 } else
@@ -17413,7 +17413,7 @@ public class Binance extends BinanceApi
                 }
             } else if (java.util.Objects.equals(subType, "inverse"))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmForceOrders(this.extend(requestUntil, paramsUntil))).join();
                 } else
@@ -18758,7 +18758,7 @@ public class Binance extends BinanceApi
             List<Object> response = null;
             if (java.util.Objects.equals(subType, "linear"))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetUmAdlQuantile(paramsPapi)).join();
                 } else
@@ -18767,7 +18767,7 @@ public class Binance extends BinanceApi
                 }
             } else if (java.util.Objects.equals(subType, "inverse"))
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     response = (this.papiGetCmAdlQuantile(paramsPapi)).join();
                 } else

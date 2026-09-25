@@ -1158,6 +1158,9 @@ class bithumb extends Exchange {
                     $currencyId = $currencyIds[$j];
                     $ticker = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
+                    if (($base === null) || ($quote === null)) {
+                        continue;
+                    }
                     $symbol = $base . '/' . $quote;
                     $market = $this->safe_market($symbol);
                     $ticker['date'] = $timestamp;

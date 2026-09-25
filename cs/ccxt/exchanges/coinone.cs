@@ -870,10 +870,15 @@ public partial class coinone : Exchange
         List<object> bids = this.safeList(ticker, "best_bids", new List<object>() {});
         string? baseId = this.safeString(ticker, "target_currency");
         string? quoteId = this.safeString(ticker, "quote_currency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = ((bs + "/") + quote);
+        }
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "high") },

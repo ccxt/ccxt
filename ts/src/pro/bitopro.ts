@@ -257,6 +257,9 @@ export default class bitopro extends bitoproRest {
         const quoteId = this.safeString (data, 'quote');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = this.symbol (base + '/' + quote);
         const messageHash = this.safeString (message, 'event');
         if (this.myTrades === undefined) {

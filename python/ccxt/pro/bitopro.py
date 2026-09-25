@@ -237,6 +237,8 @@ class bitopro(ccxt.async_support.bitopro):
         quoteId = self.safe_string(data, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = self.symbol(base + '/' + quote)
         messageHash = self.safe_string(message, 'event')
         if self.myTrades is None:

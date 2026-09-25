@@ -454,6 +454,9 @@ impl IndependentreserveCore {
         let mut quoteId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut orderBook: Value = (match message.get("Data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();

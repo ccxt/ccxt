@@ -1237,11 +1237,11 @@ public class Binance extends BinanceApi
         {
             return null;
         }
-        if (Helpers.isTrue(((String)status).endsWith("Rejected")))
+        if (((String)status).endsWith("Rejected"))
         {
             return "rejected";
         }
-        if (Helpers.isTrue(((String)status).endsWith("Canceled")))
+        if (((String)status).endsWith("Canceled"))
         {
             return "canceled";
         }

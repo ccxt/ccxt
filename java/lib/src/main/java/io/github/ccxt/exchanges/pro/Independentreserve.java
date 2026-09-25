@@ -236,7 +236,11 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String quoteId = this.safeString(parts, 3);
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
         String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
-        Object symbol = Helpers.add((base + "/"), quote);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return;
+        }
+        String symbol = ((base + "/") + quote);
         Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = ((("orderbook:" + symbol) + ":") + depth);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
@@ -292,9 +296,9 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             Long responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 ((Map<String,Object>)client.subscriptions).remove(messageHash);
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                ((Map<String,Object>)this.orderbooks).remove(symbol);
                 client.reject(error, messageHash);
                 return;
             }
