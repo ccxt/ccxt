@@ -532,7 +532,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(array $trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]

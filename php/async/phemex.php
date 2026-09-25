@@ -1763,7 +1763,7 @@ class phemex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         //
         // fetchTrades (public) spot & contract
         //

@@ -775,7 +775,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market(array $response): array {
+    public function parse_market(mixed $response): array {
         //
         // response might be:
         //
