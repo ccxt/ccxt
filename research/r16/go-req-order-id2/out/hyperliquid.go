@@ -1,0 +1,6401 @@
+import "strings"
+
+type Hyperliquid struct {
+	Exchange
+}
+
+func NewHyperliquid() *Hyperliquid {
+	p := &Hyperliquid{}
+	setDefaults(p)
+	return p
+}
+
+func (this *Hyperliquid) Describe() any {
+	return this.DeepExtend(base.Describe(), map[string]any{
+		"id":        "hyperliquid",
+		"name":      "Hyperliquid",
+		"countries": []any{},
+		"version":   "v1",
+		"rateLimit": 50,
+		"certified": true,
+		"pro":       true,
+		"dex":       true,
+		"has": map[string]any{
+			"CORS":                                 nil,
+			"spot":                                 true,
+			"margin":                               false,
+			"swap":                                 true,
+			"future":                               false,
+			"option":                               false,
+			"addMargin":                            true,
+			"borrowCrossMargin":                    false,
+			"borrowIsolatedMargin":                 false,
+			"cancelAllOrders":                      false,
+			"cancelAllOrdersAfter":                 true,
+			"cancelOrder":                          true,
+			"cancelOrders":                         true,
+			"cancelOrdersForSymbols":               true,
+			"closeAllPositions":                    false,
+			"closePosition":                        false,
+			"createMarketBuyOrderWithCost":         false,
+			"createMarketOrderWithCost":            false,
+			"createMarketSellOrderWithCost":        false,
+			"createOrder":                          true,
+			"createOrders":                         true,
+			"createOrderWithTakeProfitAndStopLoss": true,
+			"createReduceOnlyOrder":                true,
+			"createStopOrder":                      true,
+			"createTriggerOrder":                   true,
+			"editOrder":                            true,
+			"editOrders":                           true,
+			"fetchAccounts":                        false,
+			"fetchBalance":                         true,
+			"fetchBorrowInterest":                  false,
+			"fetchBorrowRateHistories":             false,
+			"fetchBorrowRateHistory":               false,
+			"fetchCanceledAndClosedOrders":         true,
+			"fetchCanceledOrders":                  true,
+			"fetchClosedOrders":                    true,
+			"fetchCrossBorrowRate":                 false,
+			"fetchCrossBorrowRates":                false,
+			"fetchCurrencies":                      true,
+			"fetchDepositAddress":                  false,
+			"fetchDepositAddresses":                false,
+			"fetchDeposits":                        true,
+			"fetchDepositWithdrawFee":              "emulated",
+			"fetchDepositWithdrawFees":             false,
+			"fetchFundingHistory":                  true,
+			"fetchFundingRate":                     true,
+			"fetchFundingRateHistory":              true,
+			"fetchFundingRates":                    true,
+			"fetchIndexOHLCV":                      false,
+			"fetchIsolatedBorrowRate":              false,
+			"fetchIsolatedBorrowRates":             false,
+			"fetchLedger":                          true,
+			"fetchLeverage":                        false,
+			"fetchLeverageTiers":                   false,
+			"fetchLiquidations":                    false,
+			"fetchMarginMode":                      nil,
+			"fetchMarketLeverageTiers":             false,
+			"fetchMarkets":                         true,
+			"fetchMarkOHLCV":                       false,
+			"fetchMyLiquidations":                  false,
+			"fetchMyTrades":                        true,
+			"fetchOHLCV":                           true,
+			"fetchOpenInterest":                    true,
+			"fetchOpenInterestHistory":             false,
+			"fetchOpenInterests":                   true,
+			"fetchOpenOrders":                      true,
+			"fetchOrder":                           true,
+			"fetchOrderBook":                       true,
+			"fetchOrders":                          true,
+			"fetchOrderTrades":                     false,
+			"fetchPosition":                        true,
+			"fetchPositionMode":                    false,
+			"fetchPositions":                       true,
+			"fetchPositionsRisk":                   false,
+			"fetchPremiumIndexOHLCV":               false,
+			"fetchStatus":                          true,
+			"fetchTicker":                          "emulated",
+			"fetchTickers":                         true,
+			"fetchTime":                            true,
+			"fetchTrades":                          true,
+			"fetchTradingFee":                      true,
+			"fetchTradingFees":                     false,
+			"fetchTransfer":                        false,
+			"fetchTransfers":                       false,
+			"fetchWithdrawal":                      false,
+			"fetchWithdrawals":                     true,
+			"reduceMargin":                         true,
+			"repayCrossMargin":                     false,
+			"repayIsolatedMargin":                  false,
+			"sandbox":                              true,
+			"setLeverage":                          true,
+			"setMarginMode":                        true,
+			"setPositionMode":                      false,
+			"transfer":                             true,
+			"withdraw":                             true,
+		},
+		"timeframes": map[string]any{
+			"1m":  "1m",
+			"3m":  "3m",
+			"5m":  "5m",
+			"15m": "15m",
+			"30m": "30m",
+			"1h":  "1h",
+			"2h":  "2h",
+			"4h":  "4h",
+			"8h":  "8h",
+			"12h": "12h",
+			"1d":  "1d",
+			"3d":  "3d",
+			"1w":  "1w",
+			"1M":  "1M",
+		},
+		"hostname": "hyperliquid.xyz",
+		"urls": map[string]any{
+			"logo": "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8",
+			"api": map[string]any{
+				"public":  "https://api.{hostname}",
+				"private": "https://api.{hostname}",
+			},
+			"test": map[string]any{
+				"public":  "https://api.hyperliquid-testnet.xyz",
+				"private": "https://api.hyperliquid-testnet.xyz",
+			},
+			"www":      "https://hyperliquid.xyz",
+			"doc":      "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api",
+			"fees":     "https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees",
+			"referral": "https://app.hyperliquid.xyz/",
+		},
+		"api": map[string]any{
+			"public": map[string]any{
+				"post": map[string]any{
+					"info": map[string]any{
+						"cost": 20,
+						"byType": map[string]any{
+							"l2Book":                 2,
+							"allMids":                2,
+							"clearinghouseState":     2,
+							"orderStatus":            2,
+							"spotClearinghouseState": 2,
+							"exchangeStatus":         2,
+							"candleSnapshot":         4,
+						},
+					},
+				},
+			},
+			"private": map[string]any{
+				"post": map[string]any{
+					"exchange": map[string]any{
+						"cost": 1,
+					},
+				},
+			},
+		},
+		"fees": map[string]any{
+			"swap": map[string]any{
+				"taker": this.ParseNumber("0.00045"),
+				"maker": this.ParseNumber("0.00015"),
+			},
+			"spot": map[string]any{
+				"taker": this.ParseNumber("0.0007"),
+				"maker": this.ParseNumber("0.0004"),
+			},
+		},
+		"requiredCredentials": map[string]any{
+			"apiKey":        false,
+			"secret":        false,
+			"walletAddress": true,
+			"privateKey":    true,
+		},
+		"exceptions": map[string]any{
+			"exact": map[string]any{},
+			"broad": map[string]any{
+				"Price must be divisible by tick size.":                              InvalidOrder,
+				"Order must have minimum value of $10":                               InvalidOrder,
+				"Insufficient margin to place order.":                                InsufficientFunds,
+				"Reduce only order would increase position.":                         InvalidOrder,
+				"Post only order would have immediately matched,":                    InvalidOrder,
+				"Order could not immediately match against any resting orders.":      InvalidOrder,
+				"Invalid TP/SL price.":                                               InvalidOrder,
+				"No liquidity available for market order.":                           InvalidOrder,
+				"Order was never placed, already canceled, or filled.":               OrderNotFound,
+				"User or API Wallet ":                                                InvalidOrder,
+				"Order has invalid size":                                             InvalidOrder,
+				"Order price cannot be more than 80% away from the reference price":  InvalidOrder,
+				"Order has zero size.":                                               InvalidOrder,
+				"Insufficient spot balance asset":                                    InsufficientFunds,
+				"Insufficient balance for withdrawal":                                InsufficientFunds,
+				"Insufficient balance for token transfer":                            InsufficientFunds,
+				"TWAP order value too small. Min is $1200, which is $10 per minute.": InvalidOrder,
+				"TWAP was never placed, already canceled, or filled.":                OrderNotFound,
+				"Too many cumulative requests sent":                                  RateLimitExceeded,
+			},
+		},
+		"precisionMode":    TICK_SIZE,
+		"commonCurrencies": map[string]any{},
+		"options": map[string]any{
+			"defaultType":       "swap",
+			"sandboxMode":       false,
+			"builderFee":        true,
+			"defaultSlippage":   0.05,
+			"marketHelperProps": []any{"hip3TokensByName", "cachedCurrenciesById"},
+			"zeroAddress":       "0x0000000000000000000000000000000000000000",
+			"spotCurrencyMapping": map[string]any{
+				"UDZ":    "2Z",
+				"UBONK":  "BONK",
+				"UBTC":   "BTC",
+				"UETH":   "ETH",
+				"UFART":  "FARTCOIN",
+				"HPENGU": "PENGU",
+				"UPUMP":  "PUMP",
+				"USOL":   "SOL",
+				"UUUSPX": "SPX",
+				"USDT0":  "USDT",
+				"XAUT0":  "XAUT",
+				"UXPL":   "XPL",
+			},
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot", "swap", "hip3"},
+				"hip3": map[string]any{
+					"limit": 10,
+					"dexes": []any{},
+				},
+			},
+		},
+		"features": map[string]any{
+			"default": map[string]any{
+				"sandbox": true,
+				"createOrder": map[string]any{
+					"marginMode":       false,
+					"triggerPrice":     false,
+					"triggerPriceType": nil,
+					"triggerDirection": false,
+					"stopLossPrice":    false,
+					"takeProfitPrice":  false,
+					"attachedStopLossTakeProfit": map[string]any{
+						"triggerPriceType": map[string]any{
+							"last":  false,
+							"mark":  false,
+							"index": false,
+						},
+						"triggerPrice": true,
+						"type":         true,
+						"price":        true,
+					},
+					"timeInForce": map[string]any{
+						"IOC": true,
+						"FOK": false,
+						"PO":  true,
+						"GTD": false,
+					},
+					"hedged":                 false,
+					"trailing":               false,
+					"leverage":               false,
+					"marketBuyByCost":        false,
+					"marketBuyRequiresPrice": false,
+					"selfTradePrevention":    false,
+					"iceberg":                false,
+				},
+				"createOrders": map[string]any{
+					"max": 1000,
+				},
+				"fetchMyTrades": map[string]any{
+					"marginMode":     false,
+					"limit":          2000,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"symbolRequired": true,
+				},
+				"fetchOrder": map[string]any{
+					"marginMode":     false,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchOpenOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          2000,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          2000,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchClosedOrders": map[string]any{
+					"marginMode":       false,
+					"limit":            2000,
+					"daysBack":         nil,
+					"daysBackCanceled": nil,
+					"untilDays":        nil,
+					"trigger":          false,
+					"trailing":         false,
+					"symbolRequired":   true,
+				},
+				"fetchOHLCV": map[string]any{
+					"limit": 5000,
+				},
+			},
+			"spot": map[string]any{
+				"extends": "default",
+			},
+			"forPerps": map[string]any{
+				"extends": "default",
+				"createOrder": map[string]any{
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
+					"attachedStopLossTakeProfit": nil,
+				},
+			},
+			"swap": map[string]any{
+				"linear": map[string]any{
+					"extends": "forPerps",
+				},
+				"inverse": map[string]any{
+					"extends": "forPerps",
+				},
+			},
+			"future": map[string]any{
+				"linear": map[string]any{
+					"extends": "forPerps",
+				},
+				"inverse": map[string]any{
+					"extends": "forPerps",
+				},
+			},
+		},
+		"rollingWindowSize": 0,
+	})
+}
+func (this *Hyperliquid) SetSandboxMode(enabled any) {
+	base.SetSandboxMode(enabled)
+	this.Options.Store("sandboxMode", enabled)
+}
+func (this *Hyperliquid) Nonce() any {
+	// the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+	// incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+	return this.Milliseconds()
+}
+func (this *Hyperliquid) Market(symbol any) any {
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
+	}
+	if this.Markets == nil {
+		panic(ExchangeError(this.Id + " markets not loaded"))
+	}
+	if (symbol != nil) && !(InOp(this.Markets, symbol)) {
+		var symbolParts []string = Split(symbol, "/")
+		var baseName *string = this.SafeString(symbolParts, 0)
+		var spotCurrencyMapping map[string]any = SafeMapTyped(this.Options, "spotCurrencyMapping")
+		if InOp(spotCurrencyMapping, baseName) {
+			var unifiedBaseName *string = this.SafeString(spotCurrencyMapping, baseName)
+			var quote *string = this.SafeString(symbolParts, 1)
+			var newSymbol any = Add(Add(this.SafeCurrencyCode(unifiedBaseName), "/"), quote)
+			if InOp(this.Markets, newSymbol) {
+				return GetValue(this.Markets, newSymbol)
+			}
+		}
+	}
+	return base.Market(symbol)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *Hyperliquid) FetchStatusAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchStatusBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"type": "exchangeStatus",
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "status": "ok"
+	//     }
+	//
+	var status *string = this.SafeString(response, "specialStatuses")
+
+	ch <- map[string]any{
+		"status": func() string {
+			if status == nil {
+				return "ok"
+			}
+			return "maintenance"
+		}(),
+		"updated": this.SafeInteger(response, "time"),
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
+	}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
+ */
+func (this *Hyperliquid) FetchTimeAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"type": "exchangeStatus",
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	// { specialStatuses: null, time: '1764617438643' }
+	//
+	ch <- this.SafeInteger(response, "time")
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Hyperliquid) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.CheckRequiredCredentials(false) {
+
+		PanicOnError((<-this.InitializeClientAsync()))
+	}
+	var request map[string]any = map[string]any{
+		"type": "spotMeta",
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "universe": [
+	//                 {
+	//                     "maxLeverage": 50,
+	//                     "name": "SOL",
+	//                     "onlyIsolated": false,
+	//                     "szDecimals": 2
+	//                 }
+	//             ]
+	//         }
+	//     ]
+	//
+	// const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
+	var tokens []any = SafeListTypedDefault(response, "tokens", []any{})
+	// const meta = this.safeList (response, 'universe', []);
+	this.Options.Store("cachedCurrenciesById", map[string]any{}) // used to map hip3 markets
+
+	ch <- this.ParseCurrencies(tokens)
+	return nil
+}
+func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
+	// const id = i;
+	var id *string = this.SafeString(rawCurrency, "index")
+	var name *string = this.SafeString(rawCurrency, "name")
+	var code *string = this.SafeCurrencyCode(name)
+	AddElementToObject(GetValue(this.Options, "cachedCurrenciesById"), id, name)
+	var result any = this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"name":      name,
+		"code":      code,
+		"precision": this.ParsePrecision(this.SafeString(rawCurrency, "weiDecimals")),
+		"info":      rawCurrency,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"networks":  nil,
+		"fee":       nil,
+		"type":      "crypto",
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+	})
+	// add in wrapped map
+	var fullName *string = this.SafeString(rawCurrency, "fullName")
+	if (fullName != nil) && (name != nil) {
+		var isWrapped bool = strings.HasPrefix(*fullName, "Unit ") && strings.HasPrefix(*name, "U")
+		if isWrapped {
+			var parts []string = strings.Split(*name, "U")
+			var nameWithoutU any = ""
+			for j := 0; j < len(parts); j++ {
+				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
+			}
+			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
+			if code != nil {
+				AddElementToObject(GetValue(this.Options, "spotCurrencyMapping"), code, baseCode)
+			}
+		}
+	}
+	return result
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchMarkets
+ * @description retrieves data on all markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchMarketsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var types []any = SafeListTyped(options, "types")
+	var rawPromises []any = []any{}
+	for i := 0; i < len(types); i++ {
+		var marketType *string = this.SafeString(types, i)
+		if marketType != nil && *marketType == "swap" {
+			rawPromises = append(rawPromises, this.FetchSwapMarketsAsync(params))
+		} else if marketType != nil && *marketType == "spot" {
+			rawPromises = append(rawPromises, this.FetchSpotMarketsAsync(params))
+		} else if marketType != nil && *marketType == "hip3" {
+			rawPromises = append(rawPromises, this.FetchHip3MarketsAsync(params))
+		}
+	}
+
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
+	var result []any = []any{}
+	for i := 0; i < GetArrayLength(promises); i++ {
+		result = this.ArrayConcat(result, GetValue(promises, i))
+	}
+
+	ch <- result
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchHip3Markets
+ * @description retrieves data on all hip3 markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchHip3MarketsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchHip3MarketsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	fetchDexes := (<-this.PublicPostInfo(map[string]any{
+		"type": "perpDexs",
+	}))
+	PanicOnError(fetchDexes)
+	//
+	//     [
+	//         null,
+	//         {
+	//             "name": "xyz",
+	//             "fullName": "XYZ",
+	//             "deployer": "0x88806a71d74ad0a510b350545c9ae490912f0888",
+	//             "oracleUpdater": "0x1234567890545d1df9ee64b35fdd16966e08acec",
+	//             "feeRecipient": "0x79c0650064b10f73649b7b64c5ebf0b319606140",
+	//             "assetToStreamingOiCap": [
+	//                 [
+	//                     "xyz:XYZ100",
+	//                     "100000000.0"
+	//                 ]
+	//             ]
+	//         }
+	//     ]
+	//
+	var perpDexesOffset map[string]any = map[string]any{}
+	for i := 1; i < GetArrayLength(fetchDexes); i++ {
+		// builder-deployed perp dexs start at 110000
+		var dex map[string]any = SafeMapTyped(fetchDexes, i)
+		var secondPart any = Multiply((Subtract(i, 1)), 10000)
+		var offset any = this.Sum(110000, secondPart)
+		AddElementToObject(perpDexesOffset, dex["name"], offset)
+	}
+	var fetchDexesList any = []any{}
+	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var hip3 map[string]any = SafeMapTyped(options, "hip3")
+	var dexesProvided any = this.SafeList(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
+	var maxLimit *int64 = this.SafeInteger(hip3, "limit", 10)
+	var userProvidedDexesLength int = GetArrayLength(dexesProvided)
+	if userProvidedDexesLength > 0 {
+		if userProvidedDexesLength > 0 {
+			fetchDexesList = dexesProvided
+		}
+	} else {
+		var fetchDexesLength int = GetArrayLength(fetchDexes)
+		// index 0 is the null main dex, so the loop runs 1..maxLimit to load
+		// exactly maxLimit dexes. do NOT rewrite this as `i <= maxLimit`: the
+		// python transpiler collapses every for-loop bound to an exclusive
+		// range(), so `<=` silently emits range(1, maxLimit) and loads one dex
+		// too few (build/transpile.ts treats <, <=, > and >= identically)
+		var maxIteration int64 = this.Sum(maxLimit, 1).(int64)
+		for i := 1; IsLessThan(i, maxIteration); i++ {
+			if i >= fetchDexesLength {
+				break
+			}
+			var dex map[string]any = MapTyped(this.SafeDict(fetchDexes, i, map[string]any{}))
+			if IsEqual(dex, nil) {
+				continue
+			}
+			var dexName *string = this.SafeString(dex, "name")
+			AppendToArray(&fetchDexesList, dexName)
+		}
+	}
+	var rawPromises []any = []any{}
+	for i := 0; i < GetArrayLength(fetchDexesList); i++ {
+		var request map[string]any = map[string]any{
+			"type": "metaAndAssetCtxs",
+			"dex":  this.SafeString(fetchDexesList, i),
+		}
+		rawPromises = append(rawPromises, this.PublicPostInfo(this.Extend(request, params)))
+	}
+
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
+	this.Options.Store("hip3TokensByName", map[string]any{})
+	var markets []any = []any{}
+	for i := 0; i < GetArrayLength(promises); i++ {
+		var dexName any = GetValue(fetchDexesList, i)
+		var offset any = GetValue(perpDexesOffset, dexName)
+		var response []any = SafeListTyped(promises, i)
+		var meta map[string]any = SafeMapTyped(response, 0)
+		var collateralToken *string = this.SafeString(meta, "collateralToken")
+		var universe []any = SafeListTyped(meta, "universe")
+		var assetCtxs []any = SafeListTyped(response, 1)
+		var result []any = []any{}
+		// helper because some endpoints return just the coin name like: flx:crcl
+		// and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
+		for j := 0; j < len(universe); j++ {
+			var data map[string]any = this.Extend(this.SafeDict(universe, j, map[string]any{}), this.SafeDict(assetCtxs, j, map[string]any{}))
+			data["baseId"] = this.Sum(j, offset)
+			data["collateralToken"] = collateralToken
+			data["hip3"] = true
+			data["dex"] = dexName
+			var cachedCurrencies map[string]any = SafeMapTyped(this.Options, "cachedCurrenciesById")
+			// injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
+			if InOp(cachedCurrencies, collateralToken) {
+				var name *string = this.SafeString(data, "name")
+				var collateralTokenCode *string = this.SafeString(cachedCurrencies, collateralToken)
+				data["collateralTokenName"] = collateralTokenCode
+				// eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
+				var safeCode *string = this.SafeCurrencyCode(name)
+				var hip3Code *string = func() *string {
+					if safeCode == nil {
+						return name
+					}
+					return SafeStringPtr(strings.Replace(*safeCode, ":", "-", 1))
+				}()
+				AddElementToObject(GetValue(this.Options, "hip3TokensByName"), name, map[string]any{
+					"quote": collateralTokenCode,
+					"code":  hip3Code,
+				})
+			}
+			result = append(result, data)
+		}
+		markets = this.ArrayConcat(markets, this.ParseMarkets(result))
+	}
+
+	//
+	//     [
+	//         {
+	//             "universe": [
+	//                 {
+	//                     "maxLeverage": 50,
+	//                     "name": "SOL",
+	//                     "onlyIsolated": false,
+	//                     "szDecimals": 2
+	//                 }
+	//             ]
+	//         },
+	//         [
+	//             {
+	//                 "dayNtlVlm": "9450588.2273",
+	//                 "funding": "0.0000198",
+	//                 "impactPxs": [
+	//                     "108.04",
+	//                     "108.06"
+	//                 ],
+	//                 "markPx": "108.04",
+	//                 "midPx": "108.05",
+	//                 "openInterest": "10764.48",
+	//                 "oraclePx": "107.99",
+	//                 "premium": "0.00055561",
+	//                 "prevDayPx": "111.81"
+	//             }
+	//         ]
+	//     ]
+	//
+	//
+	ch <- markets
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchSwapMarkets
+ * @description retrieves data on all swap markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchSwapMarketsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchSwapMarketsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"type": "metaAndAssetCtxs",
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "universe": [
+	//                 {
+	//                     "maxLeverage": 50,
+	//                     "name": "SOL",
+	//                     "onlyIsolated": false,
+	//                     "szDecimals": 2
+	//                 }
+	//             ]
+	//         },
+	//         [
+	//             {
+	//                 "dayNtlVlm": "9450588.2273",
+	//                 "funding": "0.0000198",
+	//                 "impactPxs": [
+	//                     "108.04",
+	//                     "108.06"
+	//                 ],
+	//                 "markPx": "108.04",
+	//                 "midPx": "108.05",
+	//                 "openInterest": "10764.48",
+	//                 "oraclePx": "107.99",
+	//                 "premium": "0.00055561",
+	//                 "prevDayPx": "111.81"
+	//             }
+	//         ]
+	//     ]
+	//
+	//
+	var meta map[string]any = SafeMapTyped(response, 0)
+	var universe []any = SafeListTyped(meta, "universe")
+	var assetCtxs []any = SafeListTyped(response, 1)
+	var result []any = []any{}
+	for i := 0; i < len(universe); i++ {
+		var data map[string]any = this.Extend(this.SafeDict(universe, i, map[string]any{}), this.SafeDict(assetCtxs, i, map[string]any{}))
+		data["baseId"] = i
+		result = append(result, data)
+	}
+
+	ch <- this.ParseMarkets(result)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#calculatePricePrecision
+ * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+ * @param {float} price the price to use in the calculation
+ * @param {int} amountPrecision the amountPrecision to use in the calculation
+ * @param {int} maxDecimals the maxDecimals to use in the calculation
+ * @returns {int} The calculated price precision
+ */
+func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any, maxDecimals any) any {
+	var pricePrecision any = 0
+	var priceStr *string = this.NumberToString(price)
+	if priceStr == nil {
+		return 0
+	}
+	var priceSplitted []string = strings.Split(*priceStr, ".")
+	if Precise.StringEq(priceStr, "0") {
+		// Significant digits is always 5 in this case
+		var significantDigits int = 5
+		// Integer digits is always 0 in this case (0 doesn't count)
+		var integerDigits int = 0
+		// Calculate the price precision
+		pricePrecision = mathMin(Subtract(maxDecimals, amountPrecision), significantDigits - integerDigits)
+	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
+		// Significant digits, always 5 in this case
+		var significantDigits int = 5
+		// Get the part after the decimal separator
+		var decimalPart *string = this.SafeString(priceSplitted, 1, "")
+		// Count the number of leading zeros in the decimal part
+		var leadingZeros any = 0
+		for (IsLessThanOrEqual(leadingZeros, GetLength(decimalPart))) && (GetValue(decimalPart, leadingZeros) == "0") {
+			leadingZeros = Add(leadingZeros, 1)
+		}
+		// Calculate price precision based on leading zeros and significant digits
+		pricePrecision = Add(leadingZeros, significantDigits)
+		// Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+		pricePrecision = mathMin(Subtract(maxDecimals, amountPrecision), pricePrecision)
+	} else {
+		// Count the numbers before the decimal separator
+		var integerPart *string = this.SafeString(priceSplitted, 0, "")
+		// Get significant digits, take the max() of 5 and the integer digits count
+		var significantDigits any = mathMax(5, GetLength(integerPart))
+		// Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
+		pricePrecision = mathMin(Subtract(maxDecimals, amountPrecision), Subtract(significantDigits, GetLength(integerPart)))
+	}
+	return this.ParseToInt(pricePrecision)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchSpotMarkets
+ * @description retrieves data on all spot markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchSpotMarketsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchSpotMarketsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"type": "spotMetaAndAssetCtxs",
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// [
+	//     {
+	//         "tokens": [
+	//             {
+	//                 "name": "USDC",
+	//                 "szDecimals": 8,
+	//                 "weiDecimals" 8,
+	//                 "index": 0,
+	//                 "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+	//                 "isCanonical": true,
+	//                 "evmContract":null,
+	//                 "fullName":null
+	//             },
+	//             {
+	//                 "name": "PURR",
+	//                 "szDecimals": 0,
+	//                 "weiDecimals": 5,
+	//                 "index": 1,
+	//                 "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90",
+	//                 "isCanonical": true,
+	//                 "evmContract":null,
+	//                 "fullName":null
+	//             }
+	//         ],
+	//         "universe": [
+	//             {
+	//                 "name": "PURR/USDC",
+	//                 "tokens": [1, 0],
+	//                 "index": 0,
+	//                 "isCanonical": true
+	//             }
+	//         ]
+	//     },
+	//     [
+	//         {
+	//             "dayNtlVlm":"8906.0",
+	//             "markPx":"0.14",
+	//             "midPx":"0.209265",
+	//             "prevDayPx":"0.20432"
+	//         }
+	//     ]
+	// ]
+	//
+	var first map[string]any = SafeMapTyped(response, 0)
+	var second []any = SafeListTypedDefault(response, 1, []any{})
+	var meta []any = SafeListTyped(first, "universe")
+	var tokens []any = SafeListTypedDefault(first, "tokens", []any{})
+	var markets []any = []any{}
+	for i := 0; i < len(meta); i++ {
+		var market map[string]any = MapTyped(this.SafeDict(meta, i, map[string]any{}))
+		var index *int64 = this.SafeInteger(market, "index")
+		var extraData map[string]any = MapTyped(this.SafeDict(second, index, map[string]any{}))
+		var marketName *string = this.SafeString(market, "name")
+		// if (marketName.indexOf ('/') < 0) {
+		//     // there are some weird spot markets in testnet, eg @2
+		//     continue;
+		// }
+		// const marketParts = marketName.split ('/');
+		// const baseName = this.safeString (marketParts, 0);
+		// const quoteId = this.safeString (marketParts, 1);
+		var fees map[string]any = SafeMapTyped(this.Fees, "spot")
+		var taker *float64 = this.SafeNumber(fees, "taker")
+		var maker *float64 = this.SafeNumber(fees, "maker")
+		var tokensPos []any = SafeListTyped(market, "tokens")
+		var baseTokenPos *int64 = this.SafeInteger(tokensPos, 0)
+		var quoteTokenPos *int64 = this.SafeInteger(tokensPos, 1)
+		var baseTokenInfo map[string]any = MapTyped(this.SafeDict(tokens, baseTokenPos, map[string]any{}))
+		var quoteTokenInfo map[string]any = SafeMapTyped(tokens, quoteTokenPos)
+		var baseName *string = this.SafeString(baseTokenInfo, "name")
+		var quoteId *string = this.SafeString(quoteTokenInfo, "name")
+		if (baseName == nil) || (quoteId == nil) {
+			continue
+		}
+		// do spot currency mapping
+		var spotCurrencyMapping map[string]any = SafeMapTyped(this.Options, "spotCurrencyMapping")
+		var mappedBaseName *string = this.SafeString(spotCurrencyMapping, baseName, baseName)
+		var mappedQuoteId *string = this.SafeString(spotCurrencyMapping, quoteId, quoteId)
+		var mappedBase *string = this.SafeCurrencyCode(mappedBaseName)
+		var mappedQuote *string = this.SafeCurrencyCode(mappedQuoteId)
+		var mappedSymbol *string = SafeStringPtr(Add(Add(mappedBase, "/"), mappedQuote))
+		var innerBaseTokenInfo any = this.SafeDict(baseTokenInfo, "spec", baseTokenInfo)
+		// const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+		var amountPrecisionStr *string = this.SafeString(innerBaseTokenInfo, "szDecimals")
+		var amountPrecision int64 = ParseInt(amountPrecisionStr)
+		var price *float64 = this.SafeNumber(extraData, "midPx")
+		var pricePrecision any = 0
+		if price != nil {
+			pricePrecision = this.CalculatePricePrecision(price, amountPrecision, 8)
+		}
+		var pricePrecisionStr *string = this.NumberToString(pricePrecision)
+		// const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
+		var baseId *string = this.NumberToString(Add(index, 10000))
+		var entry map[string]any = map[string]any{
+			"id":             marketName,
+			"symbol":         mappedSymbol,
+			"base":           mappedBase,
+			"quote":          mappedQuote,
+			"settle":         nil,
+			"baseId":         baseId,
+			"baseName":       baseName,
+			"quoteId":        quoteId,
+			"settleId":       nil,
+			"type":           "spot",
+			"spot":           true,
+			"subType":        nil,
+			"margin":         nil,
+			"swap":           false,
+			"future":         false,
+			"option":         false,
+			"active":         true,
+			"contract":       false,
+			"linear":         nil,
+			"inverse":        nil,
+			"taker":          taker,
+			"maker":          maker,
+			"contractSize":   nil,
+			"expiry":         nil,
+			"expiryDatetime": nil,
+			"strike":         nil,
+			"optionType":     nil,
+			"precision": map[string]any{
+				"amount": this.ParseNumber(this.ParsePrecision(amountPrecisionStr)),
+				"price":  this.ParseNumber(this.ParsePrecision(pricePrecisionStr)),
+			},
+			"limits": map[string]any{
+				"leverage": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"amount": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"price": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"cost": map[string]any{
+					"min": this.ParseNumber("10"),
+					"max": nil,
+				},
+			},
+			"created": nil,
+			"info":    this.Extend(extraData, market),
+		}
+		markets = append(markets, this.SafeMarketStructure(entry))
+	}
+
+	ch <- markets
+	return nil
+}
+func (this *Hyperliquid) ParseMarket(market any) any {
+	//
+	//     {
+	//         "maxLeverage": "50",
+	//         "name": "ETH",
+	//         "onlyIsolated": false,
+	//         "szDecimals": "4",
+	//         "dayNtlVlm": "1709813.11535",
+	//         "funding": "0.00004807",
+	//         "impactPxs": [
+	//             "2369.3",
+	//             "2369.6"
+	//         ],
+	//         "markPx": "2369.6",
+	//         "midPx": "2369.45",
+	//         "openInterest": "1815.4712",
+	//         "oraclePx": "2367.3",
+	//         "premium": "0.00090821",
+	//         "prevDayPx": "2381.5"
+	//         "collateralToken": "0" hip3 tokens only
+	//     }
+	//
+	var collateralTokenCode *string = this.SafeString(market, "collateralTokenName")
+	var quoteId *string = collateralTokenCode
+	if collateralTokenCode == nil {
+		quoteId = SafeStringPtr("USDC")
+	}
+	var settleId *string = collateralTokenCode
+	if collateralTokenCode == nil {
+		settleId = SafeStringPtr("USDC")
+	}
+	var baseName *string = this.SafeString(market, "name")
+	var base *string = this.SafeCurrencyCode(baseName)
+	if base == nil {
+		panic(ExchangeError(this.Id + " parseMarket() missing base currency"))
+	}
+	base = SafeStringPtr(strings.Replace(*base, ":", "-", 1)) // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	if quote == nil {
+		return nil
+	}
+	var baseId *string = this.SafeString(market, "baseId")
+	var settle *string = this.SafeCurrencyCode(settleId)
+	var symbol any = *base + "/" + *quote
+	var contract bool = true
+	var swap bool = true
+	if contract {
+		if swap {
+			symbol = Add(Add(symbol, ":"), settle)
+		}
+	}
+	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
+	var taker *float64 = this.SafeNumber(fees, "taker")
+	var maker *float64 = this.SafeNumber(fees, "maker")
+	var amountPrecisionStr *string = this.SafeString(market, "szDecimals")
+	var amountPrecision int64 = ParseInt(amountPrecisionStr)
+	var price *float64 = this.SafeNumber(market, "markPx", 0)
+	var pricePrecision any = 0
+	if price != nil {
+		pricePrecision = this.CalculatePricePrecision(price, amountPrecision, 6)
+	}
+	var pricePrecisionStr *string = this.NumberToString(pricePrecision)
+	var isDelisted *bool = this.SafeBool(market, "isDelisted")
+	var active bool = true
+	if isDelisted != nil {
+		active = !(isDelisted != nil && *isDelisted)
+	}
+	return this.SafeMarketStructure(map[string]any{
+		"id":             baseId,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"baseName":       baseName,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           "swap",
+		"spot":           false,
+		"margin":         nil,
+		"swap":           swap,
+		"future":         false,
+		"option":         false,
+		"active":         active,
+		"contract":       contract,
+		"linear":         true,
+		"inverse":        false,
+		"taker":          taker,
+		"maker":          maker,
+		"contractSize":   this.ParseNumber("1"),
+		"expiry":         nil,
+		"expiryDatetime": nil,
+		"strike":         nil,
+		"optionType":     nil,
+		"precision": map[string]any{
+			"amount": this.ParseNumber(this.ParsePrecision(amountPrecisionStr)),
+			"price":  this.ParseNumber(this.ParsePrecision(pricePrecisionStr)),
+		},
+		"limits": map[string]any{
+			"leverage": map[string]any{
+				"min": nil,
+				"max": this.SafeInteger(market, "maxLeverage"),
+			},
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"price": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"cost": map[string]any{
+				"min": this.ParseNumber("10"),
+				"max": nil,
+			},
+		},
+		"created": nil,
+		"info":    market,
+	})
+}
+func (this *Hyperliquid) UpdateSpotCurrencyCode(code any) any {
+	if code == nil {
+		return code
+	}
+	var spotCurrencyMapping map[string]any = SafeMapTyped(this.Options, "spotCurrencyMapping")
+	return this.SafeString(spotCurrencyMapping, code, code)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
+func (this *Hyperliquid) FetchBalanceAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var shouldRefresh bool = (this.SafeString2(params, "user", "address") != nil) && (this.SafeBool(params, "enableUnifiedMargin") == nil)
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
+	userAddress := GetValue(userAddressparamsPublicAddressVariable, 0)
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsPublicAddress)
+	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
+	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
+	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	var isUnifiedEnabledparamsValueVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode))))
+	isUnifiedEnabled := GetValue(isUnifiedEnabledparamsValueVariable, 0)
+	var paramsValue map[string]any = MapTyped(GetValue(isUnifiedEnabledparamsValueVariable, 1))
+	var dex *string = this.SafeString(paramsValue, "dex")
+	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (IsEqual(isUnifiedEnabled, true))) && (dex == nil)
+	var request map[string]any = map[string]any{
+		"type": func() string {
+			if isSpot == true {
+				return "spotClearinghouseState"
+			}
+			return "clearinghouseState"
+		}(),
+		"user": userAddress,
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsValue)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "assetPositions": [],
+	//         "crossMaintenanceMarginUsed": "0.0",
+	//         "crossMarginSummary": {
+	//             "accountValue": "100.0",
+	//             "totalMarginUsed": "0.0",
+	//             "totalNtlPos": "0.0",
+	//             "totalRawUsd": "100.0"
+	//         },
+	//         "marginSummary": {
+	//             "accountValue": "100.0",
+	//             "totalMarginUsed": "0.0",
+	//             "totalNtlPos": "0.0",
+	//             "totalRawUsd": "100.0"
+	//         },
+	//         "time": "1704261007014",
+	//         "withdrawable": "100.0"
+	//     }
+	// spot
+	//
+	//     {
+	//         "balances":[
+	//            {
+	//               "coin":"USDC",
+	//               "hold":"0.0",
+	//               "total":"1481.844"
+	//            },
+	//            {
+	//               "coin":"PURR",
+	//               "hold":"0.0",
+	//               "total":"999.65004"
+	//            }
+	//     }
+	//
+	var balances []any = SafeListTyped(response, "balances")
+	if !IsEqual(balances, nil) {
+		var spotBalances map[string]any = map[string]any{
+			"info": response,
+		}
+		for i := 0; i < len(balances); i++ {
+			var balance map[string]any = SafeMapTyped(balances, i)
+			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
+			var code any = func() any {
+				if isSpot == true {
+					return this.UpdateSpotCurrencyCode(unifiedCode)
+				}
+				return unifiedCode
+			}()
+			var account map[string]any = this.Account()
+			var total *string = this.SafeString(balance, "total")
+			var used *string = this.SafeString(balance, "hold")
+			account["total"] = total
+			account["used"] = used
+			if code != nil {
+				AddElementToObject(spotBalances, code, account)
+			}
+		}
+
+		ch <- this.SafeBalance(spotBalances)
+		return nil
+	}
+	var data map[string]any = SafeMapTyped(response, "marginSummary")
+	var usdcBalance map[string]any = map[string]any{
+		"total": this.SafeNumber(data, "accountValue"),
+	}
+	if marginMode != nil && *marginMode == "isolated" {
+		usdcBalance["free"] = this.SafeNumber(response, "withdrawable")
+	} else {
+		usdcBalance["used"] = this.SafeNumber(data, "totalMarginUsed")
+	}
+	var result map[string]any = map[string]any{
+		"info": response,
+		"USDC": usdcBalance,
+	}
+	var timestamp *int64 = this.SafeInteger(response, "time")
+	result["timestamp"] = timestamp
+	result["datetime"] = this.Iso8601(timestamp)
+
+	ch <- this.SafeBalance(result)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOrderBook
+ * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+ */
+func (this *Hyperliquid) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var request map[string]any = map[string]any{
+		"type": "l2Book",
+		"coin": func() any {
+			if GetValue(market, "swap") == true {
+				return this.SafeString(market, "baseName")
+			}
+			return market["id"]
+		}(),
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "coin": "ETH",
+	//         "levels": [
+	//             [
+	//                 {
+	//                     "n": "2",
+	//                     "px": "2216.2",
+	//                     "sz": "74.0637"
+	//                 }
+	//             ],
+	//             [
+	//                 {
+	//                     "n": "2",
+	//                     "px": "2216.5",
+	//                     "sz": "70.5893"
+	//                 }
+	//             ]
+	//         ],
+	//         "time": "1704290104840"
+	//     }
+	//
+	var data []any = SafeListTyped(response, "levels")
+	var result map[string]any = map[string]any{
+		"bids": this.SafeList(data, 0, []any{}),
+		"asks": this.SafeList(data, 1, []any{}),
+	}
+	var timestamp *int64 = this.SafeInteger(response, "time")
+
+	ch <- this.ParseOrderBook(result, market["symbol"], timestamp, "bids", "asks", "px", "sz")
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'spot' or 'swap', by default fetches both
+ * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Hyperliquid) FetchTickersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	// at this stage, to get tickers data, we use fetchMarkets endpoints
+	var response any = []any{}
+	var typeVar *string = this.SafeString(params, "type")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var hip3OptionparamsHip3Variable []any = this.HandleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false)
+	var hip3Option bool = GetValueBool(hip3OptionparamsHip3Variable, 0, false)
+	var paramsHip3 map[string]any = MapTyped(GetValue(hip3OptionparamsHip3Variable, 1))
+	var hip3 bool = hip3Option
+	if !IsEqual(symbolsNormalized, nil) {
+		// infer from first symbol
+		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
+		if firstSymbol != nil {
+			var market map[string]any = this.Market(firstSymbol)
+			if IsEqual(this.SafeBool(this.SafeDict(market, "info"), "hip3"), true) {
+				hip3 = true
+			}
+		}
+	}
+	if hip3 {
+
+		response = (<-this.FetchHip3MarketsAsync(this.Omit(paramsHip3, "hip3")))
+		PanicOnError(response)
+	} else if typeVar != nil && *typeVar == "spot" {
+
+		response = (<-this.FetchSpotMarketsAsync(paramsHip3))
+		PanicOnError(response)
+	} else if typeVar != nil && *typeVar == "swap" {
+
+		response = (<-this.FetchSwapMarketsAsync(paramsHip3))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.FetchMarketsAsync(paramsHip3))
+		PanicOnError(response)
+	}
+	// same response as under "fetchMarkets"
+	var result map[string]any = map[string]any{}
+	for i := 0; i < GetArrayLength(response); i++ {
+		var market any = GetValue(response, i)
+		var info any = GetValue(market, "info")
+		var ticker map[string]any = MapTyped(this.ParseTicker(info, market))
+		var symbol *string = this.SafeString(ticker, "symbol")
+		AddElementToObject(result, symbol, ticker)
+	}
+
+	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchFundingRate
+ * @description fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Hyperliquid) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	PanicOnError((<-this.LoadMarketsAsync()))
+	var market map[string]any = MapTyped(this.Market(symbol))
+
+	var rates map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRatesAsync([]any{market["symbol"]}, params))))
+	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
+	if IsEqual(rate, nil) {
+		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
+	}
+
+	ch <- rate
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchFundingRates
+ * @description retrieves data on all swap markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"type": "metaAndAssetCtxs",
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "universe": [
+	//                 {
+	//                     "maxLeverage": 50,
+	//                     "name": "SOL",
+	//                     "onlyIsolated": false,
+	//                     "szDecimals": 2
+	//                 }
+	//             ]
+	//         },
+	//         [
+	//             {
+	//                 "dayNtlVlm": "9450588.2273",
+	//                 "funding": "0.0000198",
+	//                 "impactPxs": [
+	//                     "108.04",
+	//                     "108.06"
+	//                 ],
+	//                 "markPx": "108.04",
+	//                 "midPx": "108.05",
+	//                 "openInterest": "10764.48",
+	//                 "oraclePx": "107.99",
+	//                 "premium": "0.00055561",
+	//                 "prevDayPx": "111.81"
+	//             }
+	//         ]
+	//     ]
+	//
+	//
+	var meta map[string]any = SafeMapTyped(response, 0)
+	var universe []any = SafeListTyped(meta, "universe")
+	var assetCtxs []any = SafeListTyped(response, 1)
+	var result []any = []any{}
+	for i := 0; i < len(universe); i++ {
+		var data map[string]any = this.Extend(this.SafeDict(universe, i, map[string]any{}), this.SafeDict(assetCtxs, i, map[string]any{}))
+		result = append(result, data)
+	}
+
+	ch <- this.ParseFundingRates(result, symbols)
+	return nil
+}
+func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "maxLeverage": "50",
+	//         "name": "ETH",
+	//         "onlyIsolated": false,
+	//         "szDecimals": "4",
+	//         "dayNtlVlm": "1709813.11535",
+	//         "funding": "0.00004807",
+	//         "impactPxs": [
+	//             "2369.3",
+	//             "2369.6"
+	//         ],
+	//         "markPx": "2369.6",
+	//         "midPx": "2369.45",
+	//         "openInterest": "1815.4712",
+	//         "oraclePx": "2367.3",
+	//         "premium": "0.00090821",
+	//         "prevDayPx": "2381.5"
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var base *string = this.SafeString(info, "name")
+	var marketId any = this.CoinToMarketId(base)
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var funding *float64 = this.SafeNumber(info, "funding")
+	var markPx *float64 = this.SafeNumber(info, "markPx")
+	var oraclePx *float64 = this.SafeNumber(info, "oraclePx")
+	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
+	return map[string]any{
+		"info":                     info,
+		"symbol":                   symbol,
+		"markPrice":                markPx,
+		"indexPrice":               oraclePx,
+		"interestRate":             nil,
+		"estimatedSettlePrice":     nil,
+		"timestamp":                nil,
+		"datetime":                 nil,
+		"fundingRate":              funding,
+		"fundingTimestamp":         fundingTimestamp,
+		"fundingDatetime":          this.Iso8601(fundingTimestamp),
+		"nextFundingRate":          nil,
+		"nextFundingTimestamp":     nil,
+		"nextFundingDatetime":      nil,
+		"previousFundingRate":      nil,
+		"previousFundingTimestamp": nil,
+		"previousFundingDatetime":  nil,
+		"interval":                 "1h",
+	}
+}
+func (this *Hyperliquid) ParseTicker(ticker any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "prevDayPx": "3400.5",
+	//         "dayNtlVlm": "511297257.47936022",
+	//         "markPx": "3464.7",
+	//         "midPx": "3465.05",
+	//         "oraclePx": "3460.1", // only in swap
+	//         "openInterest": "64638.1108", // only in swap
+	//         "premium": "0.00141614", // only in swap
+	//         "funding": "0.00008727", // only in swap
+	//         "impactPxs": [ "3465.0", "3465.1" ], // only in swap
+	//         "coin": "PURR", // only in spot
+	//         "circulatingSupply": "998949190.03400207", // only in spot
+	//     },
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var name *string = this.SafeString(ticker, "name")
+	var marketId any = this.CoinToMarketId(name)
+	var marketResolved map[string]any = MapTyped(this.SafeMarket(marketId, market))
+	var bidAsk []any = SafeListTyped(ticker, "impactPxs")
+	return this.SafeTicker(map[string]any{
+		"symbol":        marketResolved["symbol"],
+		"timestamp":     nil,
+		"datetime":      nil,
+		"previousClose": this.SafeNumber(ticker, "prevDayPx"),
+		"close":         this.SafeNumber(ticker, "midPx"),
+		"last":          this.SafeNumber(ticker, "price"),
+		"bid":           this.SafeNumber(bidAsk, 0),
+		"ask":           this.SafeNumber(bidAsk, 1),
+		"quoteVolume":   this.SafeNumber(ticker, "dayNtlVlm"),
+		"info":          ticker,
+	}, marketResolved)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents, support '1m', '15m', '1h', '1d'
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
+func (this *Hyperliquid) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
+	var useTail bool = (since == nil)
+	var originalSince any = since
+	var startTime any = since
+	if since == nil {
+		if limit != nil {
+			// optimization if limit is provided
+			var timeframeInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
+			startTime = this.Sum(until, Multiply(Multiply(timeframeInMilliseconds, limit), OpNeg(1)))
+			if IsLessThan(startTime, 0) {
+				startTime = 0
+			}
+			useTail = false
+		} else {
+			startTime = 0
+		}
+	}
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var request map[string]any = map[string]any{
+		"type": "candleSnapshot",
+		"req": map[string]any{
+			"coin": func() any {
+				if GetValue(market, "swap") == true {
+					return this.SafeString(market, "baseName")
+				}
+				return market["id"]
+			}(),
+			"interval":  this.SafeString(this.Timeframes, timeframe, timeframe),
+			"startTime": startTime,
+			"endTime":   until,
+		},
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "T": 1704287699999,
+	//             "c": "2226.4",
+	//             "h": "2247.9",
+	//             "i": "15m",
+	//             "l": "2224.6",
+	//             "n": 46,
+	//             "o": "2247.9",
+	//             "s": "ETH",
+	//             "t": 1704286800000,
+	//             "v": "591.6427"
+	//         }
+	//     ]
+	//
+	var candles []any = []any{}
+	if IsArray(response) {
+		candles = ArrayTyped(response)
+	}
+
+	ch <- this.ParseOHLCVs(candles, market, timeframe, originalSince, limit, useTail)
+	return nil
+}
+func (this *Hyperliquid) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "T": 1704287699999,
+	//         "c": "2226.4",
+	//         "h": "2247.9",
+	//         "i": "15m",
+	//         "l": "2224.6",
+	//         "n": 46,
+	//         "o": "2247.9",
+	//         "s": "ETH",
+	//         "t": 1704286800000,
+	//         "v": "591.6427"
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTrades
+ * @description get the list of most recent trades for a particular symbol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trades structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest trade
+ * @param {string} [params.address] wallet address that made trades
+ * @param {string} [params.user] wallet address that made trades
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Hyperliquid) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchTrades", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"user": userAddress,
+	}
+	if since != nil {
+		request["type"] = "userFillsByTime"
+		request["startTime"] = since
+	} else {
+		request["type"] = "userFills"
+	}
+	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPublicAddress, "until"))
+	if until != nil {
+		request["endTime"] = until
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "closedPnl": "0.19343",
+	//             "coin": "ETH",
+	//             "crossed": true,
+	//             "dir": "Close Long",
+	//             "fee": "0.050062",
+	//             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
+	//             "liquidationMarkPx": null,
+	//             "oid": 3929354691,
+	//             "px": "2381.1",
+	//             "side": "A",
+	//             "startPosition": "0.0841",
+	//             "sz": "0.0841",
+	//             "tid": 128423918764978,
+	//             "time": 1704262888911
+	//         }
+	//     ]
+	//
+	var fills []any = []any{}
+	if IsArray(response) {
+		fills = ArrayTyped(response)
+	}
+
+	ch <- this.ParseTrades(fills, market, since, limit)
+	return nil
+}
+func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var result string = this.DecimalToPrecision(amount, ROUND, GetValue(market["precision"], "amount"), this.PrecisionMode, this.PaddingMode)
+	// a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+	// with grouping positionTpsl and size 0, so only reject a positive amount that
+	// became zero after rounding, never an explicitly requested zero
+	if Precise.StringEq(result, "0") && Precise.StringGt(this.NumberToString(amount), "0") {
+		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", market["symbol"]), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(market["precision"], "amount")))))
+	}
+	return result
+}
+func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var priceStr *string = this.NumberToString(price)
+	var integerPart *string = SafeStringPtr(GetValue(Split(priceStr, "."), 0))
+	var significantDigits any = mathMax(5, GetLength(integerPart))
+	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
+	var maxDecimals int = func() int {
+		if GetValue(market, "spot") == true {
+			return 8
+		}
+		return 6
+	}()
+	var subtractedValue int64 = Subtract(maxDecimals, this.PrecisionFromString(this.SafeString(market["precision"], "amount"))).(int64)
+	return this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode)
+}
+func (this *Hyperliquid) HashMessage(message any) any {
+	return Add("0x", this.Hash(message, keccak, "hex"))
+}
+func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	return map[string]any{
+		"r": Add("0x", signature["r"]),
+		"s": Add("0x", signature["s"]),
+		"v": this.Sum(27, signature["v"]),
+	}
+}
+func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
+	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
+}
+func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
+	var isTestnet bool = GetArgBool(optionalArgs, 0, true)
+	_ = isTestnet
+	var source string = func() string {
+		if isTestnet == true {
+			return "b"
+		}
+		return "a"
+	}()
+	return map[string]any{
+		"source":       source,
+		"connectionId": hash,
+	}
+}
+func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any, optionalArgs ...any) any {
+	expiresAfter := GetArg(optionalArgs, 0, nil)
+	_ = expiresAfter
+	var dataBinary any = this.Packb(action)
+	var dataHex string = this.BinaryToBase16(dataBinary)
+	var data any = dataHex
+	data = Add(data, "00000"+this.IntToBase16(nonce))
+	if IsEqual(vaultAddress, nil) {
+		data = Add(data, "00")
+	} else {
+		data = Add(data, "01")
+		data = Add(data, vaultAddress)
+	}
+	if expiresAfter != nil {
+		data = Add(data, "00")
+		data = Add(data, "00000"+this.IntToBase16(expiresAfter))
+	}
+	return this.Hash(this.Base16ToBinary(data), keccak, "binary")
+}
+func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any) any {
+	vaultAdress := GetArg(optionalArgs, 0, nil)
+	_ = vaultAdress
+	var expiresAfter *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = expiresAfter
+	var hash any = this.ActionHash(action, vaultAdress, nonce, expiresAfter)
+	var isTestnet *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var phantomAgent any = this.ConstructPhantomAgent(hash, isTestnet)
+	// const data: Dict = {
+	//     'domain': {
+	//         'chainId': 1337,
+	//         'name': 'Exchange',
+	//         'verifyingContract': '0x0000000000000000000000000000000000000000',
+	//         'version': '1',
+	//     },
+	//     'types': {
+	//         'Agent': [
+	//             { 'name': 'source', 'type': 'string' },
+	//             { 'name': 'connectionId', 'type': 'bytes32' },
+	//         ],
+	//         'EIP712Domain': [
+	//             { 'name': 'name', 'type': 'string' },
+	//             { 'name': 'version', 'type': 'string' },
+	//             { 'name': 'chainId', 'type': 'uint256' },
+	//             { 'name': 'verifyingContract', 'type': 'address' },
+	//         ],
+	//     },
+	//     'primaryType': 'Agent',
+	//     'message': phantomAgent,
+	// };
+	var zeroAddress *string = this.SafeString(this.Options, "zeroAddress")
+	var chainId int = 1337 // check this out
+	var domain map[string]any = map[string]any{
+		"chainId":           chainId,
+		"name":              "Exchange",
+		"verifyingContract": zeroAddress,
+		"version":           "1",
+	}
+	var messageTypes map[string]any = map[string]any{
+		"Agent": []any{map[string]any{
+			"name": "source",
+			"type": "string",
+		}, map[string]any{
+			"name": "connectionId",
+			"type": "bytes32",
+		}},
+	}
+	var msg any = this.EthEncodeStructuredData(domain, messageTypes, phantomAgent)
+	var signature any = this.SignMessage(msg, this.PrivateKey)
+	return signature
+}
+func (this *Hyperliquid) SignUserSignedAction(messageTypes any, message any) any {
+	var zeroAddress *string = this.SafeString(this.Options, "zeroAddress")
+	var chainId int = 421614 // check this out
+	var domain map[string]any = map[string]any{
+		"chainId":           chainId,
+		"name":              "HyperliquidSignTransaction",
+		"verifyingContract": zeroAddress,
+		"version":           "1",
+	}
+	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var signature any = this.SignMessage(msg, this.PrivateKey)
+	return signature
+}
+func (this *Hyperliquid) BuildUsdSendSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:UsdSend": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "destination",
+			"type": "string",
+		}, map[string]any{
+			"name": "amount",
+			"type": "string",
+		}, map[string]any{
+			"name": "time",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *Hyperliquid) BuildUsdClassSendSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:UsdClassTransfer": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "amount",
+			"type": "string",
+		}, map[string]any{
+			"name": "toPerp",
+			"type": "bool",
+		}, map[string]any{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *Hyperliquid) BuildWithdrawSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:Withdraw": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "destination",
+			"type": "string",
+		}, map[string]any{
+			"name": "amount",
+			"type": "string",
+		}, map[string]any{
+			"name": "time",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *Hyperliquid) BuildUserDexAbstractionSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:UserDexAbstraction": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "user",
+			"type": "address",
+		}, map[string]any{
+			"name": "enabled",
+			"type": "bool",
+		}, map[string]any{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *Hyperliquid) BuildUserAbstractionSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:UserSetAbstraction": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "user",
+			"type": "address",
+		}, map[string]any{
+			"name": "abstraction",
+			"type": "string",
+		}, map[string]any{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *Hyperliquid) BuildApproveBuilderFeeSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:ApproveBuilderFee": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "maxFeeRate",
+			"type": "string",
+		}, map[string]any{
+			"name": "builder",
+			"type": "address",
+		}, map[string]any{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *Hyperliquid) SetRefAsync() <-chan any {
+	ch := make(chan any, 1)
+	go this.setRefBody(ch)
+	return ch
+}
+func (this *Hyperliquid) setRefBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if this.SafeBool(this.Options, "refSet", false) != nil && *this.SafeBool(this.Options, "refSet", false) {
+
+		ch <- true
+		return nil
+	}
+	this.Options.Store("refSet", true)
+	var action map[string]any = map[string]any{
+		"type": "setReferrer",
+		"code": this.SafeString(this.Options, "ref", "CCXT1"),
+	}
+	var nonce any = this.IncrementingNonce()
+	var signature any = this.SignL1Action(action, nonce)
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	var response any = nil
+
+	{
+		func(this *Hyperliquid) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *Hyperliquid) any {
+						// catch block:
+						response = nil // ignore this
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			response = (<-this.PrivatePostExchange(request)).Raw
+			PanicOnError(response)
+
+			ch <- response
+			return nil
+
+		}(this)
+
+	}
+
+	ch <- response
+	return nil
+}
+func (this *Hyperliquid) ApproveBuilderFeeAsync(builder any, maxFeeRate any) <-chan any {
+	ch := make(chan any, 1)
+	go this.approveBuilderFeeBody(ch, builder, maxFeeRate)
+	return ch
+}
+func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeRate any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var nonce any = this.IncrementingNonce()
+	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var payload map[string]any = map[string]any{
+		"hyperliquidChain": func() string {
+			if isSandboxMode != nil && *isSandboxMode == true {
+				return "Testnet"
+			}
+			return "Mainnet"
+		}(),
+		"maxFeeRate": maxFeeRate,
+		"builder":    builder,
+		"nonce":      nonce,
+	}
+	var sig any = this.BuildApproveBuilderFeeSig(payload)
+	var action map[string]any = map[string]any{
+		"hyperliquidChain": payload["hyperliquidChain"],
+		"signatureChainId": "0x66eee",
+		"maxFeeRate":       payload["maxFeeRate"],
+		"builder":          payload["builder"],
+		"nonce":            nonce,
+		"type":             "approveBuilderFee",
+	}
+	var request map[string]any = map[string]any{
+		"action":       action,
+		"nonce":        nonce,
+		"signature":    sig,
+		"vaultAddress": nil,
+	}
+
+	//
+	// {
+	//     "status": "ok",
+	//     "response": {
+	//         "type": "default"
+	//     }
+	// }
+	//
+	ch <- PanicOnError((<-this.PrivatePostExchange(request)).Raw)
+	return nil
+}
+func (this *Hyperliquid) InitializeClientAsync() <-chan any {
+	ch := make(chan any, 1)
+	go this.initializeClientBody(ch)
+	return ch
+}
+func (this *Hyperliquid) initializeClientBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+
+	{
+		func(this *Hyperliquid) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *Hyperliquid) any {
+						// catch block:
+
+						ch <- false
+						return nil
+
+					}(this)
+				}
+			}()
+			// try block:
+
+			PanicOnError((<-promiseAll([]any{this.HandleBuilderFeeApprovalAsync(), this.SetRefAsync(), this.IsUnifiedEnabledAsync("fetchBalance", nil, false, map[string]any{})}))) // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+			return nil
+		}(this)
+
+	}
+
+	ch <- true
+	return nil
+}
+func (this *Hyperliquid) HandleBuilderFeeApprovalAsync() <-chan any {
+	ch := make(chan any, 1)
+	go this.handleBuilderFeeApprovalBody(ch)
+	return ch
+}
+func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var buildFee *bool = this.SafeBool(this.Options, "builderFee", true)
+	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
+	if approvedBuilderFee != nil && *approvedBuilderFee == true {
+
+		ch <- true // skip if builder fee is already approved
+		return nil
+	}
+
+	{
+		func(this *Hyperliquid) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *Hyperliquid) any {
+						// catch block:
+						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			var builder *string = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+			// when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
+			// but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
+			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01%")
+			if buildFee == nil || *buildFee != true {
+				maxFeeRate = SafeStringPtr("0%")
+			}
+
+			PanicOnError((<-this.ApproveBuilderFeeAsync(builder, maxFeeRate)))
+			this.Options.Store("approvedBuilderFee", true)
+			return nil
+		}(this)
+
+	}
+
+	ch <- true
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#isUnifiedEnabled
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+ * @description returns enableUnifiedMargin so the user can check if unified account is enabled
+ * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+ * @param {string} [address] the wallet address to query; defaults to the configured walletAddress
+ * @param {boolean} [shouldRefresh] force a fresh request instead of returning the cached value
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {bool} enableUnifiedMargin
+ */
+func (this *Hyperliquid) IsUnifiedEnabledAsync(method string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.isUnifiedEnabledBody(ch, method, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var address *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = address
+	var shouldRefresh bool = GetArgBool(optionalArgs, 1, false)
+	_ = shouldRefresh
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	var publicAddress any = nil
+	var paramsPublicAddress any = map[string]any{}
+	if address == nil {
+		publicAddressparamsPublicAddressVariable := this.HandlePublicAddress("isUnifiedEnabled", params)
+		publicAddress = GetValue(publicAddressparamsPublicAddressVariable, 0)
+		paramsPublicAddress = GetValue(publicAddressparamsPublicAddressVariable, 1)
+	}
+	var userAddress any = func() any {
+		if address != nil {
+			return address
+		}
+		return publicAddress
+	}()
+	var paramsAddress any = func() any {
+		if address != nil {
+			return params
+		}
+		return paramsPublicAddress
+	}()
+	var enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable []any = this.HandleOptionBoolAndParams(paramsAddress, method, "enableUnifiedMargin")
+	enableUnifiedMarginOption := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 0)
+	paramsEnableUnifiedMargin := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 1)
+	var enableUnifiedMargin any = enableUnifiedMarginOption
+	if IsEqual(enableUnifiedMargin, nil) || (shouldRefresh == true) {
+		var request map[string]any = map[string]any{
+			"type": "userAbstraction",
+			"user": userAddress,
+		}
+		var response any = nil
+
+		{
+			func(this *Hyperliquid) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *Hyperliquid) any {
+							// catch block:
+							if IsInstance(e, InvalidProxySettings) {
+								panic(e)
+							}
+							response = nil // ignore this error and assume unified margin is not enabled
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				rawResponse := (<-this.PublicPostInfo(this.Extend(request, paramsEnableUnifiedMargin)))
+				PanicOnError(rawResponse)
+				if IsString(rawResponse) {
+					response = rawResponse
+				}
+				return nil
+			}(this)
+
+		}
+		//
+		// "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
+		//
+		if response != nil {
+			response = Replace(response, "\"", "")
+			response = Replace(response, "\"", "")
+			enableUnifiedMargin = (response == "unifiedAccount")
+		}
+		// don't cache this result if this is a different addresss
+		this.Options.Store("enableUnifiedMargin", enableUnifiedMargin) // cache this for future calls
+	}
+
+	ch <- []any{enableUnifiedMargin, paramsEnableUnifiedMargin}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#setUserAbstraction
+ * @description set user abstraction mode
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+ * @param {string} abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+ * @param {object} [params]
+ * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+ * @returns dictionary response from the exchange
+ */
+func (this *Hyperliquid) SetUserAbstractionAsync(abstraction any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.setUserAbstractionBody(ch, abstraction, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) setUserAbstractionBody(ch chan any, abstraction any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("setUserAbstraction", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	var nonce any = this.IncrementingNonce()
+	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
+	var payload map[string]any = map[string]any{
+		"hyperliquidChain": func() string {
+			if isSandboxMode != nil && *isSandboxMode == true {
+				return "Testnet"
+			}
+			return "Mainnet"
+		}(),
+		"user":        userAddress,
+		"abstraction": abstraction,
+		"nonce":       nonce,
+	}
+	var sig any = this.BuildUserAbstractionSig(payload)
+	var action map[string]any = map[string]any{
+		"hyperliquidChain": payload["hyperliquidChain"],
+		"signatureChainId": "0x66eee",
+		"abstraction":      payload["abstraction"],
+		"user":             payload["user"],
+		"nonce":            nonce,
+		"type":             typeVar,
+	}
+	var request map[string]any = map[string]any{
+		"action":       action,
+		"nonce":        nonce,
+		"signature":    sig,
+		"vaultAddress": nil,
+	}
+
+	//
+	// {
+	//     "status": "ok",
+	//     "response": {
+	//         "type": "default"
+	//     }
+	// }
+	//
+	ch <- PanicOnError((<-this.PrivatePostExchange(request)).Raw)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#enableUserDexAbstraction
+ * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+ * @param {boolean} enabled whether to enable user dex abstraction
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+ * @returns dictionary response from the exchange
+ */
+func (this *Hyperliquid) EnableUserDexAbstractionAsync(enabled any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.enableUserDexAbstractionBody(ch, enabled, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan any, enabled any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("enableUserDexAbstraction", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	var nonce any = this.IncrementingNonce()
+	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
+	var payload map[string]any = map[string]any{
+		"hyperliquidChain": func() string {
+			if isSandboxMode != nil && *isSandboxMode == true {
+				return "Testnet"
+			}
+			return "Mainnet"
+		}(),
+		"user":    userAddress,
+		"enabled": enabled,
+		"nonce":   nonce,
+	}
+	var sig any = this.BuildUserDexAbstractionSig(payload)
+	var action map[string]any = map[string]any{
+		"hyperliquidChain": payload["hyperliquidChain"],
+		"signatureChainId": "0x66eee",
+		"enabled":          payload["enabled"],
+		"user":             payload["user"],
+		"nonce":            nonce,
+		"type":             typeVar,
+	}
+	var request map[string]any = map[string]any{
+		"action":       action,
+		"nonce":        nonce,
+		"signature":    sig,
+		"vaultAddress": nil,
+	}
+
+	//
+	// {
+	//     "status": "ok",
+	//     "response": {
+	//         "type": "default"
+	//     }
+	// }
+	//
+	ch <- PanicOnError((<-this.PrivatePostExchange(request)).Raw)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#setAgentAbstraction
+ * @description set agent abstraction mode
+ * @param {string} abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+ * @param {object} [params]
+ * @returns dictionary response from the exchange
+ */
+func (this *Hyperliquid) SetAgentAbstractionAsync(abstraction any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.setAgentAbstractionBody(ch, abstraction, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) setAgentAbstractionBody(ch chan any, abstraction any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var action map[string]any = map[string]any{
+		"type":        "agentSetAbstraction",
+		"abstraction": abstraction,
+	}
+	var signature any = this.SignL1Action(action, nonce)
+	request["action"] = action
+	request["signature"] = signature
+
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
+	PanicOnError(response)
+
+	ch <- response
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#createOrder
+ * @description create a trade order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.slippage] the slippage for market order
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
+	var order map[string]any = MapTyped(GetValue(orderglobalParamsVariable, 0))
+	var globalParams map[string]any = MapTyped(GetValue(orderglobalParamsVariable, 1))
+
+	var orders []any = ListTyped(PanicOnError((<-this.CreateOrdersAsync([]any{order}, globalParams))))
+
+	ch <- GetValue(orders, 0)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#createTwapOrder
+ * @description create a trade order that is executed as a TWAP order over a specified duration.
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {int} duration the duration of the TWAP order in milliseconds
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol string, side string, amount any, duration any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	PanicOnError((<-this.InitializeClientAsync()))
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var nonce any = this.IncrementingNonce()
+	var isBuy bool = (side == "BUY")
+	var randomize *bool = this.SafeBool(params, "randomize", false)
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "randomize"))
+	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress")
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var durationMins float64 = MathFloor(Divide(Divide(duration, 1000), 60)) // convert from ms to minutes
+	var orderObj map[string]any = map[string]any{
+		"a": this.ParseToInt(market["baseId"]),
+		"b": isBuy,
+		"s": this.AmountToPrecision(symbol, amount),
+		"r": this.SafeBool(paramsVault, "reduceOnly", false),
+		"m": durationMins,
+		"t": randomize,
+	}
+	var orderAction map[string]any = map[string]any{
+		"type": "twapOrder",
+		"twap": orderObj,
+	}
+	var signature any = this.SignL1Action(orderAction, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    orderAction,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+	var expiresAfter *int64 = this.SafeInteger(paramsVault, "expiresAfter")
+	if expiresAfter != nil {
+		request["expiresAfter"] = expiresAfter
+	}
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	// {
+	//     "status":"ok",
+	//     "response":{
+	//         "type":"twapOrder",
+	//         "data":{
+	//             "status": {
+	//                 "running":{
+	//                 "twapId":77738308
+	//                 }
+	//             }
+	//         }
+	//     }
+	// }
+	var responseObj map[string]any = SafeMapTyped(response, "response")
+	var data map[string]any = SafeMapTyped(responseObj, "data")
+	var status map[string]any = SafeMapTyped(data, "status")
+	var running map[string]any = SafeMapTyped(status, "running")
+	var orderId *string = this.SafeString(running, "twapId")
+
+	ch <- this.ParseOrder(map[string]any{
+		"status": "running",
+		"oid":    orderId,
+	}, market)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#createOrders
+ * @description create a list of trade orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.createOrdersBody(ch, orders, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	PanicOnError((<-this.InitializeClientAsync()))
+	var request any = this.CreateOrdersRequest(orders, params)
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	//
+	//     {
+	//         "status": "ok",
+	//         "response": {
+	//             "type": "order",
+	//             "data": {
+	//                 "statuses": [
+	//                     {
+	//                         "resting": {
+	//                             "oid": 5063830287
+	//                         }
+	//                     }
+	//                 ]
+	//             }
+	//         }
+	//     }
+	//
+	var responseObj map[string]any = SafeMapTyped(response, "response")
+	var data map[string]any = SafeMapTyped(responseObj, "data")
+	var statuses []any = SafeListTyped(data, "statuses")
+	var ordersToBeParsed []any = []any{}
+	for i := 0; i < len(statuses); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(statuses) {
+				return DerefScalar(statuses[i])
+			}
+			return nil
+		}()
+		if order == "waitingForTrigger" {
+			ordersToBeParsed = append(ordersToBeParsed, map[string]any{
+				"status": order,
+			}) // tp/sl orders can return a string like "waitingForTrigger",
+		} else {
+			ordersToBeParsed = append(ordersToBeParsed, order)
+		}
+	}
+
+	ch <- this.ParseOrders(ordersToBeParsed)
+	return nil
+}
+func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if typeVar == nil {
+		panic(ArgumentsRequired(this.Id + " requires a type argument"))
+	}
+	if side == nil {
+		panic(ArgumentsRequired(this.Id + " requires a side argument"))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var typeValue string = ToUpper(typeVar)
+	var sideValue string = ToUpper(side)
+	var isMarket bool = (typeValue == "MARKET")
+	var isBuy bool = (sideValue == "BUY")
+	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
+	var slippage *string = this.SafeString(params, "slippage")
+	var defaultTimeInForce string = "gtc"
+	if isMarket {
+		defaultTimeInForce = "ioc"
+	}
+	var postOnly *bool = this.SafeBool(params, "postOnly", false)
+	if postOnly != nil && *postOnly == true {
+		defaultTimeInForce = "alo"
+	}
+	var timeInForce *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
+	timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
+	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var stopLossPrice *string = this.SafeString(params, "stopLossPrice", triggerPrice)
+	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
+	var isTrigger bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
+	var px any = nil
+	if isMarket {
+		if price == nil {
+			panic(ArgumentsRequired(this.Id + "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%)."))
+		}
+		px = func() any {
+			if isBuy {
+				return Precise.StringMul(price, Precise.StringAdd("1", slippage))
+			}
+			return Precise.StringMul(price, Precise.StringSub("1", slippage))
+		}()
+		px = this.PriceToPrecision(symbol, px) // round after adding slippage
+	} else {
+		px = this.PriceToPrecision(symbol, price)
+	}
+	var sz *string = this.AmountToPrecision(symbol, amount)
+	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
+	var orderType map[string]any = map[string]any{}
+	if isTrigger {
+		var isTp bool = false
+		if takeProfitPrice != nil {
+			triggerPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+			isTp = true
+		} else {
+			triggerPrice = this.PriceToPrecision(symbol, stopLossPrice)
+		}
+		var tpSlType string = "sl"
+		if isTp {
+			tpSlType = "tp"
+		}
+		orderType["trigger"] = map[string]any{
+			"isMarket":  isMarket,
+			"triggerPx": triggerPrice,
+			"tpsl":      tpSlType,
+		}
+	} else {
+		orderType["limit"] = map[string]any{
+			"tif": timeInForce,
+		}
+	}
+	var orderObj map[string]any = map[string]any{
+		"a": this.ParseToInt(market["baseId"]),
+		"b": isBuy,
+		"p": px,
+		"s": sz,
+		"r": reduceOnly,
+		"t": orderType,
+	}
+	if clientOrderId != nil {
+		orderObj["c"] = clientOrderId
+	}
+	return orderObj
+}
+func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) any {
+	/**
+	 * @method
+	 * @name hyperliquid#createOrdersRequest
+	 * @description create a list of trade orders
+	 * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+	 * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+	 */
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage")
+	defaultSlippage = this.SafeString(params, "slippage", defaultSlippage)
+	var hasClientOrderId bool = false
+	for i := 0; i < GetArrayLength(orders); i++ {
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
+		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
+		if clientOrderId != nil {
+			hasClientOrderId = true
+		}
+	}
+	if hasClientOrderId {
+		for i := 0; i < GetArrayLength(orders); i++ {
+			var rawOrder map[string]any = SafeMapTyped(orders, i)
+			var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
+			var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
+			if clientOrderId == nil {
+				panic(ArgumentsRequired(this.Id + " createOrders() all orders must have clientOrderId if at least one has a clientOrderId"))
+			}
+		}
+	}
+	var params2 any = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
+	var nonce any = this.IncrementingNonce()
+	var orderReq []any = []any{}
+	var grouping any = "na"
+	for i := 0; i < GetArrayLength(orders); i++ {
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var marketId *string = this.SafeString(rawOrder, "symbol")
+		var market map[string]any = MapTyped(this.Market(marketId))
+		var symbol *string = SafeStringPtr(market["symbol"])
+		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
+		var side *string = this.SafeStringUpper(rawOrder, "side")
+		var amount *string = this.SafeString(rawOrder, "amount")
+		var price *string = this.SafeString(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
+		AddElementToObject(orderParams, "slippage", slippage)
+		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
+		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
+		var hasStopLoss bool = (!IsEqual(stopLoss, nil))
+		var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+		orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit"})
+		var mainOrderObj map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
+		if hasStopLoss || hasTakeProfit {
+			// grouping opposed orders for sl/tp
+			var stopLossOrderTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
+			var stopLossOrderType *string = this.SafeString(stopLoss, "type", "limit")
+			var stopLossOrderLimitPrice *string = this.SafeString2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice)
+			var takeProfitOrderTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
+			var takeProfitOrderType *string = this.SafeString(takeProfit, "type", "limit")
+			var takeProfitOrderLimitPrice *string = this.SafeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
+			grouping = this.SafeString(orderParams, "grouping", "normalTpsl")
+			if IsEqual(grouping, "positionTpsl") {
+				amount = SafeStringPtr("0")
+				stopLossOrderType = SafeStringPtr("market")
+				takeProfitOrderType = SafeStringPtr("market")
+			} else if IsEqual(grouping, "normalTpsl") {
+				orderReq = append(orderReq, mainOrderObj)
+			} else {
+				panic(NotSupported(this.Id + " only support grouping normalTpsl and positionTpsl."))
+			}
+			orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit", "grouping"})
+			var triggerOrderSide string = ""
+			if side != nil && *side == "BUY" {
+				triggerOrderSide = "sell"
+			} else {
+				triggerOrderSide = "buy"
+			}
+			if hasTakeProfit {
+				var orderObj any = this.CreateOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
+					"takeProfitPrice": takeProfitOrderTriggerPrice,
+					"reduceOnly":      true,
+				}))
+				orderReq = append(orderReq, orderObj)
+			}
+			if hasStopLoss {
+				var orderObj any = this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
+					"stopLossPrice": stopLossOrderTriggerPrice,
+					"reduceOnly":    true,
+				}))
+				orderReq = append(orderReq, orderObj)
+			}
+		} else {
+			orderReq = append(orderReq, mainOrderObj)
+		}
+	}
+	var vaultAddress any = nil
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "createOrder", "vaultAddress"))
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var orderAction map[string]any = map[string]any{
+		"type":     "order",
+		"orders":   orderReq,
+		"grouping": grouping,
+	}
+	if this.SafeBool(this.Options, "approvedBuilderFee", false) != nil && *this.SafeBool(this.Options, "approvedBuilderFee", false) {
+		var builder string = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"
+		var wallet *string = this.SafeStringLower(this.Options, "builder", strings.ToLower(builder))
+		// when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
+		var feeInt any = this.SafeInteger(this.Options, "feeInt", 10)
+		if !(this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
+			feeInt = 0
+		}
+		orderAction["builder"] = map[string]any{
+			"b": wallet,
+			"f": feeInt,
+		}
+	}
+	var signature any = this.SignL1Action(orderAction, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    orderAction,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		params2 = this.Omit(params2, "vaultAddress")
+		request["vaultAddress"] = vaultAddress
+	}
+	return request
+}
+
+/**
+ * @method
+ * @name hyperliquid#cancelOrder
+ * @description cancels an open order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.SafeBool(params, "twap", false) != nil && *this.SafeBool(params, "twap", false) {
+
+		var retRes249119 map[string]any = MapTyped(PanicOnError((<-this.CancelTwapOrderAsync(id, symbol, this.Omit(params, "twap")))))
+		ch <- BoxAbsent(retRes249119)
+		return nil
+	}
+
+	var orders []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))
+
+	ch <- this.SafeDict(orders, 0)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#cancelOrders
+ * @description cancel multiple orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+ * @param {string[]} ids order ids
+ * @param {string} [symbol] unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.cancelOrdersBody(ch, ids, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument"))
+	}
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	PanicOnError((<-this.InitializeClientAsync()))
+	var request any = this.CancelOrdersRequest(ids, symbol, params)
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	//
+	//     {
+	//         "status":"ok",
+	//         "response":{
+	//             "type":"cancel",
+	//             "data":{
+	//                 "statuses":[
+	//                     "success"
+	//                 ]
+	//             }
+	//         }
+	//     }
+	//
+	var innerResponse map[string]any = SafeMapTyped(response, "response")
+	var data map[string]any = SafeMapTyped(innerResponse, "data")
+	var statuses []any = SafeListTyped(data, "statuses")
+	var orders []any = []any{}
+	for i := 0; i < len(statuses); i++ {
+		var status any = func() any {
+			if i >= 0 && i < len(statuses) {
+				return DerefScalar(statuses[i])
+			}
+			return nil
+		}()
+		orders = append(orders, this.SafeOrder(map[string]any{
+			"info":   status,
+			"status": status,
+		}))
+	}
+
+	ch <- orders
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#cancelTwapOrder
+ * @description cancels a running twap order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CancelTwapOrderAsync(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.cancelTwapOrderBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) cancelTwapOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " cancelTwapOrder() requires a symbol argument"))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var vaultAddress any = nil
+	var params2 any = nil
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params, "cancelTwapOrder", "vaultAddress"))
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var action map[string]any = map[string]any{
+		"type": "twapCancel",
+		"a":    this.ParseToInt(market["baseId"]),
+		"t":    this.ParseToNumeric(id),
+	}
+	var nonce any = this.IncrementingNonce()
+	var signature any = this.SignL1Action(action, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		params2 = this.Omit(params2, "vaultAddress")
+		request["vaultAddress"] = vaultAddress
+	}
+	var expiresAfter *int64 = this.SafeInteger(params2, "expiresAfter")
+	if expiresAfter != nil {
+		request["expiresAfter"] = expiresAfter
+		params2 = this.Omit(params2, "expiresAfter")
+	}
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	//
+	//  {
+	//     "status":"ok",
+	//     "response":{
+	//        "type":"twapCancel",
+	//        "data":{
+	//           "status": "success"
+	//        }
+	//     }
+	//  }
+	//
+	var responseObj map[string]any = SafeMapTyped(response, "response")
+	var data map[string]any = SafeMapTyped(responseObj, "data")
+	var status *string = this.SafeString(data, "status")
+
+	ch <- this.ParseOrder(map[string]any{
+		"status": status,
+		"oid":    id,
+	}, market)
+	return nil
+}
+func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
+	/**
+	 * @method
+	 * @name hyperliquid#cancelOrdersRequest
+	 * @description build the request payload for cancelling multiple orders
+	 * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+	 * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+	 * @param {string[]} ids order ids
+	 * @param {string} symbol unified market symbol
+	 * @param {object} [params]
+	 * @returns {object} the raw request object to be sent to the exchange
+	 */
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
+	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var cancelReq []any = []any{}
+	var cancelAction map[string]any = map[string]any{
+		"type":    "",
+		"cancels": []any{},
+	}
+	var baseId any = this.ParseToNumeric(market["baseId"])
+	if !IsEqual(clientOrderId, nil) {
+		if !IsArray(clientOrderId) {
+			clientOrderId = []any{clientOrderId}
+		}
+		cancelAction["type"] = "cancelByCloid"
+		for i := 0; i < GetArrayLength(clientOrderId); i++ {
+			cancelReq = append(cancelReq, map[string]any{
+				"asset": baseId,
+				"cloid": GetValue(clientOrderId, i),
+			})
+		}
+	} else {
+		cancelAction["type"] = "cancel"
+		for i := 0; i < GetArrayLength(ids); i++ {
+			var o any = this.ParseToNumeric(GetValue(ids, i))
+			cancelReq = append(cancelReq, map[string]any{
+				"a": baseId,
+				"o": o,
+			})
+		}
+	}
+	cancelAction["cancels"] = cancelReq
+	var vaultAddress any = nil
+	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress")
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
+	request["action"] = cancelAction
+	request["signature"] = signature
+	if vaultAddress != nil {
+		params2 = this.Omit(params2, "vaultAddress")
+		request["vaultAddress"] = vaultAddress
+	}
+	return request
+}
+
+/**
+ * @method
+ * @name hyperliquid#cancelOrdersForSymbols
+ * @description cancel multiple orders for multiple symbols
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+ * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	PanicOnError((<-this.InitializeClientAsync()))
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var cancelReq []any = []any{}
+	var cancelAction map[string]any = map[string]any{
+		"type":    "",
+		"cancels": []any{},
+	}
+	var cancelByCloid bool = false
+	for i := 0; i < GetArrayLength(orders); i++ {
+		var order map[string]any = SafeMapTyped(orders, i)
+		var clientOrderId *string = this.SafeString(order, "clientOrderId")
+		if clientOrderId != nil {
+			cancelByCloid = true
+		}
+		var id *string = this.SafeString(order, "id")
+		var symbol *string = this.SafeString(order, "symbol")
+		if symbol == nil {
+			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires a symbol argument in each order"))
+		}
+		if (id != nil) && cancelByCloid {
+			panic(BadRequest(this.Id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId"))
+		}
+		var assetKey string = func() string {
+			if cancelByCloid {
+				return "asset"
+			}
+			return "a"
+		}()
+		var idKey string = func() string {
+			if cancelByCloid {
+				return "cloid"
+			}
+			return "o"
+		}()
+		var market map[string]any = MapTyped(this.Market(symbol))
+		var cancelObj map[string]any = map[string]any{}
+		cancelObj[assetKey] = this.ParseToNumeric(market["baseId"])
+		cancelObj[idKey] = func() any {
+			if cancelByCloid {
+				return clientOrderId
+			}
+			return this.ParseToNumeric(id)
+		}()
+		cancelReq = append(cancelReq, cancelObj)
+	}
+	cancelAction["type"] = func() string {
+		if cancelByCloid {
+			return "cancelByCloid"
+		}
+		return "cancel"
+	}()
+	cancelAction["cancels"] = cancelReq
+	var vaultAddressOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress"), 0))
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
+	request["action"] = cancelAction
+	request["signature"] = signature
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+
+	response := (<-this.PrivatePostExchange(request)).Raw
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "status":"ok",
+	//         "response":{
+	//             "type":"cancel",
+	//             "data":{
+	//                 "statuses":[
+	//                     "success"
+	//                 ]
+	//             }
+	//         }
+	//     }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#cancelAllOrdersAfter
+ * @description dead man's switch, cancel all orders after the given timeout
+ * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} the api result
+ */
+func (this *Hyperliquid) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	PanicOnError((<-this.InitializeClientAsync()))
+	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var cancelAction map[string]any = map[string]any{
+		"type": "scheduleCancel",
+		"time": Add(nonce, timeout),
+	}
+	var vaultAddress any = nil
+	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress")
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
+	request["action"] = cancelAction
+	request["signature"] = signature
+	if vaultAddress != nil {
+		params2 = this.Omit(params2, "vaultAddress")
+		request["vaultAddress"] = vaultAddress
+	}
+
+	response := (<-this.PrivatePostExchange(request)).Raw
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "status":"err",
+	//         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
+	//     }
+	//
+	ch <- response
+	return nil
+}
+func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any {
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var hasClientOrderId bool = false
+	for i := 0; i < GetArrayLength(orders); i++ {
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
+		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
+		if clientOrderId != nil {
+			hasClientOrderId = true
+		}
+	}
+	if hasClientOrderId {
+		for i := 0; i < GetArrayLength(orders); i++ {
+			var rawOrder map[string]any = SafeMapTyped(orders, i)
+			var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
+			var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
+			if clientOrderId == nil {
+				panic(ArgumentsRequired(this.Id + " editOrders() all orders must have clientOrderId if at least one has a clientOrderId"))
+			}
+		}
+	}
+	var params2 map[string]any = MapTyped(this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"}))
+	var modifies []any = []any{}
+	for i := 0; i < GetArrayLength(orders); i++ {
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var id *string = this.SafeString(rawOrder, "id")
+		var marketId *string = this.SafeString(rawOrder, "symbol")
+		var market map[string]any = MapTyped(this.Market(marketId))
+		var symbol *string = SafeStringPtr(market["symbol"])
+		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
+		var isMarket bool = (typeVar != nil && *typeVar == "MARKET")
+		var side *string = this.SafeStringUpper(rawOrder, "side")
+		var isBuy bool = (side != nil && *side == "BUY")
+		var amount *string = this.SafeString(rawOrder, "amount")
+		var price *string = this.SafeString(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage")
+		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
+		var defaultTimeInForce string = "gtc"
+		if isMarket {
+			defaultTimeInForce = "ioc"
+		}
+		var postOnly *bool = this.SafeBool(orderParams, "postOnly", false)
+		if postOnly != nil && *postOnly == true {
+			defaultTimeInForce = "alo"
+		}
+		var timeInForce *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
+		timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
+		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
+		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
+		var stopLossPrice *string = this.SafeString(orderParams, "stopLossPrice", triggerPrice)
+		var takeProfitPrice *string = this.SafeString(orderParams, "takeProfitPrice")
+		var isTrigger bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
+		var reduceOnly *bool = this.SafeBool(orderParams, "reduceOnly", false)
+		orderParams = this.Omit(orderParams, []any{"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"})
+		var px any = this.NumberToString(price)
+		if isMarket {
+			px = func() any {
+				if isBuy {
+					return Precise.StringMul(px, Precise.StringAdd("1", slippage))
+				}
+				return Precise.StringMul(px, Precise.StringSub("1", slippage))
+			}()
+			px = this.PriceToPrecision(symbol, px)
+		} else {
+			px = this.PriceToPrecision(symbol, px)
+		}
+		var sz *string = this.AmountToPrecision(symbol, amount)
+		var orderType map[string]any = map[string]any{}
+		if isTrigger {
+			var isTp bool = false
+			if takeProfitPrice != nil {
+				triggerPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+				isTp = true
+			} else {
+				triggerPrice = this.PriceToPrecision(symbol, stopLossPrice)
+			}
+			var tpSlType string = "sl"
+			if isTp {
+				tpSlType = "tp"
+			}
+			orderType["trigger"] = map[string]any{
+				"isMarket":  isMarket,
+				"triggerPx": triggerPrice,
+				"tpsl":      tpSlType,
+			}
+		} else {
+			orderType["limit"] = map[string]any{
+				"tif": timeInForce,
+			}
+		}
+		if triggerPrice == nil {
+			triggerPrice = SafeStringPtr("0")
+		}
+		var orderReq map[string]any = map[string]any{
+			"a": this.ParseToInt(market["baseId"]),
+			"b": isBuy,
+			"p": px,
+			"s": sz,
+			"r": reduceOnly,
+			"t": orderType,
+		}
+		if clientOrderId != nil {
+			orderReq["c"] = clientOrderId
+		}
+		var modifyReq map[string]any = map[string]any{
+			"oid":   this.ParseToInt(id),
+			"order": orderReq,
+		}
+		modifies = append(modifies, modifyReq)
+	}
+	var nonce any = this.IncrementingNonce()
+	var modifyAction map[string]any = map[string]any{
+		"type":     "batchModify",
+		"modifies": modifies,
+	}
+	var vaultAddress any = nil
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "editOrder", "vaultAddress"))
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = MapTyped(GetValue(vaultAddressparams2Variable, 1))
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var signature any = this.SignL1Action(modifyAction, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    modifyAction,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+	return request
+}
+
+/**
+ * @method
+ * @name hyperliquid#editOrder
+ * @description edit a trade order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+ * @param {string} id cancel order id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	if false {
+		panic(ArgumentsRequired(this.Id + " editOrder() requires an id argument"))
+	}
+	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
+	var order map[string]any = MapTyped(GetValue(orderglobalParamsVariable, 0))
+	var globalParams map[string]any = MapTyped(GetValue(orderglobalParamsVariable, 1))
+
+	var orders []any = ListTyped(PanicOnError((<-this.EditOrdersAsync([]any{order}, globalParams))))
+
+	ch <- GetValue(orders, 0)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#editOrders
+ * @description edit a list of trade orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) EditOrdersAsync(orders any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.editOrdersBody(ch, orders, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) editOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	PanicOnError((<-this.InitializeClientAsync()))
+	var request any = this.EditOrdersRequest(orders, params)
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	//
+	//     {
+	//         "status": "ok",
+	//         "response": {
+	//             "type": "order",
+	//             "data": {
+	//                 "statuses": [
+	//                     {
+	//                         "resting": {
+	//                             "oid": 5063830287
+	//                         }
+	//                     }
+	//                 ]
+	//             }
+	//         }
+	//     }
+	// when the order is filled immediately
+	//     {
+	//         "status":"ok",
+	//         "response":{
+	//            "type":"order",
+	//            "data":{
+	//               "statuses":[
+	//                  {
+	//                     "filled":{
+	//                        "totalSz":"0.1",
+	//                        "avgPx":"100.84",
+	//                        "oid":6195281425
+	//                     }
+	//                  }
+	//               ]
+	//            }
+	//         }
+	//     }
+	//
+	var responseObject map[string]any = SafeMapTyped(response, "response")
+	var dataObject map[string]any = SafeMapTyped(responseObject, "data")
+	var statuses []any = SafeListTypedDefault(dataObject, "statuses", []any{})
+
+	ch <- this.ParseOrders(statuses)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#createVault
+ * @description creates a value
+ * @param {string} name The name of the vault
+ * @param {string} description The description of the vault
+ * @param {number} initialUsd The initialUsd of the vault
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the api result
+ */
+func (this *Hyperliquid) CreateVaultAsync(name any, description any, initialUsd any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.createVaultBody(ch, name, description, initialUsd, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) createVaultBody(ch chan any, name any, description any, initialUsd any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(initialUsd), "1000000"))
+	var action map[string]any = map[string]any{
+		"type":        "createVault",
+		"name":        name,
+		"description": description,
+		"initialUsd":  usd,
+		"nonce":       nonce,
+	}
+	var signature any = this.SignL1Action(action, nonce)
+	request["action"] = action
+	request["signature"] = signature
+
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
+	PanicOnError(response)
+
+	//
+	// {
+	//     "status": "ok",
+	//     "response": {
+	//         "type": "createVault",
+	//         "data": "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+	//     }
+	// }
+	//
+	ch <- response
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchFundingRateHistory
+ * @description fetches historical funding rate prices
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+ */
+func (this *Hyperliquid) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var request map[string]any = map[string]any{
+		"type": "fundingHistory",
+		"coin": this.SafeString(market, "baseName"),
+	}
+	if since != nil {
+		request["startTime"] = since
+	} else {
+		var maxLimit any = func() any {
+			if limit == nil {
+				return 500
+			}
+			return limit
+		}()
+		request["startTime"] = Subtract(this.Milliseconds(), Multiply(Multiply(Multiply(maxLimit, 60), 60), 1000))
+	}
+	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	if until != nil {
+		request["endTime"] = until
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "coin": "ETH",
+	//             "fundingRate": "0.0000125",
+	//             "premium": "0.00057962",
+	//             "time": 1704290400031
+	//         }
+	//     ]
+	//
+	var result []any = []any{}
+	var fundings []any = []any{}
+	if IsArray(response) {
+		fundings = ArrayTyped(response)
+	}
+	for i := 0; i < len(fundings); i++ {
+		var entry map[string]any = SafeMapTyped(fundings, i)
+		var timestamp *int64 = this.SafeInteger(entry, "time")
+		result = append(result, map[string]any{
+			"info":        entry,
+			"symbol":      this.SafeSymbol(nil, market),
+			"fundingRate": this.SafeNumber(entry, "fundingRate"),
+			"timestamp":   timestamp,
+			"datetime":    this.Iso8601(timestamp),
+		})
+	}
+	var sorted []any = this.SortBy(result, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	return nil
+}
+func (this *Hyperliquid) GetDexFromHip3Symbol(market any) any {
+	var baseName *string = this.SafeString(market, "baseName", "")
+	var part []string = strings.Split(*baseName, ":")
+	var partsLength int = len(part)
+	if partsLength > 1 {
+		return this.SafeString(part, 0)
+	}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOpenOrders
+ * @description fetch all unfilled currently open orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open orders structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOpenOrders", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var request map[string]any = map[string]any{
+		"type": method,
+		"user": userAddress,
+	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+		// check if is hip3 symbol
+		var dexName any = this.GetDexFromHip3Symbol(market)
+		if dexName != nil {
+			request["dex"] = dexName
+		}
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsMethod)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "coin": "ETH",
+	//             "limitPx": "2000.0",
+	//             "oid": 3991946565,
+	//             "origSz": "0.1",
+	//             "side": "B",
+	//             "sz": "0.1",
+	//             "timestamp": 1704346468838
+	//         }
+	//     ]
+	//
+	var orderWithStatus []any = []any{}
+	var rawOrders []any = []any{}
+	if IsArray(response) {
+		rawOrders = ArrayTyped(response)
+	}
+	for i := 0; i < len(rawOrders); i++ {
+		var order map[string]any = SafeMapTyped(rawOrders, i)
+		var extendOrder map[string]any = map[string]any{}
+		if this.SafeString(order, "status") == nil {
+			extendOrder["ccxtStatus"] = "open"
+		}
+		orderWithStatus = append(orderWithStatus, this.Extend(order, extendOrder))
+	}
+
+	ch <- this.ParseOrders(orderWithStatus, market, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchClosedOrders
+ * @description fetch all unfilled currently closed orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open orders structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, nil, nil, params)))) // don't filter here because we don't want to catch open orders
+	var closedOrders any = this.FilterByArray(orders, "status", []any{"closed"}, false)
+
+	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCanceledOrders
+ * @description fetch all canceled orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open orders structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, nil, nil, params)))) // don't filter here because we don't want to catch open orders
+	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled"}, false)
+
+	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCanceledAndClosedOrders
+ * @description fetch all closed and canceled orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open orders structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, nil, nil, params)))) // don't filter here because we don't want to catch open orders
+	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled", "closed", "rejected"}, false)
+
+	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOrders
+ * @description fetch all orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open orders structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) FetchOrdersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOrders", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = nil
+	var request map[string]any = map[string]any{
+		"type": "historicalOrders",
+		"user": userAddress,
+	}
+	if symbol != nil {
+		market = this.Market(symbol)
+		// check if is hip3 symbol
+		var dexName any = this.GetDexFromHip3Symbol(market)
+		if dexName != nil {
+			request["dex"] = dexName
+		}
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsPublicAddress)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "order": {
+	//                 "coin": "ETH",
+	//                 "limitPx": "2000.0",
+	//                 "oid": 3991946565,
+	//                 "origSz": "0.1",
+	//                 "side": "B",
+	//                 "sz": "0.1",
+	//                 "timestamp": 1704346468838
+	//             },
+	//             "status": "open",
+	//             "statusTimestamp": 1704346468838
+	//         }
+	//     ]
+	//
+	// Hyperliquid returns the full status history for each order,
+	// so a canceled order appears twice: once as 'open' and once as 'canceled'.
+	// Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+	var deduplicatedByOid map[string]any = map[string]any{}
+	var historicalOrders []any = []any{}
+	if IsArray(response) {
+		historicalOrders = ArrayTyped(response)
+	}
+	for i := 0; i < len(historicalOrders); i++ {
+		var rawOrder any = func() any {
+			if i >= 0 && i < len(historicalOrders) {
+				return DerefScalar(historicalOrders[i])
+			}
+			return nil
+		}()
+		var entry any = this.SafeDict(rawOrder, "order")
+		if IsEqual(entry, nil) {
+			entry = rawOrder
+		}
+		var oid *string = this.SafeString(entry, "oid")
+		if oid != nil {
+			if !(func() bool {
+				if oid == nil {
+					return false
+				}
+				_, ok := deduplicatedByOid[*oid]
+				return ok
+			}()) {
+				AddElementToObject(deduplicatedByOid, oid, rawOrder)
+			} else {
+				var existingTimestamp *int64 = this.SafeInteger(func() any {
+					if oid == nil {
+						return nil
+					}
+					return deduplicatedByOid[*oid]
+				}(), "statusTimestamp")
+				var currentTimestamp *int64 = this.SafeInteger(rawOrder, "statusTimestamp")
+				if (currentTimestamp != nil) && ((existingTimestamp == nil) || (existingTimestamp == nil || *currentTimestamp > *existingTimestamp)) {
+					AddElementToObject(deduplicatedByOid, oid, rawOrder)
+				}
+			}
+		}
+	}
+	var deduplicated []any = ObjectValues(deduplicatedByOid)
+
+	ch <- this.ParseOrders(deduplicated, market, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var userAddress *string = nil
+	var params2 any = nil
+	userAddressparams2Variable := this.HandlePublicAddress("fetchOrder", params)
+	userAddress = SafeStringPtr(GetValue(userAddressparams2Variable, 0))
+	params2 = GetValue(userAddressparams2Variable, 1)
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	var clientOrderId *string = this.SafeString(params2, "clientOrderId")
+	var request map[string]any = map[string]any{
+		"type": "orderStatus",
+		"user": userAddress,
+	}
+	if clientOrderId != nil {
+		params2 = this.Omit(params2, "clientOrderId")
+		request["oid"] = clientOrderId
+	} else {
+		var isClientOrderId bool = (GetLength(id) >= 34)
+		request["oid"] = func() any {
+			if isClientOrderId {
+				return id
+			}
+			return this.ParseToNumeric(id)
+		}()
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params2)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "order": {
+	//             "order": {
+	//                 "children": [],
+	//                 "cloid": null,
+	//                 "coin": "ETH",
+	//                 "isPositionTpsl": false,
+	//                 "isTrigger": false,
+	//                 "limitPx": "2000.0",
+	//                 "oid": "3991946565",
+	//                 "orderType": "Limit",
+	//                 "origSz": "0.1",
+	//                 "reduceOnly": false,
+	//                 "side": "B",
+	//                 "sz": "0.1",
+	//                 "tif": "Gtc",
+	//                 "timestamp": "1704346468838",
+	//                 "triggerCondition": "N/A",
+	//                 "triggerPx": "0.0"
+	//             },
+	//             "status": "open",
+	//             "statusTimestamp": "1704346468838"
+	//         },
+	//         "status": "order"
+	//     }
+	//
+	var data map[string]any = SafeMapTyped(response, "order")
+
+	ch <- this.ParseOrder(data, market)
+	return nil
+}
+func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
+	//
+	// createOrdersWs error
+	//
+	//  {error: 'Insufficient margin to place order. asset=159'}
+	//
+	//  fetchOpenOrders
+	//
+	//     {
+	//         "coin": "ETH",
+	//         "limitPx": "2000.0",
+	//         "oid": 3991946565,
+	//         "origSz": "0.1",
+	//         "side": "B",
+	//         "sz": "0.1",
+	//         "timestamp": 1704346468838
+	//     }
+	// fetchClosedorders
+	//    {
+	//        "cloid": null,
+	//        "closedPnl": "0.0",
+	//        "coin": "SOL",
+	//        "crossed": true,
+	//        "dir": "Open Long",
+	//        "fee": "0.003879",
+	//        "hash": "0x4a2647998682b7f07bc5040ab531e1011400f9a51bfa0346a0b41ebe510e8875",
+	//        "liquidationMarkPx": null,
+	//        "oid": "6463280784",
+	//        "px": "110.83",
+	//        "side": "B",
+	//        "startPosition": "1.64",
+	//        "sz": "0.1",
+	//        "tid": "232174667018988",
+	//        "time": "1709142268394"
+	//    }
+	//
+	//  fetchOrder
+	//
+	//     {
+	//         "order": {
+	//             "children": [],
+	//             "cloid": null,
+	//             "coin": "ETH",
+	//             "isPositionTpsl": false,
+	//             "isTrigger": false,
+	//             "limitPx": "2000.0",
+	//             "oid": "3991946565",
+	//             "orderType": "Limit",
+	//             "origSz": "0.1",
+	//             "reduceOnly": false,
+	//             "side": "B",
+	//             "sz": "0.1",
+	//             "tif": "Gtc",
+	//             "timestamp": "1704346468838",
+	//             "triggerCondition": "N/A",
+	//             "triggerPx": "0.0"
+	//         },
+	//         "status": "open",
+	//         "statusTimestamp": "1704346468838"
+	//     }
+	//
+	// createOrder
+	//
+	//     {
+	//         "resting": {
+	//             "oid": 5063830287
+	//         }
+	//     }
+	//
+	//     {
+	//        "filled":{
+	//           "totalSz":"0.1",
+	//           "avgPx":"100.84",
+	//           "oid":6195281425
+	//        }
+	//     }
+	// frontendOrder
+	// {
+	//     "children": [],
+	//     "cloid": null,
+	//     "coin": "BLUR",
+	//     "isPositionTpsl": false,
+	//     "isTrigger": true,
+	//     "limitPx": "0.5",
+	//     "oid": 8670487141,
+	//     "orderType": "Stop Limit",
+	//     "origSz": "20.0",
+	//     "reduceOnly": false,
+	//     "side": "B",
+	//     "sz": "20.0",
+	//     "tif": null,
+	//     "timestamp": 1715523663687,
+	//     "triggerCondition": "Price above 0.6",
+	//     "triggerPx": "0.6"
+	// }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var error *string = this.SafeString(order, "error")
+	if error != nil {
+		var finalOrder any = order // java req
+		return this.SafeOrder(map[string]any{
+			"info":   finalOrder,
+			"status": "rejected",
+		})
+	}
+	var entry any = this.SafeDictN(order, []any{"order", "resting", "filled"})
+	if IsEqual(entry, nil) {
+		entry = order
+	}
+	var filled map[string]any = SafeMapTyped(order, "filled")
+	var coin *string = this.SafeString(entry, "coin")
+	var marketId any = nil
+	if coin != nil {
+		marketId = this.CoinToMarketId(coin)
+	}
+	var marketResolved map[string]any = nil
+	if this.SafeString(entry, "id") == nil {
+		marketResolved = MapTyped(this.SafeMarket(marketId))
+	} else {
+		marketResolved = MapTyped(this.SafeMarket(marketId, market))
+	}
+	var symbol *string = SafeStringPtr(GetValue(marketResolved, "symbol"))
+	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
+	var status *string = this.SafeString2(order, "status", "ccxtStatus")
+	var orderOmitted any = this.Omit(order, []any{"ccxtStatus"})
+	var side *string = this.SafeString(entry, "side")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "A" {
+				return "sell"
+			}
+			return "buy"
+		}())
+	}
+	var totalAmount *string = this.SafeString2(entry, "origSz", "totalSz")
+	var remaining *string = this.SafeString(entry, "sz")
+	var tif *string = this.SafeStringUpper(entry, "tif")
+	var postOnly any = nil
+	if tif != nil {
+		postOnly = (tif != nil && *tif == "ALO")
+	}
+	var isTrigger bool = (IsEqual(this.SafeBool(entry, "isTrigger"), true))
+	var triggerPx any = func() any {
+		if isTrigger {
+			return this.SafeNumber(entry, "triggerPx")
+		}
+		return nil
+	}()
+	// standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+	// through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
+	var orderTypeRaw *string = this.SafeStringLower(entry, "orderType", "")
+	var stopLossPrice any = nil
+	var takeProfitPrice any = nil
+	if !IsEqual(triggerPx, nil) {
+		if func() int {
+			if orderTypeRaw == nil {
+				return -1
+			}
+			return strings.Index(*orderTypeRaw, "stop")
+		}() >= 0 {
+			stopLossPrice = triggerPx
+		} else if func() int {
+			if orderTypeRaw == nil {
+				return -1
+			}
+			return strings.Index(*orderTypeRaw, "take profit")
+		}() >= 0 {
+			takeProfitPrice = triggerPx
+		}
+	}
+	return this.SafeOrder(map[string]any{
+		"info":                orderOmitted,
+		"id":                  this.SafeString(entry, "oid"),
+		"clientOrderId":       this.SafeString(entry, "cloid"),
+		"timestamp":           timestamp,
+		"datetime":            this.Iso8601(timestamp),
+		"lastTradeTimestamp":  nil,
+		"lastUpdateTimestamp": this.SafeInteger(orderOmitted, "statusTimestamp"),
+		"symbol":              symbol,
+		"type":                this.ParseOrderType(this.SafeStringLower(entry, "orderType")),
+		"timeInForce":         tif,
+		"postOnly":            postOnly,
+		"reduceOnly":          this.SafeBool(entry, "reduceOnly"),
+		"side":                side,
+		"price":               this.SafeString(entry, "limitPx"),
+		"triggerPrice":        triggerPx,
+		"stopLossPrice":       stopLossPrice,
+		"takeProfitPrice":     takeProfitPrice,
+		"amount":              totalAmount,
+		"cost":                nil,
+		"average":             this.SafeString(entry, "avgPx"),
+		"filled":              this.SafeString(filled, "totalSz", Precise.StringSub(totalAmount, remaining)),
+		"remaining":           remaining,
+		"status":              this.ParseOrderStatus(status),
+		"fee":                 nil,
+		"trades":              nil,
+	}, marketResolved)
+}
+func (this *Hyperliquid) ParseOrderStatus(status *string) any {
+	if status == nil {
+		return nil
+	}
+	var statuses map[string]any = map[string]any{
+		"triggered":      "open",
+		"filled":         "closed",
+		"open":           "open",
+		"canceled":       "canceled",
+		"rejected":       "rejected",
+		"marginCanceled": "canceled",
+	}
+	if strings.HasSuffix(*status, "Rejected") {
+		return "rejected"
+	}
+	if strings.HasSuffix(*status, "Canceled") {
+		return "canceled"
+	}
+	return this.SafeString(statuses, status, status)
+}
+func (this *Hyperliquid) ParseOrderType(status *string) *string {
+	var statuses map[string]any = map[string]any{
+		"stop limit":  "limit",
+		"stop market": "market",
+	}
+	return this.SafeString(statuses, status, status)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchMyTrades
+ * @description fetch all trades made by the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trades structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest trade
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Hyperliquid) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchMyTrades", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"user": userAddress,
+	}
+	if since != nil {
+		request["type"] = "userFillsByTime"
+		request["startTime"] = since
+	} else {
+		request["type"] = "userFills"
+	}
+	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPublicAddress, "until"))
+	if until != nil {
+		request["endTime"] = until
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "closedPnl": "0.19343",
+	//             "coin": "ETH",
+	//             "crossed": true,
+	//             "dir": "Close Long",
+	//             "fee": "0.050062",
+	//             "feeToken": "USDC",
+	//             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
+	//             "liquidationMarkPx": null,
+	//             "oid": 3929354691,
+	//             "px": "2381.1",
+	//             "side": "A",
+	//             "startPosition": "0.0841",
+	//             "sz": "0.0841",
+	//             "tid": 128423918764978,
+	//             "time": 1704262888911
+	//         }
+	//     ]
+	//
+	var myFills []any = []any{}
+	if IsArray(response) {
+		myFills = ArrayTyped(response)
+	}
+
+	ch <- this.ParseTrades(myFills, market, since, limit)
+	return nil
+}
+func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "closedPnl": "0.19343",
+	//         "coin": "ETH",
+	//         "crossed": true,
+	//         "dir": "Close Long",
+	//         "fee": "0.050062",
+	//         "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
+	//         "liquidationMarkPx": null,
+	//         "oid": 3929354691,
+	//         "px": "2381.1",
+	//         "side": "A",
+	//         "startPosition": "0.0841",
+	//         "sz": "0.0841",
+	//         "tid": 128423918764978,
+	//         "time": 1704262888911
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var timestamp *int64 = this.SafeInteger(trade, "time")
+	var price *string = this.SafeString(trade, "px")
+	var amount *string = this.SafeString(trade, "sz")
+	var coin *string = this.SafeString(trade, "coin")
+	var marketId any = this.CoinToMarketId(coin)
+	var marketResolved map[string]any = MapTyped(this.SafeMarket(marketId))
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var id *string = this.SafeString(trade, "tid")
+	var side *string = this.SafeString(trade, "side")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "A" {
+				return "sell"
+			}
+			return "buy"
+		}())
+	}
+	var fee *string = this.SafeString(trade, "fee")
+	var takerOrMaker *string = nil
+	var crossed *bool = this.SafeBool(trade, "crossed")
+	if crossed != nil {
+		takerOrMaker = SafeStringPtr(func() string {
+			if crossed != nil && *crossed {
+				return "taker"
+			}
+			return "maker"
+		}())
+	}
+	var builderFee *string = this.SafeString(trade, "builderFee")
+	if builderFee != nil {
+		fee = Precise.StringAdd(fee, builderFee)
+	}
+	return this.SafeTrade(map[string]any{
+		"info":         trade,
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"symbol":       symbol,
+		"id":           id,
+		"order":        this.SafeString(trade, "oid"),
+		"type":         nil,
+		"side":         side,
+		"takerOrMaker": takerOrMaker,
+		"price":        price,
+		"amount":       amount,
+		"cost":         nil,
+		"fee": map[string]any{
+			"cost":     fee,
+			"currency": this.SafeString(trade, "feeToken"),
+			"rate":     nil,
+		},
+	}, marketResolved)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchPosition
+ * @description fetch data on an open position
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+ * @param {string} symbol unified market symbol of the market the position is held in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Hyperliquid) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchPositionBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
+
+	ch <- this.SafeDict(positions, 0, map[string]any{})
+	return nil
+}
+func (this *Hyperliquid) GetDexFromSymbols(methodName string, optionalArgs ...any) any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	if symbols == nil {
+		return nil
+	}
+	var symbolsLength int = GetArrayLength(symbols)
+	if symbolsLength == 0 {
+		return nil
+	}
+	var dexName any = nil
+	for i := 0; i < symbolsLength; i++ {
+		if dexName == nil {
+			var market map[string]any = this.Market(GetValue(symbols, i))
+			dexName = this.GetDexFromHip3Symbol(market)
+		} else {
+			var market map[string]any = this.Market(GetValue(symbols, i))
+			var currentDexName any = this.GetDexFromHip3Symbol(market)
+			if currentDexName != dexName {
+				panic(NotSupported(this.Id + " " + methodName + " only supports fetching positions for one DEX at a time for HIP3 markets"))
+			}
+		}
+	}
+	return dexName
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchPositions
+ * @description fetch all open positions
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name, eg: XYZ
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Hyperliquid) FetchPositionsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var request map[string]any = map[string]any{
+		"type": "clearinghouseState",
+		"user": userAddress,
+	}
+	var dexName any = this.GetDexFromSymbols("fetchPositions", symbolsNormalized)
+	if dexName != nil {
+		request["dex"] = dexName
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsPublicAddress)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "assetPositions": [
+	//             {
+	//                 "position": {
+	//                     "coin": "ETH",
+	//                     "cumFunding": {
+	//                         "allTime": "0.0",
+	//                         "sinceChange": "0.0",
+	//                         "sinceOpen": "0.0"
+	//                     },
+	//                     "entryPx": "2213.9",
+	//                     "leverage": {
+	//                         "rawUsd": "-475.23904",
+	//                         "type": "isolated",
+	//                         "value": "20"
+	//                     },
+	//                     "liquidationPx": "2125.00856238",
+	//                     "marginUsed": "24.88097",
+	//                     "maxLeverage": "50",
+	//                     "positionValue": "500.12001",
+	//                     "returnOnEquity": "0.0",
+	//                     "szi": "0.2259",
+	//                     "unrealizedPnl": "0.0"
+	//                 },
+	//                 "type": "oneWay"
+	//             }
+	//         ],
+	//         "crossMaintenanceMarginUsed": "0.0",
+	//         "crossMarginSummary": {
+	//             "accountValue": "100.0",
+	//             "totalMarginUsed": "0.0",
+	//             "totalNtlPos": "0.0",
+	//             "totalRawUsd": "100.0"
+	//         },
+	//         "marginSummary": {
+	//             "accountValue": "100.0",
+	//             "totalMarginUsed": "0.0",
+	//             "totalNtlPos": "0.0",
+	//             "totalRawUsd": "100.0"
+	//         },
+	//         "time": "1704261007014",
+	//         "withdrawable": "100.0"
+	//     }
+	//
+	var data []any = SafeListTyped(response, "assetPositions")
+	var result []any = []any{}
+	for i := 0; i < len(data); i++ {
+		result = append(result, this.ParsePosition(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()))
+	}
+
+	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
+	return nil
+}
+func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "position": {
+	//             "coin": "ETH",
+	//             "cumFunding": {
+	//                 "allTime": "0.0",
+	//                 "sinceChange": "0.0",
+	//                 "sinceOpen": "0.0"
+	//             },
+	//             "entryPx": "2213.9",
+	//             "leverage": {
+	//                 "rawUsd": "-475.23904",
+	//                 "type": "isolated",
+	//                 "value": "20"
+	//             },
+	//             "liquidationPx": "2125.00856238",
+	//             "marginUsed": "24.88097",
+	//             "maxLeverage": "50",
+	//             "positionValue": "500.12001",
+	//             "returnOnEquity": "0.0",
+	//             "szi": "0.2259",
+	//             "unrealizedPnl": "0.0"
+	//         },
+	//         "type": "oneWay"
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var entry map[string]any = SafeMapTyped(position, "position")
+	var coin *string = this.SafeString(entry, "coin")
+	var marketId any = this.CoinToMarketId(coin)
+	var marketResolved map[string]any = MapTyped(this.SafeMarket(marketId))
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var leverage map[string]any = SafeMapTyped(entry, "leverage")
+	var marginMode *string = this.SafeString(leverage, "type")
+	var isIsolated bool = (marginMode != nil && *marginMode == "isolated")
+	var rawSize *string = this.SafeString(entry, "szi")
+	var size *string = rawSize
+	var side *string = nil
+	if size != nil {
+		side = SafeStringPtr(func() string {
+			if Precise.StringGt(rawSize, "0") {
+				return "long"
+			}
+			return "short"
+		}())
+		size = Precise.StringAbs(size)
+	}
+	var rawUnrealizedPnl *string = this.SafeString(entry, "unrealizedPnl")
+	var absRawUnrealizedPnl *string = Precise.StringAbs(rawUnrealizedPnl)
+	var marginUsed *string = this.SafeString(entry, "marginUsed")
+	var initialMargin *string = nil
+	if isIsolated {
+		initialMargin = Precise.StringSub(marginUsed, rawUnrealizedPnl)
+	} else {
+		initialMargin = marginUsed
+	}
+	var percentage *string = Precise.StringMul(Precise.StringDiv(absRawUnrealizedPnl, marginUsed), "100")
+	return this.SafePosition(map[string]any{
+		"info":                        position,
+		"id":                          nil,
+		"symbol":                      symbol,
+		"timestamp":                   nil,
+		"datetime":                    nil,
+		"isolated":                    isIsolated,
+		"hedged":                      nil,
+		"side":                        side,
+		"contracts":                   this.ParseNumber(size),
+		"contractSize":                nil,
+		"entryPrice":                  this.SafeNumber(entry, "entryPx"),
+		"markPrice":                   nil,
+		"notional":                    this.SafeNumber(entry, "positionValue"),
+		"leverage":                    this.SafeNumber(leverage, "value"),
+		"collateral":                  this.ParseNumber(marginUsed),
+		"initialMargin":               this.ParseNumber(initialMargin),
+		"maintenanceMargin":           nil,
+		"initialMarginPercentage":     nil,
+		"maintenanceMarginPercentage": nil,
+		"unrealizedPnl":               this.ParseNumber(rawUnrealizedPnl),
+		"liquidationPrice":            this.SafeNumber(entry, "liquidationPx"),
+		"marginMode":                  marginMode,
+		"percentage":                  this.ParseNumber(percentage),
+	})
+}
+
+/**
+ * @method
+ * @name hyperliquid#setMarginMode
+ * @description set margin mode (symbol)
+ * @param {string} marginMode margin mode must be either [isolated, cross]
+ * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} response from the exchange
+ */
+func (this *Hyperliquid) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
+	}
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var leverage *int64 = this.SafeInteger(params, "leverage")
+	if leverage == nil {
+		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
+	}
+	var asset int64 = this.ParseToInt(market["baseId"])
+	var isCross bool = (marginMode == "cross")
+	var nonce any = this.IncrementingNonce()
+	var params2 map[string]any = MapTyped(this.Omit(params, []any{"leverage"}))
+	var updateAction map[string]any = map[string]any{
+		"type":     "updateLeverage",
+		"asset":    asset,
+		"isCross":  isCross,
+		"leverage": leverage,
+	}
+	var vaultAddress any = nil
+	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress")
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = MapTyped(GetValue(vaultAddressparams2Variable, 1))
+	if vaultAddress != nil {
+		if StartsWith(vaultAddress, "0x") {
+			vaultAddress = Replace(vaultAddress, "0x", "")
+		}
+	}
+	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    updateAction,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+
+	response := (<-this.PrivatePostExchange(request)).Raw
+	PanicOnError(response)
+
+	//
+	//     {
+	//         'response': {
+	//             'type': 'default'
+	//         },
+	//         'status': 'ok'
+	//     }
+	//
+	ch <- response
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#setLeverage
+ * @description set the level of leverage for a market
+ * @param {float} leverage the rate of leverage
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
+ * @returns {object} response from the exchange
+ */
+func (this *Hyperliquid) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
+	}
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var marginMode *string = this.SafeString(params, "marginMode", "cross")
+	var isCross bool = (marginMode != nil && *marginMode == "cross")
+	var asset int64 = this.ParseToInt(market["baseId"])
+	var nonce any = this.IncrementingNonce()
+	var params2 any = this.Omit(params, "marginMode")
+	var updateAction map[string]any = map[string]any{
+		"type":     "updateLeverage",
+		"asset":    asset,
+		"isCross":  isCross,
+		"leverage": leverage,
+	}
+	var vaultAddress any = nil
+	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress")
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    updateAction,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		params2 = this.Omit(params2, "vaultAddress")
+		request["vaultAddress"] = vaultAddress
+	}
+
+	response := (<-this.PrivatePostExchange(request)).Raw
+	PanicOnError(response)
+
+	//
+	//     {
+	//         'response': {
+	//             'type': 'default'
+	//         },
+	//         'status': 'ok'
+	//     }
+	//
+	ch <- response
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#addMargin
+ * @description add margin
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to add
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+ */
+func (this *Hyperliquid) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	var retRes407215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes407215)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#reduceMargin
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+ * @description remove margin from a position
+ * @param {string} symbol unified market symbol
+ * @param {float} amount the amount of margin to remove
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+ */
+func (this *Hyperliquid) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	var retRes408815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes408815)
+	return nil
+}
+func (this *Hyperliquid) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var asset int64 = this.ParseToInt(market["baseId"])
+	var sz any = this.ParseToInt(Precise.StringMul(this.AmountToPrecision(symbol, amount), "1000000"))
+	if typeVar == "reduce" {
+		sz = OpNeg(sz)
+	}
+	var nonce any = this.IncrementingNonce()
+	var updateAction map[string]any = map[string]any{
+		"type":  "updateIsolatedMargin",
+		"asset": asset,
+		"isBuy": true,
+		"ntli":  sz,
+	}
+	var vaultAddressOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams2(params, "modifyMargin", "vaultAddress", "subAccountAddress"), 0))
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    updateAction,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+
+	//
+	//     {
+	//         'response': {
+	//             'type': 'default'
+	//         },
+	//         'status': 'ok'
+	//     }
+	//
+	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
+		"code": this.SafeString(response, "status"),
+	})
+	return nil
+}
+func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) any {
+	//
+	//    {
+	//        'type': 'default'
+	//    }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	return map[string]any{
+		"info":       data,
+		"symbol":     this.SafeSymbol(nil, market),
+		"type":       nil,
+		"marginMode": "isolated",
+		"amount":     nil,
+		"total":      nil,
+		"code":       this.SafeString(market, "settle"),
+		"status":     nil,
+		"timestamp":  nil,
+		"datetime":   nil,
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#transfer
+ * @description transfer currency internally between wallets on the same account
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from *spot, swap*
+ * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Hyperliquid) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode")
+	var nonce any = this.IncrementingNonce()
+	if this.InArray(fromAccount, []any{"spot", "swap", "perp"}) {
+		// handle swap <> spot account transfer
+		if !this.InArray(toAccount, []any{"spot", "swap", "perp"}) {
+			panic(NotSupported(this.Id + " transfer() only support spot <> swap transfer"))
+		}
+		var strAmount any = this.NumberToString(amount)
+		var vaultAddress any = this.SafeString2(params, "vaultAddress", "subAccountAddress")
+		if !IsEqual(vaultAddress, nil) {
+			vaultAddress = this.FormatVaultAddress(vaultAddress)
+			strAmount = Add(Add(strAmount, " subaccount:"), vaultAddress)
+		}
+		var strAmountFinal any = strAmount // java req
+		var toPerp bool = (toAccount == "perp") || (toAccount == "swap")
+		var transferPayload map[string]any = map[string]any{
+			"hyperliquidChain": func() string {
+				if isSandboxMode != nil && *isSandboxMode == true {
+					return "Testnet"
+				}
+				return "Mainnet"
+			}(),
+			"amount": strAmountFinal,
+			"toPerp": toPerp,
+			"nonce":  nonce,
+		}
+		var transferSig any = this.BuildUsdClassSendSig(transferPayload)
+		var transferRequest map[string]any = map[string]any{
+			"action": map[string]any{
+				"hyperliquidChain": transferPayload["hyperliquidChain"],
+				"signatureChainId": "0x66eee",
+				"type":             "usdClassTransfer",
+				"amount":           strAmountFinal,
+				"toPerp":           toPerp,
+				"nonce":            nonce,
+			},
+			"nonce":     nonce,
+			"signature": transferSig,
+		}
+
+		var transferResponse map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(transferRequest)).Raw))
+		//
+		// {'response': {'type': 'default'}, 'status': 'ok'}
+		//
+		// the sub-account branches below already hand back the unified structure; the
+		// spot <> swap branch returned the raw acknowledgement, breaking the shape
+		var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+
+		ch <- this.ParseTransfer(transferResponse, currency)
+		return nil
+	}
+	// transfer between main account and subaccount
+	var isDeposit bool = false
+	var subAccountAddress any = nil
+	if fromAccount == "main" {
+		subAccountAddress = toAccount
+		isDeposit = true
+	} else if toAccount == "main" {
+		subAccountAddress = fromAccount
+	} else {
+		panic(NotSupported(this.Id + " transfer() only support main <> subaccount transfer"))
+	}
+	this.CheckAddress(subAccountAddress)
+	// hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+	// moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+	// params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+	var transferType *string = this.SafeString(params, "type")
+	var isUsdc bool = (strings.ToUpper(code) == "USDC")
+	if isUsdc && (transferType == nil || *transferType != "spot") {
+		// Transfer USDC with subAccountTransfer
+		var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
+		var action map[string]any = map[string]any{
+			"type":           "subAccountTransfer",
+			"subAccountUser": subAccountAddress,
+			"isDeposit":      isDeposit,
+			"usd":            usd,
+		}
+		var sig any = this.SignL1Action(action, nonce)
+		var request map[string]any = map[string]any{
+			"action":    action,
+			"nonce":     nonce,
+			"signature": sig,
+		}
+
+		response := (<-this.PrivatePostExchange(request)).Raw
+		PanicOnError(response)
+
+		//
+		// {'response': {'type': 'default'}, 'status': 'ok'}
+		//
+		ch <- this.ParseTransfer(response)
+		return nil
+	} else {
+		// Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+		// expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+		if false {
+			panic(ArgumentsRequired(this.Id + " transfer() requires a currency code for spot sub-account transfers"))
+		}
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		var currencyInfo map[string]any = SafeMapTyped(currency, "info")
+		var tokenName *string = this.SafeString(currencyInfo, "name")
+		var tokenId *string = this.SafeString(currencyInfo, "tokenId")
+		var token *string = SafeStringPtr(Add(Add(tokenName, ":"), tokenId))
+		var action map[string]any = map[string]any{
+			"type":           "subAccountSpotTransfer",
+			"subAccountUser": subAccountAddress,
+			"isDeposit":      isDeposit,
+			"token":          token,
+			"amount":         this.NumberToString(amount),
+		}
+		var sig any = this.SignL1Action(action, nonce)
+		var request map[string]any = map[string]any{
+			"action":    action,
+			"nonce":     nonce,
+			"signature": sig,
+		}
+
+		response := (<-this.PrivatePostExchange(request)).Raw
+		PanicOnError(response)
+
+		ch <- this.ParseTransfer(response)
+		return nil
+	}
+}
+func (this *Hyperliquid) ParseTransfer(transfer any, optionalArgs ...any) any {
+	//
+	// {'response': {'type': 'default'}, 'status': 'ok'}
+	//
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	return map[string]any{
+		"info":        transfer,
+		"id":          nil,
+		"timestamp":   nil,
+		"datetime":    nil,
+		"currency":    this.SafeCurrencyCode(nil, currency),
+		"amount":      nil,
+		"fromAccount": nil,
+		"toAccount":   nil,
+		"status":      this.SafeString(transfer, "status", "ok"),
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#withdraw
+ * @description make a withdrawal (only support USDC)
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
+ * @param {string} code unified currency code
+ * @param {float} amount the amount to withdraw
+ * @param {string} address the address to withdraw to
+ * @param {string} tag
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] vault address withdraw from
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Hyperliquid) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = tag
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	this.CheckAddress(address)
+	if strings.ToUpper(code) != "USDC" {
+		panic(NotSupported(this.Id + " withdraw() only support USDC"))
+	}
+	var vaultAddressOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "withdraw", "vaultAddress")), 0))
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var nonce any = this.IncrementingNonce()
+	var action map[string]any = map[string]any{}
+	var sig any = nil
+	if vaultAddress != nil {
+		action = map[string]any{
+			"type":         "vaultTransfer",
+			"vaultAddress": Add("0x", vaultAddress),
+			"isDeposit":    false,
+			"usd":          amount,
+		}
+		sig = this.SignL1Action(action, nonce)
+	} else {
+		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+		var payload map[string]any = map[string]any{
+			"hyperliquidChain": func() string {
+				if isSandboxMode != nil && *isSandboxMode == true {
+					return "Testnet"
+				}
+				return "Mainnet"
+			}(),
+			"destination": address,
+			"amount":      ToString(amount),
+			"time":        nonce,
+		}
+		sig = this.BuildWithdrawSig(payload)
+		action = map[string]any{
+			"hyperliquidChain": payload["hyperliquidChain"],
+			"signatureChainId": "0x66eee",
+			"destination":      address,
+			"amount":           ToString(amount),
+			"time":             nonce,
+			"type":             "withdraw3",
+		}
+	}
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": sig,
+	}
+
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+
+	ch <- this.ParseTransaction(response)
+	return nil
+}
+func (this *Hyperliquid) ParseTransaction(transaction any, optionalArgs ...any) any {
+	//
+	// { status: 'ok', response: { type: 'default' } }
+	//
+	// fetchDeposits / fetchWithdrawals
+	// {
+	//     "time":1724762307531,
+	//     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+	//     "delta":{
+	//         "type":"accountClassTransfer",
+	//         "usdc":"50.0",
+	//         "toPerp":false
+	//     }
+	// }
+	//
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	var timestamp *int64 = this.SafeInteger(transaction, "time")
+	var delta map[string]any = SafeMapTyped(transaction, "delta")
+	var fee map[string]any = nil
+	var feeCost *int64 = this.SafeInteger(delta, "fee")
+	if feeCost != nil {
+		fee = map[string]any{
+			"currency": "USDC",
+			"cost":     feeCost,
+		}
+	}
+	var internal any = nil
+	var typeVar *string = this.SafeString(delta, "type")
+	if typeVar != nil {
+		internal = (typeVar != nil && *typeVar == "internalTransfer")
+	}
+	return map[string]any{
+		"info":        transaction,
+		"id":          nil,
+		"txid":        this.SafeString(transaction, "hash"),
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
+		"network":     nil,
+		"address":     nil,
+		"addressTo":   this.SafeString(delta, "destination"),
+		"addressFrom": this.SafeString(delta, "user"),
+		"tag":         nil,
+		"tagTo":       nil,
+		"tagFrom":     nil,
+		"type":        nil,
+		"amount":      this.SafeNumber(delta, "usdc"),
+		"currency":    nil,
+		"status":      this.SafeString(transaction, "status"),
+		"updated":     nil,
+		"comment":     nil,
+		"internal":    internal,
+		"fee":         fee,
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTradingFee
+ * @description fetch the trading fees for a market
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Hyperliquid) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchTradingFee", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var request map[string]any = map[string]any{
+		"type": "userFees",
+		"user": userAddress,
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsPublicAddress)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "dailyUserVlm": [
+	//             {
+	//                 "date": "2024-07-08",
+	//                 "userCross": "0.0",
+	//                 "userAdd": "0.0",
+	//                 "exchange": "90597185.23639999"
+	//             }
+	//         ],
+	//         "feeSchedule": {
+	//             "cross": "0.00035",
+	//             "add": "0.0001",
+	//             "tiers": {
+	//                 "vip": [
+	//                     {
+	//                         "ntlCutoff": "5000000.0",
+	//                         "cross": "0.0003",
+	//                         "add": "0.00005"
+	//                     }
+	//                 ],
+	//                 "mm": [
+	//                     {
+	//                         "makerFractionCutoff": "0.005",
+	//                         "add": "-0.00001"
+	//                     }
+	//                 ]
+	//             },
+	//             "referralDiscount": "0.04"
+	//         },
+	//         "userCrossRate": "0.00035",
+	//         "userAddRate": "0.0001",
+	//         "activeReferralDiscount": "0.0"
+	//     }
+	//
+	var data map[string]any = map[string]any{
+		"userCrossRate": this.SafeString(response, "userCrossRate"),
+		"userAddRate":   this.SafeString(response, "userAddRate"),
+	}
+
+	ch <- this.ParseTradingFee(data, market)
+	return nil
+}
+func (this *Hyperliquid) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "dailyUserVlm": [
+	//             {
+	//                 "date": "2024-07-08",
+	//                 "userCross": "0.0",
+	//                 "userAdd": "0.0",
+	//                 "exchange": "90597185.23639999"
+	//             }
+	//         ],
+	//         "feeSchedule": {
+	//             "cross": "0.00035",
+	//             "add": "0.0001",
+	//             "tiers": {
+	//                 "vip": [
+	//                     {
+	//                         "ntlCutoff": "5000000.0",
+	//                         "cross": "0.0003",
+	//                         "add": "0.00005"
+	//                     }
+	//                 ],
+	//                 "mm": [
+	//                     {
+	//                         "makerFractionCutoff": "0.005",
+	//                         "add": "-0.00001"
+	//                     }
+	//                 ]
+	//             },
+	//             "referralDiscount": "0.04"
+	//         },
+	//         "userCrossRate": "0.00035",
+	//         "userAddRate": "0.0001",
+	//         "activeReferralDiscount": "0.0"
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var symbol *string = this.SafeSymbol(nil, market)
+	return map[string]any{
+		"info":       fee,
+		"symbol":     symbol,
+		"maker":      this.SafeNumber(fee, "userAddRate"),
+		"taker":      this.SafeNumber(fee, "userCrossRate"),
+		"percentage": nil,
+		"tierBased":  nil,
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchLedger
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @param {string} [code] unified currency code
+ * @param {int} [since] timestamp in ms of the earliest ledger entry
+ * @param {int} [limit] max number of ledger entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+ */
+func (this *Hyperliquid) FetchLedgerAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var userAddress *string = nil
+	var params2 any = nil
+	userAddressparams2Variable := this.HandlePublicAddress("fetchLedger", params)
+	userAddress = SafeStringPtr(GetValue(userAddressparams2Variable, 0))
+	params2 = GetValue(userAddressparams2Variable, 1)
+	var request map[string]any = map[string]any{
+		"type": "userNonFundingLedgerUpdates",
+		"user": userAddress,
+	}
+	if since != nil {
+		request["startTime"] = since
+	}
+	var until *int64 = this.SafeInteger(params2, "until")
+	if until != nil {
+		request["endTime"] = until
+		params2 = this.Omit(params2, []any{"until"})
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params2)))
+	PanicOnError(response)
+
+	//
+	// [
+	//     {
+	//         "time":1724762307531,
+	//         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+	//         "delta":{
+	//             "type":"accountClassTransfer",
+	//             "usdc":"50.0",
+	//             "toPerp":false
+	//         }
+	//     }
+	// ]
+	//
+	ch <- this.ParseLedger(response, nil, since, limit)
+	return nil
+}
+func (this *Hyperliquid) ParseLedgerEntry(item any, optionalArgs ...any) any {
+	//
+	// {
+	//     "time":1724762307531,
+	//     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+	//     "delta":{
+	//         "type":"accountClassTransfer",
+	//         "usdc":"50.0",
+	//         "toPerp":false
+	//     }
+	// }
+	//
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	var timestamp *int64 = this.SafeInteger(item, "time")
+	var delta map[string]any = SafeMapTyped(item, "delta")
+	var fee map[string]any = nil
+	var feeCost *int64 = this.SafeInteger(delta, "fee")
+	if feeCost != nil {
+		fee = map[string]any{
+			"currency": "USDC",
+			"cost":     feeCost,
+		}
+	}
+	var typeVar *string = this.SafeString(delta, "type")
+	var amount *string = this.SafeString(delta, "usdc")
+	return this.SafeLedgerEntry(map[string]any{
+		"info":             item,
+		"id":               this.SafeString(item, "hash"),
+		"direction":        nil,
+		"account":          nil,
+		"referenceAccount": this.SafeString(delta, "user"),
+		"referenceId":      this.SafeString(item, "hash"),
+		"type":             this.ParseLedgerEntryType(typeVar),
+		"currency":         nil,
+		"amount":           this.ParseNumber(amount),
+		"timestamp":        timestamp,
+		"datetime":         this.Iso8601(timestamp),
+		"before":           nil,
+		"after":            nil,
+		"status":           nil,
+		"fee":              fee,
+	}, currency)
+}
+func (this *Hyperliquid) ParseLedgerEntryType(typeVar *string) *string {
+	var ledgerType map[string]any = map[string]any{
+		"internalTransfer":     "transfer",
+		"accountClassTransfer": "transfer",
+	}
+	return this.SafeString(ledgerType, typeVar, typeVar)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchDeposits
+ * @description fetch all deposits made to an account
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch deposits for
+ * @param {int} [limit] the maximum number of deposits structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Hyperliquid) FetchDepositsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var userAddress *string = nil
+	var params2 any = nil
+	userAddressparams2Variable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
+	userAddress = SafeStringPtr(GetValue(userAddressparams2Variable, 0))
+	params2 = GetValue(userAddressparams2Variable, 1)
+	var request map[string]any = map[string]any{
+		"type": "userNonFundingLedgerUpdates",
+		"user": userAddress,
+	}
+	if since != nil {
+		request["startTime"] = since
+	}
+	var until *int64 = this.SafeInteger(params2, "until")
+	if until != nil {
+		if since == nil {
+			panic(ArgumentsRequired(this.Id + " fetchDeposits requires since while until is set"))
+		}
+		request["endTime"] = until
+		params2 = this.Omit(params2, []any{"until"})
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params2)))
+	PanicOnError(response)
+	//
+	// [
+	//     {
+	//         "time":1724762307531,
+	//         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+	//         "delta":{
+	//             "type":"accountClassTransfer",
+	//             "usdc":"50.0",
+	//             "toPerp":false
+	//         }
+	//     }
+	// ]
+	//
+	var depositLedger []any = []any{}
+	if IsArray(response) {
+		depositLedger = ArrayTyped(response)
+	}
+	var records any = this.ExtractTypeFromDelta(depositLedger)
+	var vaultAddress any = nil
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress"))
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var deposits any = []any{}
+	if vaultAddress != nil {
+		for i := 0; i < GetArrayLength(records); i++ {
+			var record any = GetValue(records, i)
+			if this.SafeString(record, "type") != nil && *this.SafeString(record, "type") == "vaultDeposit" {
+				var delta any = this.SafeDict(record, "delta", map[string]any{})
+				if IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress)) {
+					AppendToArray(&deposits, record)
+				}
+			}
+		}
+	} else {
+		deposits = this.FilterByArray(records, "type", []any{"deposit"}, false)
+	}
+
+	ch <- this.ParseTransactions(deposits, nil, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchWithdrawals
+ * @description fetch all withdrawals made from an account
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch withdrawals for
+ * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Hyperliquid) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var userAddress *string = nil
+	var params2 any = nil
+	userAddressparams2Variable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
+	userAddress = SafeStringPtr(GetValue(userAddressparams2Variable, 0))
+	params2 = GetValue(userAddressparams2Variable, 1)
+	var request map[string]any = map[string]any{
+		"type": "userNonFundingLedgerUpdates",
+		"user": userAddress,
+	}
+	if since != nil {
+		request["startTime"] = since
+	}
+	var until *int64 = this.SafeInteger(params2, "until")
+	if until != nil {
+		request["endTime"] = until
+		params2 = this.Omit(params2, []any{"until"})
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, params2)))
+	PanicOnError(response)
+	//
+	// [
+	//     {
+	//         "time":1724762307531,
+	//         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+	//         "delta":{
+	//             "type":"accountClassTransfer",
+	//             "usdc":"50.0",
+	//             "toPerp":false
+	//         }
+	//     }
+	// ]
+	//
+	var withdrawalLedger []any = []any{}
+	if IsArray(response) {
+		withdrawalLedger = ArrayTyped(response)
+	}
+	var records any = this.ExtractTypeFromDelta(withdrawalLedger)
+	var vaultAddress any = nil
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress"))
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var withdrawals any = []any{}
+	if vaultAddress != nil {
+		for i := 0; i < GetArrayLength(records); i++ {
+			var record any = GetValue(records, i)
+			if this.SafeString(record, "type") != nil && *this.SafeString(record, "type") == "vaultWithdraw" {
+				var delta any = this.SafeDict(record, "delta", map[string]any{})
+				if IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress)) {
+					AppendToArray(&withdrawals, record)
+				}
+			}
+		}
+	} else {
+		withdrawals = this.FilterByArray(records, "type", []any{"withdraw"}, false)
+	}
+
+	ch <- this.ParseTransactions(withdrawals, nil, since, limit)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOpenInterests
+ * @description Retrieves the open interest for a list of symbols
+ * @param {string[]} [symbols] Unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Hyperliquid) FetchOpenInterestsAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+
+	swapMarkets := (<-this.FetchSwapMarketsAsync())
+	PanicOnError(swapMarkets)
+
+	ch <- this.ParseOpenInterests(swapMarkets, symbolsNormalized)
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Hyperliquid) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var symbolValue any = this.Symbol(symbol)
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+
+	ois := (<-this.FetchOpenInterestsAsync([]any{symbolValue}, params))
+	PanicOnError(ois)
+
+	ch <- GetValue(ois, symbolValue)
+	return nil
+}
+func (this *Hyperliquid) ParseOpenInterest(interest any, optionalArgs ...any) any {
+	//
+	//  {
+	//      szDecimals: '2',
+	//      name: 'HYPE',
+	//      maxLeverage: '3',
+	//      funding: '0.00014735',
+	//      openInterest: '14677900.74',
+	//      prevDayPx: '26.145',
+	//      dayNtlVlm: '299643445.12560016',
+	//      premium: '0.00081613',
+	//      oraclePx: '27.569',
+	//      markPx: '27.63',
+	//      midPx: '27.599',
+	//      impactPxs: [ '27.5915', '27.6319' ],
+	//      dayBaseVlm: '10790652.83',
+	//      baseId: 159
+	//  }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var interestValue map[string]any = MapTyped(this.SafeDict(interest, "info", map[string]any{}))
+	var coin *string = this.SafeString(interestValue, "name")
+	var marketId any = nil
+	if coin != nil {
+		marketId = this.CoinToMarketId(coin)
+	}
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             this.SafeSymbol(marketId),
+		"openInterestAmount": this.SafeNumber(interestValue, "openInterest"),
+		"openInterestValue":  nil,
+		"timestamp":          nil,
+		"datetime":           nil,
+		"info":               interestValue,
+	}, market)
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+ */
+func (this *Hyperliquid) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		PanicOnError((<-this.LoadMarketsAsync()))
+	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchFundingHistory", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
+	var request map[string]any = map[string]any{
+		"user": userAddress,
+		"type": "userFunding",
+	}
+	if since != nil {
+		request["startTime"] = since
+	}
+	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPublicAddress, "until"))
+	if until != nil {
+		request["endTime"] = until
+	}
+
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
+	PanicOnError(response)
+
+	//
+	// [
+	//     {
+	//         "time": 1734026400057,
+	//         "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+	//         "delta": {
+	//             "type": "funding",
+	//             "coin": "SOL",
+	//             "usdc": "75.635093",
+	//             "szi": "-7375.9",
+	//             "fundingRate": "0.00004381",
+	//             "nSamples": null
+	//         }
+	//     }
+	// ]
+	//
+	ch <- this.ParseIncomes(response, market, since, limit)
+	return nil
+}
+func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) any {
+	//
+	// {
+	//     "time": 1734026400057,
+	//     "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+	//     "delta": {
+	//         "type": "funding",
+	//         "coin": "SOL",
+	//         "usdc": "75.635093",
+	//         "szi": "-7375.9",
+	//         "fundingRate": "0.00004381",
+	//         "nSamples": null
+	//     }
+	// }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var id *string = this.SafeString(income, "hash")
+	var timestamp *int64 = this.SafeInteger(income, "time")
+	var delta map[string]any = SafeMapTyped(income, "delta")
+	var coin *string = this.SafeString(delta, "coin")
+	var marketId any = nil
+	if coin != nil {
+		marketId = this.CoinToMarketId(coin)
+	}
+	var marketResolved map[string]any = MapTyped(this.SafeMarket(marketId, market))
+	var amount *string = this.SafeString(delta, "usdc")
+	var code *string = this.SafeString(marketResolved, "settle", "USDC")
+	var rate *float64 = this.SafeNumber(delta, "fundingRate")
+	return map[string]any{
+		"info":      income,
+		"symbol":    marketResolved["symbol"],
+		"code":      code,
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"id":        id,
+		"amount":    this.ParseNumber(amount),
+		"rate":      rate,
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#reserveRequestWeight
+ * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+ * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) ReserveRequestWeightAsync(weight any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.reserveRequestWeightBody(ch, weight, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) reserveRequestWeightBody(ch chan any, weight any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var action map[string]any = map[string]any{
+		"type":   "reserveRequestWeight",
+		"weight": weight,
+	}
+	var signature any = this.SignL1Action(action, nonce)
+	request["action"] = action
+	request["signature"] = signature
+
+	response := (<-this.PrivatePostExchange(this.Extend(request, params))).Raw
+	PanicOnError(response)
+
+	ch <- response
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#createAccount
+ * @description creates a sub-account under the main account
+ * @param {string} name the name of the sub-account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) CreateSubAccountAsync(name string, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.createSubAccountBody(ch, name, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) createSubAccountBody(ch chan any, name string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var nonce any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"nonce": nonce,
+	}
+	var action map[string]any = map[string]any{
+		"type": "createSubAccount",
+		"name": name,
+	}
+	var expiresAfter *int64 = this.SafeInteger(params, "expiresAfter")
+	if expiresAfter != nil {
+		request["expiresAfter"] = expiresAfter
+	}
+	var signature any = this.SignL1Action(action, nonce, nil, expiresAfter)
+	request["action"] = action
+	request["signature"] = signature
+
+	response := (<-this.PrivatePostExchange(this.Extend(request, this.Omit(params, "expiresAfter")))).Raw
+	PanicOnError(response)
+
+	ch <- response
+	return nil
+}
+func (this *Hyperliquid) ExtractTypeFromDelta(optionalArgs ...any) any {
+	data := GetArg(optionalArgs, 0, []any{})
+	_ = data
+	var records []any = []any{}
+	for i := 0; i < GetArrayLength(data); i++ {
+		var record any = GetValue(data, i)
+		AddElementToObject(record, "type", GetValue(GetValue(record, "delta"), "type"))
+		records = append(records, record)
+	}
+	return records
+}
+func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
+	address := GetArg(optionalArgs, 0, nil)
+	_ = address
+	if address == nil {
+		return nil
+	}
+	if StartsWith(address, "0x") {
+		return Replace(address, "0x", "")
+	}
+	return address
+}
+func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any {
+	var userAuxparamsUserVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
+	userAux := GetValue(userAuxparamsUserVariable, 0)
+	paramsUser := GetValue(userAuxparamsUserVariable, 1)
+	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
+	if (user != nil) && (user == nil || *user != "") {
+		return []any{user, paramsAddress}
+	}
+	if (!IsEqual(this.WalletAddress, nil)) && (this.WalletAddress != "") {
+		return []any{this.WalletAddress, paramsAddress}
+	}
+	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the wallet address set"))
+}
+func (this *Hyperliquid) CoinToMarketId(coin any) any {
+	// handle also hip3 tokens like flx:CRCL
+	if coin == nil {
+		return nil
+	}
+	var hi3TokensByname map[string]any = SafeMapTyped(this.Options, "hip3TokensByName")
+	if !IsEqual(this.SafeDict(hi3TokensByname, coin), nil) {
+		var hip3Dict map[string]any = SafeMapTyped(hi3TokensByname, coin)
+		var quote *string = this.SafeString(hip3Dict, "quote", "USDC")
+		var code *string = this.SafeString(hip3Dict, "code", coin)
+		return *code + "/" + *quote + ":" + *quote
+	}
+	if (GetIndexOf(coin, "/") > -1) || (GetIndexOf(coin, "@") > -1) {
+		return coin // spot
+	}
+	// hip3
+	var coinId any = coin
+	if GetIndexOf(coin, ":") > -1 {
+		coinId = Replace(coin, ":", "-")
+	}
+	return Add(this.SafeCurrencyCode(coinId), "/USDC:USDC")
+}
+func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+		return nil // fallback to default error handler
+	}
+	// {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
+	//
+	//     {
+	//         status: 'ok',
+	//         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
+	//     }
+	// {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
+	//
+	// {"status":"unknownOid"}
+	//
+	var status *string = this.SafeString(response, "status", "")
+	var error *string = this.SafeString(response, "error")
+	var message any = nil
+	if status != nil && *status == "err" {
+		message = this.SafeString(response, "response")
+	} else if status != nil && *status == "unknownOid" {
+		panic(OrderNotFound(Add(this.Id+" ", body)))
+	} else if error != nil {
+		message = error
+	} else {
+		var responsePayload map[string]any = SafeMapTyped(response, "response")
+		var data map[string]any = SafeMapTyped(responsePayload, "data")
+		var statuses []any = SafeListTyped(data, "statuses")
+		for i := 0; i < len(statuses); i++ {
+			message = this.SafeString(func() any {
+				if i >= 0 && i < len(statuses) {
+					return DerefScalar(statuses[i])
+				}
+				return nil
+			}(), "error")
+			if !IsEqual(message, nil) {
+				break
+			}
+		}
+		if func() bool { _, ok := data["status"]; return ok }() {
+			var errorStatus map[string]any = MapTyped(this.SafeDict(data, "status", map[string]any{}))
+			var errorMsg *string = this.SafeString(errorStatus, "error")
+			if !IsEqual(errorStatus, nil) {
+				message = errorMsg
+			}
+		}
+	}
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
+	if nonEmptyMessage {
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+	}
+	if nonEmptyMessage {
+		panic(ExchangeError(feedback))
+	}
+	return nil
+}
+func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
+	api := GetArg(optionalArgs, 0, "public")
+	_ = api
+	var method string = GetArgString(optionalArgs, 1, "GET")
+	_ = method
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	headers := GetArg(optionalArgs, 3, nil)
+	_ = headers
+	body := GetArg(optionalArgs, 4, nil)
+	_ = body
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url string = this.ImplodeHostname(apiUrl) + "/" + path
+	var isPost bool = (method == "POST")
+	var postHeaders map[string]any = map[string]any{
+		"Content-Type": "application/json",
+	}
+	var requestHeaders any = headers
+	if isPost {
+		requestHeaders = postHeaders
+	}
+	var requestBody any = body
+	if isPost {
+		requestBody = this.Json(params)
+	}
+	return map[string]any{
+		"url":     url,
+		"method":  method,
+		"body":    requestBody,
+		"headers": requestHeaders,
+	}
+}
+func (this *Hyperliquid) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
+	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = config
+	if (InOp(config, "byType")) && (InOp(params, "type")) {
+		var typeVar any = GetValue(params, "type")
+		var byType any = GetValue(config, "byType")
+		if InOp(byType, typeVar) {
+			return GetValue(byType, typeVar)
+		}
+	}
+	return this.SafeValue(config, "cost", 1)
+}
+func (this *Hyperliquid) ParseCreateEditOrderArgs(id any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var vaultAddress any = nil
+	var params2 any = nil
+	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
+	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
+	params2 = GetValue(vaultAddressparams2Variable, 1)
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var symbolValue *string = SafeStringPtr(market["symbol"])
+	var order map[string]any = map[string]any{
+		"symbol": symbolValue,
+		"type":   typeVar,
+		"side":   side,
+		"amount": amount,
+		"price":  price,
+		"params": params2,
+	}
+	var globalParams map[string]any = map[string]any{}
+	if vaultAddress != nil {
+		globalParams["vaultAddress"] = vaultAddress
+	}
+	if id != nil {
+		order["id"] = id
+	}
+	return []any{order, globalParams}
+}
+
