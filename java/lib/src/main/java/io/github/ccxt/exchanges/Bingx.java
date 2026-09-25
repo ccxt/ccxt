@@ -6757,8 +6757,8 @@ public class Bingx extends BingxApi
         // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
         List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        Object keys = this.sort(rawKeys);
-        for (var i = 0; i < Helpers.getArrayLength(keys); i++)
+        List<String> keys = this.sort(rawKeys);
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
@@ -7371,10 +7371,10 @@ public class Bingx extends BingxApi
     {
         // const sortedParams = this.keysort (params);
         List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        Object keys = this.sort(rawKeys);
+        List<String> keys = this.sort(rawKeys);
         String adjustedValue = null;
         Object result = null;
-        for (var i = 0; i < Helpers.getArrayLength(keys); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
