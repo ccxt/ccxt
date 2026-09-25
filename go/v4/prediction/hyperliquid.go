@@ -261,7 +261,7 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
 	if (targetPrice != nil) && (targetPrice == nil || *targetPrice != "") {
 		base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 	}
-	if (expiryDate != nil) && (!ccxt.IsEqual(expiryDate, "")) {
+	if (expiryDate != nil) && ((expiryDate != "")) {
 		base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 	}
 	return ccxt.Add(ccxt.Add(base, ":"), label)
@@ -382,7 +382,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 		}
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
-	if (name != nil) && (!ccxt.IsEqual(name, "")) {
+	if (name != nil) && ((name != "")) {
 		return ccxt.Add(ccxt.Add(this.ShortenSlug(name), "_"), ccxt.ToString(outcomeId))
 	}
 	return "OUTCOME_" + ccxt.ToString(outcomeId)
@@ -1349,7 +1349,7 @@ func (this *Hyperliquid) FindOutcomeInMarket(market any, optionalArgs ...any) an
 	_ = sideHint
 	var outcomesList []any = ccxt.SafeListTyped(market, "outcomes")
 	var normalizedHint any = func() any {
-		if (sideHint != nil) && (!ccxt.IsEqual(sideHint, "")) {
+		if (sideHint != nil) && ((sideHint != "")) {
 			return ccxt.ToUpper(sideHint)
 		}
 		return nil

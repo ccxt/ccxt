@@ -2753,13 +2753,13 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 				typeVar = "market"
 			}
 		}
-		if IsEqual(side, "1") {
+		if side == "1" {
 			side = "open long"
-		} else if IsEqual(side, "2") {
+		} else if side == "2" {
 			side = "open short"
-		} else if IsEqual(side, "3") {
+		} else if side == "3" {
 			side = "close long"
-		} else if IsEqual(side, "4") {
+		} else if side == "4" {
 			side = "close short"
 		}
 		timestamp = this.SafeInteger(order, "insert_time")
@@ -5200,7 +5200,7 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 	marginMode = GetValue(marginModeparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
 	if marginMode != nil {
-		if !IsEqual(marginMode, "cross") {
+		if marginMode != "cross" {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
 		}
 	} else {

@@ -6108,7 +6108,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	// the same stream the old raw-type ordering produced in every case
 	if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
 		typeVar = func() string {
-			if ccxt.IsEqual(subType, "inverse") {
+			if subType == "inverse" {
 				return "delivery"
 			}
 			return "future"

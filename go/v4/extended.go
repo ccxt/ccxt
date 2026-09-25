@@ -4489,7 +4489,7 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) any {
 		result = Add(GetValue(hexChars, remainder), result)
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
-	if IsEqual(result, "") {
+	if result == "" {
 		return "0"
 	}
 	return result

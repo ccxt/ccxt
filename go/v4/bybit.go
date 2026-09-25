@@ -2452,13 +2452,13 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var amountPrecision any = nil
 	var pricePrecision any = nil
 	// hard coded amount and price precisions from fetchOptionMarkets
-	if IsEqual(base, "BTC") {
+	if base == "BTC" {
 		amountPrecision = this.ParseNumber("0.01")
 		pricePrecision = this.ParseNumber("5")
-	} else if IsEqual(base, "ETH") {
+	} else if base == "ETH" {
 		amountPrecision = this.ParseNumber("0.1")
 		pricePrecision = this.ParseNumber("0.1")
-	} else if IsEqual(base, "SOL") {
+	} else if base == "SOL" {
 		amountPrecision = this.ParseNumber("1")
 		pricePrecision = this.ParseNumber("0.01")
 	}
@@ -6488,7 +6488,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalA
 		currentCategoryqueryVariable := this.GetBybitType("cancelOrders", market, query)
 		currentCategory = GetValue(currentCategoryqueryVariable, 0)
 		query = GetValue(currentCategoryqueryVariable, 1)
-		if IsEqual(currentCategory, "inverse") {
+		if currentCategory == "inverse" {
 			panic(NotSupported(this.Id + " cancelOrdersForSymbols does not allow inverse orders"))
 		}
 		if (category != nil) && (!IsEqual(category, currentCategory)) {
@@ -12578,11 +12578,11 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/" + path
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var isOpenapi bool = (GetIndexOf(url, "openapi") >= 0)
 		var isV3UnifiedMargin bool = (GetIndexOf(url, "unified/v3") >= 0)

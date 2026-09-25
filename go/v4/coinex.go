@@ -6589,7 +6589,7 @@ func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 	}
 	var signedHeaders any = nil
 	var signedBody any = nil
-	if IsEqual(requestUrl, "perpetualPrivate") {
+	if requestUrl == "perpetualPrivate" {
 		this.CheckRequiredCredentials()
 		query = this.Extend(map[string]any{
 			"access_id": this.ApiKey,
@@ -6608,12 +6608,12 @@ func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(signedHeaders, "Content-Type", "application/x-www-form-urlencoded")
 			signedBody = urlencoded
 		}
-	} else if (IsEqual(requestUrl, "public")) || (IsEqual(requestUrl, "perpetualPublic")) {
+	} else if ((requestUrl == "public")) || ((requestUrl == "perpetualPublic")) {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
-		if IsEqual(version, "v1") {
+		if version == "v1" {
 			this.CheckRequiredCredentials()
 			query = this.Extend(map[string]any{
 				"access_id": this.ApiKey,
@@ -6631,7 +6631,7 @@ func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 			} else {
 				signedBody = this.Json(query)
 			}
-		} else if IsEqual(version, "v2") {
+		} else if version == "v2" {
 			this.CheckRequiredCredentials()
 			query = this.Keysort(query)
 			var urlencoded string = this.Rawencode(query)

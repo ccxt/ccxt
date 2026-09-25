@@ -2358,7 +2358,7 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 	var baseUrl string = this.ImplodeHostname(apiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var headersValue map[string]any = map[string]any{}
-	if (IsEqual(api, "public")) || (IsEqual(api, "webExchange")) || (IsEqual(api, "contractPublic")) {
+	if ((api == "public")) || ((api == "webExchange")) || ((api == "contractPublic")) {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

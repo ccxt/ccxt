@@ -3619,7 +3619,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 
 		response = MapTyped(PanicOnError((<-this.UtaGetMarketTicker(this.Extend(request, paramsMarketType))).Raw))
-	} else if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "margin")) {
+	} else if ((typeVar == nil || *typeVar != "spot")) && ((typeVar == nil || *typeVar != "margin")) {
 
 		var retRes301219 map[string]any = MapTyped(PanicOnError((<-this.FetchContractTickersAsync(symbolsNormalized, paramsMarketType))))
 		ch <- BoxAbsent(retRes301219)
@@ -4441,12 +4441,12 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(paramsRequest, "fetchDepositAddress", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
 	paramsRequest = GetValue(utaparamsRequestVariable, 1)
-	if IsEqual(accountType, "contract") {
+	if accountType == "contract" {
 
 		var retRes364619 map[string]any = MapTyped(PanicOnError((<-this.FetchContractDepositAddressAsync(code, paramsRequest))))
 		ch <- BoxAbsent(retRes364619)
 		return nil
-	} else if (uta == true) || (IsEqual(accountType, "uta")) || (IsEqual(accountType, "unified")) {
+	} else if (uta == true) || ((accountType == "uta")) || ((accountType == "unified")) {
 
 		retRes364819 := (<-this.Exchange.FetchDepositAddressAsync(code, this.Extend(paramsRequest, map[string]any{
 			"uta": true,
@@ -4552,7 +4552,7 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var code any = nil
 	if currency != nil {
 		code = DerefScalar(this.SafeCurrencyCode(GetValue(currency, "id")))
-		if !IsEqual(code, "NIM") {
+		if code != "NIM" {
 			// contains spaces
 			this.CheckAddress(address)
 		}
@@ -5484,7 +5484,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side strin
 	accountModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "accountMode", accountMode))
 	accountMode = GetValue(accountModeparamsRequestVariable, 0)
 	paramsRequest = GetValue(accountModeparamsRequestVariable, 1)
-	var isUnified bool = (IsEqual(accountMode, "unified"))
+	var isUnified bool = ((accountMode == "unified"))
 	var marginMode any = nil
 	marginModeparamsRequestVariable := TupleSlice(this.HandleMarginModeAndParams("createOrder", paramsRequest))
 	marginMode = GetValue(marginModeparamsRequestVariable, 0)
@@ -5548,7 +5548,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side strin
 		if !isUnified {
 			if marginMode != nil {
 				request["marginMode"] = ToUpper(marginMode)
-				if IsEqual(marginMode, "isolated") {
+				if marginMode == "isolated" {
 					var leverage *int64 = this.SafeInteger(paramsOmitted, "leverage")
 					if leverage == nil {
 						request["leverage"] = 1
@@ -6418,7 +6418,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan any, id any, optionalArgs ...any)
 	marginModeparamsOmittedVariable := TupleSlice(this.HandleMarginModeAndParams("cancelOrder", paramsOmitted))
 	marginMode = GetValue(marginModeparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(marginModeparamsOmittedVariable, 1)
-	var isUnified bool = (IsEqual(accountMode, "unified"))
+	var isUnified bool = ((accountMode == "unified"))
 	var tradeType any = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
 
@@ -7691,7 +7691,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan any, id any, optionalArgs ...any) 
 	marginModeparamsOmittedVariable := TupleSlice(this.HandleMarginModeAndParams("fetchOrder", paramsOmitted))
 	marginMode = GetValue(marginModeparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(marginModeparamsOmittedVariable, 1)
-	var isUnified bool = (IsEqual(accountMode, "unified"))
+	var isUnified bool = ((accountMode == "unified"))
 	var tradeType any = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
 
@@ -8697,7 +8697,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	marginModeparamsOmittedVariable := TupleSlice(this.HandleMarginModeAndParams("fetchMyTrades", paramsOmitted))
 	marginMode = GetValue(marginModeparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(marginModeparamsOmittedVariable, 1)
-	var isUnified bool = (IsEqual(accountMode, "unified"))
+	var isUnified bool = ((accountMode == "unified"))
 	var tradeType any = this.HandleTradeType(isContract, marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
 	if since != nil {
@@ -9586,7 +9586,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = GetValue(accountTypeparamsRequestVariable, 1)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
-	if IsEqual(accountType, "contract") {
+	if accountType == "contract" {
 
 		var retRes786019 []any = ListTyped(PanicOnError((<-this.FetchContractDepositsAsync(code, since, limit, paramsRequest))))
 		ch <- BoxAbsent(retRes786019)
@@ -9792,7 +9792,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = GetValue(accountTypeparamsRequestVariable, 1)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
-	if IsEqual(accountType, "contract") {
+	if accountType == "contract" {
 
 		var retRes801519 []any = ListTyped(PanicOnError((<-this.FetchContractWithdrawalsAsync(code, since, limit, paramsRequest))))
 		ch <- BoxAbsent(retRes801519)
@@ -10293,7 +10293,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 	requestedTypeparamsRequestVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchUtaBalance", nil, params, requestedType))
 	requestedType = GetValue(requestedTypeparamsRequestVariable, 0)
 	paramsRequest = GetValue(requestedTypeparamsRequestVariable, 1)
-	if IsEqual(requestedType, "margin") {
+	if requestedType == "margin" {
 		// assume cross margin if margin is specified but marginMode is not specified
 		var marginMode any = "cross"
 		marginModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(paramsRequest, "fetchUtaBalance", "marginMode", marginMode))
@@ -10511,13 +10511,13 @@ func (this *Kucoin) transferUtaBody(ch chan any, code string, amount any, fromAc
 	var toUserIdOptionparamsToUserIdVariable []any = this.HandleParamString2(paramsFromUserId, "toUserId", "toUid", toUserId)
 	var toUserIdOption *string = SafeStringPtr(GetValue(toUserIdOptionparamsToUserIdVariable, 0))
 	var paramsToUserId map[string]any = MapTyped(GetValue(toUserIdOptionparamsToUserIdVariable, 1))
-	if IsEqual(transferTypeOption, "PARENT_TO_SUB") || IsEqual(transferTypeOption, "SUB_TO_SUB") {
+	if (transferTypeOption == "PARENT_TO_SUB") || (transferTypeOption == "SUB_TO_SUB") {
 		if toUserIdOption == nil {
 			panic(ExchangeError(this.Id + " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers"))
 		} else {
 			request["toUid"] = toUserIdOption
 		}
-	} else if IsEqual(transferTypeOption, "SUB_TO_PARENT") || IsEqual(transferTypeOption, "SUB_TO_SUB") {
+	} else if (transferTypeOption == "SUB_TO_PARENT") || (transferTypeOption == "SUB_TO_SUB") {
 		if fromUserIdOption == nil {
 			panic(ExchangeError(this.Id + " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers"))
 		} else {
@@ -13374,7 +13374,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		marginModeparamsRequestVariable := TupleSlice(this.HandleMarginModeAndParams("cancelOrders", paramsRequest))
 		marginMode = GetValue(marginModeparamsRequestVariable, 0)
 		paramsRequest = GetValue(marginModeparamsRequestVariable, 1)
-		var isUnified bool = (IsEqual(accountMode, "unified"))
+		var isUnified bool = ((accountMode == "unified"))
 		var tradeType any = this.HandleTradeType(isContractMarket, marginMode, isUnified, paramsRequest)
 		request["tradeType"] = tradeType
 		request["cancelOrderList"] = ordersRequests
@@ -14050,7 +14050,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	marginMode = GetValue(marginModeparamsRequestVariable, 0)
 	paramsRequest = GetValue(marginModeparamsRequestVariable, 1)
 	marginMode = ToUpper(marginMode)
-	if !IsEqual(marginMode, "CROSS") {
+	if marginMode != "CROSS" {
 		panic(BadRequest(this.Id + " fetchLeverageTiers() supports cross margin only"))
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -14333,19 +14333,19 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
 	var endpoint any = "/api/" + *version + "/" + this.ImplodeParams(path, paramsOmitted)
-	if IsEqual(api, "utaV2") {
+	if api == "utaV2" {
 		endpoint = "/api/ua/v2/" + this.ImplodeParams(path, paramsOmitted)
 	}
-	if IsEqual(api, "webExchange") {
+	if api == "webExchange" {
 		endpoint = "/" + this.ImplodeParams(path, paramsOmitted)
 	}
-	if IsEqual(api, "earn") {
+	if api == "earn" {
 		endpoint = "/api/v1/" + this.ImplodeParams(path, paramsOmitted)
 	}
 	var isUtaPrivate bool = false
-	if (IsEqual(api, "uta")) || (IsEqual(api, "utaPrivate")) {
+	if ((api == "uta")) || ((api == "utaPrivate")) {
 		endpoint = "/api/ua/v1/" + this.ImplodeParams(path, paramsOmitted)
-		if IsEqual(api, "utaPrivate") {
+		if api == "utaPrivate" {
 			isUtaPrivate = true
 		}
 	}
@@ -14375,10 +14375,10 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	url = Add(url, endpoint)
-	var isFuturePrivate bool = (IsEqual(api, "futuresPrivate"))
-	var isPrivate bool = (IsEqual(api, "private"))
-	var isBroker bool = (IsEqual(api, "broker"))
-	var isEarn bool = (IsEqual(api, "earn"))
+	var isFuturePrivate bool = ((api == "futuresPrivate"))
+	var isPrivate bool = ((api == "private"))
+	var isBroker bool = ((api == "broker"))
+	var isEarn bool = ((api == "earn"))
 	if isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())

@@ -7181,7 +7181,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	var endpoint any = GetValue(api, 1)
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string
-	if (IsEqual(endpoint, "spot")) || (IsEqual(endpoint, "user")) {
+	if ((endpoint == "spot")) || ((endpoint == "user")) {
 		if signed {
 			payload = "/" + this.Version + request
 		} else {
@@ -7221,7 +7221,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var isUndefinedBody bool = ((method == "GET") || (path == "order/{orderId}") || (path == "ws-token"))
-		if (method == "PUT") && (IsEqual(endpoint, "spot")) {
+		if (method == "PUT") && ((endpoint == "spot")) {
 			isUndefinedBody = false
 		}
 		signedBody = func() any {
@@ -7231,7 +7231,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			return this.Json(query)
 		}()
 		var payloadString any = nil
-		if (IsEqual(endpoint, "spot")) || (IsEqual(endpoint, "user")) {
+		if ((endpoint == "spot")) || ((endpoint == "user")) {
 			payloadString = Add(Add(Add(Add(Add(Add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.ApiKey), "&xt-validate-recvwindow="), recvWindow), "&xt-validate-t"), "imestamp="), timestamp)
 			if isUndefinedBody {
 				if urlencoded != "" {

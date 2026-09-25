@@ -4647,7 +4647,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	var implodedPath string = this.ImplodeParams(path, params)
 	var bodyJson any = nil
 	var signedHeaders any = nil
-	if (IsEqual(api, "public")) || (IsEqual(api, "swapPublic")) {
+	if ((api == "public")) || ((api == "swapPublic")) {
 		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

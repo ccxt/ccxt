@@ -4397,7 +4397,7 @@ func (this *Binance) Market(symbol any) map[string]any {
 				base := GetValue(basequoteVariable, 0)
 				quote := GetValue(basequoteVariable, 1)
 				var settle any = quote
-				if IsEqual(quote, "USD") {
+				if quote == "USD" {
 					settle = base
 				}
 				var futuresSymbol any = Add(Add(symbol, ":"), settle)
@@ -4978,7 +4978,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var fetchMarkets []any = []any{}
 	for i := 0; i < GetArrayLength(rawFetchMarkets); i++ {
 		var typeVar any = GetValue(rawFetchMarkets, i)
-		if (IsEqual(typeVar, "option")) && (isDemoEnv == true) {
+		if ((typeVar == "option")) && (isDemoEnv == true) {
 			continue
 		}
 		fetchMarkets = append(fetchMarkets, typeVar)
@@ -5735,7 +5735,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.DapiPrivateGetAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if IsEqual(marginMode, "isolated") {
+	} else if marginMode == "isolated" {
 		var paramSymbols any = this.SafeList(paramsSubType, "symbols")
 		query = this.Omit(query, "symbols")
 		if paramSymbols != nil {
@@ -5760,7 +5760,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.SapiGetMarginIsolatedAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if (typeVar != nil && *typeVar == "margin") || (IsEqual(marginMode, "cross")) {
+	} else if (typeVar != nil && *typeVar == "margin") || ((marginMode == "cross")) {
 
 		response = (<-this.SapiGetMarginAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
@@ -15968,7 +15968,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (IsEqual(api, "private")) || (IsEqual(api, "eapiPrivate")) || ((IsEqual(api, "sapi")) && (path != "system/status")) || (IsEqual(api, "sapiV2")) || (IsEqual(api, "sapiV3")) || (IsEqual(api, "sapiV4")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) || (IsEqual(api, "fapiPrivateV3")) || ((IsEqual(api, "papiV2")) || (IsEqual(api, "papi")) && (path != "ping")) {
+	} else if ((api == "private")) || ((api == "eapiPrivate")) || (((api == "sapi")) && (path != "system/status")) || ((api == "sapiV2")) || ((api == "sapiV3")) || ((api == "sapiV4")) || ((api == "dapiPrivate")) || ((api == "dapiPrivateV2")) || ((api == "fapiPrivate")) || ((api == "fapiPrivateV2")) || ((api == "fapiPrivateV3")) || (((api == "papiV2")) || ((api == "papi")) && (path != "ping")) {
 		this.CheckRequiredCredentials()
 		if (GetIndexOf(url, "testnet.binancefuture.com") > -1) && this.IsSandboxModeEnabled && (!IsEqual(this.SafeBool(this.Options, "disableFuturesSandboxWarning"), true)) {
 			panic(NotSupported(this.Id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead."))
@@ -15977,7 +15977,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 			// inject in implicit API calls
 			var newClientOrderId *string = this.SafeString(params, "newClientOrderId")
 			if newClientOrderId == nil {
-				var isSpotOrMargin bool = ((GetIndexOf(api, "sapi") > -1) || (IsEqual(api, "private")))
+				var isSpotOrMargin bool = ((GetIndexOf(api, "sapi") > -1) || ((api == "private")))
 				var marketType string = "future"
 				if isSpotOrMargin {
 					marketType = "spot"
@@ -15996,7 +15996,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 		if (path == "batchOrders") && ((method == "POST") || (method == "PUT")) {
 			var batchOrders any = this.SafeList(params, "batchOrders", []any{})
 			var checkedBatchOrders any = batchOrders
-			if (method == "POST") && (IsEqual(api, "fapiPrivate")) {
+			if (method == "POST") && ((api == "fapiPrivate")) {
 				// check broker id if batchOrders are called with fapiPrivatePostBatchOrders
 				checkedBatchOrders = []any{}
 				for i := 0; i < GetArrayLength(batchOrders); i++ {
@@ -16026,7 +16026,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 		if recvWindow != nil {
 			AddElementToObject(extendedParams, "recvWindow", recvWindow)
 		}
-		if (IsEqual(api, "sapi")) && (path == "asset/dust") {
+		if ((api == "sapi")) && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
 		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) || (strings.Index(path, "simple-earn") >= 0) {
 			if (method == "DELETE") && (path == "batchOrders") {
@@ -16282,7 +16282,7 @@ func (this *Binance) requestBody(ch chan any, path any, optionalArgs ...any) any
 	response := (<-this.Fetch2Async(path, api, method, params, headers, body, config))
 	PanicOnError(response)
 	// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.Options.Store("hasAlreadyAuthenticatedSuccessfully", true)
 	}
 

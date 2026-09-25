@@ -4810,7 +4810,7 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isMargin *bool = this.SafeBool(paramsMarketType, "margin", false)
 	var paramsOmitted2 any = this.Omit(paramsMarketType, []any{"margin", "marginMode"})
 	var response map[string]any = nil
-	if (marginMode != nil) || (isMargin != nil && *isMargin == true) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (isMargin != nil && *isMargin == true) || ((marketType == "margin")) {
 		var parsedSymbols any = nil
 		var symbol *string = this.SafeString(paramsOmitted2, "symbol")
 		if symbol == nil {
@@ -4831,10 +4831,10 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var paramsOmitted any = this.Omit(paramsOmitted2, []any{"symbol", "symbols"})
 
 		response = MapTyped(PanicOnError((<-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, paramsOmitted))).Raw))
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType == "spot" {
 
 		response = MapTyped(PanicOnError((<-this.SpotPrivateGetAccount(this.Extend(request, paramsOmitted2))).Raw))
-	} else if IsEqual(marketType, "swap") {
+	} else if marketType == "swap" {
 
 		response = MapTyped(PanicOnError((<-this.ContractPrivateGetAccountAssets(this.Extend(request, paramsOmitted2))).Raw))
 	} else {
@@ -7660,7 +7660,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 				requestBody = auth
 			} else {
 				var paramsSorted map[string]any = this.Keysort(paramsOmitted)
-				if len(ObjectKeys(paramsSorted)) > 0 {
+				if len(paramsSorted) > 0 {
 					auth = Add(auth, this.Urlencode(paramsSorted))
 					url = Add(url, Add("?", auth))
 				}

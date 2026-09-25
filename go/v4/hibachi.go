@@ -2287,7 +2287,7 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	if hasJsonBody {
 		bodyResult = this.Json(params)
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		headersValue["Authorization"] = this.ApiKey
 	}

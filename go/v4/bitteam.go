@@ -2792,7 +2792,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) any {
 	var query string = this.Urlencode(request)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		if method == "POST" {
 			requestBody = this.Json(request)

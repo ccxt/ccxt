@@ -3707,7 +3707,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		if method == "GET" {

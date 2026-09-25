@@ -3309,7 +3309,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var payload any = ""
 		if !getOrDelete {

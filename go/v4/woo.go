@@ -4263,14 +4263,14 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var url any = this.ImplodeHostname(baseApiUrl)
 	url = Add(url, Add(Add("/", version), "/"))
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if IsEqual(access, "public") {
+	if access == "public" {
 		url = Add(url, Add(Add(access, "/"), pathWithParams))
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
-	} else if IsEqual(access, "pub") {
+	} else if access == "pub" {
 		url = Add(url, pathWithParams)
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {
@@ -4296,14 +4296,14 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 			"x-api-key":       this.ApiKey,
 			"x-api-timestamp": ts,
 		}
-		if IsEqual(version, "v3") {
+		if version == "v3" {
 			auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 			if (method == "POST") || (method == "PUT") {
 				requestBody = this.Json(paramsSigned)
 				auth = Add(auth, requestBody)
 				AddElementToObject(requestHeaders, "content-type", "application/json")
 			} else {
-				if len(ObjectKeys(paramsSigned)) > 0 {
+				if len(paramsSigned) > 0 {
 					var query string = this.Urlencode(paramsSigned)
 					url = Add(url, "?"+query)
 					auth = Add(auth, "?"+query)
@@ -4314,7 +4314,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 			if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 				requestBody = auth
 			} else {
-				if len(ObjectKeys(paramsSigned)) > 0 {
+				if len(paramsSigned) > 0 {
 					url = Add(url, Add("?", auth))
 				}
 			}

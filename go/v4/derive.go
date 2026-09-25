@@ -3444,7 +3444,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) any 
 	var derivesubAccountIdparamsSubaccountIdVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
 	derivesubAccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 0)
 	paramsSubaccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 1)
-	if (!IsEqual(derivesubAccountId, nil)) && (!IsEqual(derivesubAccountId, "")) {
+	if (!IsEqual(derivesubAccountId, nil)) && ((derivesubAccountId != "")) {
 		this.Options.Store("subaccount_id", derivesubAccountId) // saving in options
 		return []any{derivesubAccountId, paramsSubaccountId}
 	}
@@ -3456,7 +3456,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) any 
 }
 func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) any {
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
-	if (!IsEqual(deriveWalletAddress, nil)) && (!IsEqual(deriveWalletAddress, "")) {
+	if (!IsEqual(deriveWalletAddress, nil)) && ((deriveWalletAddress == nil || *deriveWalletAddress != "")) {
 		this.Options.Store("deriveWalletAddress", deriveWalletAddress) // saving in options
 		return []any{deriveWalletAddress, paramsDeriveWalletAddress}
 	}
@@ -3505,7 +3505,7 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 		var postHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if IsEqual(api, "private") {
+		if api == "private" {
 			var now string = strconv.FormatInt(this.Milliseconds(), 10)
 			var signature string = this.SignMessage(now, this.PrivateKey)
 			postHeaders["X-LyraWallet"] = this.SafeString(this.Options, "deriveWalletAddress")

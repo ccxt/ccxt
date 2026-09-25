@@ -1879,7 +1879,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	var url any = apiUrl
 	var privateBody any = nil
 	var privateHeaders any = nil
-	var isPublic bool = (IsEqual(api, "public"))
+	var isPublic bool = ((api == "public"))
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)

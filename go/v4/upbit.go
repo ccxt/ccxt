@@ -3057,13 +3057,13 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var hasBody bool = (IsEqual(api, "private")) && (method != "GET") && (method != "DELETE")
+	var hasBody bool = ((api == "private")) && (method != "GET") && (method != "DELETE")
 	var requestBody any = body
 	if hasBody {
 		requestBody = this.Json(params)
 	}
 	var privateHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		privateHeaders = map[string]any{}
 		var nonce string = this.Uuid()
@@ -3088,7 +3088,7 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 		AddElementToObject(privateHeaders, "Authorization", "Bearer "+token)
 	}
 	var requestHeaders any = func() any {
-		if IsEqual(api, "private") {
+		if api == "private" {
 			return privateHeaders
 		}
 		return headers

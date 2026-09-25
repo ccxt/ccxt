@@ -4541,12 +4541,12 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 			url = Add(url, "?"+this.UrlencodeNested(params))
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent bool = false
 		if price != nil {

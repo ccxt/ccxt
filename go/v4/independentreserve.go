@@ -1541,7 +1541,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url += "?" + this.Urlencode(params)
 		}

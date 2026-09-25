@@ -7929,11 +7929,11 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		}
 		if postOnly == true {
 			request["timeInForce"] = "post_only"
-		} else if IsEqual(timeInForce, "GTC") {
+		} else if timeInForce == "GTC" {
 			request["timeInForce"] = "gtc"
-		} else if IsEqual(timeInForce, "FOK") {
+		} else if timeInForce == "FOK" {
 			request["timeInForce"] = "fok"
-		} else if IsEqual(timeInForce, "IOC") {
+		} else if timeInForce == "IOC" {
 			request["timeInForce"] = "ioc"
 		}
 	}
@@ -8043,11 +8043,11 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	}
 	if postOnly == true {
 		request["force"] = "post_only"
-	} else if IsEqual(timeInForce, "GTC") {
+	} else if timeInForce == "GTC" {
 		request["force"] = "GTC"
-	} else if IsEqual(timeInForce, "FOK") {
+	} else if timeInForce == "FOK" {
 		request["force"] = "FOK"
-	} else if IsEqual(timeInForce, "IOC") {
+	} else if timeInForce == "IOC" {
 		request["force"] = "IOC"
 	}
 	paramsMarketType = this.Omit(paramsMarketType, []any{"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"})

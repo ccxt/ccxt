@@ -3813,7 +3813,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if !IsEqual(api, "private") {
+	if api != "private" {
 		// Public endpoints
 		if !isPost {
 			if len(ObjectKeys(query)) > 0 {

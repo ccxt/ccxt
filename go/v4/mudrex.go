@@ -261,7 +261,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 		requestHeaders["Partner-Id"] = brokerId
 	}
 	var methodUpper string = strings.ToUpper(method)
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {

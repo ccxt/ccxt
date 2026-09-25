@@ -4277,7 +4277,7 @@ func (this *Okx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketType, query := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsEqual(marketType, "funding") {
+	if marketType != nil && *marketType == "funding" {
 
 		response = (<-this.PrivateGetAssetBalances(this.Extend(request, query)))
 		PanicOnError(response)
@@ -8583,11 +8583,11 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	var hasJsonBody bool = false
 	var jsonBody any = nil
 	// const type = this.getPathAuthenticationType (path);
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		// inject id in implicit api call
 		if (method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")) {
@@ -8644,7 +8644,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 		requestBody = jsonBody
 	}
 	var requestHeaders any = func() any {
-		if IsEqual(api, "private") {
+		if api == "private" {
 			return privateHeaders
 		}
 		return headers

@@ -7767,8 +7767,8 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", typeVar), " endpoints")))
 	}
 	var pathValue string = this.ImplodeParams(path, params)
-	var versionIsTransfer bool = (IsEqual(version, "transfer"))
-	var versionIsAsset bool = (IsEqual(version, "asset"))
+	var versionIsTransfer bool = ((version == "transfer"))
+	var versionIsAsset bool = ((version == "asset"))
 	if versionIsTransfer || versionIsAsset {
 		if versionIsTransfer {
 			typeVar = "account/transfer"
@@ -7780,7 +7780,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	}
 	var flatAccountPaths []any = []any{"account/apiPermissions", "account/apiRestrictions"}
 	if !this.InArray(pathValue, flatAccountPaths) {
-		if (IsEqual(typeVar, "spot")) && (IsEqual(version, "v3")) {
+		if ((typeVar == "spot")) && ((version == "v3")) {
 			url = Add(url, "/api")
 		} else {
 			url = Add(url, Add("/", typeVar))
@@ -7792,13 +7792,13 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(pathValue))
 	AddElementToObject(paramsOmitted, "timestamp", this.Nonce())
 	var paramsSorted map[string]any = this.Keysort(paramsOmitted)
-	if IsEqual(access, "public") {
-		if len(ObjectKeys(paramsSorted)) > 0 {
+	if access == "public" {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
-	} else if IsEqual(access, "private") {
+	} else if access == "private" {
 		this.CheckRequiredCredentials()
-		var isJsonContentType bool = (((IsEqual(typeVar, "subAccount")) || (IsEqual(typeVar, "account/transfer"))) && (method == "POST"))
+		var isJsonContentType bool = ((((typeVar == "subAccount")) || ((typeVar == "account/transfer"))) && (method == "POST"))
 		var parsedParams any = nil
 		var encodeRequest any = nil
 		if isJsonContentType {

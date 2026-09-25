@@ -5048,12 +5048,12 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var request any = Add(Add(Add("/"+"api/"+this.Version+"/", api), "/"), path)
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			request = Add(request, "?"+this.Urlencode(params))
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)

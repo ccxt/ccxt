@@ -4032,7 +4032,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
 		typeVar = "market"
 	}
 	var price any = this.OmitZero(this.SafeString(order, "price"))
-	if IsEqual(typeVar, "STOP") {
+	if typeVar == "STOP" {
 		if price == nil {
 			typeVar = "market"
 		} else {
@@ -5071,7 +5071,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	}
 	var url any = *apiUrl + "/" + path
 	var query string
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var additionalParams map[string]any = map[string]any{

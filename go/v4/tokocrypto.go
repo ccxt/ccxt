@@ -3093,7 +3093,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	}
 	var url any = baseApiUrl
 	url = Add(url, "/"+path)
-	if IsEqual(api, "wapi") {
+	if api == "wapi" {
 		url = Add(url, ".html")
 	}
 	var userDataStream bool = (path == "userDataStream") || (path == "listenKey")
@@ -3119,7 +3119,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (IsEqual(api, "private")) || ((IsEqual(api, "sapi")) && (path != "system/status")) || (IsEqual(api, "sapiV3")) || ((IsEqual(api, "wapi")) && (path != "systemStatus")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) {
+	} else if ((api == "private")) || (((api == "sapi")) && (path != "system/status")) || ((api == "sapiV3")) || (((api == "wapi")) && (path != "systemStatus")) || ((api == "dapiPrivate")) || ((api == "dapiPrivateV2")) || ((api == "fapiPrivate")) || ((api == "fapiPrivateV2")) {
 		this.CheckRequiredCredentials()
 		var query any = nil
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -3133,7 +3133,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		if recvWindow != nil {
 			extendedParams["recvWindow"] = recvWindow
 		}
-		if (IsEqual(api, "sapi")) && (path == "asset/dust") {
+		if ((api == "sapi")) && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
 		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) {
 			query = this.Rawencode(extendedParams)
@@ -3145,7 +3145,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		var headersSigned map[string]any = map[string]any{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (IsEqual(api, "wapi"))
+		var queryInUrl bool = (method == "GET") || (method == "DELETE") || ((api == "wapi"))
 		var bodySigned any = query
 		if queryInUrl {
 			bodySigned = body

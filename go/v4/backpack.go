@@ -2993,7 +2993,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}()
 	var headersSigned any = nil
 	var bodySigned *string = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
@@ -3033,13 +3033,13 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}
 	url = Add(url, endpoint)
 	var headersResolved any = func() any {
-		if IsEqual(api, "private") {
+		if api == "private" {
 			return headersSigned
 		}
 		return headers
 	}()
 	var bodyResolved *string = body
-	if (IsEqual(api, "private")) && (method != "GET") {
+	if ((api == "private")) && (method != "GET") {
 		bodyResolved = bodySigned
 	}
 	return map[string]any{

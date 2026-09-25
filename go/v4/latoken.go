@@ -2353,7 +2353,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 			requestString += "?" + urlencodedQuery
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var auth string = method + request + urlencodedQuery
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)

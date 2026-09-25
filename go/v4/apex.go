@@ -2570,7 +2570,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		var sortedQuery map[string]any = this.Keysort(params)
 		signBody = this.Rawencode(sortedQuery)
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var messageString any = timestamp + strings.ToUpper(method) + signPath

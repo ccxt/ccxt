@@ -507,7 +507,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		var triggerDirectionAndParams any = this.HandleTriggerDirectionAndParams(paramsRecvWindow)
 		var triggerDirection any = GetValue(triggerDirectionAndParams, 0)
 		var directionSuffix string = "below"
-		if IsEqual(triggerDirection, "ascending") {
+		if triggerDirection == "ascending" {
 			directionSuffix = "above"
 		}
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
@@ -3540,7 +3540,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 			}
 		} else {
 			status = DerefScalar(this.SafeString(order, "status", "rejected"))
-			if (IsEqual(status, "success")) || (GetIndexOf(status, "waiting") >= 0) {
+			if ((status == "success")) || (GetIndexOf(status, "waiting") >= 0) {
 				status = "open"
 			}
 		}
@@ -3857,7 +3857,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersValue map[string]any = map[string]any{}
-	if (IsEqual(endpoint, "gateway")) || (IsEqual(endpoint, "archive")) {
+	if ((endpoint == "gateway")) || ((endpoint == "archive")) {
 		headersValue["Accept-Encoding"] = "gzip, br, deflate"
 	}
 	if method == "GET" {

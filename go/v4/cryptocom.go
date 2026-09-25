@@ -3848,7 +3848,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
-	if IsEqual(typeVar, "option") {
+	if typeVar == "option" {
 		typeVar = "WARRANT"
 	}
 	var request map[string]any = map[string]any{
@@ -4348,7 +4348,7 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
 		var key *string = SafeStringPtr(GetValue(paramsKeys, i))
 		returnString = Add(returnString, key)
 		var value any = GetValue(object, key)
-		if IsEqual(value, "undefined") {
+		if value == "undefined" {
 			returnString = Add(returnString, "null")
 		} else if IsArray(value) {
 			for j := 0; j < GetArrayLength(value); j++ {

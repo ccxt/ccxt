@@ -2167,7 +2167,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	if len(ObjectKeys(query)) > 0 {
 		url += "?" + this.Urlencode(query)
 	}
-	if (IsEqual(api, "private")) || (IsEqual(api, "exchangePrivate")) {
+	if ((api == "private")) || ((api == "exchangePrivate")) {
 		this.CheckRequiredCredentials()
 		var auth string = this.StringToBase64(Add(Add(this.ApiKey, ":"), this.Secret))
 		requestHeaders = map[string]any{
