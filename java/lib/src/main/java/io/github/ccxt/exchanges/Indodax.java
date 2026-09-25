@@ -369,7 +369,7 @@ public class Indodax extends IndodaxApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**

@@ -4365,7 +4365,7 @@ public class Kraken extends KrakenApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

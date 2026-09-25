@@ -1933,7 +1933,7 @@ public class Bullish extends BullishApi
         return paramsResult;
     }
 
-    public Object getClosestLimit(Object limit)
+    public Object getClosestLimit(Long limit)
     {
         Integer pageSize = 5;
         if ((Helpers.isGreaterThan(limit, 5)) && (Helpers.isLessThan(limit, 26)))
