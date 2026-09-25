@@ -845,9 +845,12 @@ public partial class xt : ccxt.xt
             fundingRate["datetime"] = this.iso8601(timestamp);
             string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             this.fundingRates[(string)symbol] = fundingRate;
-            object eventVar = this.safeString(message, "event");
-            string? messageHash = ((string)add(eventVar, "::contract"));
-            client.resolve(fundingRate, messageHash);
+            string? eventVar = this.safeString(message, "event");
+            if ((eventVar != null))
+            {
+                string messageHash = (eventVar + "::contract");
+                client.resolve(fundingRate, messageHash);
+            }
         }
         return message;
     }
@@ -1023,14 +1026,17 @@ public partial class xt : ccxt.xt
             {
                 this.tickers[(string)symbol] = ticker;
             }
-            object eventVar = this.safeString(message, "event");
+            string? eventVar = this.safeString(message, "event");
             string messageHashTail = "contract";
             if (isSpot)
             {
                 messageHashTail = "spot";
             }
-            string? messageHash = ((string)add(add(eventVar, "::"), messageHashTail));
-            client.resolve(ticker, messageHash);
+            if ((eventVar != null))
+            {
+                string messageHash = ((eventVar + "::") + messageHashTail);
+                client.resolve(ticker, messageHash);
+            }
         }
         return message;
     }
@@ -1205,9 +1211,12 @@ public partial class xt : ccxt.xt
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(parsed);
-            object eventVar = this.safeString(message, "event");
-            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
-            client.resolve(stored, messageHash);
+            string? eventVar = this.safeString(message, "event");
+            if ((eventVar != null))
+            {
+                string messageHash = ((eventVar + "::") + tradeType);
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }
@@ -1257,7 +1266,7 @@ public partial class xt : ccxt.xt
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            object eventVar = this.safeString(message, "event");
+            string? eventVar = this.safeString(message, "event");
             ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((tradesArray == null))
             {
@@ -1266,8 +1275,11 @@ public partial class xt : ccxt.xt
                 this.trades[(string)symbol] = tradesArray;
             }
             tradesArray.append(trade);
-            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
-            client.resolve(tradesArray, messageHash);
+            if ((eventVar != null))
+            {
+                string messageHash = ((eventVar + "::") + tradeType);
+                client.resolve(tradesArray, messageHash);
+            }
         }
         return message;
     }

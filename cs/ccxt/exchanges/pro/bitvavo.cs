@@ -179,7 +179,7 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         this.handleBidAsk(client, message);
-        object eventVar = this.safeString(message, "event");
+        string? eventVar = this.safeString(message, "event");
         List<object> tickers = this.safeList(message, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
@@ -187,12 +187,15 @@ public partial class bitvavo : ccxt.bitvavo
             object data = tickers[i];
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-            string? messageHash = ((string)add(add(eventVar, "@"), marketId));
             Dictionary<string, object> ticker = this.parseTicker(data, market);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             this.tickers[(string)symbol] = ticker;
             result.Add(ticker);
-            client.resolve(ticker, messageHash);
+            if ((eventVar != null))
+            {
+                string messageHash = ((eventVar + "@") + marketId);
+                client.resolve(ticker, messageHash);
+            }
         }
         client.resolve(result, eventVar);
     }

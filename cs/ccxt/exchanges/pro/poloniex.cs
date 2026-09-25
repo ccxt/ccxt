@@ -693,13 +693,12 @@ public partial class poloniex : ccxt.poloniex
         //
         object data = this.safeValue(message, "data");
         data = this.safeValue(data, 0);
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         string? marketId = this.safeString(data, "symbol");
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(symbol);
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(channel, timeframes);
-        string? messageHash = ((string)add(add(channel, "::"), symbol));
         List<object> parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = ((timeframe == null)) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
@@ -715,7 +714,11 @@ public partial class poloniex : ccxt.poloniex
                 }
             }
             ccxt.pro.BaseCache.appendTo(stored, parsed);
-            client.resolve(stored, messageHash);
+            if ((channel != null))
+            {
+                string messageHash = ((channel + "::") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }

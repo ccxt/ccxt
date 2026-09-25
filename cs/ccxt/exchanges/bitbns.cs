@@ -362,11 +362,11 @@ public partial class bitbns : Exchange
         {
             object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
-            object baseId = this.safeString(market, "base");
+            string? baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            if (((bs == null)) || ((quote == null)))
+            if (((baseId == null)) || ((bs == null)) || ((quote == null)))
             {
                 continue;
             }
@@ -377,10 +377,10 @@ public partial class bitbns : Exchange
             IDictionary<string, object> costLimits = this.safeDict(marketLimits, "cost", new Dictionary<string, object>() {});
             bool usdt = (quoteId == "USDT");
             // INR markets don't need a _INR prefix
-            object uppercaseId = baseId;
+            string? uppercaseId = baseId;
             if (usdt)
             {
-                uppercaseId = (add(add(baseId, "_"), quoteId));
+                uppercaseId = (((baseId + "_") + quoteId));
             }
             result.Add(new Dictionary<string, object>() {
                 { "id", id },

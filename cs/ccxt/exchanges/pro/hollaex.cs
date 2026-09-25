@@ -95,7 +95,7 @@ public partial class hollaex : ccxt.hollaex
         //     }
         //
         string? marketId = this.safeString(message, "symbol");
-        object channel = this.safeString(message, "topic");
+        string? channel = this.safeString(message, "topic");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((symbol == null))
@@ -120,8 +120,11 @@ public partial class hollaex : ccxt.hollaex
             }
             (orderbook as IOrderBook).reset(snapshot);
         }
-        string? messageHash = ((string)add(add(channel, ":"), marketId));
-        client.resolve(orderbook, messageHash);
+        if ((channel != null))
+        {
+            string messageHash = ((channel + ":") + marketId);
+            client.resolve(orderbook, messageHash);
+        }
     }
 
     /**
@@ -171,7 +174,7 @@ public partial class hollaex : ccxt.hollaex
         //         ]
         //     }
         //
-        object channel = this.safeString(message, "topic");
+        string? channel = this.safeString(message, "topic");
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -188,8 +191,11 @@ public partial class hollaex : ccxt.hollaex
         {
             stored.append(parsedTrades[j]);
         }
-        string? messageHash = ((string)add(add(channel, ":"), marketId));
-        client.resolve(stored, messageHash);
+        if ((channel != null))
+        {
+            string messageHash = ((channel + ":") + marketId);
+            client.resolve(stored, messageHash);
+        }
         client.resolve(stored, channel);
     }
 
@@ -253,7 +259,7 @@ public partial class hollaex : ccxt.hollaex
         //     "time":1652434215
         // }
         //
-        object channel = this.safeString(message, "topic");
+        string? channel = this.safeString(message, "topic");
         object rawTrades = this.safeValue(message, "data");
         // usually the first message is an empty array
         // when the user does not have any trades yet
@@ -288,8 +294,11 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
-            string? messageHash = ((string)add(add(channel, ":"), marketId));
-            client.resolve(this.myTrades, messageHash);
+            if ((channel != null))
+            {
+                string messageHash = ((channel + ":") + marketId);
+                client.resolve(this.myTrades, messageHash);
+            }
         }
     }
 
@@ -388,7 +397,7 @@ public partial class hollaex : ccxt.hollaex
         //        "time":1652430035
         //       }
         //
-        object channel = this.safeString(message, "topic");
+        string? channel = this.safeString(message, "topic");
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         // usually the first message is an empty array
         int dataLength = getArrayLength(data);
@@ -430,8 +439,11 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
-            string? messageHash = ((string)add(add(channel, ":"), marketId));
-            client.resolve(this.orders, messageHash);
+            if ((channel != null))
+            {
+                string messageHash = ((channel + ":") + marketId);
+                client.resolve(this.orders, messageHash);
+            }
         }
     }
 

@@ -1661,17 +1661,21 @@ public partial class coinbaseinternational : Exchange
         //    }
         //
         string? marketId = this.safeString(market, "symbol");
-        object baseId = this.safeString(market, "base_asset_name");
+        string? baseId = this.safeString(market, "base_asset_name");
         string? quoteId = this.safeString(market, "quote_asset_name");
         string? typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         bool isSpot = (typeId == "SPOT");
         IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
-        object symbol = add(add(baseId, "/"), quoteId);
+        if (((baseId == null)) || ((quoteId == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((baseId + "/") + quoteId);
         string? settleId = null;
         if (!isSpot)
         {
             settleId = quoteId;
-            symbol = add(symbol, (":" + quoteId));
+            symbol = symbol + (":" + quoteId);
         }
         bool? isLinear = isSpot ? null : ((settleId == quoteId));
         bool? isInverse = isSpot ? null : ((settleId != quoteId));

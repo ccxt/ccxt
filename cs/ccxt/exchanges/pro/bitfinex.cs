@@ -469,10 +469,9 @@ public partial class bitfinex : ccxt.bitfinex
         //    ]
         //
         //
-        object channel = this.safeString(subscription, "channel");
+        string? channel = this.safeString(subscription, "channel");
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? messageHash = ((string)add(add(channel, ":"), marketId));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -508,7 +507,11 @@ public partial class bitfinex : ccxt.bitfinex
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
-        client.resolve(stored, messageHash);
+        if ((channel != null))
+        {
+            string messageHash = ((channel + ":") + marketId);
+            client.resolve(stored, messageHash);
+        }
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)

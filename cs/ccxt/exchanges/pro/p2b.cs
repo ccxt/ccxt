@@ -309,13 +309,12 @@ public partial class p2b : ccxt.p2b
         data = this.safeList(data, 0);
         string? method = this.safeString(message, "method");
         List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-        object channel = this.safeString(splitMethod, 0);
+        string? channel = this.safeString(splitMethod, 0);
         string? marketId = this.safeString(data, 7);
         Dictionary<string, object> market = this.safeMarket(marketId);
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(channel, timeframes);
         string? symbol = this.safeString(market, "symbol");
-        string? messageHash = ((string)add(add(channel, "::"), symbol));
         IList<object> parsed = this.parseOHLCV(data, market);
         this.ohlcvs[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
@@ -328,7 +327,11 @@ public partial class p2b : ccxt.p2b
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(parsed);
-            client.resolve(stored, messageHash);
+            if ((channel != null))
+            {
+                string messageHash = ((channel + "::") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }
@@ -416,7 +419,7 @@ public partial class p2b : ccxt.p2b
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? method = this.safeString(message, "method");
         List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-        object messageHashStart = this.safeString(splitMethod, 0);
+        string? messageHashStart = this.safeString(splitMethod, 0);
         IDictionary<string, object> tickerData = this.safeDict(data, 1);
         Dictionary<string, object> ticker = null;
         if (method == "price.update")
@@ -433,8 +436,11 @@ public partial class p2b : ccxt.p2b
         }
         string? symbol = ((string)GetValue(ticker, "symbol"));
         this.tickers[(string)symbol] = ticker;
-        string? messageHash = ((string)add(add(messageHashStart, "::"), symbol));
-        client.resolve(ticker, messageHash);
+        if ((messageHashStart != null))
+        {
+            string messageHash = ((messageHashStart + "::") + symbol);
+            client.resolve(ticker, messageHash);
+        }
         return message;
     }
 

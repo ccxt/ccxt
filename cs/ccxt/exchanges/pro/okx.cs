@@ -368,7 +368,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
+        string? channel = this.safeString(arg, "channel");
         string? marketId = this.safeString(arg, "instId");
         string? symbol = this.safeSymbol(marketId);
         List<object> data = this.safeList(message, "data", new List<object>() {});
@@ -376,7 +376,6 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(data[i]);
-            string? messageHash = ((string)add(add(channel, ":"), symbol));
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
@@ -384,7 +383,11 @@ public partial class okx : ccxt.okx
                 this.trades[(string)symbol] = stored;
             }
             stored.append(trade);
-            client.resolve(stored, messageHash);
+            if ((channel != null))
+            {
+                string messageHash = ((channel + ":") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
     }
 
@@ -685,8 +688,8 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object channel = this.safeString(arg, "channel");
-        if (isEqual(channel, "tickers"))
+        string? channel = this.safeString(arg, "channel");
+        if (channel == "tickers")
         {
             // of the five feeds routed here, only the plain one carries bidPx/askPx —
             // mark-price and index frames lack them and must not overwrite the bid-ask cache
@@ -700,8 +703,11 @@ public partial class okx : ccxt.okx
             this.tickers[(string)symbol] = ticker;
             newTickers[(string)symbol] = ticker;
         }
-        string? messageHash = ((string)add(add(channel, "::"), symbol));
-        client.resolve(newTickers, messageHash);
+        if ((channel != null))
+        {
+            string messageHash = ((channel + "::") + symbol);
+            client.resolve(newTickers, messageHash);
+        }
     }
 
     /**
@@ -2347,7 +2353,7 @@ public partial class okx : ccxt.okx
         //
         this.handleMyTrades(client, message);
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
+        string? channel = this.safeString(arg, "channel");
         List<object> orders = this.safeList(message, "data", new List<object>() {});
         int ordersLength = orders.Count;
         if (ordersLength > 0)
@@ -2358,7 +2364,7 @@ public partial class okx : ccxt.okx
                 this.orders = new ArrayCacheBySymbolById(limit);
                 this.triggerOrders = new ArrayCacheBySymbolById(limit);
             }
-            object stored = (isEqual(channel, "orders-algo")) ? this.triggerOrders : this.orders;
+            object stored = (channel == "orders-algo") ? this.triggerOrders : this.orders;
             List<object> marketIds = new List<object>() {};
             IList<object> parsed = this.parseOrders(orders);
             for (int i = 0; i < (parsed?.Count ?? 0); i++)
@@ -2372,8 +2378,11 @@ public partial class okx : ccxt.okx
             client.resolve(stored, channel);
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)
             {
-                string? messageHash = ((string)add(add(channel, ":"), marketIds[i]));
-                client.resolve(stored, messageHash);
+                if ((channel != null))
+                {
+                    string messageHash = ((channel + ":") + (marketIds[i]));
+                    client.resolve(stored, messageHash);
+                }
             }
         }
     }
@@ -2435,7 +2444,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
+        string? channel = this.safeString(arg, "channel");
         List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         List<object> filteredOrders = new List<object>() {};
         // filter orders with no last trade id
@@ -2472,13 +2481,16 @@ public partial class okx : ccxt.okx
                 symbols[(string)symbol] = true;
             }
         }
-        object messageHash = add(channel, "::myTrades");
-        client.resolve(this.myTrades, messageHash);
-        List<object> tradeSymbols = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < tradeSymbols.Count; i++)
+        if ((channel != null))
         {
-            object symbolMessageHash = add(add(messageHash, "::"), tradeSymbols[i]);
-            client.resolve(this.myTrades, symbolMessageHash);
+            string messageHash = (channel + "::myTrades");
+            client.resolve(this.myTrades, messageHash);
+            List<object> tradeSymbols = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            for (int i = 0; i < tradeSymbols.Count; i++)
+            {
+                string symbolMessageHash = ((messageHash + "::") + (tradeSymbols[i]));
+                client.resolve(this.myTrades, symbolMessageHash);
+            }
         }
     }
 

@@ -1229,21 +1229,20 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             this.balance = new Dictionary<string, object>() {};
         }
-        object topic = this.safeString(message, "channel");
-        string? messageHash = ((string)add(topic, "::balance"));
+        string? topic = this.safeString(message, "channel");
         object info = null;
         List<object> rawBalances = new List<object>() {};
         string? account = null;
         Int64? timestamp = null;
         object data = this.safeValue(message, "data", new List<object>() {});
-        if (isEqual(topic, "spotState"))
+        if (topic == "spotState")
         {
             IDictionary<string, object> spotState = this.safeDict(data, "spotState");
             rawBalances = this.safeList(spotState, "balances", new List<object>() {});
             account = "spot";
             info = rawBalances;
         }
-        if (isEqual(topic, "clearinghouseState"))
+        if (topic == "clearinghouseState")
         {
             account = "swap";
             IDictionary<string, object> clearinghouseState = this.safeDict(data, "clearinghouseState");
@@ -1264,7 +1263,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["timestamp"] = timestamp;
         ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["datetime"] = this.iso8601(timestamp);
         this.balance[(string)account] = this.safeBalance((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null));
-        client.resolve((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null), messageHash);
+        if ((topic != null))
+        {
+            string messageHash = (topic + "::balance");
+            client.resolve((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null), messageHash);
+        }
     }
 
     public virtual void parseWsBalance(object balance, object accountType = null)

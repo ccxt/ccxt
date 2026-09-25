@@ -1734,19 +1734,23 @@ public partial class gate : ccxt.gate
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            object symbol = this.safeString(position, "symbol");
+            string? symbol = this.safeString(position, "symbol");
             string? side = this.safeString(position, "side");
             // Control when position is closed no side is returned
             if ((side == null))
             {
-                IDictionary<string, object> prevLongPosition = this.safeDict(cache, add(symbol, "long"));
+                if ((symbol == null))
+                {
+                    continue;
+                }
+                IDictionary<string, object> prevLongPosition = this.safeDict(cache, (symbol + "long"));
                 if ((prevLongPosition != null))
                 {
                     position["side"] = GetValue(prevLongPosition, "side");
                     newPositions.Add(position);
                     cache.append(position);
                 }
-                IDictionary<string, object> prevShortPosition = this.safeDict(cache, add(symbol, "short"));
+                IDictionary<string, object> prevShortPosition = this.safeDict(cache, (symbol + "short"));
                 if ((prevShortPosition != null))
                 {
                     position["side"] = GetValue(prevShortPosition, "side");

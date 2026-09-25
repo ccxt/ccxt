@@ -730,12 +730,16 @@ public partial class apex : Exchange
         string? id = this.safeString(market, "symbol");
         string? id2 = this.safeString(market, "crossSymbolName");
         string? quoteId = this.safeString(market, "l2PairId");
-        object baseId = this.safeString(market, "baseTokenId");
+        string? baseId = this.safeString(market, "baseTokenId");
         string? quote = this.safeString(market, "settleAssetId");
         string? bs = this.safeCurrencyCode(baseId);
         string? settleId = this.safeString(market, "settleAssetId");
         string? settle = this.safeCurrencyCode(settleId);
-        string? symbol = ((string)add(add(add(add(baseId, "/"), quote), ":"), settle));
+        if (((baseId == null)) || ((quote == null)) || ((settle == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((((baseId + "/") + quote) + ":") + settle);
         int expiry = 0;
         double? takerFee = this.parseNumber("0.0002");
         double? makerFee = this.parseNumber("0.0005");
