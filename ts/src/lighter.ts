@@ -961,7 +961,7 @@ export default class lighter extends Exchange {
             }
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
-        return [ txType, txInfo, order, market ];
+        return [ txType, txInfo, order ];
     }
 
     /**
@@ -3185,7 +3185,7 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' ' + method + ' requires order id or client order id');
         }
         const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
-        return [ txType, txInfo, market ];
+        return [ txType, txInfo ];
     }
 
     /**
