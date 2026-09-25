@@ -1458,7 +1458,6 @@ export default class upbit extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const prevClientOrderId = this.safeString (params, 'clientOrderId');
         const customType = this.safeString2 (params, 'newOrdType', 'new_ord_type');
         const clientOrderId = this.safeString (params, 'newClientOrderId');
         const postOnly = this.isPostOnly (type === 'market', false, params);
@@ -1468,13 +1467,7 @@ export default class upbit extends Exchange {
             throw new ExchangeError (this.id + ' editOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
         const paramsOmitted = this.omit (params, 'clientOrderId');
-        if (id !== undefined) {
-            request['prev_order_uuid'] = id;
-        } else if (prevClientOrderId !== undefined) {
-            request['prev_order_identifier'] = prevClientOrderId;
-        } else {
-            throw new ArgumentsRequired (this.id + ' editOrder() is required id or clientOrderId.');
-        }
+        request['prev_order_uuid'] = id;
         if (type === 'limit') {
             if (price === undefined || amount === undefined) {
                 throw new ArgumentsRequired (this.id + ' editOrder() is required price and amount to create limit type order.');

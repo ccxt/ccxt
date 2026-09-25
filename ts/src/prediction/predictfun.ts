@@ -2359,7 +2359,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.authenticate ();
         let outcomeObj = undefined;
         if (outcome !== undefined) {

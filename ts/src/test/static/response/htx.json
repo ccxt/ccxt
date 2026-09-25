@@ -2213,7 +2213,7 @@
                 "disabledPHP": false,
                 "method": "fetchOrder",
                 "input": [
-                    992699963541108,
+                    "992699963541108",
                     "LTC/USDT"
                 ],
                 "httpResponse": {

@@ -71,7 +71,7 @@
                 "method": "editOrder",
                 "url": "https://api.deepcoin.com/deepcoin/trade/replace-order-sltp",
                 "input": [
-                    1001112132350609,
+                    "1001112132350609",
                     "DOGE/USDT:USDT",
                     "limit",
                     "buy",
@@ -89,7 +89,7 @@
                 "method": "editOrder",
                 "url": "https://api.deepcoin.com/deepcoin/trade/replace-order",
                 "input": [
-                    1001111677169084,
+                    "1001111677169084",
                     "DOGE/USDT:USDT",
                     "limit",
                     "buy",
@@ -168,7 +168,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.deepcoin.com/deepcoin/trade/cancel-trigger-order",
                 "input": [
-                    1001112135133243,
+                    "1001112135133243",
                     "DOGE/USDT:USDT",
                     {
                         "trigger": true

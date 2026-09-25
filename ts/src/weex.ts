@@ -2522,16 +2522,11 @@ export default class weex extends Exchange {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const trigger = this.safeBool (paramsMarketType, 'trigger', false);
-        if ((trigger === true) && id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument for trigger orders');
-        }
         const request: Dict = {};
         const clientOrderId = this.safeString (paramsMarketType, 'clientOrderId');
         const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'clientOrderId', 'trigger' ]);
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
-        } else if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
         } else {
             request['orderId'] = id;
         }
@@ -2684,15 +2679,10 @@ export default class weex extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const isSpot = (marketType === 'spot');
         const request: Dict = {};
-        if ((id === undefined) && !isSpot) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument for non-spot markets');
-        }
         const clientOrderId = this.safeString (paramsMarketType, 'clientOrderId');
         const paramsOmitted: Dict = this.omit (paramsMarketType, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
-        } else if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or clientOrderId parameter for spot markets');
         } else {
             request['orderId'] = id;
         }

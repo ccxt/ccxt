@@ -1118,7 +1118,7 @@
                 "description": "cancel spot order",
                 "method": "cancelOrder",
                 "input": [
-                    139472205825,
+                    "139472205825",
                     "LTC/USDT"
                 ],
                 "httpResponse": [
