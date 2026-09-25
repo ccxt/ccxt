@@ -821,7 +821,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> channelparamsChannelVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
             String channel = (String) ((List<Object>) channelparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelparamsChannelVariable).get(1);
-            String url = this.getUrl((String) (channel), "public");
+            String url = this.getUrl(channel, "public");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)

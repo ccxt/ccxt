@@ -186,7 +186,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             List<Object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(0);
             Map<String, Object> paramsBookSubscriptionType = (Map<String, Object>) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(1);
-            List<Object> bookSubscriptionType2paramsBookSubscriptionType2Variable = (List<Object>) this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", Helpers.toStringArg(bookSubscriptionType));
+            List<Object> bookSubscriptionType2paramsBookSubscriptionType2Variable = (List<Object>) this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             String bookSubscriptionType2 = (String) ((List<Object>) bookSubscriptionType2paramsBookSubscriptionType2Variable).get(0);
             Map<String, Object> paramsBookSubscriptionType2 = (Map<String, Object>) ((List<Object>) bookSubscriptionType2paramsBookSubscriptionType2Variable).get(1);
             Helpers.addElementToObject(Helpers.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2);
@@ -249,7 +249,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             List<Object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(0);
             Map<String, Object> paramsBookSubscriptionType = (Map<String, Object>) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(1);
-            List<Object> bookSubscriptionType2paramsBookSubscriptionType2Variable = (List<Object>) this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", Helpers.toStringArg(bookSubscriptionType));
+            List<Object> bookSubscriptionType2paramsBookSubscriptionType2Variable = (List<Object>) this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             String bookSubscriptionType2 = (String) ((List<Object>) bookSubscriptionType2paramsBookSubscriptionType2Variable).get(0);
             Map<String, Object> paramsBookSubscriptionType2 = (Map<String, Object>) ((List<Object>) bookSubscriptionType2paramsBookSubscriptionType2Variable).get(1);
             Helpers.addElementToObject(Helpers.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2);

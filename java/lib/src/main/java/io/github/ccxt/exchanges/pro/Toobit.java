@@ -855,7 +855,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
-            this.setBalanceCache(client, (String) (marketType), subscriptionHash, Helpers.toMapArg(paramsMarketType));
+            this.setBalanceCache(client, marketType, subscriptionHash, Helpers.toMapArg(paramsMarketType));
             client.future((type + ":fetchBalanceSnapshot"));
             return (this.watch(url, messageHash, paramsMarketType, subscriptionHash, null)).join();
         }).thenApply(Balances::new);

@@ -2676,7 +2676,7 @@ public class Hyperliquid extends HyperliquidApi
         List<Object> userAuxparamsUserVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress", (String) null);
         String userAux = (String) ((List<Object>) userAuxparamsUserVariable).get(0);
         Map<String, Object> paramsUser = (Map<String, Object>) ((List<Object>) userAuxparamsUserVariable).get(1);
-        List<Object> userparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsUser, (String) (methodName), "address", Helpers.toStringArg(userAux));
+        List<Object> userparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsUser, (String) (methodName), "address", userAux);
         String user = (String) ((List<Object>) userparamsAddressVariable).get(0);
         Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) userparamsAddressVariable).get(1);
         if (!java.util.Objects.equals(user, null) && !java.util.Objects.equals(user, ""))

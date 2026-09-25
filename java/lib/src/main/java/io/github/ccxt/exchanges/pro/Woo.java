@@ -193,7 +193,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String topic = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String topic = ((((Map<String, Object>)market).get("id") + "@") + method);
             String urlUid = "";
             if (!java.util.Objects.equals(this.uid, ""))
             {
@@ -246,7 +246,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subHash = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String subHash = ((((Map<String, Object>)market).get("id") + "@") + method);
             String topic = "orderbook";
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, paramsMethod)).join();
         });
@@ -488,7 +488,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subHash = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String subHash = ((((Map<String, Object>)market).get("id") + "@") + method);
             String topic = "ticker";
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, paramsMethod)).join();
         });

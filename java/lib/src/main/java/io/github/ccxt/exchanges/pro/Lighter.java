@@ -1244,7 +1244,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsType, "watchBalance", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            Object messageHash = this.getMessageHash("balances", (String) null, Helpers.toStringArg(type));
+            Object messageHash = this.getMessageHash("balances", (String) null, type);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "spot"))
             {

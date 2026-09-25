@@ -298,7 +298,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -342,7 +342,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
@@ -1059,11 +1059,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            List<Object> channelNameparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsCallerMethodName, (String) (callerMethodNameOption), "method", (String) null);
+            List<Object> channelNameparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method", (String) null);
             String channelName = (String) ((List<Object>) channelNameparamsMethodVariable).get(0);
             var paramsMethod = ((List<Object>) channelNameparamsMethodVariable).get(1);
             Object url = this.getUrlByMarket(market);
-            Object channel = Helpers.add((messageType + "."), channelName);
+            Object channel = ((messageType + ".") + channelName);
             if (java.util.Objects.equals(callerMethodNameOption, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a callerMethodName argument")) ;
@@ -1476,7 +1476,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 messageHash = (messageHash + (":" + symbol));
             }
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList(marketId));
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
@@ -1575,7 +1575,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
             Object channelType = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "spot", "spot" );

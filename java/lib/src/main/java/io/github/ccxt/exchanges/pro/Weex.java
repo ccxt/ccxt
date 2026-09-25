@@ -1031,7 +1031,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
-                String channel = Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depthOption);
+                String channel = ((((Map<String, Object>)market).get("id") + "@depth") + depthOption);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channel);
             }
@@ -1103,7 +1103,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
-                String channel = Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depthOption);
+                String channel = ((((Map<String, Object>)market).get("id") + "@depth") + depthOption);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
                 ((List<Object>)channels).add(channel);

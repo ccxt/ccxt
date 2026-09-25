@@ -1383,7 +1383,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
-            this.setBalanceCache(client, type, (String) (subType), subscriptionHash, (Map<String, Object>) (paramsSubType));
+            this.setBalanceCache(client, type, subType, subscriptionHash, (Map<String, Object>) (paramsSubType));
             List<Object> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = (List<Object>) this.handleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true);
             Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable).get(0);
             Map<String, Object> paramsFetchBalanceSnapshot = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable).get(1);
@@ -1492,7 +1492,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
             String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
-            this.setPositionsCache(client, (String) (type), Helpers.toStringListArg(symbolsNormalized));
+            this.setPositionsCache(client, type, Helpers.toStringListArg(symbolsNormalized));
             List<Object> fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = (List<Object>) this.handleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true);
             Boolean fetchPositionsSnapshot = (Boolean) ((List<Object>) fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable).get(0);
             Map<String, Object> paramsFetchPositionsSnapshot = (Map<String, Object>) ((List<Object>) fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable).get(1);
