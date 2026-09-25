@@ -1125,12 +1125,12 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Hitbtc) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Hitbtc) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1144,7 +1144,7 @@ func (this *Hitbtc) createDepositAddressBody(ch chan any, code any, optionalArgs
 		"currency": currency["id"],
 	}
 	var network *string = this.SafeStringUpper(params, "network")
-	if (network != nil) && (IsEqual(code, "USDT")) {
+	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
@@ -1152,7 +1152,7 @@ func (this *Hitbtc) createDepositAddressBody(ch chan any, code any, optionalArgs
 		}
 	}
 	var paramsOmitted any = params
-	if (network != nil) && (IsEqual(code, "USDT")) {
+	if (network != nil) && (code == "USDT") {
 		paramsOmitted = this.Omit(params, "network")
 	}
 
@@ -1182,12 +1182,12 @@ func (this *Hitbtc) createDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Hitbtc) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1201,7 +1201,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"currency": currency["id"],
 	}
 	var network *string = this.SafeStringUpper(params, "network")
-	if (network != nil) && (IsEqual(code, "USDT")) {
+	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
@@ -1209,7 +1209,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		}
 	}
 	var paramsOmitted any = params
-	if (network != nil) && (IsEqual(code, "USDT")) {
+	if (network != nil) && (code == "USDT") {
 		paramsOmitted = this.Omit(params, "network")
 	}
 

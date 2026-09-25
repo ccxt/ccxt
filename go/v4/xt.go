@@ -5091,12 +5091,12 @@ func (this *Xt) ParseLedgerEntryType(typeVar *string) *string {
  * @param {string} params.network required network id
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
  */
-func (this *Xt) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Xt) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Xt) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

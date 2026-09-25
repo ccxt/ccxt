@@ -1449,12 +1449,12 @@ func (this *Bitvavo) createOrderWsBody(ch chan any, symbol string, typeVar strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderWsBody(ch chan any, id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1485,12 +1485,12 @@ func (this *Bitvavo) editOrderWsBody(ch chan any, id any, symbol string, typeVar
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bitvavo) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1585,12 +1585,12 @@ func (this *Bitvavo) HandleMultipleOrders(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) FetchOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1813,12 +1813,12 @@ func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawWsAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawWsBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawWsBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawWsBody(ch chan any, code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	tag := ccxt.GetArg(optionalArgs, 0, nil)

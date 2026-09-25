@@ -2860,12 +2860,12 @@ func (this *Upbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
  * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Upbit) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Upbit) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Upbit) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2910,12 +2910,12 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Upbit) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Upbit) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Upbit) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2949,7 +2949,7 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs 
 	//
 	var message *string = this.SafeString(response, "message")
 	if message != nil {
-		panic(AddressPending(Add(Add(this.Id+" is generating ", code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")))
+		panic(AddressPending(this.Id + " is generating " + code + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address"))
 	}
 
 	ch <- this.ParseDepositAddress(response)
