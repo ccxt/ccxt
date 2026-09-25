@@ -662,7 +662,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             String symbolValue = this.symbol(symbol);
             String name = "market_trades";
-            Object trades = (this.subscribe(name, false, symbolValue, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe(name, false, symbolValue, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -718,7 +718,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "market_trades";
-            Object trades = (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -776,7 +776,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "user";
-            Object orders = (this.subscribe(name, true, symbol, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribe(name, true, symbol, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

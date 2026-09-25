@@ -491,7 +491,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object ohlcv = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -575,7 +575,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -857,7 +857,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 "topic", topic
             );
             Object message = this.extend(request, paramsOmitted);
-            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -910,7 +910,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 "topic", topic
             );
             Object message = this.extend(request, paramsOmitted);
-            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1242,7 +1242,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "event", "subscribe" );
                 put( "topic", "position" );
             }};
-            Object newPositions = (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

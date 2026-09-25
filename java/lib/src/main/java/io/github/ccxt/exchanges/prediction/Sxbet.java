@@ -3097,7 +3097,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String sym = this.safeString(outcomeObj, "outcome");
             String messageHash = ("trades::" + sym);
-            Object trades = (this.subscribeSxbetChannel(messageHash, "recent_trades_v3:global")).join();
+            List<Object> trades = (List<Object>) (this.subscribeSxbetChannel(messageHash, "recent_trades_v3:global")).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -3212,7 +3212,7 @@ public class Sxbet extends SxbetApi
                 messageHash = ("myTrades::" + sym);
             }
             String channel = ("account:fills_v3_#" + this.walletAddress);
-            Object trades = (this.subscribeSxbetChannel(messageHash, channel)).join();
+            List<Object> trades = (List<Object>) (this.subscribeSxbetChannel(messageHash, channel)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -3274,7 +3274,7 @@ public class Sxbet extends SxbetApi
                 messageHash = ("orders::" + sym);
             }
             String channel = ("account:orders_v3_#" + this.walletAddress);
-            Object orders = (this.subscribeSxbetChannel(messageHash, channel)).join();
+            List<Object> orders = (List<Object>) (this.subscribeSxbetChannel(messageHash, channel)).join();
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 

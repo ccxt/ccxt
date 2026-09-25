@@ -520,7 +520,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channelName);
             }
-            Object trades = (this.subscribePublic(messageHashes, channels, isContract, parameters, new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic(messageHashes, channels, isContract, parameters, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1375,7 +1375,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "fill";
-            Object trades = (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1622,7 +1622,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "orders";
-            Object orders = (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2141,7 +2141,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters, new HashMap<String, Object>() {{}})).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters, new HashMap<String, Object>() {{}})).join();
             if (this.newUpdates)
             {
                 return newPositions;

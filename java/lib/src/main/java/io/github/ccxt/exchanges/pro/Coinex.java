@@ -905,7 +905,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            Object trades = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), messageHashes, null)).join();
+            List<Object> trades = (List<Object>) (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return trades;

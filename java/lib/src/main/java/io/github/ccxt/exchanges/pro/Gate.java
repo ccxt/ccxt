@@ -1202,7 +1202,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 messageHashes.add(("trades:" + symbol));
             }
             Object url = this.getUrlByMarket(market);
-            Object trades = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1350,7 +1350,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageHash = ((("candles:" + interval) + ":") + market.get("symbol"));
             Object url = this.getUrlByMarket(market);
             List<Object> payload = new ArrayList<Object>(Arrays.asList(interval, marketId));
-            Object ohlcv = (this.subscribePublic((String) (url), messageHash, payload, channel, parameters, (Object) null)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), messageHash, payload, channel, parameters, (Object) null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1484,7 +1484,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> payload = new ArrayList<Object>(Arrays.asList(marketId));
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
-            Object trades = (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (paramsSubType), requiresUid)).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (paramsSubType), requiresUid)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2006,7 +2006,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarketType(type, isInverse);
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
-            Object orders = (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2197,7 +2197,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((List<Object>)payload).add(market.get("id"));
             }
             String channel = (typeId + ".liquidates");
-            Object newLiquidations = (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (query), true)).join();
+            List<Object> newLiquidations = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (query), true)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;

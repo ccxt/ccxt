@@ -516,7 +516,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            Object trades = (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -654,7 +654,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Object message = this.extend(request, paramsDeriveSubaccountId);
-            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -796,7 +796,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Object message = this.extend(request, paramsDeriveSubaccountId);
-            Object trades = (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

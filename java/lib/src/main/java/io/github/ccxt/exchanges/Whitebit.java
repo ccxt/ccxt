@@ -5140,7 +5140,7 @@ public class Whitebit extends WhitebitApi
     {
         Object query = this.omit(parameters, this.extractParams(path));
         Object version = this.safeValue(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        Object accessibility = this.safeValue(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         Object publicHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
         ((Map<String, Object>)publicHeaders).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));

@@ -127,7 +127,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.helperForWatchMultipleConstruct("trades", Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> trades = (List<Object>) (this.helperForWatchMultipleConstruct("trades", Helpers.toStringListArg(symbols), parameters)).join();
             List<Object> first = (List<Object>) this.safeList(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;

@@ -1535,7 +1535,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.watch(url, messageHash, null, subscriptionHash, subscription)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, null, subscriptionHash, subscription)).join();
             if (this.newUpdates)
             {
                 return newPositions;

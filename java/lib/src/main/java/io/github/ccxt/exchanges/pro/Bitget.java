@@ -653,7 +653,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 args.put("instId", market.get("id"));
                 messageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
             }
-            Object ohlcv = (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1316,7 +1316,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     put( "uta", true );
                 }});
             }
-            Object trades = (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsRequest))).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsRequest))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1643,7 +1643,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("instId", "default");
             }
-            Object newPositions = (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> newPositions = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2019,7 +2019,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("instId", instId);
             }
-            Object orders = (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2561,7 +2561,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("instId", "default");
             }
-            Object trades = (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
