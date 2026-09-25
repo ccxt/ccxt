@@ -375,7 +375,7 @@ public partial class derive : ccxt.derive
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
-        if (inOp(client.subscriptions, topic))
+        if ((client.subscriptions != null && topic is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)topic);
         }
@@ -394,7 +394,7 @@ public partial class derive : ccxt.derive
         {
             this.trades.Remove(symbol);
         }
-        if (inOp(client.subscriptions, topic))
+        if ((client.subscriptions != null && topic is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)topic);
         }

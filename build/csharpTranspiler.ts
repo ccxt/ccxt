@@ -392,6 +392,25 @@ function csharpHelperReceiverType (region, name: string, line: number, params: {
     return undefined;
 }
 
+// inOp operands only: the one declaration of `name` whose block is still open at `line`, for a
+// method that rebinds the name with other types in sibling blocks (nested rebinding is CS0136)
+function csharpInOpScopedLocal (region, name: string, line: number): { type: string, kind: string, value: string, nonNull: boolean } | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (region.params[name] !== undefined)) {
+        return undefined;
+    }
+    const open = region.declarations.filter ((d) => (d.name === name) && (d.line < line)).filter ((d) => {
+        let depth = 0;
+        for (let k = d.line + 1; k < line; k++) {
+            for (const ch of region.lines[k]) {
+                if (ch === '{') depth++;
+                if ((ch === '}') && (--depth < 0)) return false;
+            }
+        }
+        return true;
+    });
+    return (open.length === 1) ? { type: open[0].type, kind: 'local', value: open[0].value, nonNull: false } : undefined;
+}
+
 // whether the value a local holds at `line` can be null: only a freshly constructed initializer
 // that nothing has reassigned is provably non-null
 function csharpHelperLocalIsNonNull (region, name: string, line: number, value: string): boolean {
@@ -404,7 +423,7 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
-function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined, objectNull = false): string | undefined {
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined, objectNull = false, takeObjectKey = (k) => false, keyName = () => undefined): string | undefined {
     const edits = [];
     const lengthCall = /getArrayLength[ ]*\(/g;
     let match;
@@ -435,12 +454,26 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const keyMask = masked.substring (firstComma + 1, close).trim ();
         const receiver = takeType (name) ?? takeInOpType (name);
         if (receiver === undefined) continue;
-        const nullableKey = (receiver.kind === 'field') && takeNullableKeyType (keyMask);
-        if (!nullableKey && !takeKeyType (keyMask)) continue;
         const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
         const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
         if (!isDict && !isList) continue;
         const keyText = original.substring (firstComma + 1, close).trim ();
+        const nullableKey = takeNullableKeyType (keyMask, true);
+        if (!nullableKey && !takeKeyType (keyMask, true)) {
+            // an `object` key: InOp's IList<object> branch is Contains(key), its IDictionary<string, object>
+            // branch answers false for a non-string key; other dictionaries cast the key and throw
+            if (!takeObjectKey (keyMask)) continue;
+            const nonNullReceiver = (receiver.kind === 'local' && receiver.nonNull) || (receiver.kind === 'param' && receiver.paramsBag);
+            const receiverTest = nonNullReceiver ? '' : `${name} != null && `;
+            if (isList) {
+                edits.push ({ start: match.index, end: close + 1, text: `(${receiverTest}${keyText} != null && ${name}.Contains(${keyText}))` });
+                continue;
+            }
+            const stringKey = keyName ();
+            if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, '')) || (stringKey === undefined)) continue;
+            edits.push ({ start: match.index, end: close + 1, text: `(${receiverTest}${keyText} is string ${stringKey} && ${name}.ContainsKey(${stringKey}))` });
+            continue;
+        }
         const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
         const guarded = nullableKey || (receiver.type.endsWith ('?')
             || (receiver.kind === 'param' && !receiver.paramsBag)
@@ -696,6 +729,8 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
         return current;
     };
     let changed = false;
+    // pattern variables for `object` keys: unique per file, since `else if` nests them in one scope
+    let stringKeys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
     const out = lines.map ((line, i) => {
         if (!CSHARP_HELPER_LINE_RE.test (line)) {
             return line;
@@ -741,17 +776,21 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
             const loops = masked.some ((maskedLine, k) => (k > region.start) && (k <= i) && header.test (maskedLine));
             return loops || bound.some ((d) => d.line < i);
         };
-        const takeKeyType = (keyMask) => {
+        const takeKeyType = (keyMask, scoped = false) => {
             if (keyMask.startsWith ('"')) return true; // a string literal is never null
-            return rewrite (keyMask, true) === true;
+            return (rewrite (keyMask, true) === true) || (scoped && (csharpInOpScopedLocal (region, keyMask, i)?.type === 'string'));
         };
         // a `string?` local/param key: a ws cache field read tests it for null first, as the helper does
-        const takeNullableKeyType = (keyMask) => {
+        const takeNullableKeyType = (keyMask, scoped = false) => {
             if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
-            const key = csharpHelperReceiverType (region, keyMask, i, region.params);
+            const key = csharpHelperReceiverType (region, keyMask, i, region.params) ?? (scoped ? csharpInOpScopedLocal (region, keyMask, i) : undefined);
             return (key !== undefined) && (key.type === 'string?');
         };
-        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i), objectNull);
+        const takeObjectKey = (keyMask) => {
+            if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
+            return (csharpHelperReceiverType (region, keyMask, i, region.params) ?? csharpInOpScopedLocal (region, keyMask, i))?.type === 'object';
+        };
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i) ?? csharpInOpScopedLocal (region, name, i), objectNull, takeObjectKey, () => `inOpKey${stringKeys++}`);
         if (rewritten === undefined) {
             return line;
         }

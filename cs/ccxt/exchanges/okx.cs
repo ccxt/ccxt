@@ -2472,7 +2472,7 @@ public partial class okx : Exchange
             // on the missing expiry.
             isOption = (partsLength > 3) && (((string)marketId).EndsWith("-C") || ((string)marketId).EndsWith("-P"));
         }
-        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
+        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);

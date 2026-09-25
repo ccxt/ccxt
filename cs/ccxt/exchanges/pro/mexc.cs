@@ -2137,14 +2137,14 @@ public partial class mexc : ccxt.mexc
                     {
                         this.tickers.Remove((string)symbols[j]);
                     }
-                } else if (inOp(this.tickers, symbol))
+                } else if ((this.tickers != null && this.tickers.ContainsKey(symbol)))
                 {
                     this.tickers.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
-                if (inOp(this.bidsasks, symbol))
+                if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
                 {
                     this.bidsasks.Remove(symbol);
                 }
@@ -2157,28 +2157,28 @@ public partial class mexc : ccxt.mexc
                 {
                     symbol = add(symbol, (":" + this.safeString(splitHashes, 3)));
                 }
-                if (((symbol != null)) && (inOp(this.ohlcvs, symbol)))
+                if (((symbol != null)) && ((this.ohlcvs != null && symbol is string inOpKey0 && this.ohlcvs.ContainsKey(inOpKey0))))
                 {
                     this.ohlcvs.Remove((string)symbol);
                 }
             } else if (getIndexOf(messageHash, "orderbook") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
-                if (inOp(this.orderbooks, symbol))
+                if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "trades") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
-                if (inOp(this.trades, symbol))
+                if ((this.trades != null && this.trades.ContainsKey(symbol)))
                 {
                     this.trades.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "fundingRate") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:fundingRate:", (string)"");
-                if (inOp(this.fundingRates, symbol))
+                if ((this.fundingRates != null && this.fundingRates.ContainsKey(symbol)))
                 {
                     this.fundingRates.Remove(symbol);
                 }

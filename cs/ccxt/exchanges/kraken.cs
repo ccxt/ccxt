@@ -2039,7 +2039,7 @@ public partial class kraken : Exchange
     public virtual object findMarketByAltnameOrId(object id)
     {
         IDictionary<string, object> marketsByAltname = this.safeDict(this.options, "marketsByAltname", new Dictionary<string, object>() {});
-        if (inOp(marketsByAltname, id))
+        if ((marketsByAltname != null && id is string inOpKey0 && marketsByAltname.ContainsKey(inOpKey0)))
         {
             return getValue(marketsByAltname, id);
         } else

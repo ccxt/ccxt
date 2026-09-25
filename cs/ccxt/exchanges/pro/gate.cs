@@ -2611,7 +2611,7 @@ public partial class gate : ccxt.gate
         if ((subscription != null))
         {
             var client = this.client(url);
-            if (!(inOp(client.subscriptions, messageHash)))
+            if (!((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
             {
                 string tempSubscriptionHash = requestId.ToString();
                 ((IDictionary<string,object>)client.subscriptions)[tempSubscriptionHash] = messageHash;
@@ -2757,7 +2757,7 @@ public partial class gate : ccxt.gate
             request["payload"] = payloadValue;
         }
         var client = this.client(url);
-        if (!(inOp(client.subscriptions, messageHash)))
+        if (!((client.subscriptions != null && messageHash is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
         {
             string tempSubscriptionHash = requestId.ToString();
             // in case of authenticationError we will throw

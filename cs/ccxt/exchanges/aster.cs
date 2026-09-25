@@ -4394,7 +4394,7 @@ public partial class aster : Exchange
             if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
-                if (inOp(balances, code))
+                if ((code is string inOpKey0 && balances.ContainsKey(inOpKey0)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
                         { "crossMargin", getValue(getValue(balances, code), "crossMargin") },

@@ -859,7 +859,7 @@ public partial class whitebit : ccxt.whitebit
 
     public virtual void setBalanceCache(WebSocketClient client, object type, object subscriptionHash)
     {
-        if (inOp(client.subscriptions, subscriptionHash))
+        if ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
         {
             return;
         }

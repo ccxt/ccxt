@@ -1649,12 +1649,12 @@ public partial class bitstamp : Exchange
         if ((numCurrencyIds == 2))
         {
             object marketId = add((currencyIds != null && 0 < currencyIds.Count ? currencyIds[0] : null), (currencyIds != null && 1 < currencyIds.Count ? currencyIds[1] : null));
-            if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0))))
             {
                 return this.safeMarket(marketId);
             }
             marketId = add((currencyIds != null && 1 < currencyIds.Count ? currencyIds[1] : null), (currencyIds != null && 0 < currencyIds.Count ? currencyIds[0] : null));
-            if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
                 return this.safeMarket(marketId);
             }

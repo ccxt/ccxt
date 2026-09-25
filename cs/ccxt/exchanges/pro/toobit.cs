@@ -804,7 +804,7 @@ public partial class toobit : ccxt.toobit
     public virtual void setBalanceCache(WebSocketClient client, string? marketType, object subscriptionHash = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (((subscriptionHash == null)) || (inOp(client.subscriptions, subscriptionHash)))
+        if (((subscriptionHash == null)) || ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
         {
             return;
         }
