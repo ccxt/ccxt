@@ -4405,7 +4405,11 @@ export default class weex extends Exchange {
                 'User-Agent': 'ccxt',
             };
         }
-        const baseUrl: string = this.urls['api'][api];
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
         const url = baseUrl + '/' + endpoint;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }

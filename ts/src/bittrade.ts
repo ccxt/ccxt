@@ -2156,7 +2156,11 @@ export default class bittrade extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        url = this.implodeParams (this.urls['api'][api], {
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = this.implodeParams (baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
         const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;

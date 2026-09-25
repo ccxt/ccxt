@@ -3732,7 +3732,11 @@ export default class kraken extends Exchange {
             } else {
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-            const urlSigned = this.urls['api'][api] + url;
+            const baseApiUrl = this.safeString (this.urls['api'], api);
+            if (baseApiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            const urlSigned = baseApiUrl + url;
             return { 'url': urlSigned, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         } else {
             url = '/' + path;

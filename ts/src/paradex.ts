@@ -3471,7 +3471,11 @@ export default class paradex extends Exchange {
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';
         }
-        let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (pathValue, params);
+        const baseApiUrl = this.safeString (this.urls['api'], version);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl) + '/' + this.implodeParams (pathValue, params);
         const query: Dict = this.omit (params, this.extractParams (pathValue));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {

@@ -168,14 +168,14 @@ type BaseExchange struct {
 	SubstituteCommonCurrencyCodes bool
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs         any // map[string]map[string]*ArrayCacheByTimestamp
+	Ohlcvs         *sync.Map
 	Trades         any // map[string]*ArrayCache
 	Tickers        *sync.Map
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
 	Liquidations   any // *ArrayCacheBySymbolBySide
-	FundingRates   any
+	FundingRates   *sync.Map
 	Bidsasks       *sync.Map
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
