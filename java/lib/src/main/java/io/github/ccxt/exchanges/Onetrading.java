@@ -1004,7 +1004,7 @@ public class Onetrading extends OnetradingApi
             //         "low":"8110.0"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1149,7 +1149,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             Long timestamp = this.parse8601(this.safeString(response, "time"));
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "amount", 2);
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1624,7 +1624,7 @@ public class Onetrading extends OnetradingApi
             //         "time_in_force": "GOOD_TILL_CANCELLED"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1942,7 +1942,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             List<Object> orderHistory = (List<Object>) this.safeList(response, "order_history", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orderHistory, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orderHistory, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2037,7 +2037,7 @@ public class Onetrading extends OnetradingApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            return this.parseTrades(tradeHistory, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradeHistory, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2116,7 +2116,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             List<Object> tradeHistory = (List<Object>) this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(tradeHistory, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradeHistory, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

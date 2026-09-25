@@ -1210,7 +1210,7 @@ public class Derive extends DeriveApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, Helpers.toMapArg(market));
+            return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1385,7 +1385,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1551,7 +1551,7 @@ public class Derive extends DeriveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, (Long) null, Helpers.toLongOrNull(1), parameters)).join();
+            List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, (Long) null, 1L, parameters)).join();
             //
             // [
             //     {
@@ -1851,7 +1851,7 @@ public class Derive extends DeriveApi
             {
                 rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             }
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
@@ -2022,7 +2022,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         }).thenApply(Order::new);
 
@@ -2134,7 +2134,7 @@ public class Derive extends DeriveApi
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
             }
-            return this.extend(this.parseOrder(order, Helpers.toMapArg(market)), extendParams);
+            return this.extend(this.parseOrder(order, market), extendParams);
         }).thenApply(Order::new);
 
     }
@@ -2229,7 +2229,7 @@ public class Derive extends DeriveApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsPaginate, "trigger", "stop", false);
             Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
@@ -2314,7 +2314,7 @@ public class Derive extends DeriveApi
                 }
             }
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2343,7 +2343,7 @@ public class Derive extends DeriveApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2372,7 +2372,7 @@ public class Derive extends DeriveApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "filled" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2401,7 +2401,7 @@ public class Derive extends DeriveApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2646,7 +2646,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
+            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2680,7 +2680,7 @@ public class Derive extends DeriveApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
@@ -2751,7 +2751,7 @@ public class Derive extends DeriveApi
                 }
             }
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
+            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2936,7 +2936,7 @@ public class Derive extends DeriveApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
@@ -3002,7 +3002,7 @@ public class Derive extends DeriveApi
                 }
             }
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(events, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(events, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -3197,7 +3197,7 @@ public class Derive extends DeriveApi
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(events, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
+            return this.parseTransactions(events, currency, since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3255,7 +3255,7 @@ public class Derive extends DeriveApi
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(events, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
+            return this.parseTransactions(events, currency, since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

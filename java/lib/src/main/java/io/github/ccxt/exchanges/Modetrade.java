@@ -1182,7 +1182,7 @@ public class Modetrade extends ModetradeApi
             "type", null,
             "fee", fee,
             "info", trade
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1231,7 +1231,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(rows, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1350,7 +1350,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(data, Helpers.toMapArg(market));
+            return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -1394,7 +1394,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(rows, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(rows, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -1428,7 +1428,7 @@ public class Modetrade extends ModetradeApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(25))).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 25L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object symbolResolved = null;
@@ -1549,7 +1549,7 @@ public class Modetrade extends ModetradeApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1598,7 +1598,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(rows, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -1720,7 +1720,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
-            return this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "quantity", 2);
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1905,7 +1905,7 @@ public class Modetrade extends ModetradeApi
                 put( "currency", feeCurrency );
             }},
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2153,7 +2153,7 @@ public class Modetrade extends ModetradeApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
@@ -2200,7 +2200,7 @@ public class Modetrade extends ModetradeApi
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
                 }
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2336,7 +2336,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2635,7 +2635,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object orders = this.safeDict(response, "data", response);
-            return this.parseOrder(orders, Helpers.toMapArg(market));
+            return this.parseOrder(orders, market);
         }).thenApply(Order::new);
 
     }
@@ -2747,7 +2747,7 @@ public class Modetrade extends ModetradeApi
             //
             Object data = this.safeDict(response, "data", response);
             List<Object> orders = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2781,7 +2781,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2815,7 +2815,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2873,7 +2873,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, parameters);
+            return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2907,7 +2907,7 @@ public class Modetrade extends ModetradeApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2959,7 +2959,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3138,7 +3138,7 @@ public class Modetrade extends ModetradeApi
             "datetime", this.iso8601(timestamp),
             "type", this.parseLedgerEntryType(this.safeString2(item, "type", "side")),
             "info", item
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -3478,7 +3478,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3543,7 +3543,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
@@ -3709,7 +3709,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (data), market);
         }).thenApply(Position::new);
 
     }

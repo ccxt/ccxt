@@ -1400,7 +1400,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "asks", Hyperliquid.this.safeList(data, 1, new ArrayList<Object>(Arrays.asList())) );
             }};
             Long timestamp = this.safeInteger(response, "time");
-            return this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", "px", "sz", 2);
+            return this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "px", "sz", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1649,7 +1649,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "ask", Hyperliquid.this.safeNumber(bidAsk, 1, (Object) null) );
             put( "quoteVolume", Hyperliquid.this.safeNumber(ticker, "dayNtlVlm", (Object) null) );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1728,7 +1728,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 candles = response;
             }
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(originalSince), limit, useTail);
+            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), originalSince, limit, useTail);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1828,7 +1828,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 fills = response;
             }
-            return this.parseTrades(fills, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2550,7 +2550,7 @@ public class Hyperliquid extends HyperliquidApi
             return this.parseOrder(new HashMap<String, Object>() {{
                 put( "status", "running" );
                 put( "oid", orderId );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -3021,7 +3021,7 @@ public class Hyperliquid extends HyperliquidApi
             return this.parseOrder(new HashMap<String, Object>() {{
                 put( "status", status );
                 put( "oid", id );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         });
 
     }
@@ -3612,7 +3612,7 @@ public class Hyperliquid extends HyperliquidApi
                 Long timestamp = this.safeInteger(entry, "time");
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", Hyperliquid.this.safeSymbol(null, Helpers.toMapArg(market), (String) null, (String) null) );
+                    put( "symbol", Hyperliquid.this.safeSymbol(null, market, (String) null, (String) null) );
                     put( "fundingRate", Hyperliquid.this.safeNumber(entry, "fundingRate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Hyperliquid.this.iso8601(timestamp) );
@@ -3711,7 +3711,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 ((List<Object>)orderWithStatus).add(this.extend(order, extendOrder));
             }
-            return this.parseOrders(orderWithStatus, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orderWithStatus, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3890,7 +3890,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             Object deduplicated = Helpers.objectValues(deduplicatedByOid);
-            return this.parseOrders(deduplicated, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(deduplicated, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3970,7 +3970,7 @@ public class Hyperliquid extends HyperliquidApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "order", (Object) null);
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -4161,7 +4161,7 @@ public class Hyperliquid extends HyperliquidApi
             "status", this.parseOrderStatus(status),
             "fee", null,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -4273,7 +4273,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 myFills = response;
             }
-            return this.parseTrades(myFills, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(myFills, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4341,7 +4341,7 @@ public class Hyperliquid extends HyperliquidApi
                 "currency", this.safeString(trade, "feeToken"),
                 "rate", null
             )
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -4425,7 +4425,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", "clearinghouseState" );
                 put( "user", userAddress );
             }};
-            String dexName = this.getDexFromSymbols("fetchPositions", Helpers.toStringListArg(symbolsNormalized));
+            String dexName = this.getDexFromSymbols("fetchPositions", symbolsNormalized);
             if (!java.util.Objects.equals(dexName, null))
             {
                 request.put("dex", dexName);
@@ -4799,7 +4799,7 @@ public class Hyperliquid extends HyperliquidApi
             //         'status': 'ok'
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "code", Hyperliquid.this.safeString(response, "status") );
             }});
         });
@@ -4894,7 +4894,7 @@ public class Hyperliquid extends HyperliquidApi
                 // the sub-account branches below already hand back the unified structure; the
                 // spot <> swap branch returned the raw acknowledgement, breaking the shape
                 Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
-                return this.parseTransfer(transferResponse, Helpers.toMapArg(currency));
+                return this.parseTransfer(transferResponse, currency);
             }
             // transfer between main account and subaccount
             Boolean isDeposit = false;
@@ -5188,7 +5188,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "userCrossRate", Hyperliquid.this.safeString(response, "userCrossRate") );
                 put( "userAddRate", Hyperliquid.this.safeString(response, "userAddRate") );
             }};
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -5557,7 +5557,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Object swapMarkets = (this.fetchSwapMarkets(new HashMap<String, Object>() {{}})).join();
-            return this.parseOpenInterests(swapMarkets, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(swapMarkets, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -5682,7 +5682,7 @@ public class Hyperliquid extends HyperliquidApi
             //     }
             // ]
             //
-            return this.parseIncomes(response, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -5785,7 +5785,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 request.put("expiresAfter", expiresAfter);
             }
-            Object signature = this.signL1Action(action, nonce, (String) null, Helpers.toLongOrNull(expiresAfter));
+            Object signature = this.signL1Action(action, nonce, (String) null, expiresAfter);
             request.put("action", action);
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, this.omit(parameters, "expiresAfter")))).join();

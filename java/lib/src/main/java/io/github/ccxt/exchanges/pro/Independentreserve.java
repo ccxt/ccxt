@@ -254,7 +254,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "Bids", "Offers", "Price", "Volume", 2);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume", 2);
             orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag

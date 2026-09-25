@@ -701,7 +701,7 @@ public class Indodax extends IndodaxApi
             //     }
             //
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -750,7 +750,7 @@ public class Indodax extends IndodaxApi
                 Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
                 String marketId = Helpers.replace(key, (String)"_", (String)"");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, Helpers.toMapArg(market));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
                 parsedTickers.put((String)marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols, true);
@@ -803,7 +803,7 @@ public class Indodax extends IndodaxApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1028,7 +1028,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
-            }}, ((Map<String, Object>)orders).get("order")), Helpers.toMapArg(market));
+            }}, ((Map<String, Object>)orders).get("order")), market);
             Helpers.addElementToObject(order, "info", response);
             return order;
         }).thenApply(Order::new);
@@ -1073,7 +1073,7 @@ public class Indodax extends IndodaxApi
             // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
             if (!java.util.Objects.equals(symbol, null))
             {
-                return this.parseOrders(rawOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
             List<Object> marketIds = Helpers.objectKeys(rawOrders);
@@ -1083,7 +1083,7 @@ public class Indodax extends IndodaxApi
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object marketOrders = Helpers.GetValue(rawOrders, marketId);
                 market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
-                List<Object> parsedOrders = this.parseOrders(marketOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+                List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit, new HashMap<String, Object>() {{}});
                 exchangeOrders = (List<Object>) this.arrayConcat(exchangeOrders, parsedOrders);
             }
             return exchangeOrders;
@@ -1121,7 +1121,7 @@ public class Indodax extends IndodaxApi
             }};
             Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
             Map<String, Object> historyResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            Object orders = this.parseOrders(((Map<String, Object>)historyResult).get("orders"), Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            Object orders = this.parseOrders(((Map<String, Object>)historyResult).get("orders"), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1216,7 +1216,7 @@ public class Indodax extends IndodaxApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", id );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -1319,7 +1319,7 @@ public class Indodax extends IndodaxApi
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "rate", Indodax.this.safeNumber(data, "withdraw_fee", (Object) null) );
-                put( "currency", Indodax.this.safeCurrencyCode(currencyId, Helpers.toMapArg(currency)) );
+                put( "currency", Indodax.this.safeCurrencyCode(currencyId, currency) );
             }};
         });
 
@@ -1361,7 +1361,7 @@ public class Indodax extends IndodaxApi
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
             Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "fee", 0);
             Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "percentage", false);
-            return this.assignDefaultDepositWithdrawFees(result, Helpers.toMapArg(currency));
+            return this.assignDefaultDepositWithdrawFees(result, currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }
@@ -1477,7 +1477,7 @@ public class Indodax extends IndodaxApi
                 List<Object> deposits = (List<Object>) this.safeList(deposit, ((Map<String, Object>)currency).get("id"), new ArrayList<Object>(Arrays.asList()));
                 transactions = (List<Object>) this.arrayConcat(withdraws, deposits);
             }
-            return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1541,7 +1541,7 @@ public class Indodax extends IndodaxApi
             //         "withdraw_memo": "123123"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }

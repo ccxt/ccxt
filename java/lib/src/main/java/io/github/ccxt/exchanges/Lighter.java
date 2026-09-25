@@ -1005,7 +1005,7 @@ public class Lighter extends LighterApi
         List<Object> nonceparamsNonceVariable = (List<Object>) this.handleOptionAndParams(paramsAccountIndex, "createOrder", "nonce", (Object) null);
         var nonce = ((List<Object>) nonceparamsNonceVariable).get(0);
         Map<String, Object> paramsNonce = (Map<String, Object>) ((List<Object>) nonceparamsNonceVariable).get(1);
-        List<Object> orderExpiryOptionparamsOrderExpiryVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", Helpers.toLongOrNull(0));
+        List<Object> orderExpiryOptionparamsOrderExpiryVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0L);
         Long orderExpiryOption = (Long) ((List<Object>) orderExpiryOptionparamsOrderExpiryVariable).get(0);
         Map<String, Object> paramsOrderExpiry = (Map<String, Object>) ((List<Object>) orderExpiryOptionparamsOrderExpiryVariable).get(1);
         Object orderExpiry = orderExpiryOption;
@@ -1203,7 +1203,7 @@ public class Lighter extends LighterApi
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             Helpers.addElementToObject(paramsAccountIndex, "accountIndex", accountIndex);
-            List<Object> groupingTypeparamsGroupingTypeVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsAccountIndex, (String) (method), "groupingType", Helpers.toLongOrNull(3));
+            List<Object> groupingTypeparamsGroupingTypeVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsAccountIndex, (String) (method), "groupingType", 3L);
             Long groupingType = (Long) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(0);
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsGroupingType));
@@ -1297,7 +1297,7 @@ public class Lighter extends LighterApi
             //     "predicted_execution_time_ms": 1766088500120
             // }
             //
-            return this.parseOrder(this.deepExtend(response, order), Helpers.toMapArg(market));
+            return this.parseOrder(this.deepExtend(response, order), market);
         }).thenApply(Order::new);
 
     }
@@ -1377,7 +1377,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1873,7 +1873,7 @@ public class Lighter extends LighterApi
             put( "indexPrice", Lighter.this.safeString(ticker, "index_price") );
             put( "openInterest", openInterest );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1951,7 +1951,7 @@ public class Lighter extends LighterApi
             List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             Map<String, Object> first = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(first, Helpers.toMapArg(market));
+            return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1979,7 +1979,7 @@ public class Lighter extends LighterApi
             List<Object> spotTickers = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -2663,7 +2663,7 @@ public class Lighter extends LighterApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2756,7 +2756,7 @@ public class Lighter extends LighterApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2883,7 +2883,7 @@ public class Lighter extends LighterApi
             "status", this.parseOrderStatus(status),
             "fee", null,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -3069,7 +3069,7 @@ public class Lighter extends LighterApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsPaginate, "fetchTransfers", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
@@ -3119,7 +3119,7 @@ public class Lighter extends LighterApi
             {
                 Helpers.addElementToObject((rows == null || 0 >= rows.size() ? null : rows.get(0)), "cursor", cursor);
             }
-            return this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsApiKeyIndex));
+            return this.parseTransfers(rows, currency, since, limit, Helpers.toMapArg(paramsApiKeyIndex));
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3191,7 +3191,7 @@ public class Lighter extends LighterApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> addressparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address", (String) null);
             String address = (String) ((List<Object>) addressparamsAddressVariable).get(0);
@@ -3243,7 +3243,7 @@ public class Lighter extends LighterApi
             {
                 Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "cursor", cursor);
             }
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3273,7 +3273,7 @@ public class Lighter extends LighterApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsPaginate, "fetchWithdrawals", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
@@ -3322,7 +3322,7 @@ public class Lighter extends LighterApi
             {
                 Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "cursor", cursor);
             }
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3489,7 +3489,7 @@ public class Lighter extends LighterApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsPaginate, "fetchMyTrades", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
@@ -3565,7 +3565,7 @@ public class Lighter extends LighterApi
             {
                 Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "next_cursor", nextCursor);
             }
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTrades(data, market, since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3639,7 +3639,7 @@ public class Lighter extends LighterApi
             "amount", this.safeString(trade, "size"),
             "cost", this.safeString(trade, "usd_amount"),
             "fee", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3831,7 +3831,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -4053,7 +4053,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseMarginModification((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         }).thenApply(MarginModification::new);
 
     }

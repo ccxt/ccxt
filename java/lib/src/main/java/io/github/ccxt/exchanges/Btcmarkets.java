@@ -418,7 +418,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
             }
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -895,7 +895,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             Long timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -951,7 +951,7 @@ public class Btcmarkets extends BtcmarketsApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -992,7 +992,7 @@ public class Btcmarkets extends BtcmarketsApi
             //         "timestamp":"2020-08-09T18:28:23.280000Z"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1011,7 +1011,7 @@ public class Btcmarkets extends BtcmarketsApi
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsMarketIdTicker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         });
 
     }
@@ -1091,7 +1091,7 @@ public class Btcmarkets extends BtcmarketsApi
             "cost", null,
             "takerOrMaker", takerOrMaker,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1126,7 +1126,7 @@ public class Btcmarkets extends BtcmarketsApi
             //         {"id":"6191646590","price":"540","amount":"0.00233785","timestamp":"2020-08-09T15:21:04.171000Z","side":"Bid"},
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1237,7 +1237,7 @@ public class Btcmarkets extends BtcmarketsApi
             //         "targetAmount": "1000"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1454,7 +1454,7 @@ public class Btcmarkets extends BtcmarketsApi
             "status", status,
             "trades", null,
             "fee", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1523,7 +1523,7 @@ public class Btcmarkets extends BtcmarketsApi
                 request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1637,7 +1637,7 @@ public class Btcmarkets extends BtcmarketsApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1697,7 +1697,7 @@ public class Btcmarkets extends BtcmarketsApi
             //          }
             //      }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }

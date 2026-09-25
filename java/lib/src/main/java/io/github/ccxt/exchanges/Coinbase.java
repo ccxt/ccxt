@@ -778,7 +778,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "next_starting_after", "starting_after", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "next_starting_after", "starting_after", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", 100 );
@@ -861,7 +861,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(250))).join();
+                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 250L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", 250 );
@@ -2524,7 +2524,7 @@ public class Coinbase extends CoinbaseApi
                 String marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
-                result.put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         });
@@ -2609,7 +2609,7 @@ public class Coinbase extends CoinbaseApi
                 String marketId = this.safeString(entry, "product_id");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
-                result.put((String)symbol, this.parseTicker(entry, Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         });
@@ -2676,7 +2676,7 @@ public class Coinbase extends CoinbaseApi
                 put( "ask", Coinbase.this.safeNumber(askData, "amount", (Object) null) );
                 put( "price", Coinbase.this.safeNumber(spotData, "amount", (Object) null) );
             }};
-            return this.parseTicker(bidAskLast, Helpers.toMapArg(market));
+            return this.parseTicker(bidAskLast, market);
         });
 
     }
@@ -2726,7 +2726,7 @@ public class Coinbase extends CoinbaseApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(first, Helpers.toMapArg(market));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(first, market);
             Helpers.addElementToObject(ticker, "bid", this.safeNumber(response, "best_bid", (Object) null));
             Helpers.addElementToObject(ticker, "ask", this.safeNumber(response, "best_ask", (Object) null));
             return ticker;
@@ -2866,7 +2866,7 @@ public class Coinbase extends CoinbaseApi
             "baseVolume", this.safeNumber(ticker, "volume_24h", (Object) null),
             "quoteVolume", this.safeNumber(ticker, "approximate_quote_24h_volume", (Object) null),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseCustomBalance(Map<String, Object> response, Map<String, Object> parameters)
@@ -3087,7 +3087,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), "next_starting_after", "starting_after", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), "next_starting_after", "starting_after", (Long) null, 100L)).join();
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -3102,7 +3102,7 @@ public class Coinbase extends CoinbaseApi
             // eg: instance.last_http_response -> pagination.next_starting_after
             Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, paramsValue))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> ledger = this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> ledger = this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
             Integer length = ((List<?>)ledger).size();
             if (java.util.Objects.equals(length, 0))
             {
@@ -3421,7 +3421,7 @@ public class Coinbase extends CoinbaseApi
         if (!java.util.Objects.equals(feeInfo, null))
         {
             String feeCurrencyId = this.safeString(feeInfo, "currency");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, Helpers.toMapArg(currencyResolved));
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currencyResolved);
             Double feeAmount = this.safeNumber(feeInfo, "amount", (Object) null);
             fee = new HashMap<String, Object>() {{
                 put( "cost", feeAmount );
@@ -3459,7 +3459,7 @@ public class Coinbase extends CoinbaseApi
             "after", null,
             "status", status,
             "fee", fee
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public CompletableFuture<String> findAccountId(String code, Map<String, Object> parameters)
@@ -3857,7 +3857,7 @@ public class Coinbase extends CoinbaseApi
                 }
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "success_response", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -4117,7 +4117,7 @@ public class Coinbase extends CoinbaseApi
                     throw new BadRequest((this.id + " cancelOrders() has failed, check your arguments and parameters")) ;
                 }
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4176,7 +4176,7 @@ public class Coinbase extends CoinbaseApi
             //         }
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -4249,7 +4249,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "order", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -4283,7 +4283,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 1000L)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -4360,7 +4360,7 @@ public class Coinbase extends CoinbaseApi
                 first.put("cursor", cursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4449,7 +4449,7 @@ public class Coinbase extends CoinbaseApi
                 first.put("cursor", cursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         });
 
     }
@@ -4483,7 +4483,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 100L)).join();
             }
             return (this.fetchOrdersByStatus("OPEN", symbol, since, limit, Helpers.toMapArg(paramsPaginate))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -4519,7 +4519,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 1000L)).join();
             }
             return (this.fetchOrdersByStatus("FILLED", symbol, since, limit, Helpers.toMapArg(paramsPaginate))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -4728,7 +4728,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4762,7 +4762,7 @@ public class Coinbase extends CoinbaseApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(250))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 250L)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -4820,7 +4820,7 @@ public class Coinbase extends CoinbaseApi
                 first.put("cursor", cursor);
                 Helpers.addElementToObject(trades, 0, first);
             }
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4888,7 +4888,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "pricebook", new HashMap<String, Object>() {{}});
             String time = this.safeString(data, "time");
             Long timestamp = this.parse8601(time);
-            return this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -4941,7 +4941,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             List<Object> tickers = (List<Object>) this.safeList(response, "pricebooks", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -5056,7 +5056,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5673,7 +5673,7 @@ public class Coinbase extends CoinbaseApi
             //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
             //     }
             //
-            Object transfer = this.parseTransfer(response, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(response, currency);
             ((Map<String, Object>)transfer).put("amount", amount);
             ((Map<String, Object>)transfer).put("status", "ok");
             return transfer;
@@ -5768,7 +5768,7 @@ public class Coinbase extends CoinbaseApi
             {
                 market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -5790,7 +5790,7 @@ public class Coinbase extends CoinbaseApi
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.extend(request, paramsPortfolio))).join();
             }
             List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(positions, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(positions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -5845,7 +5845,7 @@ public class Coinbase extends CoinbaseApi
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.extend(request, paramsPortfolio))).join();
             }
             Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "position", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (position), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (position), market);
         }).thenApply(Position::new);
 
     }
@@ -5964,7 +5964,7 @@ public class Coinbase extends CoinbaseApi
         return this.safePosition(Helpers.newMap(
             "info", position,
             "id", this.safeString(position, "product_id"),
-            "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null),
+            "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
             "notional", this.safeNumber(notionalObject, "value", (Object) null),
             "marginMode", marginMode,
             "liquidationPrice", liquidationPrice,

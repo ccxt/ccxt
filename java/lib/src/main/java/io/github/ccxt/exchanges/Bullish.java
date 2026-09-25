@@ -1160,7 +1160,7 @@ public class Bullish extends BullishApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "priceLevelQuantity", 2);
+            return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1224,7 +1224,7 @@ public class Bullish extends BullishApi
             //         }, ...
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1275,7 +1275,7 @@ public class Bullish extends BullishApi
                 if (Boolean.TRUE.equals(paginate))
                 {
                     Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, Helpers.toMapArg(paramsPaginate));
-                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(100), true)).join();
+                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), 100L, true)).join();
                 }
                 Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
                 if (!java.util.Objects.equals(limit, null))
@@ -1304,7 +1304,7 @@ public class Bullish extends BullishApi
                 //
                 response = (this.privateGetV1HistoryTrades(this.extend(request, paramsSinceAndUntil))).join();
             }
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1437,7 +1437,7 @@ public class Bullish extends BullishApi
             "amount", amount,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1501,7 +1501,7 @@ public class Bullish extends BullishApi
             //         ]
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1571,7 +1571,7 @@ public class Bullish extends BullishApi
             put( "quoteVolume", Bullish.this.safeString(ticker, "quoteVolume") );
             put( "markPrice", Bullish.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public CompletableFuture<Object> safeDeterministicCall(Object method, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters)
@@ -1579,7 +1579,7 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> maxRetriesparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", Helpers.toLongOrNull(3));
+            List<Object> maxRetriesparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", 3L);
             Long maxRetries = (Long) ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(0);
             var paramsMaxRetries = ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(1);
             if ((!java.util.Objects.equals(method, "fetchOHLCV")) && (!java.util.Objects.equals(method, "fetchFundingRateHistory")) && (!java.util.Objects.equals(method, "fetchTrades")))
@@ -1818,7 +1818,7 @@ public class Bullish extends BullishApi
             if (java.util.Objects.equals(paginate, true))
             {
                 Object paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(100), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPagination), 100L, true)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1879,7 +1879,7 @@ public class Bullish extends BullishApi
             {
                 throw new BadRequest((this.id + " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")) ;
             }
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2115,7 +2115,7 @@ public class Bullish extends BullishApi
             //         "createdAtTimestamp": "1621490985000",
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2192,7 +2192,7 @@ public class Bullish extends BullishApi
             //         "clientOrderId": "1234567"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2251,7 +2251,7 @@ public class Bullish extends BullishApi
             }
             Object paramsOmitted = (((java.util.Objects.equals(postOnly, true)))) ? this.omit(parameters, "postOnly") : parameters;
             Map<String, Object> response = (this.privatePostV2Command(this.extend(request, paramsOmitted))).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2295,7 +2295,7 @@ public class Bullish extends BullishApi
             //         "clientOrderId": null
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2338,7 +2338,7 @@ public class Bullish extends BullishApi
             //     }
             //
             List<Object> orders = new ArrayList<Object>(Arrays.asList(response));
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2542,7 +2542,7 @@ public class Bullish extends BullishApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2599,7 +2599,7 @@ public class Bullish extends BullishApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2909,7 +2909,7 @@ public class Bullish extends BullishApi
                     }
                 }
             }
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3201,7 +3201,7 @@ public class Bullish extends BullishApi
             //         }
             //     ]
             //
-            return this.parseTransfers(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3242,7 +3242,7 @@ public class Bullish extends BullishApi
             //
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            Object transfer = this.parseTransfer(response, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(response, currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
@@ -3459,7 +3459,7 @@ public class Bullish extends BullishApi
             //         ]
             //     }
             //
-            return this.parseOpenInterest(response, Helpers.toMapArg(market));
+            return this.parseOpenInterest(response, market);
         }).thenApply(OpenInterest::new);
 
     }

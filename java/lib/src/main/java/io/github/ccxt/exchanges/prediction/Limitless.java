@@ -1174,7 +1174,7 @@ public class Limitless extends LimitlessApi
                 put( "market", response );
                 put( "book", (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)) );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1865,7 +1865,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE")) );
             }});
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchOrders(outcome, since, limit, paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -1894,7 +1894,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "statuses", new ArrayList<Object>(Arrays.asList("MATCHED")) );
             }});
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchOrders(outcome, since, limit, paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2578,7 +2578,7 @@ public class Limitless extends LimitlessApi
                 request.put("postOnly", postOnly);
             }
             Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, paramsValue))).join();
-            Object parsedOrder = this.parsePredictionOrder((Map<String, Object>) (response), Helpers.toMapArg(outcomeObj));
+            Object parsedOrder = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
             // the create-order response omits a status field; a freshly accepted order is open
             if (java.util.Objects.equals(((Map<String, Object>)parsedOrder).get("status"), null))
             {

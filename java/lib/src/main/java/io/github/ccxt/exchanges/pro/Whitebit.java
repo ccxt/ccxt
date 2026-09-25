@@ -124,7 +124,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -154,10 +154,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             Object data = (parameters == null || i < 0 || i >= parameters.size() ? null : parameters.get(i));
             String marketId = this.safeString(data, 7);
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("candles" + ":") + symbol);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(data, Helpers.toMapArg(market));
+            List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
             {
@@ -253,7 +253,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         Boolean isSnapshot = (Boolean) this.safeBool(parameters, 0, (Object) null);
         String marketId = this.safeString(parameters, 2);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1, (Object) null);
         Long timestamp = this.safeTimestamp(data, "timestamp");
@@ -387,11 +387,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //
         List<Object> tickers = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(tickers, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 1, new HashMap<String, Object>() {{}});
         String messageHash = (("ticker" + ":") + symbol);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, Helpers.toMapArg(market));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
         client.resolve(ticker, messageHash);
@@ -448,7 +448,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -481,7 +481,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //
         List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(parameters, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -491,7 +491,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         List<Object> data = (List<Object>) this.safeList(parameters, 1, new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedTrades = this.parseTrades(data, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
             stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
@@ -535,7 +535,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolValue), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolValue), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -598,7 +598,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String price = this.safeString(trade, 4);
         String amount = this.safeString(trade, 5);
         String marketId = this.safeString(trade, 2);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, 6);
         if (!java.util.Objects.equals(feeCost, null))
@@ -649,7 +649,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             "amount", amount,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved)));
+        ), marketResolved));
     }
 
     /**
@@ -687,7 +687,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolValue), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolValue), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -764,7 +764,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //
         Long status = this.safeInteger(order, "status");
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String id = this.safeString(order, "id");
         String clientOrderId = this.omitZero(this.safeString(order, "client_order_id"));
         String price = this.safeString(order, "price");
@@ -839,7 +839,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             "status", unifiedStatus,
             "fee", fee,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseWsOrderType(Object status)

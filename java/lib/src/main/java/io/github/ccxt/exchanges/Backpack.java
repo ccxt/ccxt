@@ -1058,7 +1058,7 @@ public class Backpack extends BackpackApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1083,7 +1083,7 @@ public class Backpack extends BackpackApi
         //
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String open = this.safeString(ticker, "firstPrice");
         String last = this.safeString(ticker, "lastPrice");
         String high = this.safeString(ticker, "high");
@@ -1121,7 +1121,7 @@ public class Backpack extends BackpackApi
             "markPrice", null,
             "indexPrice", null,
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
         return parsedTicker;
     }
 
@@ -1169,7 +1169,7 @@ public class Backpack extends BackpackApi
                 throw new ExchangeError((this.id + " fetchOrderBook() missing microseconds")) ;
             }
             Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1289,7 +1289,7 @@ public class Backpack extends BackpackApi
             }};
             List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(data, Helpers.toMapArg(market));
+            return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -1307,7 +1307,7 @@ public class Backpack extends BackpackApi
         //
         String marketId = this.safeString(contract, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTimestamp");
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -1359,7 +1359,7 @@ public class Backpack extends BackpackApi
             }};
             List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
             Map<String, Object> interest = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(interest, Helpers.toMapArg(market));
+            return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -1490,7 +1490,7 @@ public class Backpack extends BackpackApi
                 response = (this.publicGetApiV1Trades(this.extend(request, parameters))).join();
             }
             List<Object> responseList = this.toArray(response);
-            return this.parseTrades(responseList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1545,7 +1545,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted))).join();
             List<Object> responseList = this.toArray(response);
-            return this.parseTrades(responseList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1629,7 +1629,7 @@ public class Backpack extends BackpackApi
             "amount", amount,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1788,7 +1788,7 @@ public class Backpack extends BackpackApi
                 request.put("endTime", until);
             }
             List<Object> response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, paramsUntil))).join();
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1836,7 +1836,7 @@ public class Backpack extends BackpackApi
                 request.put("to", until);
             }
             List<Object> response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, paramsUntil))).join();
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1883,7 +1883,7 @@ public class Backpack extends BackpackApi
             }
             request.put("blockchain", networkId);
             Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2054,7 +2054,7 @@ public class Backpack extends BackpackApi
                 "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")))
             );
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
-            return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2120,7 +2120,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2154,7 +2154,7 @@ public class Backpack extends BackpackApi
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(extendedParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
@@ -2311,7 +2311,7 @@ public class Backpack extends BackpackApi
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2411,7 +2411,7 @@ public class Backpack extends BackpackApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2448,7 +2448,7 @@ public class Backpack extends BackpackApi
                 request.put("limit", limit);
             }
             List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2772,7 +2772,7 @@ public class Backpack extends BackpackApi
                 request.put("limit", limit);
             }
             List<Object> response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
-            return this.parseIncomes(response, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }

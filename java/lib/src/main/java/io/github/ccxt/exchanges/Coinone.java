@@ -743,7 +743,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "qty", 2);
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "qty", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -818,7 +818,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -882,7 +882,7 @@ public class Coinone extends CoinoneApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1023,7 +1023,7 @@ public class Coinone extends CoinoneApi
             "amount", amountString,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1075,7 +1075,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1132,7 +1132,7 @@ public class Coinone extends CoinoneApi
             //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1186,7 +1186,7 @@ public class Coinone extends CoinoneApi
             //         "averageExecutedPrice": "10011000.0"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1389,7 +1389,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             List<Object> openOrders = (List<Object>) this.safeList2(response, "open_orders", "limitOrders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(openOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(openOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1443,7 +1443,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             List<Object> completeOrders = (List<Object>) this.safeList(response, "completeOrders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(completeOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(completeOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

@@ -503,7 +503,7 @@ public class Coincheck extends CoincheckApi
             }
             Map<String, Object> response = (this.privateGetExchangeOrdersOpens(parameters)).join();
             List<Object> rawOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(rawOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
             {
@@ -673,7 +673,7 @@ public class Coincheck extends CoincheckApi
             //     "timestamp":1643374115
             // }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -761,7 +761,7 @@ public class Coincheck extends CoincheckApi
             "amount", amountString,
             "cost", costString,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -814,7 +814,7 @@ public class Coincheck extends CoincheckApi
             //      }
             //
             List<Object> transactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(transactions, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(transactions, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -859,7 +859,7 @@ public class Coincheck extends CoincheckApi
             //      }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -979,7 +979,7 @@ public class Coincheck extends CoincheckApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "info", response );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -1070,7 +1070,7 @@ public class Coincheck extends CoincheckApi
             //   ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -1130,7 +1130,7 @@ public class Coincheck extends CoincheckApi
             //   ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));

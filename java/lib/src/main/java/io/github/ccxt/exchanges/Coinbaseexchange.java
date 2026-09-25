@@ -1228,7 +1228,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 List<Object> first = (List<Object>) this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
-                result.put((String)symbol, this.parseTicker(first, Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseTicker(first, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -1289,7 +1289,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //         "volume": "2.41000000"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1374,7 +1374,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             "amount", amount,
             "fee", fee,
             "cost", cost
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1406,7 +1406,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1431,7 +1431,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             List<Object> response = (this.privateGetFills(this.extend(request, paramsUntil))).join();
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1476,7 +1476,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //        },
             //    ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1569,7 +1569,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(300))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 300L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long parsedTimeframe = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1731,7 +1731,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             "fee", fee,
             "average", null,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1800,7 +1800,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 put( "order_id", id );
             }};
             List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1859,7 +1859,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1883,7 +1883,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             List<Object> response = (this.privateGetOrders(this.extend(request, paramsUntil))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2011,7 +2011,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //         "settled": false
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2160,7 +2160,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 throw new ExchangeError(((this.id + " withdraw() error: ") + this.json(response))) ;
             }
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2312,7 +2312,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 Helpers.addElementToObject((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)), "currency", code);
             }
-            return this.parseLedger(entries, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -2440,7 +2440,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                     Helpers.addElementToObject((response == null || i < 0 || i >= response.size() ? null : response.get(i)), "currency", code);
                 }
             }
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

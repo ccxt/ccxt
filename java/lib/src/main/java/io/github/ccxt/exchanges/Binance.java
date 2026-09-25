@@ -6168,7 +6168,7 @@ public class Binance extends BinanceApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "T");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -6473,13 +6473,13 @@ public class Binance extends BinanceApi
             if ((response instanceof List))
             {
                 Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-                return this.parseTicker(firstTicker, Helpers.toMapArg(market));
+                return this.parseTicker(firstTicker, market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -6526,10 +6526,10 @@ public class Binance extends BinanceApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             this.checkNoStockSymbols(symbolsNormalized, "fetchBidsAsks");
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -6566,7 +6566,7 @@ public class Binance extends BinanceApi
             {
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
-            return this.parseTickers(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -6594,10 +6594,10 @@ public class Binance extends BinanceApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object response = null;
@@ -6614,7 +6614,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " fetchLastPrices() does not support ") + type) + " markets yet")) ;
             }
-            return this.parseLastPrices(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseLastPrices(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(LastPrices::new);
 
     }
@@ -6693,11 +6693,11 @@ public class Binance extends BinanceApi
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             String type = null;
             Object paramsMarketType = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
             String subType = null;
-            List<Object> subTypeparamsMarketTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsMarketTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             subType = (String) ((List<Object>) subTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) subTypeparamsMarketTypeVariable).get(1);
             Object response = null;
@@ -6736,7 +6736,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " fetchTickers() does not support ") + type) + " markets yet")) ;
             }
-            return this.parseTickers(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -6777,10 +6777,10 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrice", Helpers.toMapArg(market), parameters, "swap");
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrice", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrice", market, Helpers.toMapArg(paramsMarketType), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6802,13 +6802,13 @@ public class Binance extends BinanceApi
             }
             if ((response instanceof List))
             {
-                return this.parseTicker(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), Helpers.toMapArg(market));
+                return this.parseTicker(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchMarkPrice() returned empty response")) ;
             }
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -6836,10 +6836,10 @@ public class Binance extends BinanceApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", Helpers.toMapArg(market), parameters, "swap");
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", market, Helpers.toMapArg(paramsMarketType), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
@@ -6856,7 +6856,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " fetchMarkPrices() does not support ") + type) + " markets yet")) ;
             }
-            return this.parseTickers(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -6957,7 +6957,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
@@ -7386,7 +7386,7 @@ public class Binance extends BinanceApi
             "amount", amount,
             "cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteQty", "baseQty", "total"))),
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -7590,7 +7590,7 @@ public class Binance extends BinanceApi
             {
                 responseList = this.toArray(response);
             }
-            return this.parseTrades(responseList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -7667,7 +7667,7 @@ public class Binance extends BinanceApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "newOrderResponse", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         });
 
     }
@@ -7967,7 +7967,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         });
 
     }
@@ -8885,7 +8885,7 @@ public class Binance extends BinanceApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
@@ -9105,7 +9105,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -9756,11 +9756,11 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
             String type = null;
-            List<Object> typeparamsStockVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsStock), "spot");
+            List<Object> typeparamsStockVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsStock), "spot");
             type = (String) ((List<Object>) typeparamsStockVariable).get(0);
             paramsStock = ((List<Object>) typeparamsStockVariable).get(1);
             String subType = null;
-            List<Object> subTypeparamsStockVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsStock), (Object) null);
+            List<Object> subTypeparamsStockVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsStock), (Object) null);
             subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
             paramsStock = ((List<Object>) subTypeparamsStockVariable).get(1);
             String marginMode = null;
@@ -9849,7 +9849,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -9915,11 +9915,11 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
             String type = null;
-            List<Object> typeparamsPaginateVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), "spot");
+            List<Object> typeparamsPaginateVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, Helpers.toMapArg(paramsPaginate), "spot");
             type = (String) ((List<Object>) typeparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) typeparamsPaginateVariable).get(1);
             String subType = null;
-            List<Object> subTypeparamsPaginateVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> subTypeparamsPaginateVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             subType = (String) ((List<Object>) subTypeparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) subTypeparamsPaginateVariable).get(1);
             String marginMode = null;
@@ -10242,9 +10242,9 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(stock, true))
             {
                 List<Object> result = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(result, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+                return this.parseOrders(result, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
             }
-            return this.parseOrders(response, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -10318,11 +10318,11 @@ public class Binance extends BinanceApi
                     throw new ExchangeError((((this.id + " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
                 }
             }
-            List<Object> typeparamsMarginModeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarginMode), "spot");
+            List<Object> typeparamsMarginModeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, Helpers.toMapArg(paramsMarginMode), "spot");
             type = (String) ((List<Object>) typeparamsMarginModeVariable).get(0);
             paramsMarginMode = ((List<Object>) typeparamsMarginModeVariable).get(1);
             String subType = null;
-            List<Object> subTypeparamsMarginModeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarginMode), (Object) null);
+            List<Object> subTypeparamsMarginModeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, Helpers.toMapArg(paramsMarginMode), (Object) null);
             subType = (String) ((List<Object>) subTypeparamsMarginModeVariable).get(0);
             paramsMarginMode = ((List<Object>) subTypeparamsMarginModeVariable).get(1);
             paramsMarginMode = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
@@ -10404,7 +10404,7 @@ public class Binance extends BinanceApi
             {
                 response = (this.privateGetOpenOrders(this.extend(request, paramsMarginMode))).join();
             }
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -10648,7 +10648,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         });
 
     }
@@ -10874,11 +10874,11 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             String type = null;
-            List<Object> typeparamsStockVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsStock), "spot");
+            List<Object> typeparamsStockVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsStock), "spot");
             type = (String) ((List<Object>) typeparamsStockVariable).get(0);
             paramsStock = ((List<Object>) typeparamsStockVariable).get(1);
             String subType = null;
-            List<Object> subTypeparamsStockVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsStock), (Object) null);
+            List<Object> subTypeparamsStockVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsStock), (Object) null);
             subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
             paramsStock = ((List<Object>) subTypeparamsStockVariable).get(1);
             String marginMode = null;
@@ -10997,7 +10997,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -11060,11 +11060,11 @@ public class Binance extends BinanceApi
             paramsStock = ((List<Object>) isPortfolioMarginparamsStockVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
             String type = null;
-            List<Object> typeparamsStockVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsStock), "spot");
+            List<Object> typeparamsStockVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsStock), "spot");
             type = (String) ((List<Object>) typeparamsStockVariable).get(0);
             paramsStock = ((List<Object>) typeparamsStockVariable).get(1);
             String subType = null;
-            List<Object> subTypeparamsStockVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsStock), (Object) null);
+            List<Object> subTypeparamsStockVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsStock), (Object) null);
             subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
             paramsStock = ((List<Object>) subTypeparamsStockVariable).get(1);
             Boolean isOptionType = java.util.Objects.equals(type, "option");
@@ -11137,7 +11137,7 @@ public class Binance extends BinanceApi
             }
             if ((response instanceof List))
             {
-                return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+                return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             } else
             {
                 Object order = this.safeOrder(Helpers.newMap(
@@ -11238,7 +11238,7 @@ public class Binance extends BinanceApi
             //        }
             //    ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -11340,7 +11340,7 @@ public class Binance extends BinanceApi
                 stock = this.safeBool(market, "stock", false);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> typeparamsPaginateVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typeparamsPaginateVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             type = (String) ((List<Object>) typeparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) typeparamsPaginateVariable).get(1);
             if ((!java.util.Objects.equals(stock, true)) && (!java.util.Objects.equals(type, "option")) && (java.util.Objects.equals(symbol, null)))
@@ -11619,7 +11619,7 @@ public class Binance extends BinanceApi
                     responseList = this.toArray(response);
                 }
             }
-            return this.parseTrades(responseList, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(responseList, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -11884,7 +11884,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)(responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))).put("type", "deposit");
             }
-            return this.parseTransactions(responseList, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(responseList, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -11983,7 +11983,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)(responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))).put("type", "withdrawal");
             }
-            return this.parseTransactions(responseList, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(responseList, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -12438,7 +12438,7 @@ public class Binance extends BinanceApi
             //         "tranId":13526853623
             //     }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -12537,7 +12537,7 @@ public class Binance extends BinanceApi
                 response = (this.sapiGetAssetTransfer(this.extend(request, paramsOmitted))).join();
             }
             List<Object> rows = (List<Object>) this.safeList2(response, "rows", "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -12587,7 +12587,7 @@ public class Binance extends BinanceApi
             //         }
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -12945,7 +12945,7 @@ public class Binance extends BinanceApi
             request.put("amount", this.currencyToPrecision((String) (((Map<String, Object>)currency).get("code")), amount, networkCode));
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, paramsNetworkCode))).join();
             //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -13007,7 +13007,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String type = (String) ((Map<String, Object>)market).get("type");
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsSubType, "fetchTradingFee", "papi", "portfolioMargin", false);
@@ -13069,7 +13069,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseTradingFee() returned empty response")) ;
             }
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -13329,7 +13329,7 @@ public class Binance extends BinanceApi
             //       "tranId": 100000001
             //   }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         });
 
     }
@@ -13388,7 +13388,7 @@ public class Binance extends BinanceApi
             //         "time": "1621252344001"
             //     }
             //
-            return this.parseFundingRate(response, Helpers.toMapArg(market));
+            return this.parseFundingRate(response, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -13435,7 +13435,7 @@ public class Binance extends BinanceApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, Helpers.toMapArg(paramsPaginate), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object paramsOmitted = this.omit(paramsSubType, "type");
@@ -13472,7 +13472,7 @@ public class Binance extends BinanceApi
             //         "fundingTime": "1621267200000",
             //     }
             //
-            return this.parseFundingRateHistories(response, Helpers.toMapArg(market), since, limit);
+            return this.parseFundingRateHistories(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -13534,7 +13534,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((this.id + " fetchFundingRates() supports linear and inverse contracts only")) ;
             }
-            return this.parseFundingRates(response, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(response, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -13641,7 +13641,7 @@ public class Binance extends BinanceApi
                     Object parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, Helpers.newMap(
                         "crossMargin", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"),
                         "crossWalletBalance", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance")
-                    ))), Helpers.toMapArg(market));
+                    ))), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -14386,7 +14386,7 @@ public class Binance extends BinanceApi
             Object bracket = (brackets == null || j < 0 || j >= brackets.size() ? null : brackets.get(j));
             ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Binance.this.safeNumber(bracket, "bracket", (Object) null) );
-                put( "symbol", Binance.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
+                put( "symbol", Binance.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
                 put( "currency", ((Map<String, Object>)marketResolved).get("quote") );
                 put( "minNotional", Binance.this.safeNumber2(bracket, "notionalFloor", "qtyFloor", (Object) null) );
                 put( "maxNotional", Binance.this.safeNumber2(bracket, "notionalCap", "qtyCap", (Object) null) );
@@ -14448,7 +14448,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            return this.parseOptionPosition((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), Helpers.toMapArg(market));
+            return this.parseOptionPosition((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
         }).thenApply(Position::new);
 
     }
@@ -14520,7 +14520,7 @@ public class Binance extends BinanceApi
             List<Object> positions = this.toArray(response);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((List<Object>)result).add(this.parseOptionPosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parseOptionPosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         });
@@ -14951,7 +14951,7 @@ public class Binance extends BinanceApi
                     throw new NotSupported((this.id + " fetchFundingHistory() supports swap contracts only")) ;
                 }
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", Helpers.toMapArg(market), parameters, "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsSubType, "fetchFundingHistory", "papi", "portfolioMargin", false);
@@ -14994,7 +14994,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((this.id + " fetchFundingHistory() supports linear and inverse contracts only")) ;
             }
-            return this.parseIncomes(response, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -15189,10 +15189,10 @@ public class Binance extends BinanceApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("setPositionMode", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("setPositionMode", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setPositionMode", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setPositionMode", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsSubType, "setPositionMode", "papi", "portfolioMargin", false);
@@ -15372,7 +15372,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) ((((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol));
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
@@ -15433,7 +15433,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) ((((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol));
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
@@ -15614,7 +15614,7 @@ public class Binance extends BinanceApi
             //     ]
             //
             Object first = this.safeDict(response, 0, response);
-            return this.parseLedgerEntry((Map<String, Object>) (first), Helpers.toMapArg(currency));
+            return this.parseLedgerEntry((Map<String, Object>) (first), currency);
         }).thenApply(LedgerEntry::new);
 
     }
@@ -15748,7 +15748,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            return this.parseLedger(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -15810,7 +15810,7 @@ public class Binance extends BinanceApi
             "after", null,
             "status", null,
             "fee", null
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public Object parseLedgerEntryType(String type)
@@ -16307,7 +16307,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), Helpers.toMapArg(market)), Helpers.newMap(
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), Helpers.newMap(
                 "code", code
             ));
         });
@@ -16844,7 +16844,7 @@ public class Binance extends BinanceApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "rows", (Object) null);
-            List<Object> interest = this.parseBorrowInterests(rows, Helpers.toMapArg(market));
+            List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -16926,7 +16926,7 @@ public class Binance extends BinanceApi
                 request.put("type", "REPAY");
                 response = (this.sapiPostMarginBorrowRepay(this.extend(request, paramsPapi))).join();
             }
-            return this.parseMarginLoan((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (response), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -16967,7 +16967,7 @@ public class Binance extends BinanceApi
             //         "clientTag":""
             //     }
             //
-            return this.parseMarginLoan((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (response), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17017,7 +17017,7 @@ public class Binance extends BinanceApi
             //         "clientTag":""
             //     }
             //
-            return this.parseMarginLoan((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (response), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17058,7 +17058,7 @@ public class Binance extends BinanceApi
             //         "clientTag":""
             //     }
             //
-            return this.parseMarginLoan((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (response), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -17127,7 +17127,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), Helpers.toMapArg(paramsPaginate), 500L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
@@ -17183,7 +17183,7 @@ public class Binance extends BinanceApi
             //      ...
             //  ]
             //
-            return this.parseOpenInterestsHistory(response, Helpers.toMapArg(market), since, limit);
+            return this.parseOpenInterestsHistory(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }
@@ -17266,7 +17266,7 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
             {
                 String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-                List<Object> result = this.parseOpenInterestsHistory(response, Helpers.toMapArg(market), (Long) null, (Long) null);
+                List<Object> result = this.parseOpenInterestsHistory(response, market, (Long) null, (Long) null);
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
                     Object item = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
@@ -17278,7 +17278,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
             } else
             {
-                return this.parseOpenInterest(response, Helpers.toMapArg(market));
+                return this.parseOpenInterest(response, market);
             }
         }).thenApply(OpenInterest::new);
 
@@ -17342,17 +17342,17 @@ public class Binance extends BinanceApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "current", Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "current", 100L)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", market, Helpers.toMapArg(paramsMarketType), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsSubType, "fetchMyLiquidations", "papi", "portfolioMargin", false);
@@ -17511,7 +17511,7 @@ public class Binance extends BinanceApi
                 // linear and inverse return the bare array, margin wraps it in 'rows'
                 liquidationsList = response;
             }
-            return this.parseLiquidations(liquidationsList, Helpers.toMapArg(market), since, limit);
+            return this.parseLiquidations(liquidationsList, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
@@ -17642,7 +17642,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            return this.parseGreeks((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), Helpers.toMapArg(market));
+            return this.parseGreeks((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
         }).thenApply(Greeks::new);
 
     }
@@ -17695,7 +17695,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            return this.parseAllGreeks(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseAllGreeks(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -17792,7 +17792,7 @@ public class Binance extends BinanceApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionMode", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -17846,7 +17846,7 @@ public class Binance extends BinanceApi
             {
                 market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object response = null;
@@ -17865,7 +17865,7 @@ public class Binance extends BinanceApi
             {
                 assets = response;
             }
-            return this.parseMarginModes(assets, Helpers.toStringListArg(symbolsNormalized), "symbol", "swap");
+            return this.parseMarginModes(assets, symbolsNormalized, "symbol", "swap");
         }).thenApply(MarginModes::new);
 
     }
@@ -17891,7 +17891,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
@@ -17913,7 +17913,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " fetchMarginMode() returned empty response")) ;
             }
-            return this.parseMarginMode((Map<String, Object>) ((response == null || 0 >= response.size() ? null : response.get(0))), Helpers.toMapArg(market));
+            return this.parseMarginMode((Map<String, Object>) ((response == null || 0 >= response.size() ? null : response.get(0))), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -17988,7 +17988,7 @@ public class Binance extends BinanceApi
             //     ]
             //
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, Helpers.toMapArg(market));
+            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }
@@ -18242,7 +18242,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (response), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18292,7 +18292,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (response), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (response), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18358,7 +18358,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseConversion() returned empty response")) ;
             }
-            return this.parseConversion((Map<String, Object>) (data), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -18558,7 +18558,7 @@ public class Binance extends BinanceApi
                 market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
             String type = "swap";
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingIntervals", Helpers.toMapArg(market), parameters, "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
@@ -18583,7 +18583,7 @@ public class Binance extends BinanceApi
             //         },
             //     ]
             //
-            return this.parseFundingRates(response, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(response, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -18627,7 +18627,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)requestUntil).put("limit", limit);
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLongShortRatioHistory", Helpers.toMapArg(market), Helpers.toMapArg(paramsUntil), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, Helpers.toMapArg(paramsUntil), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
@@ -18643,7 +18643,7 @@ public class Binance extends BinanceApi
             {
                 throw new BadRequest((this.id + " fetchLongShortRatioHistory() supports linear and inverse subTypes only")) ;
             }
-            return this.parseLongShortRatioHistory(response, Helpers.toMapArg(market), (Long) null, (Long) null);
+            return this.parseLongShortRatioHistory(response, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
     }
@@ -18705,7 +18705,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchADLRank", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchADLRank", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -18720,7 +18720,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseADLRank() returned empty response")) ;
             }
-            return this.parseADLRank((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseADLRank((Map<String, Object>) (response), market);
         }).thenApply(ADL::new);
 
     }
@@ -18749,7 +18749,7 @@ public class Binance extends BinanceApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
@@ -18795,7 +18795,7 @@ public class Binance extends BinanceApi
             {
                 responseList = this.toArray(response);
             }
-            return this.parseADLRanks(responseList, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseADLRanks(responseList, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }

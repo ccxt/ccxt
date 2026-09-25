@@ -198,7 +198,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -319,7 +319,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String eventVar = this.safeString(message, "event");
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object ticker = null;
         if (java.util.Objects.equals(eventVar, "subscribed"))
@@ -327,11 +327,11 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             return;
         } else if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            ticker = this.parseTicker(message, Helpers.toMapArg(market));
+            ticker = this.parseTicker(message, market);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol, (Object) null);
-            ticker = this.parseWsUpdatedTicker((Map<String, Object>) (message), lastTicker, Helpers.toMapArg(market));
+            ticker = this.parseWsUpdatedTicker((Map<String, Object>) (message), lastTicker, market);
         }
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -442,7 +442,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         }
         String marketId = this.safeString(message, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -451,7 +451,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), Helpers.toMapArg(market));
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), market);
         stored.append(parsed);
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
@@ -531,7 +531,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -680,7 +680,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String datetime = this.safeString(order, "transactTime");
         String status = this.safeString(order, "ordStatus");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String tradeId = this.safeString(order, "tradeId");
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(tradeId, "0"))
@@ -695,7 +695,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "datetime", datetime );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "status", Blockchaincom.this.parseWsOrderStatus((String) (status)) );
-            put( "symbol", Blockchaincom.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
+            put( "symbol", Blockchaincom.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
             put( "type", Blockchaincom.this.safeString(order, "ordType") );
             put( "timeInForce", Blockchaincom.this.safeString(order, "timeInForce") );
             put( "postOnly", java.util.Objects.equals(Blockchaincom.this.safeString(order, "execInst"), "ALO") );
@@ -715,7 +715,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "info", order );
             put( "lastTradeTimestamp", null );
             put( "average", Blockchaincom.this.safeString(order, "avgPx") );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public String parseWsOrderStatus(String status)
@@ -823,7 +823,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "px", "qty", "num");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
             orderbook.reset(snapshot);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {

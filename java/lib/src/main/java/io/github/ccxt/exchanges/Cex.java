@@ -819,7 +819,7 @@ public class Cex extends CexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -854,7 +854,7 @@ public class Cex extends CexApi
             put( "amount", Cex.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", null );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -901,7 +901,7 @@ public class Cex extends CexApi
             //
             Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(orderBook, "timestamp");
-            return this.parseOrderBook(orderBook, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(orderBook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1056,7 +1056,7 @@ public class Cex extends CexApi
             if (!(result.containsKey(symbol)))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
             }
         }
         return result;
@@ -1303,7 +1303,7 @@ public class Cex extends CexApi
             //            ...
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -1502,7 +1502,7 @@ public class Cex extends CexApi
             put( "fee", fee );
             put( "trades", null );
             put( "info", order );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1614,7 +1614,7 @@ public class Cex extends CexApi
             //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1757,7 +1757,7 @@ public class Cex extends CexApi
             //            ...
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -1776,7 +1776,7 @@ public class Cex extends CexApi
         }
         String currencyId = this.safeString(item, "currency");
         Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
-        String code = this.safeCurrencyCode(currencyId, Helpers.toMapArg(currencyResolved));
+        String code = this.safeCurrencyCode(currencyId, currencyResolved);
         String timestampString = this.safeString(item, "timestamp");
         Long timestamp = this.parse8601(timestampString);
         String type = this.safeString(item, "type");
@@ -1796,7 +1796,7 @@ public class Cex extends CexApi
             "after", null,
             "status", null,
             "fee", null
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -1870,7 +1870,7 @@ public class Cex extends CexApi
             //            ...
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2005,7 +2005,7 @@ public class Cex extends CexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(data, Helpers.toMapArg(currency));
+            return this.parseTransfer(data, currency);
         });
 
     }
@@ -2036,7 +2036,7 @@ public class Cex extends CexApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(data, Helpers.toMapArg(currency));
+            return this.parseTransfer(data, currency);
         });
 
     }
@@ -2128,7 +2128,7 @@ public class Cex extends CexApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }

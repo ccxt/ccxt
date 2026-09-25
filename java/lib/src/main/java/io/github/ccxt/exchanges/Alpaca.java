@@ -938,7 +938,7 @@ public class Alpaca extends AlpacaApi
             {
                 symbolTradesList = symbolTrades;
             }
-            return this.parseTrades(symbolTradesList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(symbolTradesList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1011,7 +1011,7 @@ public class Alpaca extends AlpacaApi
             Map<String, Object> orderbooks = (Map<String, Object>) this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
             Map<String, Object> rawOrderbook = (Map<String, Object>) this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-            return this.parseOrderBook(rawOrderbook, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "b", "a", "p", "s", 2);
+            return this.parseOrderBook(rawOrderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", "p", "s", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1053,7 +1053,7 @@ public class Alpaca extends AlpacaApi
             paginate = (Boolean) ((List<Object>) paginatequeryVariable).get(0);
             query = ((List<Object>) paginatequeryVariable).get(1);
             Object paginationCalls = 10;
-            List<Object> paginationCallsqueryVariable = (List<Object>) this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", Helpers.toLongOrNull(10));
+            List<Object> paginationCallsqueryVariable = (List<Object>) this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10L);
             paginationCalls = ((List<Object>) paginationCallsqueryVariable).get(0);
             query = ((List<Object>) paginationCallsqueryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1328,7 +1328,7 @@ public class Alpaca extends AlpacaApi
                     put( "average", null );
                     put( "baseVolume", Alpaca.this.safeString(dailyBar, "v") );
                     put( "quoteVolume", Precise.stringMul(Alpaca.this.safeString(dailyBar, "v"), Alpaca.this.safeString(dailyBar, "vw")) );
-                }}, Helpers.toMapArg(market));
+                }}, market);
                 ((List<Object>)results).add(ticker);
             }
             return this.filterByArray(results, "symbol", symbolsNormalized, true);
@@ -1534,7 +1534,7 @@ public class Alpaca extends AlpacaApi
             //      "hwm": null
             //   }
             //
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -1626,7 +1626,7 @@ public class Alpaca extends AlpacaApi
             Map<String, Object> order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
             String marketId = this.safeString(order, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -1723,7 +1723,7 @@ public class Alpaca extends AlpacaApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1838,7 +1838,7 @@ public class Alpaca extends AlpacaApi
             }
             request.put("client_order_id", this.generateClientOrderId((Map<String, Object>) (paramsTimeInForce)));
             Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1930,7 +1930,7 @@ public class Alpaca extends AlpacaApi
             "trades", null,
             "fee", fee,
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -2036,7 +2036,7 @@ public class Alpaca extends AlpacaApi
             //         },
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2135,7 +2135,7 @@ public class Alpaca extends AlpacaApi
             //         "created_at": "2024-11-03T07:30:05.609976344Z"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2217,7 +2217,7 @@ public class Alpaca extends AlpacaApi
             //         "fees": "0.1"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2285,7 +2285,7 @@ public class Alpaca extends AlpacaApi
                         ((List<Object>)filtered).add(entry);
                     }
                 }
-                return this.parseTransactions(filtered, Helpers.toMapArg(currency), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), Helpers.toMapArg(parameters));
+                return this.parseTransactions(filtered, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), Helpers.toMapArg(parameters));
             }
             List<Object> response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
             //
@@ -2323,7 +2323,7 @@ public class Alpaca extends AlpacaApi
                     ((List<Object>)results).add(entry);
                 }
             }
-            return this.parseTransactions(results, Helpers.toMapArg(currency), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), Helpers.toMapArg(parameters));
+            return this.parseTransactions(results, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), Helpers.toMapArg(parameters));
         });
 
     }

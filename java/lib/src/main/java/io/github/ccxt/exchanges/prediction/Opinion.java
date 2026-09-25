@@ -742,7 +742,7 @@ public class Opinion extends OpinionApi
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rawChildrenLength != null && i < rawChildrenLength); i++)
         {
-            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), Helpers.toStringArg(slug)));
+            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), slug));
         }
         String statusEnum = this.safeString(rawEvent, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
@@ -967,7 +967,7 @@ public class Opinion extends OpinionApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
             return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
@@ -1515,7 +1515,7 @@ public class Opinion extends OpinionApi
             }}, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }

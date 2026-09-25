@@ -123,7 +123,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         String symbol = this.symbol(this.safeString(message, 0));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeTimestamp(data, "last_update_at");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -173,7 +173,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

@@ -268,7 +268,7 @@ public class Sxbet extends SxbetApi
 
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
-            Object rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(rest), Helpers.toLongOrNull(userLimit))).join();
+            Object rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(rest), userLimit)).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
             for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
@@ -966,7 +966,7 @@ public class Sxbet extends SxbetApi
             {
                 throw new BadRequest((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
             }
-            List<Object> spenderparamsSpenderVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", Helpers.toStringArg(executorAddress));
+            List<Object> spenderparamsSpenderVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
             String spender = (String) ((List<Object>) spenderparamsSpenderVariable).get(0);
             Map<String, Object> paramsSpender = (Map<String, Object>) ((List<Object>) spenderparamsSpenderVariable).get(1);
             if (java.util.Objects.equals(spender, null))

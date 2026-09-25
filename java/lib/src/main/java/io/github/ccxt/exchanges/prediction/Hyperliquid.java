@@ -523,7 +523,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomesList, i, new HashMap<String, Object>() {{}});
                 Long outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
                 Map<String, Object> linkedQuestion = (Map<String, Object>) this.safeDict(outcomesToQuestions, String.valueOf(outcomeId), new HashMap<String, Object>() {{}});
-                Object market = this.parseOutcomeMarket((Map<String, Object>) (outcomeInfo), outcomeId, Helpers.toMapArg(linkedQuestion));
+                Object market = this.parseOutcomeMarket((Map<String, Object>) (outcomeInfo), outcomeId, linkedQuestion);
                 ((List<Object>)markets).add(market);
                 // Build outcomes dictionary from market outcomes
                 List<Object> marketOutcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
@@ -771,7 +771,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
                 put( "book", response );
             }}, "book", new HashMap<String, Object>() {{}});
-            return this.parsePredictionTicker((Map<String, Object>) (tickerData), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (tickerData), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -895,7 +895,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> parentMarket = null;
         if (!java.util.Objects.equals(parentSymbol, null))
         {
-            parentMarket = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(parentSymbol), (Map<String, Object>) null, (String) null, (String) null);
+            parentMarket = (Map<String, Object>) this.safeMarket(parentSymbol, (Map<String, Object>) null, (String) null, (String) null);
         }
         Map<String, Object> ctx = (Map<String, Object>) ((((!java.util.Objects.equals(parentMarket, null)))) ? this.safeDict(this.safeDict(parentMarket, "info", new HashMap<String, Object>() {{}}), "ctx", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
         Double dayVolume = this.safeNumber(ctx, "dayNtlVlm", (Object) null);
@@ -978,7 +978,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
                 put( "bids", bids );
                 put( "asks", asks );
-            }}, this.safeString(outcomeObj, "outcome", outcome), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            }}, this.safeString(outcomeObj, "outcome", outcome), timestamp, "bids", "asks", 0, 1, 2);
             return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
@@ -1228,7 +1228,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> enriched = this.extend(balance, new HashMap<String, Object>() {{
                     put( "markPx", Hyperliquid.this.safeString(mids, tradeCoin) );
                 }});
-                ((List<Object>)positions).add(this.parsePredictionPosition((Map<String, Object>) (enriched), Helpers.toMapArg(outcomeObj)));
+                ((List<Object>)positions).add(this.parsePredictionPosition((Map<String, Object>) (enriched), outcomeObj));
             }
             return positions;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
@@ -1955,7 +1955,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
         {
-            resolvedMarket = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketSymbol), market, (String) null, (String) null);
+            resolvedMarket = (Map<String, Object>) this.safeMarket(marketSymbol, market, (String) null, (String) null);
         }
         String sideRaw = this.safeString(entry, "side");
         String side = "sell";
@@ -2195,7 +2195,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
         {
-            resolvedMarket = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketSymbol), market, (String) null, (String) null);
+            resolvedMarket = (Map<String, Object>) this.safeMarket(marketSymbol, market, (String) null, (String) null);
         }
         String rawSide = this.safeString(trade, "side");
         String side = "sell";

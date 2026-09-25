@@ -1000,7 +1000,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
@@ -1026,7 +1026,7 @@ public class Bigone extends BigoneApi
                 //     }
                 //
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseTicker(ticker, Helpers.toMapArg(market));
+                return this.parseTicker(ticker, market);
             } else
             {
                 Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(paramsMarketType))).join();
@@ -1060,7 +1060,7 @@ public class Bigone extends BigoneApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Boolean isSpot = java.util.Objects.equals(type, "spot");
@@ -1108,7 +1108,7 @@ public class Bigone extends BigoneApi
                 List<Object> instruments = (this.contractPublicGetInstruments(paramsMarketType)).join();
                 data = this.toArray(instruments);
             }
-            Object tickers = this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            Object tickers = this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
             return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -1428,7 +1428,7 @@ public class Bigone extends BigoneApi
         {
             result.put("fee", null);
         }
-        return this.safeTrade((Map<String, Object>) (result), Helpers.toMapArg(marketResolved));
+        return this.safeTrade((Map<String, Object>) (result), marketResolved);
     }
 
     /**
@@ -1482,7 +1482,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1915,7 +1915,7 @@ public class Bigone extends BigoneApi
             //    }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -2106,7 +2106,7 @@ public class Bigone extends BigoneApi
             //    }
             //
             List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2179,7 +2179,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2524,7 +2524,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> deposits = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(deposits, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2583,7 +2583,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> withdrawals = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(withdrawals, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(withdrawals, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2628,7 +2628,7 @@ public class Bigone extends BigoneApi
             //         "data": null
             //     }
             //
-            Object transfer = this.parseTransfer(response, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(response, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
@@ -2738,7 +2738,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }

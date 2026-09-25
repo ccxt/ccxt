@@ -1310,7 +1310,7 @@ public class Delta extends DeltaApi
             put( "markPrice", Delta.this.safeNumber(ticker, "mark_price", (Object) null) );
             put( "indexPrice", Delta.this.safeNumber(ticker, "spot_price", (Object) null) );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1458,7 +1458,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, Helpers.toMapArg(market));
+            return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1825,7 +1825,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2017,7 +2017,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (result), market);
         }).thenApply(Position::new);
 
     }
@@ -2365,7 +2365,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -2427,7 +2427,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -2495,7 +2495,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -2598,7 +2598,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -2698,7 +2698,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -2782,7 +2782,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2838,7 +2838,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(result, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(result, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -2961,7 +2961,7 @@ public class Delta extends DeltaApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (result), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3066,7 +3066,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(result, Helpers.toMapArg(market));
+            return this.parseFundingRate(result, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -3139,7 +3139,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> rates = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(rates, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(rates, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -3292,7 +3292,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginModification((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseMarginModification((Map<String, Object>) (result), market);
         });
 
     }
@@ -3412,7 +3412,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(result, Helpers.toMapArg(market));
+            return this.parseOpenInterest(result, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -3516,7 +3516,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (result), market);
         }).thenApply(Leverage::new);
 
     }
@@ -3820,7 +3820,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseGreeks((Map<String, Object>) (result), market);
         }).thenApply(Greeks::new);
 
     }
@@ -4018,7 +4018,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseMarginMode((Map<String, Object>) (result), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4137,7 +4137,7 @@ public class Delta extends DeltaApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (result), (Map<String, Object>) null, Helpers.toMapArg(market));
+            return this.parseOption((Map<String, Object>) (result), (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }
@@ -4406,7 +4406,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(result, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseADLRanks(result, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }

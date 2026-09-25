@@ -441,7 +441,7 @@ public class Nado extends NadoApi
             //
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
-            }}, response), Helpers.toMapArg(market));
+            }}, response), market);
         }).thenApply(Order::new);
 
     }
@@ -488,7 +488,7 @@ public class Nado extends NadoApi
             List<Object> expirationparamsExpirationVariable = (List<Object>) this.handleOptionStringAndParams(paramsSubaccount, "createOrder", "expiration", "4294967295");
             String expiration = (String) ((List<Object>) expirationparamsExpirationVariable).get(0);
             Map<String, Object> paramsExpiration = (Map<String, Object>) ((List<Object>) expirationparamsExpirationVariable).get(1);
-            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "createOrder", "recvWindow", Helpers.toLongOrNull(5000));
+            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "createOrder", "recvWindow", 5000L);
             Long recvWindow = (Long) ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
             Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
@@ -635,7 +635,7 @@ public class Nado extends NadoApi
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(cancelAndPlace, "place_order", new HashMap<String, Object>() {{}});
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
-            }}, response), Helpers.toMapArg(market));
+            }}, response), market);
         }).thenApply(Order::new);
 
     }
@@ -693,7 +693,7 @@ public class Nado extends NadoApi
             List<Object> expirationparamsExpirationVariable = (List<Object>) this.handleOptionStringAndParams(paramsSubaccount, "editOrder", "expiration", "4294967295");
             String expiration = (String) ((List<Object>) expirationparamsExpirationVariable).get(0);
             Map<String, Object> paramsExpiration = (Map<String, Object>) ((List<Object>) expirationparamsExpirationVariable).get(1);
-            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "editOrder", "recvWindow", Helpers.toLongOrNull(5000));
+            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "editOrder", "recvWindow", 5000L);
             Long recvWindow = (Long) ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
             Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
@@ -824,7 +824,7 @@ public class Nado extends NadoApi
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
-                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), Helpers.toMapArg(market)));
+                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -855,7 +855,7 @@ public class Nado extends NadoApi
             String subaccount = (String) ((List<Object>) subaccountparamsSubaccountVariable).get(0);
             Map<String, Object> paramsSubaccount = (Map<String, Object>) ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubaccount, "cancelAllOrders", "recvWindow", Helpers.toLongOrNull(5000));
+            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubaccount, "cancelAllOrders", "recvWindow", 5000L);
             Long recvWindow = (Long) ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
             Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
@@ -934,7 +934,7 @@ public class Nado extends NadoApi
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
-                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), Helpers.toMapArg(market)));
+                }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -967,7 +967,7 @@ public class Nado extends NadoApi
             {
                 ((List<Object>)productIds).add(productId);
             }
-            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubaccount, "cancelOrders", "recvWindow", Helpers.toLongOrNull(5000));
+            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubaccount, "cancelOrders", "recvWindow", 5000L);
             Long recvWindow = (Long) ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
             Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
@@ -1059,7 +1059,7 @@ public class Nado extends NadoApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1100,7 +1100,7 @@ public class Nado extends NadoApi
             {
                 throw new NotSupported((this.id + " fetchOrders only support trigger")) ;
             }
-            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "fetchOrders", "recvWindow", Helpers.toLongOrNull(5000));
+            List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "fetchOrders", "recvWindow", 5000L);
             Long recvWindow = (Long) ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
             Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
             Map<String, Object> tx = new HashMap<String, Object>() {{
@@ -1153,7 +1153,7 @@ public class Nado extends NadoApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1233,7 +1233,7 @@ public class Nado extends NadoApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(orders, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "status", "open" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1330,7 +1330,7 @@ public class Nado extends NadoApi
                     }}, order));
                 }
             }
-            return this.parseOrders(closedOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(closedOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1471,7 +1471,7 @@ public class Nado extends NadoApi
                 Map<String, Object> tx = (Map<String, Object>) this.safeDict(txsBySubmission, submissionIdx, new HashMap<String, Object>() {{}});
                 ((List<Object>)trades).add(this.extend(tx, match));
             }
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1663,7 +1663,7 @@ public class Nado extends NadoApi
                 Map<String, Object> transaction = this.extend(new HashMap<String, Object>() {{}}, tx);
                 transaction = this.extend(transaction, eventVar);
                 Helpers.addElementToObject(transaction, "transaction_type", transactionType);
-                ((List<Object>)transactions).add(this.parseTransaction((Map<String, Object>) (transaction), Helpers.toMapArg(currency)));
+                ((List<Object>)transactions).add(this.parseTransaction((Map<String, Object>) (transaction), currency));
             }
             return this.filterByCurrencySinceLimit(transactions, code, since, limit, false);
         });
@@ -2080,7 +2080,7 @@ public class Nado extends NadoApi
             //     }
             //
             List<Object> tickers = this.toArray(response);
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -2160,7 +2160,7 @@ public class Nado extends NadoApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(data, Helpers.toMapArg(market));
+            return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -2228,7 +2228,7 @@ public class Nado extends NadoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fundingPayments).size(); i++)
             {
-                ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) ((fundingPayments == null || i < 0 || i >= fundingPayments.size() ? null : fundingPayments.get(i))), Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) ((fundingPayments == null || i < 0 || i >= fundingPayments.size() ? null : fundingPayments.get(i))), market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
@@ -2284,7 +2284,7 @@ public class Nado extends NadoApi
                 String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 ((List<Object>)rates).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
             }
-            return this.parseFundingRates(rates, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(rates, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -2336,7 +2336,7 @@ public class Nado extends NadoApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(data, Helpers.toMapArg(market));
+            return this.parseOpenInterest(data, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -2389,7 +2389,7 @@ public class Nado extends NadoApi
                 String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 ((List<Object>)interests).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
             }
-            return this.parseOpenInterests(interests, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(interests, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -2433,7 +2433,7 @@ public class Nado extends NadoApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -2480,7 +2480,7 @@ public class Nado extends NadoApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2687,7 +2687,7 @@ public class Nado extends NadoApi
             "amount", parsedAmount,
             "cost", parsedCost,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -2797,7 +2797,7 @@ public class Nado extends NadoApi
             put( "timestamp", null );
             put( "datetime", null );
             put( "info", interest );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -2827,7 +2827,7 @@ public class Nado extends NadoApi
             put( "baseVolume", Nado.this.safeString(ticker, "base_volume") );
             put( "quoteVolume", Nado.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public Object parseCurrency(Object rawCurrency)
@@ -3282,7 +3282,7 @@ public class Nado extends NadoApi
             "status", status,
             "fee", fee,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderTimeInForce(String timeInForce)

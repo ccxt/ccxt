@@ -1379,7 +1379,7 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", Helpers.toLongOrNull(1));
+            List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", 1L);
             Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
             Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1429,7 +1429,7 @@ public class Pacifica extends PacificaApi
                 put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
             }};
             Long timestamp = this.safeInteger(data, "t");
-            return this.parseOrderBook(result, this.safeSymbol(null, Helpers.toMapArg(market), (String) null, (String) null), Helpers.toLongOrNull(timestamp), "bids", "asks", "p", "a", 2);
+            return this.parseOrderBook(result, this.safeSymbol(null, market, (String) null, (String) null), timestamp, "bids", "asks", "p", "a", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1681,7 +1681,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             List<Object> recentTrades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(recentTrades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(recentTrades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1770,7 +1770,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1856,7 +1856,7 @@ public class Pacifica extends PacificaApi
                 put( "currency", "USDC" );
                 put( "rate", null );
             }}
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -2136,7 +2136,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new NotSupported(((this.id + " createOrders() supports only type = \"limit\"! Your value type=") + type)) ;
             }
-            List<Object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, Helpers.toMapArg(orderParams));
+            List<Object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Create" );
                 put( "data", ((List<Object>)requestList).get(0) );
@@ -2723,7 +2723,7 @@ public class Pacifica extends PacificaApi
             put( "ask", null );
             put( "quoteVolume", Pacifica.this.safeNumber(ticker, "volume_24h", (Object) null) );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -2870,7 +2870,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2951,7 +2951,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            List<Object> orders = this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3058,7 +3058,7 @@ public class Pacifica extends PacificaApi
             {
                 lastInfo = (sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0));
             }
-            return this.parseOrder(lastInfo, Helpers.toMapArg(market));
+            return this.parseOrder(lastInfo, market);
         }).thenApply(Order::new);
 
     }
@@ -3248,7 +3248,7 @@ public class Pacifica extends PacificaApi
             "status", this.parseOrderStatus(status),
             "fee", null,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3551,7 +3551,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3610,7 +3610,7 @@ public class Pacifica extends PacificaApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterests(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(data, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -3870,7 +3870,7 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseIncomes(data, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -3951,7 +3951,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseTransfer(data, Helpers.toMapArg(currency)), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", Pacifica.this.safeString(request, "account") );
                 put( "toAccount", toAccount );
@@ -4041,7 +4041,7 @@ public class Pacifica extends PacificaApi
             List<Object> timestampparamsTimestampVariable = (List<Object>) this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", Helpers.toLongOrNull(this.milliseconds()));
             Long timestamp = (Long) ((List<Object>) timestampparamsTimestampVariable).get(0);
             Map<String, Object> paramsTimestamp = (Map<String, Object>) ((List<Object>) timestampparamsTimestampVariable).get(1);
-            List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", Helpers.toLongOrNull(5000));
+            List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000L);
             Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
             var paramsExpiryWindow = ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
             Map<String, Object> subaccountSignatureHeader = new HashMap<String, Object>() {{
@@ -4372,7 +4372,7 @@ public class Pacifica extends PacificaApi
                 }
             }
         }
-        List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", Helpers.toLongOrNull(5000));
+        List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000L);
         Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
         Map<String, Object> paramsExpiryWindow = (Map<String, Object>) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
         Long timestamp = this.safeInteger(paramsExpiryWindow, "timestamp", this.milliseconds());

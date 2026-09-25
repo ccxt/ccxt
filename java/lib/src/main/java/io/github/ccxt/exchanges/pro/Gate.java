@@ -213,7 +213,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object request = this.createOrderRequest(symbolValue, (String) (type), (String) (side), amount, price, parameters);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (request), channel, (String) null)).join();
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         }).thenApply(Order::new);
 
@@ -250,7 +250,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (request), channel, (String) null)).join();
-            return this.parseOrders(rawOrders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -295,15 +295,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelOptionparamsChannelVariable).get(1);
             Object url = this.getUrlByMarket(market);
             Object paramsOmitted = this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, Helpers.toMapArg(query)) : this.prepareRequest(market, type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), (String) (channelOption), (String) null)).join();
-            return this.parseOrders(rawOrders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -339,10 +339,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, Helpers.toMapArg(query)) : this.prepareRequest(market, type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
@@ -351,7 +351,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.authenticate((String) (url), (String) (messageType))).join();
             ((Map<String, Object>)request).put("order_id", String.valueOf(id));
             Object res = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), channel, (String) null)).join();
-            return this.parseOrder(res, Helpers.toMapArg(market));
+            return this.parseOrder(res, market);
         }).thenApply(Order::new);
 
     }
@@ -387,7 +387,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (extendedRequest), channel, (String) null)).join();
-            return this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
     }
@@ -432,7 +432,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), channel, (String) null)).join();
-            return this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
     }
@@ -522,7 +522,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(newRequest, requestParams)), channel, (String) null)).join();
-            List<Object> orders = this.parseOrders(rawOrders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -850,7 +850,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 // max limit is 100
                 Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, (Object) null);
                 Long limit = this.safeInteger(subscription, "limit");
-                this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } }); // needed for c#, number of args needs to match
+                this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } }); // needed for c#, number of args needs to match
             }
             ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(delta);
             return;
@@ -1122,8 +1122,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Object rawTicker = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
             String marketId = this.safeString(rawTicker, "s");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, "_", marketType);
-            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, Helpers.toMapArg(market));
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "_", marketType);
+            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);
             String symbol = (String) ((Map<String, Object>)parsedItem).get("symbol");
             if (Boolean.TRUE.equals(isTicker))
             {
@@ -1210,7 +1210,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1356,7 +1356,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1460,10 +1460,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = (Map<String, Object>) this.market(symbol);
                 marketId = ((Map<String, Object>)market).get("id");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object messageType = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
@@ -1490,7 +1490,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbol, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1725,7 +1725,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchPositions", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
@@ -1748,13 +1748,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String channel = (typeId + ".positions");
             String subType = null;
-            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchPositions", Helpers.toMapArg(market), Helpers.toMapArg(query), (Object) null);
+            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchPositions", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = ((List<Object>) subTypequeryVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             Client client = this.client(url);
-            this.setPositionsCache(client, type, Helpers.toStringListArg(symbolsNormalized));
+            this.setPositionsCache(client, type, symbolsNormalized);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.safeValue(this.positions, type);
@@ -1767,7 +1767,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 return positions;
             }
-            return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -1953,7 +1953,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             Object typeId = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
@@ -1995,7 +1995,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             String subType = null;
-            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchOrders", Helpers.toMapArg(market), Helpers.toMapArg(query), (Object) null);
+            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchOrders", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = ((List<Object>) subTypequeryVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2008,7 +2008,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySinceLimit(orders, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2158,7 +2158,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             Object typeId = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
@@ -2167,7 +2167,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "option", "options" );
             }}));
             String subType = null;
-            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", Helpers.toMapArg(market), Helpers.toMapArg(query), (Object) null);
+            List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = ((List<Object>) subTypequeryVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2198,7 +2198,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 return newLiquidations;
             }
-            return this.filterBySymbolsSinceLimit(this.liquidations, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
@@ -2299,14 +2299,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //    }
         //
         String marketId = this.safeString(liquidation, "contract");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(liquidation, "time_ms");
         String originalSize = this.safeString(liquidation, "size");
         String left = this.safeString(liquidation, "left");
         String amount = Precise.stringAbs(Precise.stringSub(originalSize, left));
         return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", Gate.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
+            put( "symbol", Gate.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
             put( "contracts", Gate.this.parseNumber(amount) );
             put( "contractSize", Gate.this.safeNumber(marketResolved, "contractSize", (Object) null) );
             put( "price", Gate.this.safeNumber(liquidation, "fill_price", (Object) null) );

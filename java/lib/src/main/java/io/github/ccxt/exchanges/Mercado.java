@@ -554,7 +554,7 @@ public class Mercado extends MercadoApi
             //         }
             //     }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -591,7 +591,7 @@ public class Mercado extends MercadoApi
             "amount", amount,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -633,7 +633,7 @@ public class Mercado extends MercadoApi
             {
                 response = (this.publicGetCoinTrades(this.extend(request, parameters))).join();
             }
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -747,7 +747,7 @@ public class Mercado extends MercadoApi
             return this.safeOrder(Helpers.newMap(
                 "info", response,
                 "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)response).get("response_data"), "order"), "order_id"))
-            ), Helpers.toMapArg(market));
+            ), market);
         }).thenApply(Order::new);
 
     }
@@ -805,7 +805,7 @@ public class Mercado extends MercadoApi
             //
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -892,7 +892,7 @@ public class Mercado extends MercadoApi
             "status", status,
             "fee", fee,
             "trades", rawTrades
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -925,7 +925,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.safeDict(responseData, "order", (Object) null);
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -1010,7 +1010,7 @@ public class Mercado extends MercadoApi
             //
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(responseData, "withdrawal", (Object) null);
-            return this.parseTransaction((Map<String, Object>) (withdrawal), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (withdrawal), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -1100,7 +1100,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
             // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
-            return this.parseTradingViewOHLCV(response, Helpers.toMapArg(market), java.util.Objects.requireNonNullElse(timeframe, "15m"), since, Helpers.toLongOrNull(limitResolved));
+            return this.parseTradingViewOHLCV(response, market, java.util.Objects.requireNonNullElse(timeframe, "15m"), since, Helpers.toLongOrNull(limitResolved));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1135,7 +1135,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1171,7 +1171,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1207,7 +1207,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             List<Object> ordersRaw = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> orders = this.parseOrders(ordersRaw, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(ordersRaw, market, since, limit, new HashMap<String, Object>() {{}});
             Object trades = this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

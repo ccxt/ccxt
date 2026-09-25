@@ -1393,7 +1393,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Long timestamp = (Long) this.safeInteger2(response, "time", "lastUpdateId");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1557,7 +1557,7 @@ public class Bitrue extends BitrueApi
             //         "time": 1699348013000
             //     }
             //
-            return this.parseTicker(data, Helpers.toMapArg(market));
+            return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1774,7 +1774,7 @@ public class Bitrue extends BitrueApi
             //
             Map<String, Object> data = new HashMap<String, Object>() {{}};
             data.put((String)((String)((Map<String, Object>)market).get("id")), response);
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1885,7 +1885,7 @@ public class Bitrue extends BitrueApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 tickers.put((String)((String)((Map<String, Object>)market).get("id")), ticker);
             }
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -2039,7 +2039,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2376,7 +2376,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     }
             //
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2488,7 +2488,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     }
             //
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2556,7 +2556,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2656,7 +2656,7 @@ public class Bitrue extends BitrueApi
             //          ]
             //      }
             //
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2745,7 +2745,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     }
             //
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2799,7 +2799,7 @@ public class Bitrue extends BitrueApi
             //          'data': null
             //      }
             //
-            return this.parseOrders(data, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2907,7 +2907,7 @@ public class Bitrue extends BitrueApi
             //         ]
             //     }
             //
-            return this.parseTrades(data, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2987,7 +2987,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3054,7 +3054,7 @@ public class Bitrue extends BitrueApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3276,7 +3276,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3464,7 +3464,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(data, Helpers.toMapArg(currency), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTransfers(data, currency, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3509,7 +3509,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(data, Helpers.toMapArg(currency));
+            return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -3633,7 +3633,7 @@ public class Bitrue extends BitrueApi
             //         "data": null
             //     }
             //
-            return this.parseMarginModification((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         }).thenApply(MarginModification::new);
 
     }

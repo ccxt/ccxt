@@ -1313,7 +1313,7 @@ public class Gemini extends GeminiApi
             //         "last":"9115.23"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         });
 
     }
@@ -1345,7 +1345,7 @@ public class Gemini extends GeminiApi
             //         "ask":"9115.87"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         });
 
     }
@@ -1502,7 +1502,7 @@ public class Gemini extends GeminiApi
             "baseVolume", baseVolume,
             "quoteVolume", quoteVolume,
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1656,7 +1656,7 @@ public class Gemini extends GeminiApi
             //         },
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2053,7 +2053,7 @@ public class Gemini extends GeminiApi
             {
                 market = (Map<String, Object>) this.market(symbol); // throws on non-existent symbol
             }
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2261,7 +2261,7 @@ public class Gemini extends GeminiApi
                 request.put("timestamp", this.parseToInt((((double) since) / ((double) 1000))));
             }
             List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2325,7 +2325,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ExchangeError(((this.id + " withdraw() failed: ") + this.json(response))) ;
             }
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2735,7 +2735,7 @@ public class Gemini extends GeminiApi
             //        open_interest_notional: '42244.7837'
             //    }
             //
-            return this.parseOpenInterest(response, Helpers.toMapArg(market));
+            return this.parseOpenInterest(response, market);
         }).thenApply(OpenInterest::new);
 
     }

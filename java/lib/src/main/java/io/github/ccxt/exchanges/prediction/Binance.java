@@ -1087,7 +1087,7 @@ public class Binance extends BinanceApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
             return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
@@ -1187,7 +1187,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(order, "marketId");
             String outcome = this.safeStringUpper(order, "outcome");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String outcomeName = this.safeString(market, "market");
             if (java.util.Objects.equals(outcomeName, null))
             {
@@ -1272,7 +1272,7 @@ public class Binance extends BinanceApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
             paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
-            List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", Helpers.toLongOrNull(100));
+            List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1369,7 +1369,7 @@ public class Binance extends BinanceApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
             paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
-            List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", Helpers.toLongOrNull(100));
+            List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
             var paramsMaxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1604,7 +1604,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(position, "marketId");
             String outcome = this.safeStringUpper(position, "outcomeName");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String outcomeName = this.safeString(market, "market");
             if (java.util.Objects.equals(outcomeName, null))
             {
@@ -1672,7 +1672,7 @@ public class Binance extends BinanceApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
             paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
-            List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", Helpers.toLongOrNull(100));
+            List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
             var paramsMaxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1797,7 +1797,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(trade, "marketId");
             String outcome = this.safeStringUpper(trade, "outcome");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String outcomeName = this.safeString(market, "market");
             if (java.util.Objects.equals(outcomeName, null))
             {

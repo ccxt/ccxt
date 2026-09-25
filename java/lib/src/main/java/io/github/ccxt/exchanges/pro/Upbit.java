@@ -205,7 +205,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -546,7 +546,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -579,7 +579,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbol, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -638,7 +638,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Long timestamp = this.parse8601(this.safeString(order, "order_timestamp"));
         String status = this.parseWsOrderStatus(this.safeString(order, "state"));
         String marketId = this.safeString(order, "code");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(order, "paid_fee");
         if (!java.util.Objects.equals(feeCost, null))
@@ -687,7 +687,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         Long timestamp = this.parse8601(this.safeString(trade, "trade_timestamp"));
         String marketId = this.safeString(trade, "code");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "paid_fee");
         if (!java.util.Objects.equals(feeCost, null))
@@ -711,7 +711,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             "type", this.safeString(trade, "order_type"),
             "fee", fee,
             "info", trade
-        ), Helpers.toMapArg(marketResolved)));
+        ), marketResolved));
     }
 
     public void handleMyOrder(Client client, Map<String, Object> message)

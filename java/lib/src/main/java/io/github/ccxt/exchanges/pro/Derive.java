@@ -159,7 +159,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String topic = this.safeString(parameters, "channel");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -171,7 +171,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         client.resolve(orderbook, topic);
     }
@@ -289,7 +289,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             String marketId = this.safeString(parts, 1);
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> stats = (Map<String, Object>) this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
             ticker = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("symbol") );
@@ -307,7 +307,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "markPrice", Derive.this.safeString(data, "M") );
                 put( "indexPrice", Derive.this.safeString(data, "I") );
                 put( "info", rawData );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         } else
         {
             ticker = this.parseTicker(data, (Map<String, Object>) null);
@@ -418,7 +418,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
         {
@@ -437,7 +437,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
         {
@@ -522,7 +522,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbol, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -536,7 +536,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Object topic = this.safeValue(parameters, "channel");
         List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
@@ -660,7 +660,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -799,7 +799,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

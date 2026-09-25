@@ -695,7 +695,7 @@ public class Hibachi extends HibachiApi
             "type", orderType,
             "fee", fee,
             "info", trade
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -741,7 +741,7 @@ public class Hibachi extends HibachiApi
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradesList, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -795,7 +795,7 @@ public class Hibachi extends HibachiApi
                 put( "prices", pricesResponse );
                 put( "stats", statsResponse );
             }};
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -892,7 +892,7 @@ public class Hibachi extends HibachiApi
             "reduceOnly", reduceOnly,
             "postOnly", postOnly,
             "triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null)
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -924,7 +924,7 @@ public class Hibachi extends HibachiApi
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
             Map<String, Object> response = (this.privateGetTradeOrder(this.extend(request, parameters))).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1167,7 +1167,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
                 orderRequest.put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1293,7 +1293,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
                 orderRequest.put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1711,7 +1711,7 @@ public class Hibachi extends HibachiApi
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, parameters);
+            return this.parseTrades(tradesList, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1791,7 +1791,7 @@ public class Hibachi extends HibachiApi
             //         "totalQuantity": "1.234000000"
             //     }
             // ]
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1871,7 +1871,7 @@ public class Hibachi extends HibachiApi
             //     }
             //
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
         });
 
@@ -2052,7 +2052,7 @@ public class Hibachi extends HibachiApi
             //   }
             //
             List<Object> data = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -2374,7 +2374,7 @@ public class Hibachi extends HibachiApi
             //
             List<Object> rowsTradingHistory = (List<Object>) this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseLedger(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -2499,7 +2499,7 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             List<Object> transactions = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(transactions, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2645,7 +2645,7 @@ public class Hibachi extends HibachiApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, Helpers.toMapArg(market));
+            Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
         });
@@ -2708,7 +2708,7 @@ public class Hibachi extends HibachiApi
                 put( "timestamp", timestamp );
                 put( "datetime", Hibachi.this.iso8601(timestamp) );
                 put( "info", response );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(OpenInterest::new);
 
     }

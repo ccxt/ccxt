@@ -1165,7 +1165,7 @@ public class Coinsph extends CoinsphApi
             {
                 ticker = (this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters))).join();
             }
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1247,7 +1247,7 @@ public class Coinsph extends CoinsphApi
             "baseVolume", baseVolume,
             "quoteVolume", quoteVolume,
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1429,7 +1429,7 @@ public class Coinsph extends CoinsphApi
             //         },
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1472,7 +1472,7 @@ public class Coinsph extends CoinsphApi
                 request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1595,7 +1595,7 @@ public class Coinsph extends CoinsphApi
             "cost", costString,
             "fee", fee,
             "info", trade
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1803,7 +1803,7 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     },
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1871,7 +1871,7 @@ public class Coinsph extends CoinsphApi
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1914,7 +1914,7 @@ public class Coinsph extends CoinsphApi
                 request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1984,7 +1984,7 @@ public class Coinsph extends CoinsphApi
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2091,7 +2091,7 @@ public class Coinsph extends CoinsphApi
             "fees", null,
             "trades", trades,
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderSide(String status)
@@ -2220,7 +2220,7 @@ public class Coinsph extends CoinsphApi
             //     ]
             //
             Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (tradingFee), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2341,7 +2341,7 @@ public class Coinsph extends CoinsphApi
             }
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
             Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted))).join();
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2411,7 +2411,7 @@ public class Coinsph extends CoinsphApi
             //     }
             // ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2487,7 +2487,7 @@ public class Coinsph extends CoinsphApi
             //     }
             // ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2647,7 +2647,7 @@ public class Coinsph extends CoinsphApi
             //         "addressTag": ""
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }

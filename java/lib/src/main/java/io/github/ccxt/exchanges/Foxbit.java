@@ -700,7 +700,7 @@ public class Foxbit extends FoxbitApi
             //  }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, Helpers.toMapArg(market));
+            return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
     }
@@ -747,7 +747,7 @@ public class Foxbit extends FoxbitApi
             //    ]
             //  }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -785,7 +785,7 @@ public class Foxbit extends FoxbitApi
                 String marketId = this.safeString(entry, "market_symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -843,7 +843,7 @@ public class Foxbit extends FoxbitApi
             //    ]
             //  }
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -891,7 +891,7 @@ public class Foxbit extends FoxbitApi
             // ]
             Map<String, Object> response = (this.v3PublicGetMarketsMarketTradesHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1189,7 +1189,7 @@ public class Foxbit extends FoxbitApi
             //     "sn": "OKMAKSDHRVVREK",
             //     "client_order_id": "451637946501"
             // }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1493,7 +1493,7 @@ public class Foxbit extends FoxbitApi
             //     ]
             // }
             List<Object> list = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(list, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(list, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1554,7 +1554,7 @@ public class Foxbit extends FoxbitApi
             //     ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1600,7 +1600,7 @@ public class Foxbit extends FoxbitApi
             //         "code": "btc"
             //     }
             // }
-            return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1661,7 +1661,7 @@ public class Foxbit extends FoxbitApi
             //     ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1737,7 +1737,7 @@ public class Foxbit extends FoxbitApi
             //     ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1885,7 +1885,7 @@ public class Foxbit extends FoxbitApi
             //     }
             // }
             Map<String, Object> created = (Map<String, Object>) this.safeDict(response, "create", new HashMap<String, Object>() {{}});
-            return this.parseOrder(created, Helpers.toMapArg(market));
+            return this.parseOrder(created, market);
         }).thenApply(Order::new);
 
     }
@@ -1985,7 +1985,7 @@ public class Foxbit extends FoxbitApi
             request.put("symbol", ((Map<String, Object>)currency).get("id"));
             Map<String, Object> response = (this.v3PrivateGetAccountsSymbolTransactions(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }

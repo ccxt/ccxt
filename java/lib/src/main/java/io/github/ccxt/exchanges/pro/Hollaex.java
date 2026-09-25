@@ -123,7 +123,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String marketId = this.safeString(message, "symbol");
         String channel = this.safeString(message, "topic");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -132,7 +132,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
         String timestamp = this.safeString(data, "timestamp");
         Long timestampMs = this.parse8601(timestamp);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestampMs), "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
         Object orderbook = null;
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -180,7 +180,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -204,7 +204,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String channel = this.safeString(message, "topic");
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -214,7 +214,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedTrades = this.parseTrades(data, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
             stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
@@ -259,7 +259,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -363,7 +363,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

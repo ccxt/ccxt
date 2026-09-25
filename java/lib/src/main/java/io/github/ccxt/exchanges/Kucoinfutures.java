@@ -74,7 +74,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             Map<String, Object> extendedRequest = this.extend(request, parameters);
-            return (this.fetchTickers(symbols, Helpers.toMapArg(extendedRequest))).join();
+            return (this.fetchTickers(symbols, extendedRequest)).join();
         }).thenApply(Tickers::new);
 
     }
@@ -120,7 +120,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseTransfer(data, Helpers.toMapArg(currency)), Helpers.newMap(
+            return this.extend(this.parseTransfer(data, currency), Helpers.newMap(
                 "amount", this.parseNumber(amountToPrecision),
                 "fromAccount", fromAccount,
                 "toAccount", toAccount

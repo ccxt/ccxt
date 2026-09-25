@@ -3266,7 +3266,7 @@ public class Okx extends OkxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
-            return this.parseOrderBook(first, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(first, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -3344,7 +3344,7 @@ public class Okx extends OkxApi
             put( "markPrice", Okx.this.safeString(ticker, "markPx") );
             put( "indexPrice", Okx.this.safeString(ticker, "idxPx") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -3398,7 +3398,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(first, Helpers.toMapArg(market));
+            return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
     }
@@ -3423,7 +3423,7 @@ public class Okx extends OkxApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = Helpers.newMap(
@@ -3469,7 +3469,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -3512,7 +3512,7 @@ public class Okx extends OkxApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
-            return this.parseTicker(this.safeDict(data, 0, (Object) null), Helpers.toMapArg(market));
+            return this.parseTicker(this.safeDict(data, 0, (Object) null), market);
         }).thenApply(Ticker::new);
 
     }
@@ -3537,7 +3537,7 @@ public class Okx extends OkxApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", Helpers.toMapArg(market), parameters, "swap");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = Helpers.newMap(
@@ -3557,7 +3557,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> response = (this.publicGetPublicMarkPrice(this.extend(request, paramsMarketType))).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -3656,7 +3656,7 @@ public class Okx extends OkxApi
             "amount", amount,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3690,7 +3690,7 @@ public class Okx extends OkxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "tradeId", "after", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "tradeId", "after", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3752,7 +3752,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3817,7 +3817,7 @@ public class Okx extends OkxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(200))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 200L)).join();
             }
             String priceType = this.safeString(paramsPaginate, "price");
             boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
@@ -3958,7 +3958,7 @@ public class Okx extends OkxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4165,7 +4165,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -4826,7 +4826,7 @@ public class Okx extends OkxApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
@@ -4867,7 +4867,7 @@ public class Okx extends OkxApi
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(extendedParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
@@ -5087,7 +5087,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
@@ -5146,7 +5146,7 @@ public class Okx extends OkxApi
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -5298,7 +5298,7 @@ public class Okx extends OkxApi
             // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
             // request would otherwise come back as a list under the unified string field
             Map<String, Object> orderParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
-            return this.parseOrders(ordersData, Helpers.toMapArg(market), (Long) null, (Long) null, Helpers.toMapArg(orderParams));
+            return this.parseOrders(ordersData, market, (Long) null, (Long) null, Helpers.toMapArg(orderParams));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -5689,7 +5689,7 @@ public class Okx extends OkxApi
         }
         String marketId = this.safeString(order, "instId");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), "-", (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, "-", (String) null);
         String filled = this.safeString(order, "accFillSz");
         String price = this.safeString2(order, "px", "ordPx");
         String average = this.safeString(order, "avgPx");
@@ -5761,7 +5761,7 @@ public class Okx extends OkxApi
             "fee", fee,
             "trades", null,
             "reduceOnly", reduceOnly
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -5926,7 +5926,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -6102,7 +6102,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6142,7 +6142,7 @@ public class Okx extends OkxApi
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             request.put("instType", this.convertToInstrumentType(type));
@@ -6300,7 +6300,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6353,7 +6353,7 @@ public class Okx extends OkxApi
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             request.put("instType", this.convertToInstrumentType(type));
@@ -6504,7 +6504,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6554,7 +6554,7 @@ public class Okx extends OkxApi
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsUntil), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsUntil), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             ((Map<String, Object>)requestUntil).put("instType", this.convertToInstrumentType(type));
@@ -6589,7 +6589,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(query));
+            return this.parseTrades(data, market, since, limit, Helpers.toMapArg(query));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -6747,7 +6747,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -6839,7 +6839,7 @@ public class Okx extends OkxApi
             "after", this.safeNumber(item, "bal", (Object) null),
             "status", "ok",
             "fee", fee
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
@@ -7123,7 +7123,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
-            return this.parseTransaction((Map<String, Object>) (transaction), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (transaction), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -7217,7 +7217,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -7253,7 +7253,7 @@ public class Okx extends OkxApi
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
             Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (deposit), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (deposit), currency);
         });
 
     }
@@ -7339,7 +7339,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -7617,7 +7617,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
@@ -7675,7 +7675,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -7738,7 +7738,7 @@ public class Okx extends OkxApi
             {
                 throw new NullResponse(((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
             }
-            return this.parsePosition((Map<String, Object>) (position), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (position), market);
         }).thenApply(Position::new);
 
     }
@@ -8121,7 +8121,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawTransfer = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransfer(rawTransfer, Helpers.toMapArg(currency));
+            return this.parseTransfer(rawTransfer, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -8339,7 +8339,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> transfers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(transfers, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransfers(transfers, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -8574,7 +8574,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(entry, Helpers.toMapArg(market));
+            return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -8633,7 +8633,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -8683,7 +8683,7 @@ public class Okx extends OkxApi
                 }
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             if (java.util.Objects.equals(type, "swap"))
@@ -9269,7 +9269,7 @@ public class Okx extends OkxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String errorCode = this.safeString(response, "code");
-            return this.extend(this.parseMarginModification((Map<String, Object>) (entry), Helpers.toMapArg(market)), Helpers.newMap(
+            return this.extend(this.parseMarginModification((Map<String, Object>) (entry), market), Helpers.newMap(
                 "status", (((java.util.Objects.equals(errorCode, "0")))) ? "ok" : "failed"
             ));
         });
@@ -9461,7 +9461,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarketLeverageTiers(data, Helpers.toMapArg(market));
+            return this.parseMarketLeverageTiers(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
     }
@@ -9649,7 +9649,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (loan), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (loan), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -9705,7 +9705,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (loan), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (loan), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -9782,7 +9782,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), Helpers.toMapArg(market));
+            return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -9816,7 +9816,7 @@ public class Okx extends OkxApi
             }
             String marketType = null;
             Object paramsSubType = new HashMap<String, Object>() {{}};
-            List<Object> marketTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", Helpers.toMapArg(market), parameters, "swap");
+            List<Object> marketTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
             marketType = (String) ((List<Object>) marketTypeparamsSubTypeVariable).get(0);
             paramsSubType = ((List<Object>) marketTypeparamsSubTypeVariable).get(1);
             String instType = "SWAP";
@@ -9861,7 +9861,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterests(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(data, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -9913,7 +9913,7 @@ public class Okx extends OkxApi
                 "period", timeframeValue
             );
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, "option"))
@@ -10010,7 +10010,7 @@ public class Okx extends OkxApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "info", interest
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public void setSandboxMode(Object enable)
@@ -10172,7 +10172,7 @@ public class Okx extends OkxApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), Helpers.toMapArg(currency)));
+            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -10202,7 +10202,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "option"))
@@ -10415,7 +10415,7 @@ public class Okx extends OkxApi
                 String entryMarketId = this.safeString(entry, "instId");
                 if (java.util.Objects.equals(entryMarketId, marketId))
                 {
-                    return this.parseGreeks((Map<String, Object>) (entry), Helpers.toMapArg(market));
+                    return this.parseGreeks((Map<String, Object>) (entry), market);
                 }
             }
             throw new NullResponse(((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
@@ -10512,7 +10512,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseAllGreeks(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseAllGreeks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -10646,7 +10646,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -10702,7 +10702,7 @@ public class Okx extends OkxApi
             //
             List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, Helpers.toMapArg(market));
+            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }
@@ -10867,7 +10867,7 @@ public class Okx extends OkxApi
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(result, "quoteCcy", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (result), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -10930,7 +10930,7 @@ public class Okx extends OkxApi
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(result, "quoteCcy", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (result), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -10993,7 +10993,7 @@ public class Okx extends OkxApi
             {
                 toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             }
-            return this.parseConversion((Map<String, Object>) (result), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -11536,7 +11536,7 @@ public class Okx extends OkxApi
                     put( "longShortRatio", Okx.this.safeString(entry, 1) );
                 }});
             }
-            return this.parseLongShortRatioHistory(result, Helpers.toMapArg(market), (Long) null, (Long) null);
+            return this.parseLongShortRatioHistory(result, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
     }

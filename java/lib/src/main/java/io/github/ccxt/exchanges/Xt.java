@@ -1930,7 +1930,7 @@ public class Xt extends XtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2156,11 +2156,11 @@ public class Xt extends XtApi
             Long timestamp = (Long) this.safeInteger2(orderBook, "timestamp", "t");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                Map<String, Object> ob = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+                Map<String, Object> ob = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
                 ob.put("nonce", this.safeInteger(orderBook, "lastUpdateId"));
                 return ob;
             }
-            Map<String, Object> swapOb = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "b", "a", 0, 1, 2);
+            Map<String, Object> swapOb = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "b", "a", 0, 1, 2);
             swapOb.put("nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
             return swapOb;
         }).thenApply(OrderBook::new);
@@ -2250,9 +2250,9 @@ public class Xt extends XtApi
             Object ticker = this.safeValue(response, "result");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                return this.parseTicker(Helpers.GetValue(ticker, 0), Helpers.toMapArg(market));
+                return this.parseTicker(Helpers.GetValue(ticker, 0), market);
             }
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -2284,10 +2284,10 @@ public class Xt extends XtApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(subType, "inverse"))
@@ -2352,7 +2352,7 @@ public class Xt extends XtApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), Helpers.toMapArg(market));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2390,10 +2390,10 @@ public class Xt extends XtApi
             {
                 market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2460,8 +2460,8 @@ public class Xt extends XtApi
                 {
                     marketType = "contract";
                 }
-                Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, Helpers.toMapArg(market), "_", marketType);
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, Helpers.toMapArg(marketInner));
+                Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, market, "_", marketType);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, marketInner);
                 String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2556,7 +2556,7 @@ public class Xt extends XtApi
             "baseVolume", this.safeNumber2(ticker, "a", "q", (Object) null),
             "quoteVolume", this.safeNumber(ticker, "v", (Object) null),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -2643,7 +2643,7 @@ public class Xt extends XtApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2681,10 +2681,10 @@ public class Xt extends XtApi
                 request.put("startTime", since);
             }
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if ((!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
@@ -2777,7 +2777,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2966,7 +2966,7 @@ public class Xt extends XtApi
                 put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString2(trade, "feeCurrency", "feeCoin"), (Map<String, Object>) null) );
                 put( "cost", Xt.this.safeString(trade, "fee") );
             }}
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3301,7 +3301,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         });
 
     }
@@ -3463,7 +3463,7 @@ public class Xt extends XtApi
             //         "result": "206410760006650176"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         });
 
     }
@@ -3501,10 +3501,10 @@ public class Xt extends XtApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
@@ -3689,7 +3689,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -3735,10 +3735,10 @@ public class Xt extends XtApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrders", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
@@ -3902,7 +3902,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3932,10 +3932,10 @@ public class Xt extends XtApi
                 ((Map<String, Object>)request).put("startTime", since);
             }
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrdersByStatus", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrdersByStatus", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", (Object) null);
@@ -4265,11 +4265,11 @@ public class Xt extends XtApi
                 // the track endpoints do not support a server-side state filter
                 // and return entries in every state, so filter by status first,
                 // otherwise since/limit could cut off matching rows
-                List<Object> parsedOrders = this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+                List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
                 List<Object> filteredOrders = this.filterBy(parsedOrders, "status", status);
                 return this.filterBySinceLimit(filteredOrders, since, limit, "timestamp", false);
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -4391,10 +4391,10 @@ public class Xt extends XtApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
@@ -4484,7 +4484,7 @@ public class Xt extends XtApi
             //
             Boolean isContractResponse = ((!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")));
             Object order = ((Boolean.TRUE.equals(isContractResponse))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -4522,10 +4522,10 @@ public class Xt extends XtApi
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
@@ -4639,7 +4639,7 @@ public class Xt extends XtApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrders", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (!java.util.Objects.equals(subType, null))
@@ -4793,7 +4793,7 @@ public class Xt extends XtApi
         String marketId = this.safeString(order, "symbol");
         String marketType = (((((Map<?, ?>)order).containsKey("result")) || (((Map<?, ?>)order).containsKey("positionSide")))) ? "contract" : "spot";
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, marketType);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, marketType);
         Long timestamp = (Long) this.safeInteger2(order, "time", "createdTime");
         Double quantity = this.safeNumber(order, "origQty", (Object) null);
         Object amount = (((java.util.Objects.equals(marketType, "spot")))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(((Map<String, Object>)marketResolved).get("contractSize")));
@@ -4858,7 +4858,7 @@ public class Xt extends XtApi
                 put( "cost", Xt.this.safeNumber(order, "fee", (Object) null) );
             }},
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -4959,7 +4959,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> ledger = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(ledger, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(ledger, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -4995,7 +4995,7 @@ public class Xt extends XtApi
             "referenceId", null,
             "referenceAccount", null,
             "type", this.parseLedgerEntryType(this.safeString(item, "type")),
-            "currency", this.safeCurrencyCode(currencyId, Helpers.toMapArg(currencyResolved)),
+            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
             "amount", this.safeNumber(item, "amount", (Object) null),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
@@ -5006,7 +5006,7 @@ public class Xt extends XtApi
                 put( "currency", null );
                 put( "cost", null );
             }}
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public Object parseLedgerEntryType(String type)
@@ -5066,7 +5066,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (result), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -5154,7 +5154,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> deposits = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(deposits, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(deposits, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -5223,7 +5223,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> withdrawals = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(withdrawals, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(withdrawals, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -5281,7 +5281,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5417,7 +5417,7 @@ public class Xt extends XtApi
                 "positionSide", positionSide,
                 "leverage", leverage
             );
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setLeverage", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setLeverage", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object response = null;
@@ -5506,7 +5506,7 @@ public class Xt extends XtApi
                 "type", addOrReduce,
                 "positionSide", positionSide
             );
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("modifyMarginHelper", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("modifyMarginHelper", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -5525,7 +5525,7 @@ public class Xt extends XtApi
             //         "result": null
             //     }
             //
-            return this.parseMarginModification((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseMarginModification((Map<String, Object>) (response), market);
         });
 
     }
@@ -5601,7 +5601,7 @@ public class Xt extends XtApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.parseLeverageTiers(data, Helpers.toStringListArg(symbolsNormalized), "symbol");
+            return this.parseLeverageTiers(data, symbolsNormalized, "symbol");
         }).thenApply(LeverageTiers::new);
 
     }
@@ -5631,16 +5631,16 @@ public class Xt extends XtApi
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String marketId = this.safeString(entry, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "_", "contract");
-            String symbol = this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null);
+            String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (this.inArray(symbol, symbols))
                 {
-                    result.put((String)symbol, this.parseMarketLeverageTiers(entry, Helpers.toMapArg(market)));
+                    result.put((String)symbol, this.parseMarketLeverageTiers(entry, market));
                 }
             } else
             {
-                result.put((String)symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
             }
         }
         return result;
@@ -5668,7 +5668,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarketLeverageTiers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -5702,7 +5702,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarketLeverageTiers(data, Helpers.toMapArg(market));
+            return this.parseMarketLeverageTiers(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
     }
@@ -5736,7 +5736,7 @@ public class Xt extends XtApi
             Double minNotional = this.safeNumber(Helpers.GetValue(brackets, (((long) i) - 1L)), "maxNominalValue", 0);
             ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Xt.this.safeInteger(tier, "bracket") );
-                put( "symbol", Xt.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), "_", "contract") );
+                put( "symbol", Xt.this.safeSymbol(marketId, marketResolved, "_", "contract") );
                 put( "currency", ((Map<String, Object>)marketResolved).get("settle") );
                 put( "minNotional", minNotional );
                 put( "maxNotional", Xt.this.safeNumber(tier, "maxNominalValue", (Object) null) );
@@ -5780,7 +5780,7 @@ public class Xt extends XtApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "id", "id", Helpers.toLongOrNull(1), Helpers.toLongOrNull(200))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "id", "id", 1L, 200L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -5797,7 +5797,7 @@ public class Xt extends XtApi
             {
                 request.put("limit", 200); // max
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -5835,7 +5835,7 @@ public class Xt extends XtApi
             {
                 Object entry = (items == null || i < 0 || i >= items.size() ? null : items.get(i));
                 String marketId = this.safeString(entry, "symbol");
-                String symbolInner = this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null);
+                String symbolInner = this.safeSymbol(marketId, market, (String) null, (String) null);
                 Long timestamp = this.safeInteger(entry, "createdTime");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5896,7 +5896,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRate", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRate", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -5921,7 +5921,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(result, Helpers.toMapArg(market));
+            return this.parseFundingRate(result, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -5989,7 +5989,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterest", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterest", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -6014,7 +6014,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(result, Helpers.toMapArg(market));
+            return this.parseOpenInterest(result, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -6039,7 +6039,7 @@ public class Xt extends XtApi
             put( "timestamp", timestamp );
             put( "datetime", Xt.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -6062,7 +6062,7 @@ public class Xt extends XtApi
             {
                 throw new NotSupported((this.id + " fetchTradingFee() supports contract markets only")) ;
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -6096,7 +6096,7 @@ public class Xt extends XtApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (result), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -6141,7 +6141,7 @@ public class Xt extends XtApi
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
-                    result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (fee), Helpers.toMapArg(market)));
+                    result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
                 }
             }
             return result;
@@ -6198,7 +6198,7 @@ public class Xt extends XtApi
             {
                 request.put("limit", limit);
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -6236,7 +6236,7 @@ public class Xt extends XtApi
             for (var i = 0; i < ((List<?>)items).size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(items, i, (Object) null);
-                ((List<Object>)result).add(this.parseFundingHistory(entry, Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parseFundingHistory(entry, market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
@@ -6337,7 +6337,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPosition", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPosition", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
@@ -6406,7 +6406,7 @@ public class Xt extends XtApi
                 if (!java.util.Objects.equals(positionSize, "0"))
                 {
                     Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
-                    return this.parsePosition((Map<String, Object>) (merged), Helpers.toMapArg(marketInner));
+                    return this.parsePosition((Map<String, Object>) (merged), marketInner);
                 }
             }
             throw new NullResponse(((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
@@ -6500,7 +6500,7 @@ public class Xt extends XtApi
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
                 Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), (Map<String, Object>) (breakBySymbolSide));
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), Helpers.toMapArg(marketInner)));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -6548,7 +6548,7 @@ public class Xt extends XtApi
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", Helpers.toMapArg(market), Helpers.toMapArg(paramsUntil), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, Helpers.toMapArg(paramsUntil), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -6595,7 +6595,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePositions(items, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            Object positions = this.parsePositions(items, symbolsNormalized, new HashMap<String, Object>() {{}});
             return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -6659,7 +6659,7 @@ public class Xt extends XtApi
         //
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "contract");
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, "contract");
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, "contract");
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         String positionType = this.safeString(position, "positionType");
         Boolean isCross = (java.util.Objects.equals(positionType, "CROSSED")) || (java.util.Objects.equals(positionType, "1"));
@@ -6748,7 +6748,7 @@ public class Xt extends XtApi
             //       status: undefined
             //   }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -6811,7 +6811,7 @@ public class Xt extends XtApi
                 put( "positionSide", posSide );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setMarginMode", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setMarginMode", market, Helpers.toMapArg(paramsOmitted), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object response = null;
@@ -6897,7 +6897,7 @@ public class Xt extends XtApi
                 {
                     request.put("origQty", this.amountToPrecision(symbol, amount));
                 }
-                List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("editOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
+                List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("editOrder", market, Helpers.toMapArg(paramsOmitted), (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
                 if (java.util.Objects.equals(subType, "inverse"))
@@ -6925,7 +6925,7 @@ public class Xt extends XtApi
                 response = (this.privateSpotPutOrderOrderId(this.extend(request, paramsOmitted))).join();
             }
             Object result = (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }

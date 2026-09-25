@@ -228,7 +228,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "price_points_mode", "INLINE" );
     }})) );
             }};
-            Object tickers = (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, Helpers.toStringListArg(symbolsList), parameters)).join();
+            Object tickers = (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, symbolsList, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbolsList, true);
         }).thenApply(Tickers::new);
 
@@ -447,7 +447,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         if (java.util.Objects.equals(type, "ORDER_BOOK_SNAPSHOT"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", 0, 1, 2);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
@@ -1250,7 +1250,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

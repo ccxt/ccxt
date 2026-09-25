@@ -3555,7 +3555,7 @@ public class Bybit extends BybitApi
             type = "spot";
         }
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, type);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, type);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, type);
         String last = this.safeString(ticker, "lastPrice");
         String open = this.safeString(ticker, "prevPrice24h");
         String percentage = this.safeString(ticker, "price24hPcnt");
@@ -3589,7 +3589,7 @@ public class Bybit extends BybitApi
             "markPrice", this.safeString(ticker, "markPrice"),
             "indexPrice", this.safeString(ticker, "indexPrice"),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3664,7 +3664,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> tickers = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(rawTicker, Helpers.toMapArg(market));
+            return this.parseTicker(rawTicker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -3876,7 +3876,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4081,14 +4081,14 @@ public class Bybit extends BybitApi
                     request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(marketType, "swap"))
             {
                 throw new NotSupported((((this.id + " fetchFundingRates() does not support ") + marketType) + " markets")) ;
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", market, Helpers.toMapArg(paramsMarketType), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             request.put("category", subType);
@@ -4136,7 +4136,7 @@ public class Bybit extends BybitApi
             {
                 Helpers.addElementToObject((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)), "timestamp", timestamp); // will be removed inside the parser
             }
-            return this.parseFundingRates(tickerList, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(tickerList, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -4174,7 +4174,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(200), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 200L, true)).join();
             }
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
             Map<String, Object> request = Helpers.newMap(
@@ -4514,7 +4514,7 @@ public class Bybit extends BybitApi
             "amount", amountString,
             "cost", costString,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -4582,7 +4582,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4665,7 +4665,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "ts");
-            return this.parseOrderBook(result, symbol, Helpers.toLongOrNull(timestamp), "b", "a", 0, 1, 2);
+            return this.parseOrderBook(result, symbol, timestamp, "b", "a", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -5327,7 +5327,7 @@ public class Bybit extends BybitApi
             "status", status,
             "fee", fee,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -5483,7 +5483,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -5889,7 +5889,7 @@ public class Bybit extends BybitApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams), isUta);
+                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
                 ((Map<String,Object>)orderRequest).remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -6103,7 +6103,7 @@ public class Bybit extends BybitApi
                 put( "info", response );
                 put( "id", Bybit.this.safeString(result, "orderId") );
                 put( "clientOrderId", Bybit.this.safeString(result, "orderLinkId") );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -6139,7 +6139,7 @@ public class Bybit extends BybitApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
                 ((Map<String,Object>)orderRequest).remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -6278,7 +6278,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -6380,7 +6380,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> row = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(row, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(row, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6634,7 +6634,7 @@ public class Bybit extends BybitApi
         put( "info", response );
     }}, (Map<String, Object>) null)));
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6805,7 +6805,7 @@ public class Bybit extends BybitApi
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(innerList, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -6844,7 +6844,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrdersClassic", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchOrdersClassic", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -6934,7 +6934,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -7063,7 +7063,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -7163,7 +7163,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -7273,7 +7273,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -7372,7 +7372,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -7439,7 +7439,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "execType", "Trade" );
@@ -7507,7 +7507,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object trades = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -7656,7 +7656,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -7705,7 +7705,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -7739,7 +7739,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -7802,7 +7802,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -7942,7 +7942,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object enableUnified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
@@ -8093,7 +8093,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -8187,7 +8187,7 @@ public class Bybit extends BybitApi
                 put( "currency", code );
                 put( "cost", Bybit.this.safeNumber(item, "fee", (Object) null) );
             }}
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public Object parseLedgerEntryType(String type)
@@ -8282,7 +8282,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -8363,7 +8363,7 @@ public class Bybit extends BybitApi
             List<Object> positions = (List<Object>) this.safeList2(result, "list", "dataList", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "time");
             Map<String, Object> first = (Map<String, Object>) this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (first), Helpers.toMapArg(market));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (first), market);
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             return position;
@@ -8401,7 +8401,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchPositions", symbols, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(200))).join();
+                return (this.fetchPaginatedCallCursor("fetchPositions", symbols, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 200L)).join();
             }
             Object symbol = null;
             Object symbolsNormalized = null;
@@ -8799,7 +8799,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Position position = (this.fetchPosition(symbol, parameters)).join();
-            return this.parseLeverage((Map<String, Object>) (position), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (position), market);
         }).thenApply(Leverage::new);
 
     }
@@ -9135,8 +9135,8 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             String id = this.safeString(result, "symbol");
-            Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, Helpers.toMapArg(market), (String) null, "contract");
-            return this.parseOpenInterestsHistory(data, Helpers.toMapArg(safeMarketObj), since, limit);
+            Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, (String) null, "contract");
+            return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
         });
 
     }
@@ -9210,9 +9210,9 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String id = this.safeString(result, "symbol");
-            Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, Helpers.toMapArg(market), (String) null, "contract");
+            Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, (String) null, "contract");
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), Helpers.toMapArg(safeMarketObj));
+            return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), safeMarketObj);
         }).thenApply(OpenInterest::new);
 
     }
@@ -9249,7 +9249,7 @@ public class Bybit extends BybitApi
             {
                 Map<String, Object> paramsPaginate = (Map<String, Object>) this.omit(parameters, "paginate");
                 Helpers.addElementToObject(paramsPaginate, "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1h"));
-                return (this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(200))).join();
+                return (this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 200L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
@@ -9351,7 +9351,7 @@ public class Bybit extends BybitApi
             List<Object> coins = (List<Object>) this.safeList(firstVip, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> coin = (Map<String, Object>) this.safeDict(coins, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(coin, "timestamp", timestamp);
-            return this.parseBorrowRate(coin, Helpers.toMapArg(currency));
+            return this.parseBorrowRate(coin, currency);
         }).thenApply(CrossBorrowRate::new);
 
     }
@@ -9585,7 +9585,7 @@ public class Bybit extends BybitApi
             Map<String, Object> transfer = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String statusRaw = this.safeString2(response, "retCode", "retMsg");
             String status = this.parseTransferStatus(statusRaw);
-            return this.extend(this.parseTransfer(transfer, Helpers.toMapArg(currency)), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(transfer, currency), new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", Bybit.this.iso8601(timestamp) );
                 put( "amount", Bybit.this.parseNumber(amountToPrecision) );
@@ -9626,7 +9626,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -9670,7 +9670,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseTransfers(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -9713,7 +9713,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (result), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -9755,7 +9755,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (result), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -9888,7 +9888,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             List<Object> tiers = (List<Object>) this.safeList(result, "list", (Object) null);
-            return this.parseMarketLeverageTiers(tiers, Helpers.toMapArg(market));
+            return this.parseMarketLeverageTiers(tiers, market);
         });
 
     }
@@ -9997,7 +9997,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> fees = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -10538,7 +10538,7 @@ public class Bybit extends BybitApi
             Long timestamp = this.safeInteger(response, "time");
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object greeks = this.parseGreeks((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), Helpers.toMapArg(market));
+            Object greeks = this.parseGreeks((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
             return this.extend(greeks, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", Bybit.this.iso8601(timestamp) );
@@ -10625,7 +10625,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseAllGreeks(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseAllGreeks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -10716,7 +10716,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "execType", "BustTrade" );
@@ -10784,7 +10784,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Object liquidations = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseLiquidations(liquidations, Helpers.toMapArg(market), since, limit);
+            return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
@@ -10860,9 +10860,9 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 100L)).join();
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("getLeverageTiersPaginated", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("getLeverageTiersPaginated", market, Helpers.toMapArg(paramsPaginate), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -10920,7 +10920,7 @@ public class Bybit extends BybitApi
                 put( "paginationCalls", 200 );
             }}, parameters)))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.parseLeverageTiers(data, Helpers.toStringListArg(symbolsNormalized), "symbol");
+            return this.parseLeverageTiers(data, symbolsNormalized, "symbol");
         }).thenApply(LeverageTiers::new);
 
     }
@@ -10957,7 +10957,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
-            tiers.put((String)symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), Helpers.toMapArg(market)));
+            tiers.put((String)symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market));
         }
         return tiers;
     }
@@ -10990,7 +10990,7 @@ public class Bybit extends BybitApi
             }
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.safeInteger(tier, "id"),
-                "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null),
+                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
                 "currency", ((Map<String, Object>)marketResolved).get("settle"),
                 "minNotional", minNotional,
                 "maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null),
@@ -11030,7 +11030,7 @@ public class Bybit extends BybitApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "nextPageCursor", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "execType", "Funding" );
@@ -11065,7 +11065,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
             Object fundings = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseIncomes(fundings, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(fundings, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -11116,7 +11116,7 @@ public class Bybit extends BybitApi
         Long timestamp = this.safeInteger(income, "execTime");
         return Helpers.newMap(
             "info", income,
-            "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), "-", "swap"),
+            "symbol", this.safeSymbol(marketId, marketResolved, "-", "swap"),
             "code", code,
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
@@ -11193,7 +11193,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> resultList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(resultList, 0, new HashMap<String, Object>() {{}});
-            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, Helpers.toMapArg(market));
+            return this.parseOption((Map<String, Object>) (chain), (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
     }
@@ -11356,7 +11356,7 @@ public class Bybit extends BybitApi
                 }
             }
             Long until = this.safeInteger(parameters, "until");
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", Helpers.toMapArg(market), parameters, "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object paramsOmitted = this.omit(paramsSubType, "until");
@@ -11607,7 +11607,7 @@ public class Bybit extends BybitApi
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (data), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -11731,7 +11731,7 @@ public class Bybit extends BybitApi
             {
                 toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             }
-            return this.parseConversion((Map<String, Object>) (result), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (result), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -11918,7 +11918,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLongShortRatioHistory(data, Helpers.toMapArg(market), (Long) null, (Long) null);
+            return this.parseLongShortRatioHistory(data, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
     }
@@ -12034,7 +12034,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> ranks = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(ranks, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseADLRanks(ranks, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }
@@ -12132,7 +12132,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseMarginMode((Map<String, Object>) (result), market);
         }).thenApply(MarginMode::new);
 
     }

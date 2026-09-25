@@ -865,7 +865,7 @@ public class Dydx extends DydxApi
             // }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(rows, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1022,7 +1022,7 @@ public class Dydx extends DydxApi
                 String marketId = this.safeString(entry, "ticker");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", Dydx.this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null) );
+                    put( "symbol", Dydx.this.safeSymbol(marketId, market, (String) null, (String) null) );
                     put( "fundingRate", Dydx.this.safeNumber(entry, "rate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Dydx.this.iso8601(timestamp) );
@@ -1241,7 +1241,7 @@ public class Dydx extends DydxApi
             //     }
             // ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2158,7 +2158,7 @@ public class Dydx extends DydxApi
             "after", null,
             "status", null,
             "fee", null
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -2202,7 +2202,7 @@ public class Dydx extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchLedger" );
             }}))).join();
-            return this.parseLedger(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -2458,7 +2458,7 @@ public class Dydx extends DydxApi
             List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
             List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
             List<Object> rows = (List<Object>) this.arrayConcat(transferIn, transferOut);
-            return this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -2587,7 +2587,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2623,7 +2623,7 @@ public class Dydx extends DydxApi
                 put( "methodName", "fetchWithdrawals" );
             }}))).join();
             List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2659,7 +2659,7 @@ public class Dydx extends DydxApi
                 put( "methodName", "fetchDeposits" );
             }}))).join();
             List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2697,7 +2697,7 @@ public class Dydx extends DydxApi
             List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
             List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
             List<Object> rows = (List<Object>) this.arrayConcat(withdrawals, deposits);
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2852,7 +2852,7 @@ public class Dydx extends DydxApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            List<Object> subaccountNumberparamsSubaccountNumberVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", Helpers.toLongOrNull(0));
+            List<Object> subaccountNumberparamsSubaccountNumberVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0L);
             Long subaccountNumber = (Long) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(0);
             Map<String, Object> paramsSubaccountNumber = (Map<String, Object>) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{

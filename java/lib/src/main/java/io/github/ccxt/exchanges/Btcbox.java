@@ -563,7 +563,7 @@ public class Btcbox extends BtcboxApi
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -625,7 +625,7 @@ public class Btcbox extends BtcboxApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -667,7 +667,7 @@ public class Btcbox extends BtcboxApi
             //          },
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -708,7 +708,7 @@ public class Btcbox extends BtcboxApi
             //         "id":"12"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -743,7 +743,7 @@ public class Btcbox extends BtcboxApi
             //
             //     {"result":true, "id":"11"}
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -823,7 +823,7 @@ public class Btcbox extends BtcboxApi
             "fee", null,
             "info", order,
             "average", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -865,7 +865,7 @@ public class Btcbox extends BtcboxApi
             //          "trades":[]
             //      }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -899,7 +899,7 @@ public class Btcbox extends BtcboxApi
             //      },
             // ]
             //
-            List<Object> orders = this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
             // status (open/closed/canceled) is undefined
             // btcbox does not return status, but we know it's 'open' as we queried for open orders
             if (java.util.Objects.equals(type, "open"))

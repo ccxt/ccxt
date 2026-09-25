@@ -2374,7 +2374,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3146,7 +3146,7 @@ public class Htx extends HtxApi
             //     }
             //
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, Helpers.toMapArg(market));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -3184,10 +3184,10 @@ public class Htx extends HtxApi
                 market = (Map<String, Object>) this.market(first);
             }
             Boolean isSubTypeRequested = (((Map<?, ?>)parameters).containsKey("subType")) || (((Map<?, ?>)parameters).containsKey("business_type"));
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3284,7 +3284,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> rawTickers = (List<Object>) this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
-            Object tickers = this.parseTickers(rawTickers, Helpers.toStringListArg(symbolsNormalized), Helpers.toMapArg(paramsSubType));
+            Object tickers = this.parseTickers(rawTickers, symbolsNormalized, Helpers.toMapArg(paramsSubType));
             return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -3312,10 +3312,10 @@ public class Htx extends HtxApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", Helpers.toMapArg(market), Helpers.toMapArg(paramsSubType), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, Helpers.toMapArg(paramsSubType), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -3334,7 +3334,7 @@ public class Htx extends HtxApi
             }
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLastPrices(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseLastPrices(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(LastPrices::new);
 
     }
@@ -3457,7 +3457,7 @@ public class Htx extends HtxApi
                 }
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", (Object) null);
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
                 result.put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
@@ -3644,7 +3644,7 @@ public class Htx extends HtxApi
             "amount", amountString,
             "cost", costString,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3669,7 +3669,7 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -3750,7 +3750,7 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object paramsUntil = null;
@@ -3921,7 +3921,7 @@ public class Htx extends HtxApi
             {
                 trades = this.safeList(trades, "trades", (Object) null);
             }
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4013,7 +4013,7 @@ public class Htx extends HtxApi
                 List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), Helpers.toMapArg(market));
+                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
                 }
             }
@@ -4073,7 +4073,7 @@ public class Htx extends HtxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4884,7 +4884,7 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -5087,7 +5087,7 @@ public class Htx extends HtxApi
             {
                 order = this.safeDict(order, 0, (Object) null);
             }
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -5194,7 +5194,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -5328,7 +5328,7 @@ public class Htx extends HtxApi
             {
                 orders = this.safeList(orders, "orders", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -5408,7 +5408,7 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Boolean contract = (java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future"));
@@ -5461,14 +5461,14 @@ public class Htx extends HtxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5540,14 +5540,14 @@ public class Htx extends HtxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5594,10 +5594,10 @@ public class Htx extends HtxApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, Helpers.toMapArg(paramsMarketType), "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
@@ -5983,7 +5983,7 @@ public class Htx extends HtxApi
             {
                 orders = this.safeList(orders, "orders", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6331,7 +6331,7 @@ public class Htx extends HtxApi
             "reduceOnly", reduceOnly,
             "fee", fee,
             "trades", trades
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -6600,7 +6600,7 @@ public class Htx extends HtxApi
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         String orderType = (((java.util.Objects.equals(postOnly, true)))) ? "post_only" : type;
-        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("createOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsPostOnly), (Object) null);
+        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("createOrder", market, Helpers.toMapArg(paramsPostOnly), (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
         Object query = paramsSubType;
@@ -7005,7 +7005,7 @@ public class Htx extends HtxApi
                     "fee", null,
                     "clientOrderId", null,
                     "average", null
-                ), Helpers.toMapArg(market));
+                ), market);
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
@@ -7020,7 +7020,7 @@ public class Htx extends HtxApi
                 {
                     throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
                 }
-                return this.extend(this.parseOrder(result, Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+                return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
                     put( "type", type );
                     put( "side", side );
                     put( "price", price );
@@ -7042,7 +7042,7 @@ public class Htx extends HtxApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
     }
@@ -7091,7 +7091,7 @@ public class Htx extends HtxApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", Helpers.toMapArg(orderParams), (String) null);
+                List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
                 {
@@ -7110,10 +7110,10 @@ public class Htx extends HtxApi
                 Object orderRequest = null;
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
-                    orderRequest = (this.createSpotOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams))).join();
+                    orderRequest = (this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams)).join();
                 } else
                 {
-                    orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                    orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);
                 }
                 orderRequest = this.omit(orderRequest, "marginMode");
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -7222,7 +7222,7 @@ public class Htx extends HtxApi
                     result = this.arrayConcat(success, errors);
                 }
             }
-            return this.parseOrders(result, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -7257,10 +7257,10 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
@@ -7434,7 +7434,7 @@ public class Htx extends HtxApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.extend(this.parseOrder(result, Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", "canceled" );
             }});
@@ -7468,7 +7468,7 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -7780,7 +7780,7 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -7937,7 +7937,7 @@ public class Htx extends HtxApi
         String tag = this.safeString(depositAddress, "addressTag");
         String currencyId = this.safeString(depositAddress, "currency");
         Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
-        String code = this.safeCurrencyCode(currencyId, Helpers.toMapArg(currencyResolved));
+        String code = this.safeCurrencyCode(currencyId, currencyResolved);
         String note = this.safeString(depositAddress, "note");
         String networkId = this.safeString(depositAddress, "chain");
         this.checkAddress(address);
@@ -8140,7 +8140,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, Helpers.toLongOrNull(limitValue), new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, Helpers.toLongOrNull(limitValue), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -8214,7 +8214,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, Helpers.toLongOrNull(limitValue), new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, Helpers.toLongOrNull(limitValue), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -8445,7 +8445,7 @@ public class Htx extends HtxApi
             //         "data": "99562054"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -8627,7 +8627,7 @@ public class Htx extends HtxApi
             {
                 throw new NullResponse((this.id + " parseTransfer() returned empty response")) ;
             }
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -8699,7 +8699,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -8832,7 +8832,7 @@ public class Htx extends HtxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "current_page", "page_index", Helpers.toLongOrNull(1), Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "current_page", "page_index", 1L, 50L)).join();
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -8881,7 +8881,7 @@ public class Htx extends HtxApi
                 {
                     Object entry = Helpers.GetValue(data, i);
                     String marketId = this.safeString(entry, "contract_code");
-                    String symbolInner = this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null);
+                    String symbolInner = this.safeSymbol(marketId, market, (String) null, (String) null);
                     Long timestamp = this.safeInteger(entry, "funding_time");
                     ((List<Object>)rates).add(new HashMap<String, Object>() {{
                         put( "info", entry );
@@ -9028,7 +9028,7 @@ public class Htx extends HtxApi
             {
                 result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseFundingRate(result, Helpers.toMapArg(market));
+            return this.parseFundingRate(result, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -9095,7 +9095,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -9177,7 +9177,7 @@ public class Htx extends HtxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
-            List<Object> interest = this.parseBorrowInterests(data, Helpers.toMapArg(market));
+            List<Object> interest = this.parseBorrowInterests(data, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -9519,7 +9519,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> initialRequest = new HashMap<String, Object>() {{
@@ -9584,7 +9584,7 @@ public class Htx extends HtxApi
                 response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, paramsUntil))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(data, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -9616,7 +9616,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("setLeverage", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("setLeverage", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -9887,10 +9887,10 @@ public class Htx extends HtxApi
                     market = (Map<String, Object>) this.market(first);
                 }
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", Helpers.toMapArg(market), parameters, "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", Helpers.toMapArg(market), Helpers.toMapArg(paramsSubType), (Object) null);
+            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, Helpers.toMapArg(paramsSubType), (Object) null);
             String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
             String marketType = marketTypeOption;
@@ -9957,7 +9957,7 @@ public class Htx extends HtxApi
             String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
             String marginMode = (((java.util.Objects.equals(marginModeOption, null)))) ? "cross" : marginModeOption;
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarginMode), (Object) null);
+            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, Helpers.toMapArg(paramsMarginMode), (Object) null);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -9993,7 +9993,7 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 Map<String, Object> linearPosition = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-                return this.parsePosition((Map<String, Object>) (linearPosition), Helpers.toMapArg(market));
+                return this.parsePosition((Map<String, Object>) (linearPosition), market);
             }
             Object account = null;
             if (java.util.Objects.equals(marginMode, "cross"))
@@ -10022,7 +10022,7 @@ public class Htx extends HtxApi
                 position = this.safeDict(positions, 0, (Object) null);
             }
             Long timestamp = this.safeInteger(response, "ts");
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.extend(position, omitted)), Helpers.toMapArg(market));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.extend(position, omitted)), market);
             Helpers.addElementToObject(parsed, "timestamp", timestamp);
             Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
             return parsed;
@@ -10089,7 +10089,7 @@ public class Htx extends HtxApi
             put( "after", null );
             put( "status", null );
             put( "fee", null );
-        }}, Helpers.toMapArg(currencyResolved));
+        }}, currencyResolved);
     }
 
     /**
@@ -10121,7 +10121,7 @@ public class Htx extends HtxApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(500), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), 500L, true)).join();
             }
             String accountId = (this.fetchAccountIdByType("spot", (String) null, (String) null, Helpers.toMapArg(paramsPaginate))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -10178,7 +10178,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -10393,7 +10393,7 @@ public class Htx extends HtxApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             List<Object> tick = (List<Object>) this.safeList(data, "tick", (Object) null);
-            return this.parseOpenInterestsHistory(tick, Helpers.toMapArg(market), since, limit);
+            return this.parseOpenInterestsHistory(tick, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }
@@ -10429,10 +10429,10 @@ public class Htx extends HtxApi
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", Helpers.toMapArg(market), parameters, "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterests", Helpers.toMapArg(market), Helpers.toMapArg(paramsSubType), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterests", market, Helpers.toMapArg(paramsSubType), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -10447,7 +10447,7 @@ public class Htx extends HtxApi
                 throw new NotSupported((this.id + " fetchOpenInterests() does not currently support linear markets")) ;
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterests(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(data, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -10559,13 +10559,13 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.extend(this.parseOpenInterest(result, Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+                return this.extend(this.parseOpenInterest(result, market), new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }});
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object openInterest = this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), Helpers.toMapArg(market));
+            Object openInterest = this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             Helpers.addElementToObject(openInterest, "timestamp", timestamp);
             Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
             return openInterest;
@@ -10674,7 +10674,7 @@ public class Htx extends HtxApi
             //         "data": 1000
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan(response, Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -10717,7 +10717,7 @@ public class Htx extends HtxApi
             //         "data": null
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan(response, Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -10766,7 +10766,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
-            Map<String, Object> transaction = this.parseMarginLoan(loan, Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -10815,7 +10815,7 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
-            Map<String, Object> transaction = this.parseMarginLoan(loan, Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -11354,7 +11354,7 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLiquidations(data, Helpers.toMapArg(market), since, limit);
+            return this.parseLiquidations(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
@@ -11479,13 +11479,13 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseOrder(data, Helpers.toMapArg(market));
+                return this.parseOrder(data, market);
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -11574,10 +11574,10 @@ public class Htx extends HtxApi
                     market = (Map<String, Object>) this.market(first);
                 }
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", Helpers.toMapArg(market), parameters, "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositionsADLRank", Helpers.toMapArg(market), Helpers.toMapArg(paramsSubType), (Object) null);
+            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositionsADLRank", market, Helpers.toMapArg(paramsSubType), (Object) null);
             String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
             String marketType = marketTypeOption;
@@ -11603,7 +11603,7 @@ public class Htx extends HtxApi
                 }
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseADLRanks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }

@@ -1228,7 +1228,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(rows, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1312,7 +1312,7 @@ public class Woo extends WooApi
             "type", null,
             "fee", fee,
             "info", trade
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKeys, Object feeAmountKeys)
@@ -1382,7 +1382,7 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1983,7 +1983,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             data = this.safeDict(this.safeList(data, "rows", (Object) null), 0, data);
             Helpers.addElementToObject(data, "timestamp", this.safeString(response, "timestamp"));
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2111,7 +2111,7 @@ public class Woo extends WooApi
             {
                 order.put("orderId", id);
             }
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -2194,7 +2194,7 @@ public class Woo extends WooApi
             {
                 data.put("orderId", id);
             }
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2342,7 +2342,7 @@ public class Woo extends WooApi
                 response = (this.v3PrivateGetTradeOrder(this.extend(request, paramsOmitted))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2379,7 +2379,7 @@ public class Woo extends WooApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2414,7 +2414,7 @@ public class Woo extends WooApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2448,7 +2448,7 @@ public class Woo extends WooApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2482,7 +2482,7 @@ public class Woo extends WooApi
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2659,7 +2659,7 @@ public class Woo extends WooApi
                 put( "currency", feeCurrency );
             }},
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -2734,7 +2734,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "quantity", 2);
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -2784,7 +2784,7 @@ public class Woo extends WooApi
             put( "indexPrice", Woo.this.safeString(ticker, "indexPrice") );
             put( "markPrice", Woo.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -2849,7 +2849,7 @@ public class Woo extends WooApi
             Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", Woo.this.safeInteger(response, "timestamp") );
             }}, first);
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -3057,7 +3057,7 @@ public class Woo extends WooApi
             //     ]
             // }
             List<Object> trades = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, parameters);
+            return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3090,7 +3090,7 @@ public class Woo extends WooApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3145,7 +3145,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsOmitted));
+            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(paramsOmitted));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3374,7 +3374,7 @@ public class Woo extends WooApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
                 put( "network", Woo.this.safeString(request, "network") );
-            }})), Helpers.toMapArg(currency));
+            }})), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3564,7 +3564,7 @@ public class Woo extends WooApi
             "datetime", this.iso8601(timestamp),
             "type", this.parseLedgerEntryType(this.safeString(item, "type")),
             "fee", fee
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -3785,7 +3785,7 @@ public class Woo extends WooApi
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             data.put("token", ((Map<String, Object>)currency).get("id"));
             data.put("status", "ok");
-            Object transfer = this.parseTransfer(data, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
@@ -3870,7 +3870,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsOmitted));
+            return this.parseTransfers(rows, currency, since, limit, Helpers.toMapArg(paramsOmitted));
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3998,7 +3998,7 @@ public class Woo extends WooApi
                 "type", "withdrawal",
                 "status", "pending"
             ));
-            return this.parseTransaction((Map<String, Object>) (transactionData), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (transactionData), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -4035,7 +4035,7 @@ public class Woo extends WooApi
             //         "success": true,
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbolResolved );
@@ -4250,7 +4250,7 @@ public class Woo extends WooApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -4303,7 +4303,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(rows, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -4428,7 +4428,7 @@ public class Woo extends WooApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(first, Helpers.toMapArg(market));
+            return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -4475,7 +4475,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(rows, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(rows, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -4509,7 +4509,7 @@ public class Woo extends WooApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(25))).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 25L)).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -4651,7 +4651,7 @@ public class Woo extends WooApi
                 throw new NotSupported((((this.id + " fetchLeverage() is not supported for ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
@@ -4864,7 +4864,7 @@ public class Woo extends WooApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (first), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (first), market);
         }).thenApply(Position::new);
 
     }
@@ -4932,7 +4932,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(positions, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(positions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -5096,7 +5096,7 @@ public class Woo extends WooApi
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "buyToken", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (data), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -5192,7 +5192,7 @@ public class Woo extends WooApi
             {
                 toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             }
-            return this.parseConversion((Map<String, Object>) (data), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency));
+            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -5452,7 +5452,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(positions, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseADLRanks(positions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }

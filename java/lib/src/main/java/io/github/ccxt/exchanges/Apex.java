@@ -867,7 +867,7 @@ public class Apex extends ApexApi
         //
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String last = this.safeString(ticker, "lastPrice");
         String percentage = this.safeString(ticker, "price24hPcnt");
         String quoteVolume = this.safeString(ticker, "turnover24h");
@@ -897,7 +897,7 @@ public class Apex extends ApexApi
             put( "markPrice", Apex.this.safeString(ticker, "markPrice") );
             put( "indexPrice", Apex.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -925,7 +925,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(rawTicker, Helpers.toMapArg(market));
+            return this.parseTicker(rawTicker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1071,7 +1071,7 @@ public class Apex extends ApexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "b", "a", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(data, "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1128,7 +1128,7 @@ public class Apex extends ApexApi
             //  ]
             //
             List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1170,7 +1170,7 @@ public class Apex extends ApexApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", fee );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1198,7 +1198,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(rawTicker, Helpers.toMapArg(market));
+            return this.parseOpenInterest(rawTicker, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -1225,7 +1225,7 @@ public class Apex extends ApexApi
         //
         String marketId = this.safeString(interest, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Apex.this.safeString(interest, "openInterest") );
@@ -1233,7 +1233,7 @@ public class Apex extends ApexApi
             put( "timestamp", null );
             put( "datetime", null );
             put( "info", interest );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1308,7 +1308,7 @@ public class Apex extends ApexApi
                 String marketId = this.safeString(entry, "symbol");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", Apex.this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null) );
+                    put( "symbol", Apex.this.safeSymbol(marketId, market, (String) null, (String) null) );
                     put( "fundingRate", Apex.this.safeNumber(entry, "rate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Apex.this.iso8601(timestamp) );
@@ -1419,7 +1419,7 @@ public class Apex extends ApexApi
                 put( "currency", ((Map<String, Object>)marketResolved).get("settleId") );
             }} );
             put( "info", order );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -1672,7 +1672,7 @@ public class Apex extends ApexApi
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostV3Order(this.extend(request, paramsOmitted3))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1882,7 +1882,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return new ArrayList<Object>(Arrays.asList(this.parseOrder(data, Helpers.toMapArg(market))));
+            return new ArrayList<Object>(Arrays.asList(this.parseOrder(data, market)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2036,7 +2036,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2128,7 +2128,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2180,7 +2180,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> fundingValues = (List<Object>) this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(fundingValues, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(fundingValues, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -2207,7 +2207,7 @@ public class Apex extends ApexApi
         Long timestamp = this.safeInteger(income, "fundingTime");
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Apex.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
+            put( "symbol", Apex.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
             put( "code", code );
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );

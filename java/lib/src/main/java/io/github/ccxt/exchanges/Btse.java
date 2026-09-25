@@ -1091,7 +1091,7 @@ public class Btse extends BtseApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
-            return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1168,7 +1168,7 @@ public class Btse extends BtseApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rates = this.parseFundingRateHistories(data, Helpers.toMapArg(market), since, limit);
+            List<Object> rates = this.parseFundingRateHistories(data, market, since, limit);
             if (java.util.Objects.equals(until, null))
             {
                 return rates;
@@ -1483,7 +1483,7 @@ public class Btse extends BtseApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(paramsOmitted)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1547,7 +1547,7 @@ public class Btse extends BtseApi
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseTicker(data, Helpers.toMapArg(market));
+            return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1574,7 +1574,7 @@ public class Btse extends BtseApi
         }
         Long timestamp = this.safeTimestamp(ticker, "closeTime");
         return this.safeTicker(Helpers.newMap(
-            "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null),
+            "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "high", this.safeString(ticker, "highPrice"),
@@ -1596,7 +1596,7 @@ public class Btse extends BtseApi
             "markPrice", null,
             "indexPrice", null,
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1629,7 +1629,7 @@ public class Btse extends BtseApi
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 interest = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseOpenInterest(interest, Helpers.toMapArg(market));
+            return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -1662,7 +1662,7 @@ public class Btse extends BtseApi
                     ((List<Object>)rows).add(row);
                 }
             }
-            return this.parseOpenInterests(rows, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(rows, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -1682,7 +1682,7 @@ public class Btse extends BtseApi
             put( "timestamp", timestamp );
             put( "datetime", Btse.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1715,7 +1715,7 @@ public class Btse extends BtseApi
                 List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseFundingRate(data, Helpers.toMapArg(market));
+            return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -1748,7 +1748,7 @@ public class Btse extends BtseApi
                     ((List<Object>)rows).add(row);
                 }
             }
-            return this.parseFundingRates(rows, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(rows, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -1868,7 +1868,7 @@ public class Btse extends BtseApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> trades = this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> trades = this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(until, null))
             {
                 return trades;
@@ -1932,7 +1932,7 @@ public class Btse extends BtseApi
             List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             request = ((List<Object>) requestparamsUntilVariable).get(0);
             paramsUntil = ((List<Object>) requestparamsUntilVariable).get(1);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsUntil), "spot");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsUntil), "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object response = null;
@@ -2022,7 +2022,7 @@ public class Btse extends BtseApi
             {
                 rows = response;
             }
-            return this.parseTrades(rows, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2168,7 +2168,7 @@ public class Btse extends BtseApi
             "amount", this.safeString2(trade, "filledSize", "size"),
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -2450,7 +2450,7 @@ public class Btse extends BtseApi
                 response = (this.privatePostSpotApiV4TradeOrdersAlgo(this.extend(request, query))).join();
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         });
 
     }
@@ -2705,7 +2705,7 @@ public class Btse extends BtseApi
             {
                 order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         });
 
     }
@@ -2761,7 +2761,7 @@ public class Btse extends BtseApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), "spot");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsOmitted), "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object response = null;
@@ -2780,7 +2780,7 @@ public class Btse extends BtseApi
             {
                 order = this.safeDict(order, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseOrder(((Object)order), Helpers.toMapArg(market));
+            return this.parseOrder(((Object)order), market);
         });
 
     }
@@ -2873,7 +2873,7 @@ public class Btse extends BtseApi
                 response = (this.privatePutFuturesApiV3TradeOrders(this.extend(request, query))).join();
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -2941,7 +2941,7 @@ public class Btse extends BtseApi
                 response = (this.privateDeleteFuturesApiV3TradeOrders(this.extend(request, paramsOmitted))).join();
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -2969,7 +2969,7 @@ public class Btse extends BtseApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), parameters, marketType);
+            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
             String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2991,7 +2991,7 @@ public class Btse extends BtseApi
                 request.put("symbol", this.futuresRequestId(market));
                 response = (this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType))).join();
             }
-            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3060,7 +3060,7 @@ public class Btse extends BtseApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), parameters, marketType);
+            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
             String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
             List<Object> response = null;
@@ -3082,7 +3082,7 @@ public class Btse extends BtseApi
             // the endpoints have no server side time filters, accept a bare array
             // and a data envelope and filter client-side
             Object rows = this.safeList(response, "data", ((Object)response));
-            return this.parseOrders(rows, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(rows, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3194,7 +3194,7 @@ public class Btse extends BtseApi
             "trades", null,
             "fee", null,
             "average", this.omitZero(this.safeString2(order, "avgFilledPrice", "averageFillPrice"))
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -3639,7 +3639,7 @@ public class Btse extends BtseApi
             //     ]
             //
             Object rows = this.safeList(response, "data", ((Object)response));
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3810,7 +3810,7 @@ public class Btse extends BtseApi
             {
                 rows = response;
             }
-            return this.parsePositions(rows, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(rows, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -3835,7 +3835,7 @@ public class Btse extends BtseApi
             Map<String, Object> paramsExtended = this.extend(new HashMap<String, Object>() {{
                 put( "symbol", Btse.this.futuresRequestId(market) );
             }}, parameters);
-            return (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4057,7 +4057,7 @@ public class Btse extends BtseApi
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseMarginMode((Map<String, Object>) (data), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4198,7 +4198,7 @@ public class Btse extends BtseApi
             {
                 order = response;
             }
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }

@@ -348,7 +348,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -431,7 +431,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             "amount", amountString,
             "cost", null,
             "fee", null
-        ), Helpers.toMapArg(marketResolved)));
+        ), marketResolved));
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

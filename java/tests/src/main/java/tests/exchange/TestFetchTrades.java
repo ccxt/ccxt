@@ -22,7 +22,7 @@ public class TestFetchTrades extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTrades";
-        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, (Long) null, Helpers.toLongOrNull(12000), new HashMap<String, Object>() {{}}})).join(); // test with unrealistically high amount
+        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, (Long) null, 12000L, new HashMap<String, Object>() {{}}})).join(); // test with unrealistically high amount
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, trades);
         //
         // test structure

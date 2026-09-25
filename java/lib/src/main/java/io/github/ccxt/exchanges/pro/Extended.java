@@ -128,7 +128,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "m");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "ts");
@@ -144,7 +144,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "b", "a", "p", "q", 2);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q", 2);
             snapshot.put("nonce", nonce);
             orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
@@ -253,7 +253,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -389,7 +389,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -495,7 +495,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 return positions;
             }
-            return this.filterBySymbolsSinceLimit(this.positions, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -696,7 +696,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     public Map<String, Object> parseWsFundingRate(Map<String, Object> fundingRate, Map<String, Object> market, Object message)
     {
         String marketId = this.safeString(fundingRate, "m");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(message, "ts");
         Long fundingTimestamp = this.safeInteger(fundingRate, "T");
         return new HashMap<String, Object>() {{
@@ -773,7 +773,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "m");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(data, "ts");
         if ((java.util.Objects.equals(timestamp, null)) || ((timestamp != null && timestamp == 0)))
@@ -786,7 +786,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             "datetime", this.iso8601(timestamp),
             "markPrice", this.safeString(data, "p"),
             "info", message
-        ), Helpers.toMapArg(market));
+        ), market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("markPrice:" + symbol);
         client.resolve(ticker, messageHash);
@@ -830,7 +830,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -861,7 +861,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         String marketId = this.safeString(first, "m");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
@@ -882,7 +882,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Helpers.addElementToObject(subscription, "nonce", nonce);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), Helpers.toMapArg(market));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             stored.append(trade);
         }
         client.resolve(stored, messageHash);
@@ -948,7 +948,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

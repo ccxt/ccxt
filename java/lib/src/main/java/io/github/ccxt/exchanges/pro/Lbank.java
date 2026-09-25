@@ -188,7 +188,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -381,8 +381,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(message, Helpers.toMapArg(market));
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(message, market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -546,7 +546,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -558,7 +558,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), Helpers.toMapArg(market));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
             Helpers.addElementToObject(trade, "symbol", symbol);
             stored.append(trade);
         }
@@ -1021,7 +1021,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);

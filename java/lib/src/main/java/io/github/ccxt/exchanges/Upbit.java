@@ -1004,7 +1004,7 @@ public class Upbit extends UpbitApi
             put( "baseVolume", Upbit.this.safeString(ticker, "acc_trade_volume_24h") );
             put( "quoteVolume", Upbit.this.safeString(ticker, "acc_trade_price_24h") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1102,7 +1102,7 @@ public class Upbit extends UpbitApi
             //           "lowest_52_week_date": "2017-12-08",
             //                     "timestamp":  1542883543813  } ]
             //
-            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1231,7 +1231,7 @@ public class Upbit extends UpbitApi
             "amount", amount,
             "cost", cost,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1284,7 +1284,7 @@ public class Upbit extends UpbitApi
             //                    "ask_bid": "ASK",
             //              "sequential_id":  15428917910540000 }  ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1952,7 +1952,7 @@ public class Upbit extends UpbitApi
             //         ...,
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2003,7 +2003,7 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         });
 
     }
@@ -2058,7 +2058,7 @@ public class Upbit extends UpbitApi
             //         ...,
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2109,7 +2109,7 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         });
 
     }
@@ -2315,7 +2315,7 @@ public class Upbit extends UpbitApi
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        trades = this.parseTrades(trades, Helpers.toMapArg(marketResolved), (Long) null, (Long) null, Helpers.toMapArg(Helpers.newMap(
+        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.toMapArg(Helpers.newMap(
             "order", id,
             "type", type
         )));
@@ -2435,7 +2435,7 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2506,7 +2506,7 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2577,7 +2577,7 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
