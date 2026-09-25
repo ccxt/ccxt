@@ -7740,9 +7740,8 @@ impl MexcCore {
         let mut requestBody: Value = body;
         let mut section: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut access: Value = self.safe_string(api, Value::Int(1), &[]);
-        let mut pathValueparamsValueVariable = self.resolve_path(path, params);
-        let mut pathValue: Value = pathValueparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = pathValueparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut pathValue: Value = self.implode_params(path.clone(), params.clone());
+        let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: Value = Value::Null;
         if (section.as_str() == Some("spot")) || (section.as_str() == Some("broker")) {
             if (section.as_str() == Some("broker")) {
@@ -7750,13 +7749,13 @@ impl MexcCore {
                 if (apiUrl == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
                 }
-                url = add(&Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), &pathValue);
+                url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), pathValue).into());
             }  else {
                 let mut apiUrl: Value = self.safe_string(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone(), &[]);
                 if (apiUrl == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
                 }
-                url = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), &pathValue);
+                url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), pathValue).into());
             }
             let mut urlParams: Value = paramsValue.clone();
             if (access.as_str() == Some("private")) {

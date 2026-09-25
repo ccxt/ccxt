@@ -4900,10 +4900,10 @@ impl ParadexCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut version: Value = self.version.clone();
         let mut pathValue: Value = path.clone();
-        if is_equal(&get_index_of(&path, &Value::Str("v2/".into())), &Value::Int(0)) {
+        if (Value::Int(path.as_str().and_then(|__s| __s.find("v2/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             pathValue = replace_str(&path, &Value::Str("v2/".into()), &Value::Str("".into()));
         }
-        if is_equal(&get_index_of(&path, &Value::Str("v2/".into())), &Value::Int(0)) {
+        if (Value::Int(path.as_str().and_then(|__s| __s.find("v2/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             version = Value::Str("v2".into());
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &version)), Value::Str("/".into())).into()), self.implode_params(pathValue.clone(), params.clone())).into());
