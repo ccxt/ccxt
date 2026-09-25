@@ -850,10 +850,10 @@ public partial class upbit : Exchange
         //
         Int64? timestamp = this.safeInteger(ticker, "trade_timestamp");
         string? marketId = this.safeString2(ticker, "market", "code");
-        market = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? last = this.safeString(ticker, "trade_price");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "high_price") },
@@ -873,7 +873,7 @@ public partial class upbit : Exchange
             { "baseVolume", this.safeString(ticker, "acc_trade_volume_24h") },
             { "quoteVolume", this.safeString(ticker, "acc_trade_price_24h") },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -896,9 +896,9 @@ public partial class upbit : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> tickers = new List<object>() {};
-        if ((symbols == null))
+        if ((symbolsNormalized == null))
         {
             // ticker/all returns every market of the requested quote currencies with a single request
             List<object> quoteIds = new List<object>() {};
@@ -928,7 +928,7 @@ public partial class upbit : Exchange
             tickers = await this.publicGetTickerAll(this.extend(request, parameters));
         } else
         {
-            IList<object> ids = this.marketIds(symbols);
+            IList<object> ids = this.marketIds(symbolsNormalized);
             List<object> promises = new List<object>() {};
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; i < (queries?.Count ?? 0); i++)
@@ -969,7 +969,7 @@ public partial class upbit : Exchange
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
     public virtual List<object> idsQueryStrings(IList<object> ids, object maxQueryLength)
@@ -1068,13 +1068,13 @@ public partial class upbit : Exchange
         string? price = this.safeString2(trade, "trade_price", "price");
         string? amount = this.safeString2(trade, "trade_volume", "volume");
         string? marketId = this.safeString2(trade, "market", "code");
-        market = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, add(askOrBid, "_fee"));
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", getValue(market, "quote") },
+                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -1084,7 +1084,7 @@ public partial class upbit : Exchange
             { "order", orderId },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -1092,7 +1092,7 @@ public partial class upbit : Exchange
             { "amount", amount },
             { "cost", cost },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1109,20 +1109,16 @@ public partial class upbit : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)200);
-        }
+        object limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
-            { "count", limitVar },
+            { "count", limitResolved },
         };
         List<object> response = await this.publicGetTradesTicks(this.extend(request, parameters));
         //
@@ -1147,7 +1143,7 @@ public partial class upbit : Exchange
         //                    "ask_bid": "ASK",
         //              "sequential_id":  15428917910540000 }  ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limitVar));
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limitResolved));
     }
 
     /**
@@ -1285,7 +1281,6 @@ public partial class upbit : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1295,20 +1290,17 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)200);
-        }
+        object limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", timeframeValue },
-            { "count", limitVar },
+            { "count", limitResolved },
         };
         List<object> response = null;
         if ((since != null))
         {
             // convert `since` to `to` value
-            request["to"] = this.iso8601(this.sum(since, multiply(multiply(timeframePeriod, limitVar), 1000)));
+            request["to"] = this.iso8601(this.sum(since, multiply(multiply(timeframePeriod, limitResolved), 1000)));
         }
         if (timeframeValue == "minutes")
         {
@@ -1350,7 +1342,7 @@ public partial class upbit : Exchange
         //     ]
         //
         IList<object> ohlcvs = this.toArray(response);
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
     public virtual string? calcOrderPrice(string? symbol, double? amount, double? price = null, object parameters = null)
@@ -1470,13 +1462,13 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
         }
+        object paramsOrdType = (customType == "best") ? this.omit(parameters, new List<object>() {"ordType", "ord_type"}) : parameters;
         if (customType == "best")
         {
-            parameters = this.omit(parameters, new List<object>() {"ordType", "ord_type"});
             request["ord_type"] = "best";
             if ((side == "buy"))
             {
-                string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                string? orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
                 request["price"] = orderPrice;
             } else
             {
@@ -1511,13 +1503,13 @@ public partial class upbit : Exchange
             throw new ArgumentsRequired ((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
         }
         Dictionary<string, object> response = null;
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"});
+        object paramsRequest = this.omit(paramsOrdType, new List<object>() {"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"});
         if ((test == true))
         {
-            response = await this.privatePostOrdersTest(this.extend(request, parameters));
+            response = await this.privatePostOrdersTest(this.extend(request, paramsRequest));
         } else
         {
-            response = await this.privatePostOrders(this.extend(request, parameters));
+            response = await this.privatePostOrders(this.extend(request, paramsRequest));
         }
         //
         //     {
@@ -1625,7 +1617,7 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
-        parameters = this.omit(parameters, "clientOrderId");
+        object paramsOmitted = this.omit(parameters, "clientOrderId");
         if ((id != null))
         {
             request["prev_order_uuid"] = id;
@@ -1650,7 +1642,7 @@ public partial class upbit : Exchange
             if ((side == "buy"))
             {
                 request["new_ord_type"] = "price";
-                string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                string? orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOmitted);
                 request["new_price"] = orderPrice;
             } else
             {
@@ -1665,13 +1657,13 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((this.id + " editOrder() supports only limit or market types in the type argument.")) ;
         }
+        object paramsOrdType = (customType == "best") ? this.omit(paramsOmitted, new List<object>() {"newOrdType", "new_ord_type"}) : paramsOmitted;
         if (customType == "best")
         {
-            parameters = this.omit(parameters, new List<object>() {"newOrdType", "new_ord_type"});
             request["new_ord_type"] = "best";
             if ((side == "buy"))
             {
-                string? orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                string? orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
                 request["new_price"] = orderPrice;
             } else
             {
@@ -1709,9 +1701,9 @@ public partial class upbit : Exchange
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
         }
-        parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"});
-        // console.log ('check the each request params: ', request);
-        Dictionary<string, object> response = await this.privatePostOrdersCancelAndNew(this.extend(request, parameters));
+        object paramsRequest = this.omit(paramsOrdType, new List<object>() {"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"});
+        // console.log ('check the each request paramsOmitted: ', request);
+        Dictionary<string, object> response = await this.privatePostOrdersCancelAndNew(this.extend(request, paramsRequest));
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
         //     side: 'bid',                                         //previous order data
@@ -2134,9 +2126,9 @@ public partial class upbit : Exchange
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "paid_fee");
         string? marketId = this.safeString(order, "market");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         IList<object> trades = this.safeList(order, "trades", new List<object>() {});
-        trades = this.parseTrades(trades, market, null, null, new Dictionary<string, object>() {
+        trades = this.parseTrades(trades, marketResolved, null, null, new Dictionary<string, object>() {
             { "order", id },
             { "type", type },
         });
@@ -2171,7 +2163,7 @@ public partial class upbit : Exchange
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
+                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -2182,7 +2174,7 @@ public partial class upbit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", type },
             { "timeInForce", this.safeStringUpper(order, "time_in_force") },
             { "postOnly", null },
@@ -2294,10 +2286,10 @@ public partial class upbit : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.privateGetOrdersClosed(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2361,10 +2353,10 @@ public partial class upbit : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.privateGetOrdersClosed(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2543,10 +2535,9 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? networkCode = null;
-        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = (string)networkCodeparametersVariable[0];
-        parameters = networkCodeparametersVariable[1];
+        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
@@ -2554,7 +2545,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> response = await this.privateGetDepositsCoinAddress(this.extend(new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "net_type", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
-        }, parameters));
+        }, paramsNetworkCode));
         //
         //    {
         //        currency: 'XRP',
@@ -2627,11 +2618,10 @@ public partial class upbit : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagResolvedparamsTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagResolved = tagResolvedparamsTagVariable[0];
+        IDictionary<string, object> paramsTag = ((IDictionary<string, object>)tagResolvedparamsTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2645,24 +2635,23 @@ public partial class upbit : Exchange
         {
             this.checkAddress(address);
             // 2023-05-23 Change to required parameters for digital assets
-            string? network = this.safeStringUpper2(parameters, "network", "net_type");
+            string? network = this.safeStringUpper2(paramsTag, "network", "net_type");
             if ((network == null))
             {
                 throw new ArgumentsRequired ((this.id + " withdraw() requires a network argument")) ;
             }
-            parameters = this.omit(parameters, new List<object>() {"network"});
+            Dictionary<string, object> paramsOmitted = this.omit(paramsTag, new List<object>() {"network"});
             request["net_type"] = network;
             request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             request["address"] = address;
-            if ((tagVar != null))
+            if ((tagResolved != null))
             {
-                request["secondary_address"] = tagVar;
+                request["secondary_address"] = tagResolved;
             }
-            parameters = this.omit(parameters, "network");
-            response = await this.privatePostWithdrawsCoin(this.extend(request, parameters));
+            response = await this.privatePostWithdrawsCoin(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privatePostWithdrawsKrw(this.extend(request, parameters));
+            response = await this.privatePostWithdrawsKrw(this.extend(request, paramsTag));
         }
         //
         //     {
@@ -2703,10 +2692,17 @@ public partial class upbit : Exchange
                 url = add(url, ("?" + this.urlencode(query)));
             }
         }
+        bool hasBody = (isEqual(api, "private")) && ((method != "GET")) && ((method != "DELETE"));
+        object requestBody = body;
+        if (hasBody)
+        {
+            requestBody = this.json(parameters);
+        }
+        Dictionary<string, object> privateHeaders = null;
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            headers = new Dictionary<string, object>() {};
+            privateHeaders = new Dictionary<string, object>() {};
             string nonce = this.uuid();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "access_key", this.apiKey },
@@ -2714,10 +2710,9 @@ public partial class upbit : Exchange
             };
             int hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
             string? auth = null;
-            if (((method != "GET")) && ((method != "DELETE")))
+            if (hasBody)
             {
-                body = this.json(parameters);
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                privateHeaders["Content-Type"] = "application/json";
             }
             if ((hasQuery != 0))
             {
@@ -2730,13 +2725,14 @@ public partial class upbit : Exchange
                 request["query_hash_alg"] = "SHA512";
             }
             string token = jwt(request, this.encode(this.secret), sha256);
-            ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + token);
+            privateHeaders["Authorization"] = ("Bearer " + token);
         }
+        object requestHeaders = (isEqual(api, "private")) ? privateHeaders : headers;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

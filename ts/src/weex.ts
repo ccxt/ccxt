@@ -1622,7 +1622,7 @@ export default class weex extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsHistorical, [ 'historical', 'until', 'price' ]);
         let response = undefined;
         // hardcap threshold
-        const limitResolved = (limit !== undefined) ? Math.min (limit, 1000) : limit;
+        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 1000);
         if (historical) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;

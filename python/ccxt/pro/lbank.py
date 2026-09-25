@@ -139,9 +139,10 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(subscribe, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -392,13 +393,12 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'fetchTradesWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchTrades:' + market['symbol']
-        if limit is None:
-            limit = 10
+        limitResolved = 10 if (limit is None) else limit
         message = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
-            'size': limit,
+            'size': limitResolved,
         }
         request = self.deep_extend(message, params)
         requestId = self.request_id()
@@ -542,11 +542,11 @@ class lbank(ccxt.async_support.lbank):
         url = self.urls['api']['ws']
         messageHash = None
         pair = 'all'
+        symbolResolved = None if (symbol is None) else self.symbol(symbol)
         if symbol is None:
             messageHash = 'orders:all'
         else:
             market = self.market(symbol)
-            symbol = self.symbol(symbol)
             messageHash = 'orders:' + market['symbol']
             pair = market['id']
         message = {
@@ -557,7 +557,7 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limit, True)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -756,12 +756,11 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'fetchOrderBookWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchOrderbook:' + market['symbol']
-        if limit is None:
-            limit = 100
+        limitResolved = 100 if (limit is None) else limit
         subscribe = {
             'action': 'request',
             'request': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         }
         request = self.deep_extend(subscribe, params)
@@ -785,16 +784,15 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'watchOrderBook')
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + market['symbol']
-        params = self.omit(params, 'aggregation')
-        if limit is None:
-            limit = 100
+        paramsOmitted = self.omit(params, 'aggregation')
+        limitResolved = 100 if (limit is None) else limit
         subscribe = {
             'action': 'subscribe',
             'subscribe': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         }
-        request = self.deep_extend(subscribe, params)
+        request = self.deep_extend(subscribe, paramsOmitted)
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 

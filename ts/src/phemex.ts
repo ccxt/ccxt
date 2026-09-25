@@ -3445,7 +3445,7 @@ export default class phemex extends Exchange {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request: Dict = {};
-        const limitResolved = (limit !== undefined) ? Math.min (200, limit) : limit;
+        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (200, limit);
         if (limitResolved !== undefined) {
             request['limit'] = limitResolved;
         }

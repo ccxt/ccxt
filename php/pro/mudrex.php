@@ -77,8 +77,8 @@ class mudrex extends \ccxt\async\mudrex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'ticker:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'ticker:' . $symbolValue;
         $url = $this->urls['api']['ws'];
         $this->set_broker_headers();
         $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
@@ -102,12 +102,12 @@ class mudrex extends \ccxt\async\mudrex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $messageHashes = array();
         $assets = array();
-        if ($symbols !== null) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $market = $this->market($symbolsNormalized[$i]);
                 $messageHashes[] = 'ticker:' . $market['symbol'];
                 $baseIdString = ($market['baseId'] !== null) ? $market['baseId'] : '';
                 $quoteIdString = ($market['quoteId'] !== null) ? $market['quoteId'] : '';
@@ -129,7 +129,7 @@ class mudrex extends \ccxt\async\mudrex {
             $result[$ticker['symbol']] = $ticker;
             return $result;
         }
-        return $this->filter_by_array_tickers($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -141,9 +141,9 @@ class mudrex extends \ccxt\async\mudrex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $priceType = $this->safe_string($params, 'price');
-        $params = $this->omit($params, 'price');
+        $paramsOmitted = $this->omit($params, 'price');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         if ($interval !== '1s' && $interval !== '1m') {
             throw new NotSupported($this->id . ' watchOHLCV() supports 1s and 1m timeframes only');
@@ -163,12 +163,13 @@ class mudrex extends \ccxt\async\mudrex {
             'method' => 'SUBSCRIBE',
             'params' => array( $stream ),
         );
-        $request = $this->extend($subscribe, $params);
+        $request = $this->extend($subscribe, $paramsOmitted);
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_message(Client $client, mixed $message) {

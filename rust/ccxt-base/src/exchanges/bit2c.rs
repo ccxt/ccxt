@@ -1310,6 +1310,7 @@ impl Bit2cCore {
         let mut fee: Value = Value::Null;
         let mut side: Value = Value::Null;
         let mut makerOrTaker: Value = Value::Null;
+        let mut tradeMarket: Value = Value::Null;
         let mut reference: Value = self.safe_string_k(trade.clone(), "reference", &[]);
         if (reference != Value::Null) {
             id = reference.clone();
@@ -1321,8 +1322,8 @@ impl Bit2cCore {
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]);
             let mut reference_parts: Value = split(&reference, &Value::Str("|".into())); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
-            market = self.safe_market(&[marketId, market.clone()]);
-            market = self.safe_market(&[reference_parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), market.clone()]);
+            let mut marketByPair: Value = self.safe_market(&[marketId, market.clone()]);
+            tradeMarket = self.safe_market(&[reference_parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), marketByPair]);
             let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
             makerOrTaker = (if (isMaker.as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             orderId = (if (isMaker.as_bool() == Some(true)) { reference_parts.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) } else { reference_parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
@@ -1346,6 +1347,7 @@ impl Bit2cCore {
             id = self.safe_string_k(trade.clone(), "tid", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             amount = self.safe_string_k(trade.clone(), "amount", &[]);
+            tradeMarket = self.safe_market(&[Value::Null, market]);
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
                 if (side != Value::Null) && (side.as_str() != Some("")) {
@@ -1355,14 +1357,14 @@ impl Bit2cCore {
                 }
             }
         }
-        market = self.safe_market(&[Value::Null, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, tradeMarket]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -1372,7 +1374,7 @@ impl Bit2cCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1460,6 +1462,8 @@ impl Bit2cCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), self.implode_params(path, params.clone())).into());
+        let mut requestBody: Value = Value::Null;
+        let mut requestHeaders: Value = Value::Null;
         if (api.as_str() == Some("public")) {
             url = Value::Str(format!("{}{}", url, Value::Str(".json".into())).into());
         }  else {
@@ -1477,10 +1481,10 @@ impl Bit2cCore {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
                 }
             }  else {
-                body = auth.clone();
+                requestBody = auth.clone();
             }
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
-            headers = Value::Map({
+            requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
@@ -1488,12 +1492,14 @@ impl Bit2cCore {
                 m
             });
         }
+        let mut bodyResult: Value = (if (requestBody == Value::Null) { body } else { requestBody });
+        let mut headersResult: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResult);
+        m.insert("headers".to_string(), headersResult);
     m
 });
 

@@ -1054,6 +1054,7 @@ public partial class bit2c : Exchange
         Dictionary<string, object> fee = null;
         object side = null;
         string? makerOrTaker = null;
+        IDictionary<string, object> tradeMarket = null;
         string? reference = this.safeString(trade, "reference");
         if ((reference != null))
         {
@@ -1067,8 +1068,8 @@ public partial class bit2c : Exchange
             amount = this.safeString(trade, "firstAmount");
             List<object> reference_parts = reference.Split(new [] {"|"}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             string? marketId = this.safeString(trade, "pair");
-            market = this.safeMarket(marketId, market);
-            market = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), market);
+            Dictionary<string, object> marketByPair = this.safeMarket(marketId, market);
+            tradeMarket = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), marketByPair);
             bool? isMaker = this.safeBool(trade, "isMaker");
             makerOrTaker = ((isMaker == true)) ? "maker" : "taker";
             orderId = ((isMaker == true)) ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
@@ -1094,6 +1095,7 @@ public partial class bit2c : Exchange
             id = this.safeString(trade, "tid");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "amount");
+            tradeMarket = this.safeMarket(null, market);
             side = this.safeValue(trade, "isBid");
             if ((side != null))
             {
@@ -1106,13 +1108,13 @@ public partial class bit2c : Exchange
                 }
             }
         }
-        market = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(null, tradeMarket);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "order", orderId },
             { "type", null },
             { "side", side },
@@ -1121,7 +1123,7 @@ public partial class bit2c : Exchange
             { "amount", amount },
             { "cost", null },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual bool isFiat(string? code)
@@ -1199,6 +1201,8 @@ public partial class bit2c : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
+        string? requestBody = null;
+        Dictionary<string, object> requestHeaders = null;
         if (isEqual(api, "public"))
         {
             url = url + ".json";
@@ -1219,20 +1223,22 @@ public partial class bit2c : Exchange
                 }
             } else
             {
-                body = auth;
+                requestBody = auth;
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },
                 { "sign", signature },
             };
         }
+        object bodyResult = ((requestBody == null)) ? body : requestBody;
+        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResult },
+            { "headers", headersResult },
         };
     }
 

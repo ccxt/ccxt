@@ -800,8 +800,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 'endTime': until,
             },
         }
-        params = self.omit(params, 'until')
-        response = await self.publicPostInfo(self.extend(request, params))
+        paramsOmitted = self.omit(params, 'until')
+        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
         #
         #     [
         #         {
@@ -864,13 +864,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str [params.user]: wallet address(defaults to self.walletAddress)
         :returns Balances: balance structure
         """
-        userAddress: Str
-        userAddress, params = self.handle_public_address('fetchBalance', params)
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchBalance', params)
         request = {
             'type': 'spotClearinghouseState',
             'user': userAddress,
         }
-        response = await self.publicPostInfo(self.extend(request, params))
+        response = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
         #
         #     {
         #         "balances": [
@@ -920,8 +919,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         else:
             # no filter — warm the whole outcome set so identities resolve from the cache
             await self.load_outcomes()
-        userAddress: Str
-        userAddress, params = self.handle_public_address('fetchPositions', params)
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchPositions', params)
         request = {
             'type': 'spotClearinghouseState',
             'user': userAddress,
@@ -930,7 +928,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         # value / entry price / pnl, so they are computed from the current mid prices
         promises = [
-            self.publicPostInfo(self.extend(request, params)),
+            self.publicPostInfo(self.extend(request, paramsPublicAddress)),
             self.publicPostInfo({'type': 'allMids'}),
         ]
         results = await asyncio.gather(*promises)
@@ -1158,9 +1156,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         if clientOrderId is not None:
             orderObj['c'] = clientOrderId
-        vaultAddress = None
-        vaultAddress, params = self.handle_option_string_and_params(params, 'createOrder', 'vaultAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params(params, 'createOrder', 'vaultAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         orderAction = {
             'type': 'order',
             'orders': [orderObj],
@@ -1262,7 +1259,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         assetId = self.safe_integer(outcomeInfo, 'assetId')
         nonce = self.incrementing_nonce()
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
-        params = self.omit(params, ['clientOrderId', 'client_id'])
+        paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
         cancelReq = []
         cancelAction = {'type': 'cancel', 'cancels': []}
         if clientOrderId is not None:
@@ -1275,9 +1272,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             for i in range(0, len(ids)):
                 cancelReq.append({'a': assetId, 'o': self.parse_to_numeric(ids[i])})
         cancelAction['cancels'] = cancelReq
-        vaultAddress = None
-        vaultAddress, params = self.handle_option_string_and_params(params, 'cancelOrders', 'vaultAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params(paramsOmitted, 'cancelOrders', 'vaultAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request = {
             'action': cancelAction,
@@ -1336,12 +1332,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str [params.method]: 'openOrders' | 'frontendOpenOrders'(default)
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
-        userAddress: Str
-        userAddress, params = self.handle_public_address('fetchOpenOrders', params)
-        method: Str
-        method, params = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchOpenOrders', params)
+        method, paramsMethod = self.handle_option_string_and_params(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         request = {'type': method, 'user': userAddress}
-        response = await self.publicPostInfo(self.extend(request, params))
+        response = await self.publicPostInfo(self.extend(request, paramsMethod))
         ordersWithStatus = []
         rawOrders = []
         if isinstance(response, list):
@@ -1370,10 +1364,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str [params.user]: wallet address
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
-        userAddress: Str
-        userAddress, params = self.handle_public_address('fetchOrders', params)
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchOrders', params)
         request = {'type': 'historicalOrders', 'user': userAddress}
-        response = await self.publicPostInfo(self.extend(request, params))
+        response = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
         # Deduplicate by oid keeping most recent statusTimestamp
         deduped = {}
         historicalOrders = []
@@ -1415,17 +1408,17 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str [params.clientOrderId]: fetch by client order id instead
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
-        userAddress: Str
-        userAddress, params = self.handle_public_address('fetchOrder', params)
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        userAddress, paramsAddress = self.handle_public_address('fetchOrder', params)
+        clientOrderId = self.safe_string(paramsAddress, 'clientOrderId')
         request = {'type': 'orderStatus', 'user': userAddress}
+        paramsValue = paramsAddress
         if clientOrderId is not None:
-            params = self.omit(params, 'clientOrderId')
+            paramsValue = self.omit(paramsAddress, 'clientOrderId')
             request['oid'] = clientOrderId
         else:
             isCloid = len(id) >= 34
             request['oid'] = id if isCloid else self.parse_to_numeric(id)
-        response = await self.publicPostInfo(self.extend(request, params))
+        response = await self.publicPostInfo(self.extend(request, paramsValue))
         orderStatus = {}
         if (not isinstance(response, str)) and not isinstance(response, list):
             orderStatus = response
@@ -1602,19 +1595,18 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             # fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
             # cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
             await self.load_outcomes()
-        userAddress: Str
-        userAddress, params = self.handle_public_address('fetchMyTrades', params)
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchMyTrades', params)
         request = {'user': userAddress}
         if since is not None:
             request['type'] = 'userFillsByTime'
             request['startTime'] = since
         else:
             request['type'] = 'userFills'
-        until = self.safe_integer(params, 'until')
-        params = self.omit(params, 'until')
+        until = self.safe_integer(paramsPublicAddress, 'until')
+        paramsOmitted = self.omit(paramsPublicAddress, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicPostInfo(self.extend(request, params))
+        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
         fills = []
         if isinstance(response, list):
             fills = response
@@ -2000,14 +1992,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return None
 
     def handle_public_address(self, methodName: str, params: dict) -> list:
-        userAux = None
-        userAux, params = self.handle_option_string_and_params_2(params, methodName, 'user', 'subAccountAddress')
-        user = userAux
-        user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
+        userAux, paramsUser = self.handle_option_string_and_params_2(params, methodName, 'user', 'subAccountAddress')
+        user, paramsAddress = self.handle_option_string_and_params(paramsUser, methodName, 'address', userAux)
         if user is not None and user != '':
-            return [user, params]
+            return [user, paramsAddress]
         if self.walletAddress is not None and self.walletAddress != '':
-            return [self.walletAddress, params]
+            return [self.walletAddress, paramsAddress]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a user parameter or walletAddress to be set')
 
     def format_vault_address(self, address: Str = None) -> Str:
@@ -2029,10 +2019,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             apiUrls = self.safe_dict(self.urls, 'api', {})
             baseUrl = self.safe_string(apiUrls, apiGroup, self.safe_string(apiUrls, 'public', ''))
         url = baseUrl + '/' + path
+        headersValue = headers
+        bodyValue = body
         if method == 'POST':
-            headers = {'Content-Type': 'application/json'}
-            body = self.json(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            headersValue = {'Content-Type': 'application/json'}
+            bodyValue = self.json(params)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

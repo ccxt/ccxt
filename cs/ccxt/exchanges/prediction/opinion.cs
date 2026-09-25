@@ -1691,10 +1691,10 @@ public partial class opinion : PredictionExchange
         }
         Dictionary<string, object> wantedTokenIds = new Dictionary<string, object>() {};
         // copy to a plain list so the strict null checks see one shape
-        object outcomesList = ((outcomes == null)) ? new List<object>() {} : outcomes;
-        for (int i = 0; i < getArrayLength(outcomesList); i++)
+        IList<object> outcomesList = ((outcomes == null)) ? new List<object>() {} : outcomes;
+        for (int i = 0; i < (outcomesList?.Count ?? 0); i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
+            IDictionary<string, object> outcomeObj = this.outcome(outcomesList[i]);
             string? tokenId = this.safeString(outcomeObj, "outcomeId");
             if ((tokenId != null))
             {
@@ -2495,7 +2495,7 @@ public partial class opinion : PredictionExchange
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
-        headers = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, existingHeaders);
@@ -2515,9 +2515,9 @@ public partial class opinion : PredictionExchange
                 };
                 string? action = this.safeString(actionByMethod, method, "get");
                 string? timestamp = this.numberToString(this.seconds());
-                ((IDictionary<string,object>)headers)["OPINION_ADDRESS"] = this.walletAddress;
-                ((IDictionary<string,object>)headers)["OPINION_SIGNATURE"] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
-                ((IDictionary<string,object>)headers)["OPINION_TIMESTAMP"] = timestamp;
+                headersExtended["OPINION_ADDRESS"] = this.walletAddress;
+                headersExtended["OPINION_SIGNATURE"] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
+                headersExtended["OPINION_TIMESTAMP"] = timestamp;
             } else
             {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
@@ -2528,9 +2528,10 @@ public partial class opinion : PredictionExchange
                 {
                     throw new AuthenticationError ((((this.id + " ") + (path)) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
-                ((IDictionary<string,object>)headers)["apikey"] = apiKey;
+                headersExtended["apikey"] = apiKey;
             }
         }
+        object bodyValue = body;
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2539,13 +2540,13 @@ public partial class opinion : PredictionExchange
             }
         } else
         {
-            body = this.json(query);
+            bodyValue = this.json(query);
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersExtended },
         };
     }
 }

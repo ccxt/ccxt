@@ -66,11 +66,11 @@ class derive(ccxt.async_support.derive):
         request = self.extend(message, {
             'id': requestId,
         })
-        subscription = self.extend(subscription, {
+        subscriptionExtended = self.extend(subscription, {
             'id': requestId,
             'method': 'subscribe',
         })
-        return await self.watch(url, messageHash, request, messageHash, subscription)
+        return await self.watch(url, messageHash, request, messageHash, subscriptionExtended)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -85,10 +85,9 @@ class derive(ccxt.async_support.derive):
         """
         if self.markets is None:
             await self.load_markets()
-        if limit is None:
-            limit = 10
+        limitResolved = 10 if (limit is None) else limit
         market = self.market(symbol)
-        topic = 'orderbook.' + market['id'] + '.10.' + self.number_to_string(limit)
+        topic = 'orderbook.' + market['id'] + '.10.' + self.number_to_string(limitResolved)
         request = {
             'method': 'subscribe',
             'params': {
@@ -100,7 +99,7 @@ class derive(ccxt.async_support.derive):
         subscription = {
             'name': topic,
             'symbol': symbol,
-            'limit': limit,
+            'limit': limitResolved,
             'params': params,
         }
         orderbook = await self.watch_public(topic, request, subscription)
@@ -270,7 +269,7 @@ class derive(ccxt.async_support.derive):
         client.resolve(ticker, topic)
         return message
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unsubscribe from the orderbook channel
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -299,7 +298,7 @@ class derive(ccxt.async_support.derive):
         }
         return await self.un_watch_public(messageHash, request, subscription)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unsubscribe from the trades channel
         :param str symbol: unified symbol of the market to unwatch the trades for
@@ -330,11 +329,11 @@ class derive(ccxt.async_support.derive):
         request = self.extend(message, {
             'id': requestId,
         })
-        subscription = self.extend(subscription, {
+        subscriptionExtended = self.extend(subscription, {
             'id': requestId,
             'method': 'unsubscribe',
         })
-        return await self.watch(url, messageHash, request, messageHash, subscription)
+        return await self.watch(url, messageHash, request, messageHash, subscriptionExtended)
 
     def handle_order_book_un_subscription(self, client: Client, topic: str):
         parsedTopic = topic.split('.')
@@ -414,9 +413,10 @@ class derive(ccxt.async_support.derive):
             'params': params,
         }
         trades = await self.watch_public(topic, request, subscription)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(market['symbol'], limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limitResolved, True)
 
     def handle_trade(self, client: Client, message: dict):
         #
@@ -475,11 +475,11 @@ class derive(ccxt.async_support.derive):
         request = self.extend(message, {
             'id': requestId,
         })
-        subscription = self.extend(subscription, {
+        subscriptionExtended = self.extend(subscription, {
             'id': requestId,
             'method': 'subscribe',
         })
-        return await self.watch(url, messageHash, request, messageHash, subscription)
+        return await self.watch(url, messageHash, request, messageHash, subscriptionExtended)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -496,14 +496,12 @@ class derive(ccxt.async_support.derive):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handleDeriveSubaccountId('watchOrders', params)
+        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchOrders', params)
         topic = self.number_to_string(subaccountId) + '.orders'
         messageHash = topic
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash += ':' + symbol
+        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        if symbolResolved is not None:
+            messageHash += ':' + symbolResolved
         request = {
             'method': 'subscribe',
             'params': {
@@ -514,13 +512,14 @@ class derive(ccxt.async_support.derive):
         }
         subscription = {
             'name': topic,
-            'params': params,
+            'params': paramsDeriveSubaccountId,
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsDeriveSubaccountId)
         orders = await self.watch_private(messageHash, message, subscription)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_order(self, client: Client, message: dict):
         #
@@ -609,14 +608,12 @@ class derive(ccxt.async_support.derive):
         """
         if self.markets is None:
             await self.load_markets()
-        subaccountId = None
-        subaccountId, params = self.handleDeriveSubaccountId('watchMyTrades', params)
+        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchMyTrades', params)
         topic = self.number_to_string(subaccountId) + '.trades'
         messageHash = topic
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash += ':' + symbol
+        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        if symbolResolved is not None:
+            messageHash += ':' + symbolResolved
         request = {
             'method': 'subscribe',
             'params': {
@@ -627,13 +624,14 @@ class derive(ccxt.async_support.derive):
         }
         subscription = {
             'name': topic,
-            'params': params,
+            'params': paramsDeriveSubaccountId,
         }
-        message = self.extend(request, params)
+        message = self.extend(request, paramsDeriveSubaccountId)
         trades = await self.watch_private(messageHash, message, subscription)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
     def handle_my_trade(self, client: Client, message: dict):
         #

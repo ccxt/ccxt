@@ -1325,8 +1325,8 @@ class myriad(PredictionExchange, ImplicitAPI):
             request['since'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['limit'] = limit
-        params = self.omit(params, ['trader', 'address', 'status'])
-        response = await self.myriadPublicGetUsersAddressEvents(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['trader', 'address', 'status'])
+        response = await self.myriadPublicGetUsersAddressEvents(self.extend(request, paramsOmitted))
         #
         #     {
         #         "data": [
@@ -1391,9 +1391,9 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a privateKey to sign the cancellation')
         fetched = self.get_order_response_from_params(id, params)
         networkIdParam = self.safe_string_2(params, 'networkId', 'network_id')
-        params = self.omit(params, ['orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id'])
+        paramsOmitted = self.omit(params, ['orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id'])
         if fetched is None:
-            fetched = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, params))
+            fetched = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, paramsOmitted))
         fetchedInfo = self.safe_dict(fetched, 'info', {})
         rawOrder = self.safe_dict(fetched, 'order', {})
         rawOrderKeys = list(rawOrder.keys())
@@ -1415,7 +1415,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'signature': signature,
             'network_id': self.parse_to_int(networkId),
         }
-        response = await self.myriadPublicDeleteOrdersHash(self.extend(request, params))
+        response = await self.myriadPublicDeleteOrdersHash(self.extend(request, paramsOmitted))
         #
         #     {
         #         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1492,7 +1492,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a privateKey to sign the cancellations')
         paramsForLookup = params
         networkIdParam = self.safe_string_2(params, 'networkId', 'network_id')
-        params = self.omit(params, ['orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id'])
+        paramsOmitted = self.omit(params, ['orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id'])
         idsLength = len(ids)
         signedOrders = []
         wrappers = []
@@ -1523,7 +1523,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'orders': signedOrders,
             'network_id': self.parse_to_int(networkId),
         }
-        await self.myriadPublicPostOrdersCancelBatch(self.extend(request, params))
+        await self.myriadPublicPostOrdersCancelBatch(self.extend(request, paramsOmitted))
         #
         #     {
         #         "cancelled": [
@@ -1600,7 +1600,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             elif self.walletAddress is not None:
                 request['trader'] = self.walletAddress
         requestedTradingModel = self.safe_string_lower_2(params, 'tradingModel', 'trading_model')
-        params = self.omit(params, ['tradingModel', 'trading_model'])
+        paramsOmitted = self.omit(params, ['tradingModel', 'trading_model'])
         outcomeObj = None
         outcomeSymbol = None
         if outcome is not None:
@@ -1610,8 +1610,8 @@ class myriad(PredictionExchange, ImplicitAPI):
                 info = self.safe_dict(outcomeObj, 'info', {})
                 requestedTradingModel = self.safe_string_lower(info, 'tradingModel')
         if requestedTradingModel == 'amm':
-            return await self.fetch_amm_orders(outcome, since, limit, params)
-        response = await self.myriadPublicGetOrders(self.extend(request, params))
+            return await self.fetch_amm_orders(outcome, since, limit, paramsOmitted)
+        response = await self.myriadPublicGetOrders(self.extend(request, paramsOmitted))
         #
         #     {
         #         "data": [
@@ -3349,15 +3349,16 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
         trader = self.wallet_address_from_keys()
         networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
-        if outcome is not None:
-            outcomeObj = await self.load_outcome(outcome)
+        outcomeResolved = outcome
+        if outcomeResolved is not None:
+            outcomeObj = await self.load_outcome(outcomeResolved)
             info = self.safe_dict(outcomeObj, 'info', {})
             networkId = self.safe_string(info, 'networkId', networkId)
-            outcome = self.safe_outcome_symbol(outcome, outcomeObj)
+            outcomeResolved = self.safe_outcome_symbol(outcomeResolved, outcomeObj)
         channel = 'orders:' + networkId + ':' + trader
         messageHash = 'orders'
         orders = await self.subscribe_myriad_channel(messageHash, channel, params)
-        return self.filter_by_value_since_limit(orders, 'outcome', outcome, since, limit, 'timestamp', True)
+        return self.filter_by_value_since_limit(orders, 'outcome', outcomeResolved, since, limit, 'timestamp', True)
 
     def handle_order(self, client: object, data: dict):
         if self.orders is None:
@@ -3543,17 +3544,18 @@ class myriad(PredictionExchange, ImplicitAPI):
             if querystring != '':
                 url += '?' + querystring
         existingHeaders = headers if (headers is not None) else {}
-        headers = self.extend({
+        headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
         # non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         # included — the previous logic only sent a body for authenticated requests)
+        bodyValue = body
         if method != 'GET':
             queryKeys = list(query.keys())
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
-                body = self.json(query)
+                bodyValue = self.json(query)
         if (self.apiKey is not None) and (self.apiKey != ''):
             # keep this literal split. the php transpiler prefixes every occurrence of a local or
             # parameter name with '$' at the text level, including occurrences inside single-quoted
@@ -3565,5 +3567,5 @@ class myriad(PredictionExchange, ImplicitAPI):
             headerKey = 'x-api' + '-key'
             headersKey = {}
             headersKey[headerKey] = self.apiKey
-            headers = self.extend(headers, headersKey)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            headersValue = self.extend(headersValue, headersKey)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}

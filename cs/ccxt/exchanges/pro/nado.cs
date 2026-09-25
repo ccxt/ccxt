@@ -92,17 +92,17 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         object trades = await this.watchPublic("trade", market, messageHash, parameters);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -134,7 +134,6 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         int symbolsLength = getArrayLength(symbols);
@@ -142,23 +141,24 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        symbols = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             markets.Add(market);
             messageHashes.Add(("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
         object trades = await this.watchPublicMultiple("trade", markets, messageHashes, parameters);
+        IDictionary<string, object> first = this.safeDict(trades, 0);
+        string? tradeSymbol = this.safeString(first, "symbol");
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            IDictionary<string, object> first = this.safeDict(trades, 0);
-            string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -179,12 +179,12 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        symbols = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             markets.Add(market);
             messageHashes.Add(("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
@@ -251,12 +251,12 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        symbols = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             markets.Add(market);
@@ -289,12 +289,12 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        symbols = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             markets.Add(market);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
@@ -316,7 +316,6 @@ public partial class nado : ccxt.nado
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -327,11 +326,12 @@ public partial class nado : ccxt.nado
         };
         object result = await this.watchPublic("latest_candlestick", market, messageHash, this.extend(request, parameters));
         object stored = getValue(result, 2);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(stored, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar}));
+            limitResolved = ((Int64?)callDynamically(stored, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limit}));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(stored, since, limitVar, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(stored, since, limitResolved, 0, true));
     }
 
     /**
@@ -373,11 +373,12 @@ public partial class nado : ccxt.nado
         var resultSymbol = ((IList<object>) resultSymbolresultTimeframestoredVariable)[0];
         var resultTimeframe = ((IList<object>) resultSymbolresultTimeframestoredVariable)[1];
         var stored = ((IList<object>) resultSymbolresultTimeframestoredVariable)[2];
+        object limitResolved = limit;
         if (this.newUpdates)
         {
-            limit = callDynamically(stored, "getLimit", new object[] {resultSymbol, limit});
+            limitResolved = callDynamically(stored, "getLimit", new object[] {resultSymbol, limit});
         }
-        IList<object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(resultSymbol,((string)resultTimeframe), filtered));
     }
 
@@ -447,12 +448,11 @@ public partial class nado : ccxt.nado
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbolVar = this.symbol(symbolVar);
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
-        return ccxt.BaseExchange.ToTicker((tickers != null && tickers.ContainsKey(symbolVar) ? tickers[symbolVar] : null));
+        string? symbolValue = this.symbol(symbol);
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, parameters));
+        return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolValue));
     }
 
     /**
@@ -484,16 +484,16 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "ticker";
         string streamType = "all_bbo";
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
                 messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 streamType = "best_bid_offer";
             }
@@ -503,13 +503,13 @@ public partial class nado : ccxt.nado
         {
             if (messageHash == "ticker")
             {
-                return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbols));
+                return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbolsNormalized));
             }
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             tickers[(string)getValue(ticker, "symbol")] = ticker;
             return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
     /**
@@ -525,16 +525,16 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "ticker";
         string streamType = "all_bbo";
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
                 messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 streamType = "best_bid_offer";
             }
@@ -555,16 +555,16 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "bidask";
         string streamType = "all_bbo";
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
                 messageHash = ("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 streamType = "best_bid_offer";
             }
@@ -574,13 +574,13 @@ public partial class nado : ccxt.nado
         {
             if (messageHash == "bidask")
             {
-                return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbols));
+                return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbolsNormalized));
             }
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             tickers[(string)getValue(ticker, "symbol")] = ticker;
             return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
     /**
@@ -596,16 +596,16 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "bidask";
         string streamType = "all_bbo";
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
                 messageHash = ("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 streamType = "best_bid_offer";
             }
@@ -628,8 +628,6 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -637,29 +635,30 @@ public partial class nado : ccxt.nado
         IDictionary<string, object> market = null;
         string messageHash = "orders";
         Int64? productId = null;
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = messageHash + (":" + (symbolVar));
+            market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + (":" + (symbolResolved));
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrders", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrders", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "order_update" },
             { "subaccount", sender },
             { "product_id", productId },
         };
-        object orders = await this.watchPrivate("order_update", stream, messageHash, parameters);
+        object orders = await this.watchPrivate("order_update", stream, messageHash, paramsSubaccount);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -674,7 +673,6 @@ public partial class nado : ccxt.nado
      */
     public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
-        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -682,24 +680,24 @@ public partial class nado : ccxt.nado
         IDictionary<string, object> market = null;
         string messageHash = "orders";
         Int64? productId = null;
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + (":" + (symbolVar));
+            market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + (":" + (symbolResolved));
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "unWatchOrders", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "unWatchOrders", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "order_update" },
             { "subaccount", sender },
             { "product_id", productId },
         };
-        return await this.unWatchPrivate(stream, messageHash, parameters);
+        return await this.unWatchPrivate(stream, messageHash, paramsSubaccount);
     }
 
     /**
@@ -717,8 +715,6 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -726,29 +722,30 @@ public partial class nado : ccxt.nado
         IDictionary<string, object> market = null;
         string messageHash = "myTrades";
         Int64? productId = null;
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = messageHash + (":" + (symbolVar));
+            market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + (":" + (symbolResolved));
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchMyTrades", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchMyTrades", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "fill" },
             { "subaccount", sender },
             { "product_id", productId },
         };
-        object trades = await this.watchPrivate("fill", stream, messageHash, parameters);
+        object trades = await this.watchPrivate("fill", stream, messageHash, paramsSubaccount);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -763,7 +760,6 @@ public partial class nado : ccxt.nado
      */
     public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
     {
-        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -771,24 +767,24 @@ public partial class nado : ccxt.nado
         IDictionary<string, object> market = null;
         string messageHash = "myTrades";
         Int64? productId = null;
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + (":" + (symbolVar));
+            market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + (":" + (symbolResolved));
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "fill" },
             { "subaccount", sender },
             { "product_id", productId },
         };
-        return await this.unWatchPrivate(stream, messageHash, parameters);
+        return await this.unWatchPrivate(stream, messageHash, paramsSubaccount);
     }
 
     /**
@@ -810,35 +806,34 @@ public partial class nado : ccxt.nado
         this.checkRequiredCredentials();
         await this.loadMarkets();
         await this.authenticate(this.extend(new Dictionary<string, object>() {}, parameters));
-        symbols = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         string messageHash = "positions";
         Int64? productId = null;
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+                Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
                 messageHash = messageHash + (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
             }
         }
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchPositions", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchPositions", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "position_change" },
             { "subaccount", sender },
             { "product_id", productId },
         };
-        object positions = await this.watchPrivate("position_change", stream, messageHash, parameters);
+        object positions = await this.watchPrivate("position_change", stream, messageHash, paramsSubaccount);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
     /**
@@ -857,30 +852,29 @@ public partial class nado : ccxt.nado
         this.checkRequiredCredentials();
         await this.loadMarkets();
         await this.authenticate(this.extend(new Dictionary<string, object>() {}, parameters));
-        symbols = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         string messageHash = "positions";
         Int64? productId = null;
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+                Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
                 messageHash = messageHash + (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
             }
         }
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "unWatchPositions", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "unWatchPositions", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "position_change" },
             { "subaccount", sender },
             { "product_id", productId },
         };
-        return await this.unWatchPrivate(stream, messageHash, parameters);
+        return await this.unWatchPrivate(stream, messageHash, paramsSubaccount);
     }
 
     /**
@@ -911,15 +905,15 @@ public partial class nado : ccxt.nado
         this.checkRequiredCredentials();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        parameters = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(new Dictionary<string, object>() {
             { "id", this.requestId() },
         }, parameters);
-        string? requestIdString = this.safeString(parameters, "id");
+        string? requestIdString = this.safeString(paramsExtended, "id");
         if ((requestIdString == null))
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, paramsExtended));
         IDictionary<string, object> placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         if (placeOrder.ContainsKey("trigger"))
         {
@@ -972,15 +966,15 @@ public partial class nado : ccxt.nado
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         // for cancel_and_place the request id is echoed from the nested place_order object
-        parameters = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(new Dictionary<string, object>() {
             { "id", this.requestId() },
         }, parameters);
-        string? requestIdString = this.safeString(parameters, "id");
+        string? requestIdString = this.safeString(paramsExtended, "id");
         if ((requestIdString == null))
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, paramsExtended));
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1048,15 +1042,15 @@ public partial class nado : ccxt.nado
         {
             throw new NotSupported ((this.id + " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")) ;
         }
-        parameters = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(new Dictionary<string, object>() {
             { "id", this.requestId() },
         }, parameters);
-        string? requestIdString = this.safeString(parameters, "id");
+        string? requestIdString = this.safeString(paramsExtended, "id");
         if ((requestIdString == null))
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, paramsExtended));
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1108,15 +1102,15 @@ public partial class nado : ccxt.nado
         {
             throw new NotSupported ((this.id + " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")) ;
         }
-        parameters = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(new Dictionary<string, object>() {
             { "id", this.requestId() },
         }, parameters);
-        string? requestIdString = this.safeString(parameters, "id");
+        string? requestIdString = this.safeString(paramsExtended, "id");
         if ((requestIdString == null))
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, paramsExtended));
         object response = await this.watchExecuteRequest(requestIdString, request);
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
@@ -1245,14 +1239,12 @@ public partial class nado : ccxt.nado
             }
             return authenticated;
         }
-        Int64? recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "authenticate", "recvWindow", 5000);
-        recvWindow = (Int64?)recvWindowparametersVariable[0];
-        parameters = recvWindowparametersVariable[1];
-        string? subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "authenticate", "subaccount", "default");
-        subaccount = (string)subaccountparametersVariable[0];
-        parameters = subaccountparametersVariable[1];
+        IList<object> recvWindowparamsRecvWindowVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "authenticate", "recvWindow", 5000);
+        Int64? recvWindow = (Int64?)recvWindowparamsRecvWindowVariable[0];
+        var paramsRecvWindow = recvWindowparamsRecvWindowVariable[1];
+        IList<object> subaccountparamsSubaccountVariable = (IList<object>)this.handleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default");
+        string? subaccount = (string)subaccountparamsSubaccountVariable[0];
+        var paramsSubaccount = subaccountparamsSubaccountVariable[1];
         Int64 id = this.requestId();
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Int64 expiration = this.sum(this.milliseconds(), recvWindow);
@@ -1275,7 +1267,7 @@ public partial class nado : ccxt.nado
             { "signature", signature },
         };
         ((IDictionary<string,object>)client.subscriptions)[(string)("authentication:" + this.numberToString(id))] = messageHash;
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return await this.watch(url, messageHash, this.extend(request, paramsSubaccount), messageHash);
     }
 
     public virtual object signStreamAuthentication(object tx, object chainId, object endpointAddress)
@@ -1426,7 +1418,7 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(trade, "timestamp");
         bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         string? side = null;
@@ -1439,7 +1431,7 @@ public partial class nado : ccxt.nado
             { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "order", null },
             { "type", null },
             { "side", side },
@@ -1448,7 +1440,7 @@ public partial class nado : ccxt.nado
             { "amount", this.parseX18(this.safeString(trade, "taker_qty")) },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual Dictionary<string, object> parseWsMyTrade(object trade, IDictionary<string, object> market = null)
@@ -1473,7 +1465,7 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(trade, "timestamp");
         bool? isBid = this.safeBool(trade, "is_bid");
         string? side = null;
@@ -1493,7 +1485,7 @@ public partial class nado : ccxt.nado
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
+                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1501,7 +1493,7 @@ public partial class nado : ccxt.nado
             { "id", this.safeString2(trade, "id", "submission_idx") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "order", this.safeString(trade, "order_digest") },
             { "type", null },
             { "side", side },
@@ -1510,7 +1502,7 @@ public partial class nado : ccxt.nado
             { "amount", this.parseX18(this.safeString(trade, "filled_qty")) },
             { "cost", null },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -1603,7 +1595,7 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(order, "product_id");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(order, "timestamp");
         string? id = this.safeString(order, "digest");
         string? amountString = this.safeString(order, "amount");
@@ -1638,7 +1630,7 @@ public partial class nado : ccxt.nado
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", ((filled == null)) ? null : timestamp },
             { "lastUpdateTimestamp", timestamp },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1654,7 +1646,7 @@ public partial class nado : ccxt.nado
             { "status", status },
             { "fee", null },
             { "trades", null },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -1687,7 +1679,7 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(position, "product_id");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(position, "timestamp");
         string? amountString = this.safeString(position, "amount");
         string? vQuoteAmount = this.safeString(position, "v_quote_amount");
@@ -1713,14 +1705,14 @@ public partial class nado : ccxt.nado
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "isolated", this.safeBool(position, "isolated") },
             { "hedged", false },
             { "side", side },
             { "contracts", contracts },
-            { "contractSize", this.safeNumber(market, "contractSize") },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "entryPrice", entryPrice },
             { "markPrice", null },
             { "notional", null },
@@ -1784,10 +1776,10 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(bidask, "product_id");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.parseWsTimestamp(bidask, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "ask", this.parseX18(this.safeString(bidask, "ask_price")) },
@@ -1795,7 +1787,7 @@ public partial class nado : ccxt.nado
             { "bid", this.parseX18(this.safeString(bidask, "bid_price")) },
             { "bidVolume", this.parseX18(this.safeString(bidask, "bid_qty")) },
             { "info", bidask },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)

@@ -952,14 +952,14 @@ impl BitflyerCore {
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
-        market = self.safe_market(&[Value::Null, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), order);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -969,7 +969,7 @@ impl BitflyerCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1719,6 +1719,8 @@ impl BitflyerCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let mut bodySigned: Value = Value::Null;
+        let mut headersSigned: Value = Value::Null;
         let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into());
         if (api.as_str() == Some("private")) {
             request = Value::Str(format!("{}{}", request, Value::Str("me/".into())).into());
@@ -1742,11 +1744,11 @@ impl BitflyerCore {
             let mut auth: Value = join(&content, &Value::Str("".into()));
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 if (method.as_str() != Some("GET")) {
-                    body = json_stringify(&params);
-                    auth = Value::Str(format!("{}{}", auth, body).into());
+                    bodySigned = json_stringify(&params);
+                    auth = Value::Str(format!("{}{}", auth, bodySigned).into());
                 }
             }
-            headers = Value::Map({
+            headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-TIMESTAMP".to_string(), nonce);
@@ -1755,12 +1757,14 @@ impl BitflyerCore {
                 m
             });
         }
+        let mut headersResolved: Value = (if (headersSigned == Value::Null) { headers } else { headersSigned });
+        let mut bodyResolved: Value = (if (bodySigned == Value::Null) { body } else { bodySigned });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResolved);
+        m.insert("headers".to_string(), headersResolved);
     m
 });
 

@@ -722,15 +722,15 @@ public partial class coinone : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "quote_currency", "KRW" },
         };
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            string? first = this.safeString(symbols, 0);
+            string? first = this.safeString(symbolsNormalized, 0);
             market = this.market(first);
             request["quote_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
             request["target_currency"] = (market.ContainsKey("base") ? market["base"] : null);
@@ -773,7 +773,7 @@ public partial class coinone : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "tickers", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
     /**
@@ -922,7 +922,7 @@ public partial class coinone : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        market = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if ((isSellerMaker != null))
@@ -942,10 +942,10 @@ public partial class coinone : Exchange
             object feeCurrencyCode = null;
             if (side == "sell")
             {
-                feeCurrencyCode = getValue(market, "quote");
+                feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
             } else
             {
-                feeCurrencyCode = getValue(market, "base");
+                feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
@@ -959,7 +959,7 @@ public partial class coinone : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "order", orderId },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -967,7 +967,7 @@ public partial class coinone : Exchange
             { "amount", amountString },
             { "cost", null },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1197,8 +1197,8 @@ public partial class coinone : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            market = this.safeMarket(symbol, market, "/");
         }
+        object marketResolved = ((symbol != null)) ? this.safeMarket(symbol, market, "/") : market;
         Int64? timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if ((timestamp == null))
         {
@@ -1269,7 +1269,7 @@ public partial class coinone : Exchange
             { "status", status },
             { "fee", fee },
             { "trades", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1502,6 +1502,7 @@ public partial class coinone : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
+        bool isPublic = (isEqual(api, "public")) || (isEqual(api, "v2Public"));
         if (isEqual(api, "v2Public"))
         {
             string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public");
@@ -1510,7 +1511,6 @@ public partial class coinone : Exchange
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl2 + "/");
-            api = "public";
         } else if (isEqual(api, "v2Private"))
         {
             string? apiUrl3 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private");
@@ -1528,7 +1528,9 @@ public partial class coinone : Exchange
             }
             url = (apiUrl4 + "/");
         }
-        if (isEqual(api, "public"))
+        string? requestBody = null;
+        Dictionary<string, object> requestHeaders = null;
+        if (isPublic)
         {
             url = url + request;
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -1553,20 +1555,22 @@ public partial class coinone : Exchange
                 { "nonce", nonce },
             }, parameters));
             string payload = this.stringToBase64(json);
-            body = payload;
+            requestBody = payload;
             string secret = this.secret.ToUpper();
             string signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-COINONE-PAYLOAD", payload },
                 { "X-COINONE-SIGNATURE", signature },
             };
         }
+        object bodyResolved = ((requestBody == null)) ? body : requestBody;
+        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 

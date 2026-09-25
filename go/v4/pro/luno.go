@@ -66,7 +66,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -76,17 +76,17 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
-		"symbol": symbol,
+		"symbol": symbolValue,
 	}
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(wsUrl, subscriptionHash))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
+	var messageHash string = "trades:" + *symbolValue
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
@@ -94,11 +94,12 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	ch <- this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 	return nil
 }
 func (this *Luno) HandleTrades(client any, message map[string]any, subscription map[string]any) {
@@ -210,17 +211,17 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
-		"symbol": symbol,
+		"symbol": symbolValue,
 	}
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(wsUrl, subscriptionHash))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
+	var messageHash string = "orderbook:" + *symbolValue
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
@@ -317,10 +318,15 @@ func (this *Luno) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
 	_ = amountKey
 	thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
 	_ = thirdKey
-	bidasks = this.ToArray(bidasks)
+	var bidasksValue []any = this.ToArray(bidasks)
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(bidasks); i++ {
-		result = append(result, this.CustomParseBidAsk(ccxt.GetValue(bidasks, i), priceKey, amountKey, thirdKey))
+	for i := 0; i < len(bidasksValue); i++ {
+		result = append(result, this.CustomParseBidAsk(func() any {
+			if i >= 0 && i < len(bidasksValue) {
+				return ccxt.DerefScalar(bidasksValue[i])
+			}
+			return nil
+		}(), priceKey, amountKey, thirdKey))
 	}
 	return result
 }

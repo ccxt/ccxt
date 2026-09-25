@@ -1352,22 +1352,23 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 	}
-	if limit != nil {
-		if limit != nil && *limit > 1000 {
-			limit = Int64PtrTyped(1000)
-		}
-		request["page_size"] = limit // default 100, max 1000
+	var limitResolved any = limit
+	if (limit != nil) && (*limit > 1000) {
+		limitResolved = 1000
+	}
+	if !IsEqual(limitResolved, nil) {
+		request["page_size"] = limitResolved // default 100, max 1000
 	}
 	if since != nil {
 		request["from_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	params = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["to_timestamp"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTradeHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTradeHistory(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//     "result": {
@@ -1403,7 +1404,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "trades", []any{})
 
-	ch <- this.ParseTrades(data, market, since, limit)
+	ch <- this.ParseTrades(data, market, since, limitResolved)
 	return nil
 }
 func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
@@ -1533,12 +1534,12 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	params = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["to_timestamp"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetFundingRateHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetFundingRateHistory(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//     "result": {
@@ -1723,20 +1724,19 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("createOrder", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
-	var test *bool = this.SafeBool(params, "test", false)
-	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
-	var postOnly *bool = this.SafeBool(params, "postOnly")
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("createOrder", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
+	var test *bool = this.SafeBool(paramsDeriveSubaccountId, "test", false)
+	var reduceOnly *bool = this.SafeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only")
+	var timeInForce *string = this.SafeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force")
+	var postOnly *bool = this.SafeBool(paramsDeriveSubaccountId, "postOnly")
 	var orderType string = strings.ToLower(typeVar)
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce any = this.IncrementingNonce()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
-	var signatureExpiry *int64 = this.SafeInteger(params, "signature_expiry_sec", this.Seconds()+7776000)
+	var signatureExpiry *int64 = this.SafeInteger(paramsDeriveSubaccountId, "signature_expiry_sec", this.Seconds()+7776000)
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS string = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"
@@ -1745,19 +1745,19 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	}
 	var priceString *string = this.NumberToString(price)
 	var maxFee any = nil
-	var maxFeeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "max_fee")
-	maxFee = GetValue(maxFeeparamsVariable, 0)
-	params = MapTyped(GetValue(maxFeeparamsVariable, 1))
+	var paramsMaxFee map[string]any = map[string]any{}
+	var maxFeeparamsMaxFeeVariable []any = this.HandleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee")
+	maxFee = GetValue(maxFeeparamsMaxFeeVariable, 0)
+	paramsMaxFee = MapTyped(GetValue(maxFeeparamsMaxFeeVariable, 1))
 	if IsEqual(maxFee, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a max_fee argument in params"))
 	}
 	var maxFeeString *string = this.NumberToString(maxFee)
 	var amountString *string = this.NumberToString(amount)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ParseToNumeric(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
-	var deriveWalletAddress *string = nil
-	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
-	deriveWalletAddress = SafeStringPtr(GetValue(deriveWalletAddressparamsVariable, 0))
-	params = MapTyped(GetValue(deriveWalletAddressparamsVariable, 1))
+	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
+	var deriveWalletAddress *string = SafeStringPtr(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0))
+	var paramsDeriveWalletAddress map[string]any = MapTyped(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1))
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"instrument_name":      market["id"],
@@ -1783,9 +1783,9 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	} else if timeInForce != nil {
 		request["time_in_force"] = timeInForce
 	}
-	var stopLoss any = this.SafeValue(params, "stopLoss")
-	var takeProfit any = this.SafeValue(params, "takeProfit")
-	var triggerPriceType *string = this.SafeString(params, "trigger_price_type", "mark")
+	var stopLoss any = this.SafeValue(paramsDeriveWalletAddress, "stopLoss")
+	var takeProfit any = this.SafeValue(paramsDeriveWalletAddress, "takeProfit")
+	var triggerPriceType *string = this.SafeString(paramsDeriveWalletAddress, "trigger_price_type", "mark")
 	if !IsEqual(stopLoss, nil) {
 		var stopLossPrice *string = this.SafeString(stopLoss, "triggerPrice", stopLoss)
 		request["trigger_price"] = stopLossPrice
@@ -1797,19 +1797,19 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		request["trigger_type"] = "takeprofit"
 		request["trigger_price_type"] = triggerPriceType
 	}
-	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	var clientOrderId *string = this.SafeString(paramsDeriveWalletAddress, "clientOrderId")
 	if clientOrderId != nil {
 		request["label"] = clientOrderId
 	}
 	request["signature"] = signature
-	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"}))
 	var response map[string]any = nil
 	if test != nil && *test == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrderDebug(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrderDebug(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	// {
@@ -1924,18 +1924,17 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
-	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
-	var postOnly *bool = this.SafeBool(params, "postOnly")
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("editOrder", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
+	var reduceOnly *bool = this.SafeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only")
+	var timeInForce *string = this.SafeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force")
+	var postOnly *bool = this.SafeBool(paramsDeriveSubaccountId, "postOnly")
 	var orderType string = ToLower(typeVar)
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce any = this.IncrementingNonce()
-	var signatureExpiry *float64 = this.SafeNumber(params, "signature_expiry_sec", this.Seconds()+7776000)
+	var signatureExpiry *float64 = this.SafeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", this.Seconds()+7776000)
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -1944,13 +1943,12 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		TRADE_MODULE_ADDRESS = "0x87F2863866D85E3192a35A73b388BD625D83f2be"
 	}
 	var priceString *string = this.NumberToString(price)
-	var maxFeeString *string = this.SafeString(params, "max_fee", "0")
+	var maxFeeString *string = this.SafeString(paramsDeriveSubaccountId, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ParseToNumeric(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
-	var deriveWalletAddress *string = nil
-	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
-	deriveWalletAddress = SafeStringPtr(GetValue(deriveWalletAddressparamsVariable, 0))
-	params = MapTyped(GetValue(deriveWalletAddressparamsVariable, 1))
+	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
+	var deriveWalletAddress *string = SafeStringPtr(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0))
+	var paramsDeriveWalletAddress map[string]any = MapTyped(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1))
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"instrument_name":      market["id"],
@@ -1976,14 +1974,14 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	} else if timeInForce != nil {
 		request["time_in_force"] = timeInForce
 	}
-	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	var clientOrderId *string = this.SafeString(paramsDeriveWalletAddress, "clientOrderId")
 	if clientOrderId != nil {
 		request["label"] = clientOrderId
 	}
 	request["signature"] = signature
-	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplace(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplace(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//   {
 	//     "result":
@@ -2099,32 +2097,31 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
-	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveSubaccountId, []any{"trigger", "stop"}))
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"subaccount_id":   subaccountId,
 	}
-	var clientOrderIdUnified *string = this.SafeString(params, "clientOrderId")
-	var clientOrderIdExchangeSpecific *string = this.SafeString(params, "label", clientOrderIdUnified)
+	var clientOrderIdUnified *string = this.SafeString(paramsOmitted, "clientOrderId")
+	var clientOrderIdExchangeSpecific *string = this.SafeString(paramsOmitted, "label", clientOrderIdUnified)
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
 	var response map[string]any = nil
 	if isByClientOrder {
 		request["label"] = clientOrderIdExchangeSpecific
-		params = MapTyped(this.Omit(params, []any{"clientOrderId", "label"}))
+		var paramsLabel map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clientOrderId", "label"}))
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByLabel(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByLabel(this.Extend(request, paramsLabel))).Raw))
 	} else {
 		request["order_id"] = id
 		if isTrigger != nil && *isTrigger == true {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostCancelTriggerOrder(this.Extend(request, paramsOmitted))).Raw))
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostCancel(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostCancel(this.Extend(request, paramsOmitted))).Raw))
 		}
 	}
 	//
@@ -2213,10 +2210,9 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2224,10 +2220,10 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if market != nil {
 		request["instrument_name"] = GetValue(market, "id")
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByInstrument(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByInstrument(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAll(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAll(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	}
 
 	//
@@ -2284,21 +2280,21 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes179219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes179219)
+		var retRes178919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500))))
+		ch <- BoxAbsent(retRes178919)
 		return nil
 	}
-	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrders", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	var isTrigger *bool = this.SafeBool2(paramsPaginate, "trigger", "stop", false)
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"trigger", "stop"}))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchOrders", paramsOmitted)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2316,7 +2312,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["status"] = "untriggered"
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrders(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	//
 	// {
 	//     "result": {
@@ -2363,7 +2359,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var page *int64 = this.SafeInteger(params, "page")
+	var page *int64 = this.SafeInteger(paramsDeriveSubaccountId, "page")
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(data, "pagination")
 		var currentPage *int64 = this.SafeInteger(pagination, "num_pages", 0)
@@ -2415,8 +2411,8 @@ func (this *Derive) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	})
 
-	var retRes189015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes189015)
+	var retRes188615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes188615)
 	return nil
 }
 
@@ -2456,8 +2452,8 @@ func (this *Derive) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "filled",
 	})
 
-	var retRes191015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes191015)
+	var retRes190615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes190615)
 	return nil
 }
 
@@ -2497,8 +2493,8 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "cancelled",
 	})
 
-	var retRes193015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes193015)
+	var retRes192615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes192615)
 	return nil
 }
 func (this *Derive) ParseTimeInForce(timeInForce *string) *string {
@@ -2584,10 +2580,13 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(rawOrder, "creation_timestamp", "nonce")
 	var orderId *string = this.SafeString(order, "order_id")
 	var marketId *string = this.SafeString(order, "instrument_name")
-	if marketId != nil {
-		market = this.SafeMarket(marketId, market)
-	}
-	var symbol *string = this.SafeString(market, "symbol")
+	var marketResolved any = func() any {
+		if marketId != nil {
+			return this.SafeMarket(marketId, market)
+		}
+		return market
+	}()
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(order, "limit_price")
 	var average *string = this.SafeString(order, "average_price")
 	var amount *string = this.SafeString(order, "desired_amount")
@@ -2604,11 +2603,11 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
 		}
 	}
 	var triggerType *string = this.SafeString(order, "trigger_type")
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
-	var triggerPrice any = nil
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
+	var triggerPrice *string = nil
 	if triggerType != nil {
-		triggerPrice = DerefScalar(this.SafeString(order, "trigger_price"))
+		triggerPrice = this.SafeString(order, "trigger_price")
 		if triggerType != nil && *triggerType == "stoploss" {
 			stopLossPrice = triggerPrice
 		} else {
@@ -2647,7 +2646,7 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
 			"currency": "USDC",
 		},
 		"info": order,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2683,10 +2682,9 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"order_id":      id,
 		"subaccount_id": subaccountId,
@@ -2703,7 +2701,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		request["from_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTradeHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	//
 	// {
 	//     "result": {
@@ -2743,7 +2741,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	var result map[string]any = SafeMapTyped(response, "result")
 	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
-	ch <- this.ParseTrades(trades, market, since, limit, params)
+	ch <- this.ParseTrades(trades, market, since, limit, paramsDeriveSubaccountId)
 	return nil
 }
 
@@ -2781,19 +2779,19 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes217819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes217819)
+		var retRes217219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500))))
+		ch <- BoxAbsent(retRes217219)
 		return nil
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchMyTrades", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchMyTrades", paramsPaginate)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2809,7 +2807,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["from_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTradeHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	//
 	// {
 	//     "result": {
@@ -2847,7 +2845,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var page *int64 = this.SafeInteger(params, "page")
+	var page *int64 = this.SafeInteger(paramsDeriveSubaccountId, "page")
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(result, "pagination")
 		var currentPage *int64 = this.SafeInteger(pagination, "num_pages", 0)
@@ -2859,7 +2857,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var trades []any = SafeListTypedDefault(result, "trades", []any{})
 
-	ch <- this.ParseTrades(trades, market, since, limit, params)
+	ch <- this.ParseTrades(trades, market, since, limit, paramsDeriveSubaccountId)
 	return nil
 }
 
@@ -2889,16 +2887,15 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	params = MapTyped(this.Omit(params, []any{"subaccount_id"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveSubaccountId, []any{"subaccount_id"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetPositions(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//     "result": {
@@ -2977,7 +2974,7 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
-	market = this.SafeMarket(contract, market)
+	var marketResolved map[string]any = this.SafeMarket(contract, market)
 	var size *string = this.SafeString(position, "amount")
 	var side string
 	if Precise.StringGt(size, "0") {
@@ -2985,7 +2982,7 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	} else {
 		side = "short"
 	}
-	var contractSize *string = this.SafeString(market, "contractSize")
+	var contractSize *string = this.SafeString(marketResolved, "contractSize")
 	var markPrice *string = this.SafeString(position, "mark_price")
 	var timestamp *int64 = this.SafeInteger(position, "creation_timestamp")
 	var unrealisedPnl *string = this.SafeString(position, "unrealized_pnl")
@@ -2994,7 +2991,7 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
-		"symbol":                      this.SafeString(market, "symbol"),
+		"symbol":                      this.SafeString(marketResolved, "symbol"),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         nil,
@@ -3055,19 +3052,19 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes240619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes240619)
+		var retRes239919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500))))
+		ch <- BoxAbsent(retRes239919)
 		return nil
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", paramsPaginate)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3083,7 +3080,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		request["page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetFundingHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetFundingHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	//
 	// {
 	//     "result": {
@@ -3116,7 +3113,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var page *int64 = this.SafeInteger(params, "page")
+	var page *int64 = this.SafeInteger(paramsDeriveSubaccountId, "page")
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(result, "pagination")
 		var currentPage *int64 = this.SafeInteger(pagination, "num_pages", 0)
@@ -3181,15 +3178,14 @@ func (this *Derive) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var deriveWalletAddress *string = nil
-	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
-	deriveWalletAddress = SafeStringPtr(GetValue(deriveWalletAddressparamsVariable, 0))
-	params = MapTyped(GetValue(deriveWalletAddressparamsVariable, 1))
+	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
+	var deriveWalletAddress *string = SafeStringPtr(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0))
+	var paramsDeriveWalletAddress map[string]any = MapTyped(GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"wallet": deriveWalletAddress,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAllPortfolios(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAllPortfolios(this.Extend(request, paramsDeriveWalletAddress))).Raw))
 	//
 	// {
 	//     "result": [{
@@ -3301,10 +3297,9 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3312,7 +3307,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDepositHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDepositHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	//
 	// {
 	//     "result": {
@@ -3335,7 +3330,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = SafeMapTyped(response, "result")
 	var events []any = SafeListTypedDefault(result, "events", []any{})
 
-	ch <- this.ParseTransactions(events, currency, since, limit, params)
+	ch <- this.ParseTransactions(events, currency, since, limit, paramsDeriveSubaccountId)
 	return nil
 }
 
@@ -3371,10 +3366,9 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
-	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
+	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3382,7 +3376,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["start_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetWithdrawalHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetWithdrawalHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	//
 	// {
 	//     "result": {
@@ -3405,7 +3399,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = SafeMapTyped(response, "result")
 	var events []any = SafeListTypedDefault(result, "events", []any{})
 
-	ch <- this.ParseTransactions(events, currency, since, limit, params)
+	ch <- this.ParseTransactions(events, currency, since, limit, paramsDeriveSubaccountId)
 	return nil
 }
 func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -3459,32 +3453,30 @@ func (this *Derive) ParseTransactionStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) any {
-	var derivesubAccountId any = nil
-	var derivesubAccountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
-	derivesubAccountId = GetValue(derivesubAccountIdparamsVariable, 0)
-	params = GetValue(derivesubAccountIdparamsVariable, 1)
-	if (derivesubAccountId != nil) && (!IsEqual(derivesubAccountId, "")) {
+	var derivesubAccountIdparamsSubaccountIdVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
+	derivesubAccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 0)
+	paramsSubaccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 1)
+	if (!IsEqual(derivesubAccountId, nil)) && (!IsEqual(derivesubAccountId, "")) {
 		this.Options.Store("subaccount_id", derivesubAccountId) // saving in options
-		return []any{derivesubAccountId, params}
+		return []any{derivesubAccountId, paramsSubaccountId}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "subaccount_id")
 	if optionsWallet != nil {
-		return []any{optionsWallet, params}
+		return []any{optionsWallet, paramsSubaccountId}
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID."))
 }
 func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) any {
-	var deriveWalletAddress any = nil
-	var deriveWalletAddressparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
-	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
-	params = GetValue(deriveWalletAddressparamsVariable, 1)
-	if (deriveWalletAddress != nil) && (!IsEqual(deriveWalletAddress, "")) {
+	var deriveWalletAddressparamsDeriveWalletAddressVariable []any = this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
+	deriveWalletAddress := GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 0)
+	paramsDeriveWalletAddress := GetValue(deriveWalletAddressparamsDeriveWalletAddressVariable, 1)
+	if (!IsEqual(deriveWalletAddress, nil)) && (!IsEqual(deriveWalletAddress, "")) {
 		this.Options.Store("deriveWalletAddress", deriveWalletAddress) // saving in options
-		return []any{deriveWalletAddress, params}
+		return []any{deriveWalletAddress, paramsDeriveWalletAddress}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "deriveWalletAddress")
 	if optionsWallet != nil {
-		return []any{optionsWallet, params}
+		return []any{optionsWallet, paramsDeriveWalletAddress}
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab."))
 }
@@ -3516,7 +3508,7 @@ func (this *Derive) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
@@ -3524,17 +3516,23 @@ func (this *Derive) Sign(path any, optionalArgs ...any) any {
 	}
 	var url *string = SafeStringPtr(Add(*apiUrl+"/", path))
 	if method == "POST" {
-		headers = map[string]any{
+		var postHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
 		}
 		if IsEqual(api, "private") {
 			var now string = strconv.FormatInt(this.Milliseconds(), 10)
 			var signature any = this.SignMessage(now, this.PrivateKey)
-			AddElementToObject(headers, "X-LyraWallet", this.SafeString(this.Options, "deriveWalletAddress"))
-			AddElementToObject(headers, "X-LyraTimestamp", now)
-			AddElementToObject(headers, "X-LyraSignature", signature)
+			postHeaders["X-LyraWallet"] = this.SafeString(this.Options, "deriveWalletAddress")
+			postHeaders["X-LyraTimestamp"] = now
+			postHeaders["X-LyraSignature"] = signature
 		}
-		body = this.Json(params)
+		var postBody any = this.Json(params)
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    postBody,
+			"headers": postHeaders,
+		}
 	}
 	return map[string]any{
 		"url":     url,

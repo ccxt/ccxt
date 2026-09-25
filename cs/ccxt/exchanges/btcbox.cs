@@ -559,7 +559,7 @@ public partial class btcbox : Exchange
         //      }
         //
         Int64? timestamp = this.safeTimestamp(trade, "date");
-        market = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
@@ -571,7 +571,7 @@ public partial class btcbox : Exchange
             { "order", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", type },
             { "side", side },
             { "takerOrMaker", null },
@@ -579,7 +579,7 @@ public partial class btcbox : Exchange
             { "amount", amountString },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -671,18 +671,14 @@ public partial class btcbox : Exchange
      */
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        // a special case for btcbox – default symbolVar is BTC/JPY
-        if ((symbolVar == null))
-        {
-            symbolVar = "BTC/JPY";
-        }
-        Dictionary<string, object> market = this.market(symbolVar);
+        // a special case for btcbox – default symbol is BTC/JPY
+        object symbolResolved = ((symbol == null)) ? "BTC/JPY" : symbol;
+        Dictionary<string, object> market = this.market(symbolResolved);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
             { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
@@ -745,7 +741,7 @@ public partial class btcbox : Exchange
             }
         }
         object trades = null; // todo: this.parseTrades (order['trades']);
-        market = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? side = this.safeString(order, "type");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -761,7 +757,7 @@ public partial class btcbox : Exchange
             { "timeInForce", null },
             { "postOnly", null },
             { "status", status },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "price", price },
             { "triggerPrice", null },
             { "cost", null },
@@ -769,7 +765,7 @@ public partial class btcbox : Exchange
             { "fee", null },
             { "info", order },
             { "average", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -784,18 +780,14 @@ public partial class btcbox : Exchange
      */
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        // a special case for btcbox – default symbolVar is BTC/JPY
-        if ((symbolVar == null))
-        {
-            symbolVar = "BTC/JPY";
-        }
-        Dictionary<string, object> market = this.market(symbolVar);
+        // a special case for btcbox – default symbol is BTC/JPY
+        object symbolResolved = ((symbol == null)) ? "BTC/JPY" : symbol;
+        Dictionary<string, object> market = this.market(symbolResolved);
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "id", id },
             { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
@@ -818,18 +810,14 @@ public partial class btcbox : Exchange
 
     public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string? type, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        // a special case for btcbox – default symbolVar is BTC/JPY
-        if ((symbolVar == null))
-        {
-            symbolVar = "BTC/JPY";
-        }
-        Dictionary<string, object> market = this.market(symbolVar);
+        // a special case for btcbox – default symbol is BTC/JPY
+        object symbolResolved = ((symbol == null)) ? "BTC/JPY" : symbol;
+        Dictionary<string, object> market = this.market(symbolResolved);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
@@ -930,9 +918,15 @@ public partial class btcbox : Exchange
             string request = this.urlencode(query);
             string secret = ((string)this.hash(this.encode(this.secret), md5));
             query["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
-            body = this.urlencode(query);
-            headers = new Dictionary<string, object>() {
+            string signedBody = this.urlencode(query);
+            Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
+            };
+            return new Dictionary<string, object>() {
+                { "url", url },
+                { "method", method },
+                { "body", signedBody },
+                { "headers", signedHeaders },
             };
         }
         return new Dictionary<string, object>() {

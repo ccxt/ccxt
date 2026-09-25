@@ -1481,17 +1481,16 @@ func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketType *string = nil
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.FapiPublicGetV3Time(params)).Raw))
+		response = MapTyped(PanicOnError((<-this.FapiPublicGetV3Time(paramsMarketType)).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPublicGetV3Time(params)).Raw))
+		response = MapTyped(PanicOnError((<-this.SapiPublicGetV3Time(paramsMarketType)).Raw))
 	}
 
 	//
@@ -1573,31 +1572,31 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1500)
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
-	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var price *string = this.SafeString(params, "price")
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	AddElementToObject(requestUntil, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
+	var price *string = this.SafeString(paramsUntil, "price")
 	var isMark bool = (price != nil && *price == "mark")
 	var isIndex bool = (price != nil && *price == "index")
-	params = MapTyped(this.Omit(params, "price"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUntil, "price"))
 	var response []any = nil
 	if isMark {
-		request["symbol"] = market["id"]
+		AddElementToObject(requestUntil, "symbol", market["id"])
 
-		response = ListTyped(PanicOnError((<-this.FapiPublicGetV3MarkPriceKlines(this.Extend(request, params))).Raw))
+		response = ListTyped(PanicOnError((<-this.FapiPublicGetV3MarkPriceKlines(this.Extend(requestUntil, paramsOmitted))).Raw))
 	} else if isIndex {
-		request["pair"] = market["id"]
+		AddElementToObject(requestUntil, "pair", market["id"])
 
-		response = ListTyped(PanicOnError((<-this.FapiPublicGetV3IndexPriceKlines(this.Extend(request, params))).Raw))
+		response = ListTyped(PanicOnError((<-this.FapiPublicGetV3IndexPriceKlines(this.Extend(requestUntil, paramsOmitted))).Raw))
 	} else {
-		request["symbol"] = market["id"]
+		AddElementToObject(requestUntil, "symbol", market["id"])
 		if GetValue(market, "linear") == true {
 
-			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3Klines(this.Extend(request, params))).Raw))
+			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted))).Raw))
 		} else {
 
-			response = ListTyped(PanicOnError((<-this.SapiPublicGetV3Klines(this.Extend(request, params))).Raw))
+			response = ListTyped(PanicOnError((<-this.SapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted))).Raw))
 		}
 	}
 
@@ -1662,7 +1661,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	if InOp(trade, "positionSide") {
 		marketType = "swap"
 	}
-	market = this.SafeMarket(marketId, market, nil, marketType)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var currencyId *string = this.SafeString2(trade, "commissionAsset", "marginAsset")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
 	var amountString *string = this.SafeString2(trade, "qty", "q")
@@ -1705,7 +1704,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"order":        this.SafeString(trade, "orderId"),
 		"type":         nil,
 		"side":         side,
@@ -1717,7 +1716,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 			"cost":     this.ParseNumber(Precise.StringAbs(this.SafeString(trade, "commission"))),
 			"currency": currencyCode,
 		},
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1828,26 +1827,25 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketType *string = nil
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	if since != nil {
 		request["startTime"] = since
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 	var response []any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = ListTyped(PanicOnError((<-this.FapiPrivateGetV3UserTrades(this.Extend(request, params))).Raw))
+		response = ListTyped(PanicOnError((<-this.FapiPrivateGetV3UserTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.SapiPrivateGetV3UserTrades(this.Extend(request, params))).Raw))
+		response = ListTyped(PanicOnError((<-this.SapiPrivateGetV3UserTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 	}
 
 	//
@@ -1873,7 +1871,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     "positionSide": "BOTH",      // only in SPOT
 	// }
 	//
-	ch <- this.ParseTrades(response, market, since, limit, params)
+	ch <- this.ParseTrades(response, market, since, limit, paramsUntil)
 	return nil
 }
 
@@ -2016,9 +2014,9 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
 		}()
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market, nil, marketType)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	return this.SafeTicker(map[string]any{
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          high,
@@ -2040,7 +2038,7 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
 		"markPrice":     nil,
 		"indexPrice":    nil,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2142,20 +2140,19 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType *string = nil
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
+	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var market any = this.GetMarketFromSymbols(symbolsNormalized)
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3Ticker24hr(params))
+		response = (<-this.FapiPublicGetV3Ticker24hr(paramsMarketType))
 		PanicOnError(response)
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPublicGetV3Ticker24hr(params))
+		response = (<-this.SapiPublicGetV3Ticker24hr(paramsMarketType))
 		PanicOnError(response)
 	}
 
@@ -2187,7 +2184,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseTickers(response, symbols)
+	ch <- this.ParseTickers(response, symbolsNormalized)
 	return nil
 }
 
@@ -2218,20 +2215,19 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType *string = nil
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
+	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var market any = this.GetMarketFromSymbols(symbolsNormalized)
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3TickerPrice(params)).Raw
+		response = (<-this.FapiPublicGetV3TickerPrice(paramsMarketType)).Raw
 		PanicOnError(response)
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPublicGetV3TickerPrice(params)).Raw
+		response = (<-this.SapiPublicGetV3TickerPrice(paramsMarketType)).Raw
 		PanicOnError(response)
 	}
 	//
@@ -2264,12 +2260,12 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 				return DerefScalar(rows[i])
 			}
 			return nil
-		}(), safeMarket), params)
+		}(), safeMarket), paramsMarketType)
 		results = append(results, priceData)
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized2 any = this.MarketSymbols(symbolsNormalized)
 
-	ch <- this.FilterByArray(results, "symbol", symbols)
+	ch <- this.FilterByArray(results, "symbol", symbolsNormalized2)
 	return nil
 }
 func (this *Aster) ParseLastPrice(entry any, optionalArgs ...any) any {
@@ -2322,20 +2318,19 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType *string = nil
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
+	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var market any = this.GetMarketFromSymbols(symbolsNormalized)
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.FapiPublicGetV3TickerBookTicker(params)).Raw
+		response = (<-this.FapiPublicGetV3TickerBookTicker(paramsMarketType)).Raw
 		PanicOnError(response)
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPublicGetV3TickerBookTicker(params)).Raw
+		response = (<-this.SapiPublicGetV3TickerBookTicker(paramsMarketType)).Raw
 		PanicOnError(response)
 	}
 
@@ -2353,7 +2348,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	//            "lastUpdateId": "453174307613"   // only in PERP
 	//        }, ...
 	//
-	ch <- this.ParseTickers(response, symbols)
+	ch <- this.ParseTickers(response, symbolsNormalized)
 	return nil
 }
 func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -2489,7 +2484,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	response := (<-this.FapiPublicGetV3PremiumIndex(this.Extend(params)))
 	PanicOnError(response)
@@ -2508,7 +2503,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	ch <- this.ParseFundingRates(response, symbols)
+	ch <- this.ParseFundingRates(response, symbolsNormalized)
 	return nil
 }
 
@@ -2537,9 +2532,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if symbols != nil {
-		symbols = this.MarketSymbols(symbols)
-	}
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingInfo(params)).Raw))
 
@@ -2555,7 +2548,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 	//         }
 	//     ]
 	//
-	ch <- this.ParseFundingRates(response, symbols)
+	ch <- this.ParseFundingRates(response, symbolsNormalized)
 	return nil
 }
 
@@ -2603,11 +2596,11 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingRate(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingRate(this.Extend(requestUntil, paramsUntil))).Raw))
 
 	//
 	//     [
@@ -2664,19 +2657,18 @@ func (this *Aster) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var marketType *string = nil
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
 	var response map[string]any = nil
 	var data any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		data = (<-this.FapiPrivateGetV3Balance(params)).Raw
+		data = (<-this.FapiPrivateGetV3Balance(paramsMarketType)).Raw
 		PanicOnError(data)
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3Account(params)).Raw))
+		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3Account(paramsMarketType)).Raw))
 		data = this.SafeList(response, "balances", []any{})
 	}
 
@@ -2727,11 +2719,14 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	marginMode = ToUpper(marginMode)
-	if IsEqual(marginMode, "CROSS") {
-		marginMode = "CROSSED"
-	}
-	if (!IsEqual(marginMode, "ISOLATED")) && (!IsEqual(marginMode, "CROSSED")) {
+	var marginModeUpper string = ToUpper(marginMode)
+	var marginModeValue string = func() string {
+		if marginModeUpper == "CROSS" {
+			return "CROSSED"
+		}
+		return marginModeUpper
+	}()
+	if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
 		panic(BadRequest(this.Id + " marginMode must be either isolated or cross"))
 	}
 
@@ -2739,7 +2734,7 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
-		"marginType": marginMode,
+		"marginType": marginModeValue,
 	}
 
 	response := (<-this.FapiPrivatePostV3MarginType(this.Extend(request, params))).Raw
@@ -2832,8 +2827,8 @@ func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = this.SafeSymbol(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, marketResolved)
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -2976,7 +2971,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 		defaultType = "swap"
 	}
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market, nil, defaultType)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, defaultType)
 	var side *string = this.SafeStringLower(order, "side")
 	var timestamp *int64 = this.SafeInteger(order, "time")
 	var statusId *string = this.SafeStringUpper(order, "status")
@@ -2987,7 +2982,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                info,
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
-		"symbol":              this.SafeSymbol(marketId, market),
+		"symbol":              this.SafeSymbol(marketId, marketResolved),
 		"timestamp":           timestamp,
 		"datetime":            this.Iso8601(timestamp),
 		"lastTradeTimestamp":  nil,
@@ -3007,7 +3002,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 		"fee":                 nil,
 		"trades":              nil,
 		"reduceOnly":          this.SafeBool2(order, "reduceOnly", "ro"),
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -3044,7 +3039,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
-	params = MapTyped(this.Omit(params, []any{"clientOrderId", "clientOid"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clientOid"}))
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else {
@@ -3053,10 +3048,10 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3Order(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3Order(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	//
@@ -3125,7 +3120,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
-	params = MapTyped(this.Omit(params, []any{"clientOrderId", "clientOid"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clientOid"}))
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else {
@@ -3134,10 +3129,10 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3OpenOrder(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	//
@@ -3217,16 +3212,16 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 	var response []any = nil
 	if GetValue(market, "swap") == true {
 
-		response = ListTyped(PanicOnError((<-this.FapiPrivateGetV3AllOrders(this.Extend(request, params))).Raw))
+		response = ListTyped(PanicOnError((<-this.FapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil))).Raw))
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.SapiPrivateGetV3AllOrders(this.Extend(request, params))).Raw))
+		response = ListTyped(PanicOnError((<-this.SapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil))).Raw))
 	}
 
 	//
@@ -3297,7 +3292,6 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var marketType *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3310,21 +3304,20 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
-	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var subType *string = nil
-	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, params)
-	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
-	params = MapTyped(GetValue(subTypeparamsVariable, 1))
+	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
+	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
+	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType)
+	var subType *string = SafeStringPtr(GetValue(subTypeparamsSubTypeVariable, 0))
+	var paramsSubType map[string]any = MapTyped(GetValue(subTypeparamsSubTypeVariable, 1))
 	var response any = nil
 	if this.IsLinear(marketType, subType) {
 
-		response = (<-this.FapiPrivateGetV3OpenOrders(this.Extend(request, params))).Raw
+		response = (<-this.FapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))).Raw
 		PanicOnError(response)
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SapiPrivateGetV3OpenOrders(this.Extend(request, params))).Raw
+		response = (<-this.SapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))).Raw
 		PanicOnError(response)
 	}
 
@@ -3466,7 +3459,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var ordersRequests []any = []any{}
-	var orderSymbols any = []any{}
+	var orderSymbols []any = []any{}
 	if GetArrayLength(orders) > 5 {
 		panic(InvalidOrder(this.Id + " createOrders() order list max 5 orders"))
 	}
@@ -3474,7 +3467,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var currentMarket map[string]any = this.Market(marketId)
-		AppendToArray(&orderSymbols, currentMarket["symbol"])
+		orderSymbols = append(orderSymbols, currentMarket["symbol"])
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
@@ -3483,8 +3476,13 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(GetValue(orderSymbols, 0))
+	var orderSymbolsResolved []any = ArrayTyped(this.MarketSymbols(orderSymbols, nil, false, true, true))
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(orderSymbolsResolved) {
+			return DerefScalar(orderSymbolsResolved[0])
+		}
+		return nil
+	}())
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
@@ -3682,14 +3680,18 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["stopPrice"] = this.PriceToPrecision(symbol, stopPrice)
 		}
 	}
-	if timeInForceIsRequired && (this.SafeString(params, "timeInForce") == nil) && (this.SafeString(request, "timeInForce") == nil) {
-		var tif *string = nil
-		var tifparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
-		tif = SafeStringPtr(GetValue(tifparamsVariable, 0))
-		params = MapTyped(GetValue(tifparamsVariable, 1))
-		request["timeInForce"] = tif
+	var tifOptionparamsTifOptionVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
+	var tifOption *string = SafeStringPtr(GetValue(tifOptionparamsTifOptionVariable, 0))
+	var paramsTifOption map[string]any = MapTyped(GetValue(tifOptionparamsTifOptionVariable, 1))
+	var tifIsMissing bool = timeInForceIsRequired && (this.SafeString(params, "timeInForce") == nil) && (this.SafeString(request, "timeInForce") == nil)
+	var omitKeys []any = []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"}
+	var requestParams map[string]any = nil
+	if tifIsMissing {
+		request["timeInForce"] = tifOption
+		requestParams = MapTyped(this.Omit(paramsTifOption, omitKeys))
+	} else {
+		requestParams = MapTyped(this.Omit(params, omitKeys))
 	}
-	var requestParams map[string]any = MapTyped(this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"}))
 	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (GetValue(market, "swap") == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
 		request["feeRate"] = this.SafeString(this.Options, "builderRate")
@@ -3791,14 +3793,14 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	} else {
 		request["orderId"] = id
 	}
-	params = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
 	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateDeleteV3Order(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateDeleteV3Order(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.SapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	ch <- this.ParseOrder(response, market)
@@ -4080,10 +4082,10 @@ func (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(marginMode, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "swap")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	return map[string]any{
 		"info":       marginMode,
-		"symbol":     this.SafeString(market, "symbol"),
+		"symbol":     this.SafeString(marketResolved, "symbol"),
 		"marginMode": this.SafeStringLower(marginMode, "marginType"),
 	}
 }
@@ -4126,7 +4128,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var market map[string]any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
-	params = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4148,7 +4150,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 		request["endTime"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3PositionMarginHistory(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3PositionMarginHistory(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     [
 	//         {
@@ -4190,12 +4192,12 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
 	var errorCode *string = this.SafeString(data, "code")
 	var marketId *string = this.SafeString(data, "symbol")
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	market = this.SafeMarket(marketId, market, nil, "swap")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	var noErrorCode bool = (errorCode == nil)
 	var success bool = (errorCode != nil && *errorCode == "200")
 	return map[string]any{
 		"info":   data,
-		"symbol": GetValue(market, "symbol"),
+		"symbol": marketResolved["symbol"],
 		"type": func() string {
 			if rawType != nil && *rawType == 1 {
 				return "add"
@@ -4229,11 +4231,11 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol any, amount any, a
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var market map[string]any = this.Market(symbol)
-	amount = DerefScalar(this.AmountToPrecision(symbol, amount))
+	var amountValue *string = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"type":   addOrReduce,
 		"symbol": market["id"],
-		"amount": amount,
+		"amount": amountValue,
 	}
 	var code *string = SafeStringPtr(market["quote"])
 
@@ -4274,8 +4276,8 @@ func (this *Aster) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes338515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
-	ch <- BoxAbsent(retRes338515)
+	var retRes337715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	ch <- BoxAbsent(retRes337715)
 	return nil
 }
 
@@ -4300,8 +4302,8 @@ func (this *Aster) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes339915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
-	ch <- BoxAbsent(retRes339915)
+	var retRes339115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	ch <- BoxAbsent(retRes339115)
 	return nil
 }
 func (this *Aster) ParseIncome(income any, optionalArgs ...any) any {
@@ -4373,17 +4375,17 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 	if since != nil {
-		request["startTime"] = since
+		AddElementToObject(requestUntil, "startTime", since)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // max 1000
+		AddElementToObject(requestUntil, "limit", mathMin(limit, 1000)) // max 1000
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3Income(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3Income(this.Extend(requestUntil, paramsUntil))).Raw))
 
 	ch <- this.ParseIncomes(response, market, since, limit)
 	return nil
@@ -4413,7 +4415,7 @@ func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var currencyId *string = this.SafeString(item, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(item, "time")
 	var typeVar *string = this.SafeString(item, "incomeType")
 	return this.SafeLedgerEntry(map[string]any{
@@ -4432,7 +4434,7 @@ func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"after":            nil,
 		"status":           nil,
 		"fee":              nil,
-	}, currency)
+	}, currencyResolved)
 }
 func (this *Aster) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
@@ -4489,12 +4491,17 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = mathMin(limit, 1000) // max 1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted any = func() any {
+		if until != nil {
+			return this.Omit(params, "until")
+		}
+		return params
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, "until"))
 		request["endTime"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3Income(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3Income(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     [
@@ -4534,8 +4541,8 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "contract")
-	var symbol *string = this.SafeString(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var isolatedMarginString *string = this.SafeString(position, "isolatedMargin")
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
@@ -4579,13 +4586,13 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
 	var entryPrice *float64 = Float64PtrTyped(this.ParseNumber(entryPriceString))
-	var contractSize *float64 = this.SafeNumber(market, "contractSize")
+	var contractSize *float64 = this.SafeNumber(marketResolved, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
 	var linear bool = (InOp(position, "notional"))
 	if marginMode != nil && *marginMode == "cross" {
 		// calculate collateral
-		var precision map[string]any = SafeMapTyped(market, "precision")
+		var precision map[string]any = SafeMapTyped(marketResolved, "precision")
 		var basePrecisionValue *string = this.SafeString(precision, "base")
 		var quotePrecisionValue *string = this.SafeString2(precision, "quote", "price")
 		var precisionIsUndefined bool = (basePrecisionValue == nil) && (quotePrecisionValue == nil)
@@ -4762,9 +4769,9 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 			result = append(result, this.ParsePositionRisk(rawPosition))
 		}
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
-	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
 }
 
@@ -4790,10 +4797,10 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var defaultMethod *string = nil
-	var defaultMethodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method")
-	defaultMethod = SafeStringPtr(GetValue(defaultMethodparamsVariable, 0))
-	params = MapTyped(GetValue(defaultMethodparamsVariable, 1))
+	var methodOptionparamsMethodVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method")
+	var methodOption *string = SafeStringPtr(GetValue(methodOptionparamsMethodVariable, 0))
+	var paramsMethod map[string]any = MapTyped(GetValue(methodOptionparamsMethodVariable, 1))
+	var defaultMethod *string = methodOption
 	if defaultMethod == nil {
 		var options any = this.SafeDict(this.Options, "fetchPositions")
 		if IsEqual(options, nil) {
@@ -4804,13 +4811,13 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if defaultMethod != nil && *defaultMethod == "positionRisk" {
 
-		var retRes380919 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, params))))
-		ch <- BoxAbsent(retRes380919)
+		var retRes380119 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, paramsMethod))))
+		ch <- BoxAbsent(retRes380119)
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
 
-		var retRes381119 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, params))))
-		ch <- BoxAbsent(retRes381119)
+		var retRes380319 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, paramsMethod))))
+		ch <- BoxAbsent(retRes380319)
 		return nil
 	} else {
 		panic(NotSupported(this.Id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"" + *defaultMethod + "\" is invalid, please choose between \"account\" and \"positionRisk\""))
@@ -4871,8 +4878,8 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "contract")
-	var symbol *string = this.SafeString(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var leverageString *string = this.SafeString(position, "leverage")
 	var leverage any = func() any {
 		if leverageString != nil {
@@ -4906,7 +4913,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var contractsStringAbs *string = Precise.StringAbs(contractsString)
 	if contractsString == nil {
 		var entryNotional *string = Precise.StringMul(Precise.StringMul(leverageString, initialMarginString), entryPriceString)
-		var contractSizeNew *string = this.SafeString(market, "contractSize")
+		var contractSizeNew *string = this.SafeString(marketResolved, "contractSize")
 		contractsString = Precise.StringDiv(entryNotional, contractSizeNew)
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
 	}
@@ -4956,7 +4963,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var percentage any = nil
 	var liquidationPriceStringRaw *string = nil
 	var liquidationPrice any = nil
-	var contractSize *float64 = this.SafeNumber(market, "contractSize")
+	var contractSize *float64 = this.SafeNumber(marketResolved, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
@@ -5006,7 +5013,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 			var rightSide *string = Precise.StringSub(Precise.StringMul(Precise.StringDiv("1", entryPriceSignString), size), walletBalance)
 			liquidationPriceStringRaw = Precise.StringDiv(leftSide, rightSide)
 		}
-		var pricePrecision int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
+		var pricePrecision int = this.PrecisionFromString(this.SafeString(marketResolved["precision"], "price"))
 		var pricePrecisionPlusOne int = pricePrecision + 1
 		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
 		// round half up
@@ -5086,14 +5093,11 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
-	var filterClosed any = nil
-	var filterClosedparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)
-	filterClosed = GetValue(filterClosedparamsVariable, 0)
-	params = MapTyped(GetValue(filterClosedparamsVariable, 1))
+	var filterClosed *bool = SafeBoolPtr(GetValue(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
-	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
 }
 func (this *Aster) LoadLeverageBracketsAsync(optionalArgs ...any) <-chan any {
@@ -5242,9 +5246,8 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
+	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
 	this.CheckAddress(address)
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -5255,10 +5258,10 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 		"receiver":  address,
 		"userNonce": strconv.FormatInt(nonce, 10),
 	}
-	var chainId *int64 = this.SafeInteger(params, "chainId")
+	var chainId *int64 = this.SafeInteger(paramsWithdrawTag, "chainId")
 	// TODO: check how ARBI signature would work
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var network *string = this.SafeStringUpper(params, "network")
+	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
 	network = this.SafeString(networks, network, network)
 	if (chainId == nil) && (network != nil) {
 		var chainIds map[string]any = SafeMapTyped(this.Options, "networksToChainId")
@@ -5268,16 +5271,16 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 		panic(ArgumentsRequired(this.Id + " withdraw require chainId or network parameter"))
 	}
 	request["chainId"] = chainId
-	var fee *string = this.SafeString(params, "fee")
+	var fee *string = this.SafeString(paramsWithdrawTag, "fee")
 	if fee == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw require fee parameter"))
 	}
 	request["fee"] = fee
-	params = MapTyped(this.Omit(params, []any{"chainId", "network", "fee"}))
+	var paramsOmitted any = this.Omit(paramsWithdrawTag, []any{"chainId", "network", "fee"})
 	request["amount"] = this.CurrencyToPrecision(code, amount, network)
 	request["userSignature"] = this.SignWithdrawPayload(request, network)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//   {
@@ -5419,7 +5422,7 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if (IsEqual(api, "fapiPublic")) || (IsEqual(api, "sapiPublic")) {
@@ -5504,9 +5507,15 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 		if method == "GET" {
 			url = Add(url, Add("?", queryString))
 		} else {
-			headers = map[string]any{}
-			AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
-			body = queryString
+			var formHeaders map[string]any = map[string]any{
+				"Content-Type": "application/x-www-form-urlencoded",
+			}
+			return map[string]any{
+				"url":     url,
+				"method":  method,
+				"body":    queryString,
+				"headers": formHeaders,
+			}
 		}
 	}
 	return map[string]any{

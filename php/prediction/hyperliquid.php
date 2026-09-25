@@ -890,8 +890,8 @@ class hyperliquid extends Exchange {
                 'endTime' => $until,
             ),
         );
-        $params = $this->omit($params, 'until');
-        $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, 'until');
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsOmitted)));
         //
         //     [
         //         {
@@ -961,12 +961,12 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->user] wallet address (defaults to $this->walletAddress)
          * @return {Balances} $balance structure
          */
-        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchBalance', $params);
         $request = array(
             'type' => 'spotClearinghouseState',
             'user' => $userAddress,
         );
-        $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsPublicAddress)));
         //
         //     {
         //         "balances": [
@@ -1025,7 +1025,7 @@ class hyperliquid extends Exchange {
             // no filter — warm the whole outcome set so identities resolve from the cache
             Async\await($this->load_outcomes());
         }
-        list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchPositions', $params);
         $request = array(
             'type' => 'spotClearinghouseState',
             'user' => $userAddress,
@@ -1034,7 +1034,7 @@ class hyperliquid extends Exchange {
         // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         // value / entry price / pnl, so they are computed from the current mid prices
         $promises = array(
-            $this->publicPostInfo($this->extend($request, $params)),
+            $this->publicPostInfo($this->extend($request, $paramsPublicAddress)),
             $this->publicPostInfo(array( 'type' => 'allMids' )),
         );
         $results = Async\await(Promise\all($promises));
@@ -1309,9 +1309,8 @@ class hyperliquid extends Exchange {
         if ($clientOrderId !== null) {
             $orderObj['c'] = $clientOrderId;
         }
-        $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        $vaultAddressOption = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress')[0];
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $orderAction = array(
             'type' => 'order',
             'orders' => array( $orderObj ),
@@ -1428,7 +1427,7 @@ class hyperliquid extends Exchange {
         $assetId = $this->safe_integer($outcomeInfo, 'assetId');
         $nonce = $this->incrementing_nonce();
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         $cancelReq = array();
         $cancelAction = array( 'type' => 'cancel', 'cancels' => array() );
         if ($clientOrderId !== null) {
@@ -1444,9 +1443,8 @@ class hyperliquid extends Exchange {
             }
         }
         $cancelAction['cancels'] = $cancelReq;
-        $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'cancelOrders', 'vaultAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        $vaultAddressOption = $this->handle_option_string_and_params($paramsOmitted, 'cancelOrders', 'vaultAddress')[0];
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $cancelAction,
@@ -1516,10 +1514,10 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->method] 'openOrders' | 'frontendOpenOrders' (default)
          * @return {array[]} a list of [prediction $order structures](https://docs.ccxt.com/#/?id=prediction-$order-structure)
          */
-        list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
-        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOpenOrders', $params);
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         $request = array( 'type' => $method, 'user' => $userAddress );
-        $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsMethod)));
         $ordersWithStatus = array();
         $rawOrders = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -1556,9 +1554,9 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->user] wallet address
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
-        list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOrders', $params);
         $request = array( 'type' => 'historicalOrders', 'user' => $userAddress );
-        $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsPublicAddress)));
         // Deduplicate by oid keeping most recent statusTimestamp
         $deduped = array();
         $historicalOrders = array();
@@ -1612,17 +1610,18 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->clientOrderId] fetch by client order $id instead
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
-        list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        list($userAddress, $paramsAddress) = $this->handle_public_address('fetchOrder', $params);
+        $clientOrderId = $this->safe_string($paramsAddress, 'clientOrderId');
         $request = array( 'type' => 'orderStatus', 'user' => $userAddress );
+        $paramsValue = $paramsAddress;
         if ($clientOrderId !== null) {
-            $params = $this->omit($params, 'clientOrderId');
+            $paramsValue = $this->omit($paramsAddress, 'clientOrderId');
             $request['oid'] = $clientOrderId;
         } else {
             $isCloid = strlen($id) >= 34;
             $request['oid'] = $isCloid ? $id : $this->parse_to_numeric($id);
         }
-        $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsValue)));
         $orderStatus = array();
         if ((gettype($response) !== 'string') && (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $orderStatus = $response;
@@ -1824,7 +1823,7 @@ class hyperliquid extends Exchange {
             // cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
             Async\await($this->load_outcomes());
         }
-        list($userAddress, $params) = $this->handle_public_address('fetchMyTrades', $params);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyTrades', $params);
         $request = array( 'user' => $userAddress );
         if ($since !== null) {
             $request['type'] = 'userFillsByTime';
@@ -1832,12 +1831,12 @@ class hyperliquid extends Exchange {
         } else {
             $request['type'] = 'userFills';
         }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $until = $this->safe_integer($paramsPublicAddress, 'until');
+        $paramsOmitted = $this->omit($paramsPublicAddress, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
+        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsOmitted)));
         $fills = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $fills = $response;
@@ -2287,15 +2286,13 @@ class hyperliquid extends Exchange {
     }
 
     public function handle_public_address(string $methodName, array $params): array {
-        $userAux = null;
-        list($userAux, $params) = $this->handle_option_string_and_params_2($params, $methodName, 'user', 'subAccountAddress');
-        $user = $userAux;
-        list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
+        list($userAux, $paramsUser) = $this->handle_option_string_and_params_2($params, $methodName, 'user', 'subAccountAddress');
+        list($user, $paramsAddress) = $this->handle_option_string_and_params($paramsUser, $methodName, 'address', $userAux);
         if ($user !== null && $user !== '') {
-            return array( $user, $params );
+            return array( $user, $paramsAddress );
         }
         if ($this->walletAddress !== null && $this->walletAddress !== '') {
-            return array( $this->walletAddress, $params );
+            return array( $this->walletAddress, $paramsAddress );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter or walletAddress to be set');
     }
@@ -2322,11 +2319,13 @@ class hyperliquid extends Exchange {
             $baseUrl = $this->safe_string($apiUrls, $apiGroup, $this->safe_string($apiUrls, 'public', ''));
         }
         $url = $baseUrl . '/' . $path;
+        $headersValue = $headers;
+        $bodyValue = $body;
         if ($method === 'POST') {
-            $headers = array( 'Content-Type' => 'application/json' );
-            $body = $this->json($params);
+            $headersValue = array( 'Content-Type' => 'application/json' );
+            $bodyValue = $this->json($params);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -1971,7 +1971,7 @@ func (this *Opinion) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1982,7 +1982,7 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadApiKeyAsync()))
 	var outcomesLength int = 0
 	if outcomes != nil {
-		outcomesLength = ccxt.GetArrayLength(outcomes)
+		outcomesLength = len(outcomes)
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	}
@@ -2289,7 +2289,7 @@ func (this *Opinion) OpinionWsUrl() any {
 		}
 		return this.SafeString(this.Options, "apiKey")
 	}()
-	if apiKey == nil {
+	if ccxt.IsEqual(apiKey, nil) {
 		panic(ccxt.AuthenticationError(this.Id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 	}
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws", "")
@@ -2948,7 +2948,7 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	headers = this.Extend(map[string]any{
+	var headersExtended map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, existingHeaders)
@@ -2965,9 +2965,9 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 			}
 			var action *string = this.SafeString(actionByMethod, method, "get")
 			var timestamp *string = this.NumberToString(this.Seconds())
-			ccxt.AddElementToObject(headers, "OPINION_ADDRESS", this.WalletAddress)
-			ccxt.AddElementToObject(headers, "OPINION_SIGNATURE", this.SignApiKeyAuth(this.WalletAddress, action, timestamp))
-			ccxt.AddElementToObject(headers, "OPINION_TIMESTAMP", timestamp)
+			headersExtended["OPINION_ADDRESS"] = this.WalletAddress
+			headersExtended["OPINION_SIGNATURE"] = this.SignApiKeyAuth(this.WalletAddress, action, timestamp)
+			headersExtended["OPINION_TIMESTAMP"] = timestamp
 		} else {
 			// an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
 			// strict base types the credential as string, undefined can not be assigned)
@@ -2978,24 +2978,25 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 				}
 				return this.SafeString(this.Options, "apiKey")
 			}()
-			if apiKey == nil {
+			if ccxt.IsEqual(apiKey, nil) {
 				panic(ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id+" ", path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")))
 			}
-			ccxt.AddElementToObject(headers, "apikey", apiKey)
+			headersExtended["apikey"] = apiKey
 		}
 	}
+	var bodyValue any = body
 	if method == "GET" {
 		if len(ccxt.ObjectKeys(query)) > 0 {
 			url = ccxt.Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
-		body = this.Json(query)
+		bodyValue = this.Json(query)
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyValue,
+		"headers": headersExtended,
 	}
 }
 

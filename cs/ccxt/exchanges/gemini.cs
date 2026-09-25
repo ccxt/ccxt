@@ -1362,12 +1362,12 @@ public partial class gemini : Exchange
         Int64? timestamp = this.safeInteger(volume, "timestamp");
         string? symbol = null;
         string? marketId = this.safeStringLower(ticker, "pair");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? baseId = null;
         string? quoteId = null;
         string? bs = null;
         string? quote = null;
-        if (((marketId != null)) && ((market == null)))
+        if (((marketId != null)) && ((marketResolved == null)))
         {
             int idLength = (marketId.Length - 0);
             if ((idLength == 7))
@@ -1386,11 +1386,11 @@ public partial class gemini : Exchange
                 symbol = ((bs + "/") + quote);
             }
         }
-        if (((symbol == null)) && ((market != null)))
+        if (((symbol == null)) && ((marketResolved != null)))
         {
-            symbol = ((string)getValue(market, "symbol"));
-            baseId = this.safeStringUpper(market, "baseId");
-            quoteId = this.safeStringUpper(market, "quoteId");
+            symbol = ((string)GetValue(marketResolved, "symbol"));
+            baseId = this.safeStringUpper(marketResolved, "baseId");
+            quoteId = this.safeStringUpper(marketResolved, "quoteId");
         }
         string? price = this.safeString(ticker, "price");
         string? last = this.safeString2(ticker, "last", "close", price);
@@ -1419,7 +1419,7 @@ public partial class gemini : Exchange
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1976,7 +1976,6 @@ public partial class gemini : Exchange
             throw new ExchangeError ((this.id + " createOrder() allows limit orders only")) ;
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         if ((clientOrderId == null))
         {
             clientOrderId = this.milliseconds().ToString();
@@ -1992,13 +1991,15 @@ public partial class gemini : Exchange
             { "side", side },
             { "type", "exchange limit" },
         };
-        string? orderType = this.safeString(parameters, "type", type);
-        parameters = this.omit(parameters, "type");
+        string? typeValue = this.safeString(parameters, "type", type);
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
-        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
-        if (orderType == "stopLimit")
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        List<object> omitKeys = new List<object>() {"clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"};
+        List<object> optionKeys = ((triggerPrice == null)) ? new List<object>() {"timeInForce", "postOnly"} : new List<object>() {};
+        object paramsOmitted = this.omit(parameters, this.arrayConcat(omitKeys, optionKeys));
+        if (typeValue == "stopLimit")
         {
-            throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + orderType) + " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + typeValue) + " orders")) ;
         }
         if ((triggerPrice != null))
         {
@@ -2008,7 +2009,6 @@ public partial class gemini : Exchange
         {
             // No options can be applied to stop-limit orders at this time.
             string? timeInForce = this.safeString(parameters, "timeInForce");
-            parameters = this.omit(parameters, "timeInForce");
             if ((timeInForce != null))
             {
                 if ((timeInForce == "IOC") || (timeInForce == "immediate-or-cancel"))
@@ -2023,7 +2023,6 @@ public partial class gemini : Exchange
                 }
             }
             bool? postOnly = this.safeBool(parameters, "postOnly", false);
-            parameters = this.omit(parameters, "postOnly");
             if ((postOnly == true))
             {
                 request["options"] = new List<object>() {"maker-or-cancel"};
@@ -2035,7 +2034,7 @@ public partial class gemini : Exchange
                 request["options"] = new List<object>() {options};
             }
         }
-        Dictionary<string, object> response = await this.privatePostV1OrderNew(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostV1OrderNew(this.extend(request, paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -2162,11 +2161,9 @@ public partial class gemini : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        List<object> tagAndParams = this.handleWithdrawTagAndParams(tag, parameters);
+        object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -2178,7 +2175,7 @@ public partial class gemini : Exchange
             { "amount", amount },
             { "address", address },
         };
-        Dictionary<string, object> response = await this.privatePostV1WithdrawCurrency(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostV1WithdrawCurrency(this.extend(request, paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -2358,10 +2355,7 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
-        string? networkCode = null;
-        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = (string)networkCodeparametersVariable[0];
-        parameters = networkCodeparametersVariable[1];
+        string? networkCode = ((string)getValue(this.handleNetworkCodeAndParams(parameters), 0));
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
     }
 
@@ -2377,18 +2371,16 @@ public partial class gemini : Exchange
      */
     public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
-        object codeVar = code;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(((string)codeVar));
-        codeVar = (currency.ContainsKey("code") ? currency["code"] : null);
-        string? networkCode = null;
-        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = (string)networkCodeparametersVariable[0];
-        parameters = networkCodeparametersVariable[1];
+        Dictionary<string, object> currency = this.currency(code);
+        string? codeValue = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
+        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddresses() requires a network parameter")) ;
@@ -2397,10 +2389,10 @@ public partial class gemini : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "network", networkId },
         };
-        List<object> response = await this.privatePostV1AddressesNetwork(this.extend(request, parameters));
-        object results = this.parseDepositAddresses(response, new List<object>() {codeVar}, false, new Dictionary<string, object>() {
+        List<object> response = await this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode));
+        object results = this.parseDepositAddresses(response, new List<object>() {codeValue}, false, new Dictionary<string, object>() {
             { "network", networkCode },
-            { "currency", codeVar },
+            { "currency", codeValue },
         });
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
@@ -2414,6 +2406,7 @@ public partial class gemini : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> headersSigned = null;
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2432,7 +2425,7 @@ public partial class gemini : Exchange
             string? payload = this.json(request);
             payload = this.stringToBase64(payload);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-            headers = new Dictionary<string, object>() {
+            headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "text/plain" },
                 { "X-GEMINI-APIKEY", this.apiKey },
                 { "X-GEMINI-PAYLOAD", payload },
@@ -2451,15 +2444,17 @@ public partial class gemini : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         url = add(apiUrl, url);
+        object headersResolved = (isEqual(api, "private")) ? headersSigned : headers;
+        object bodyResolved = body;
         if (((method == "POST")) || ((method == "DELETE")))
         {
-            body = this.json(query);
+            bodyResolved = this.json(query);
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 

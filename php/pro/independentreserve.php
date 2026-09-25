@@ -66,13 +66,13 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
         }
         $url = $wsUrl . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
-        $messageHash = 'trades:' . $symbol;
+        $messageHash = 'trades:' . $symbolValue;
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -160,17 +160,15 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $limitString = $this->number_to_string($limit);
+        $symbolValue = $market['symbol'];
+        $limitResolved = ($limit === null) ? 100 : $limit;
+        $limitString = $this->number_to_string($limitResolved);
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
         }
         $url = $wsUrl . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
-        $messageHash = 'orderbook:' . $symbol . ':' . $limitString;
+        $messageHash = 'orderbook:' . $symbolValue . ':' . $limitString;
         $subscription = array(
             'receivedSnapshot' => false,
         );

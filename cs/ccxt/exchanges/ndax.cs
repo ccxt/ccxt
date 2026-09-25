@@ -898,6 +898,7 @@ public partial class ndax : Exchange
         amountKey ??= 8;
         countOrIdKey ??= 2;
         object nonce = null;
+        object latestTimestamp = timestamp;
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", new List<object>() {} },
@@ -909,15 +910,15 @@ public partial class ndax : Exchange
         for (int i = 0; i < getArrayLength(orderbook); i++)
         {
             object level = getValue(orderbook, i);
-            if ((timestamp == null))
+            if (isEqual(latestTimestamp, null))
             {
-                timestamp = this.safeInteger(level, 2);
+                latestTimestamp = this.safeInteger(level, 2);
             } else
             {
                 Int64? newTimestamp = this.safeInteger(level, 2);
                 if ((newTimestamp != null))
                 {
-                    timestamp = mathMax(timestamp, newTimestamp);
+                    latestTimestamp = mathMax(latestTimestamp, newTimestamp);
                 }
             }
             if (isEqual(nonce, null))
@@ -938,8 +939,8 @@ public partial class ndax : Exchange
         }
         result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
         result["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);
-        result["timestamp"] = timestamp;
-        result["datetime"] = this.iso8601(timestamp);
+        result["timestamp"] = latestTimestamp;
+        result["datetime"] = this.iso8601(latestTimestamp);
         result["nonce"] = nonce;
         return ((Dictionary<string, object>)((object)(result)));
     }
@@ -956,7 +957,6 @@ public partial class ndax : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if ((this.markets == null))
@@ -964,11 +964,11 @@ public partial class ndax : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        limitVar = ((limitVar == null)) ? 100 : limitVar; // default 100
+        object limitValue = ((limit == null)) ? 100 : limit; // default 100
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
-            { "Depth", limitVar },
+            { "Depth", limitValue },
         };
         List<object> response = await this.publicGetGetL2Snapshot(this.extend(request, parameters));
         //
@@ -1050,8 +1050,8 @@ public partial class ndax : Exchange
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
-        market = this.safeMarket(marketId, market, "_");
-        string? symbol = this.safeSymbol(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        string? symbol = this.safeSymbol(marketId, marketResolved);
         string? last = this.safeString2(ticker, "LastTradedPx", "last_price");
         string? percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         string? change = this.safeString(ticker, "Rolling24HrPxChange");
@@ -1079,7 +1079,7 @@ public partial class ndax : Exchange
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1098,7 +1098,7 @@ public partial class ndax : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetSummary(parameters);
         //
         //     [
@@ -1116,7 +1116,7 @@ public partial class ndax : Exchange
         //     ]
         //
         Dictionary<string, object> tickers = this.parseTickers(response);
-        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
     }
 
     /**
@@ -1562,12 +1562,12 @@ public partial class ndax : Exchange
         {
             accountId = this.parseToInt(getValue(getValue(this.accounts, 0), "id"));
         }
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        Dictionary<string, object> response = await this.privateGetGetAccountPositions(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetGetAccountPositions(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1641,7 +1641,7 @@ public partial class ndax : Exchange
         //     }
         //
         string? currencyId = this.safeString(item, "ProductId");
-        currency = this.safeCurrency(currencyId, currency);
+        Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         string? credit = this.safeString(item, "CR");
         string? debit = this.safeString(item, "DR");
         string? amount = null;
@@ -1673,7 +1673,7 @@ public partial class ndax : Exchange
             { "referenceId", this.safeString(item, "ReferenceId") },
             { "referenceAccount", this.safeString(item, "Counterparty") },
             { "type", this.parseLedgerEntryType(this.safeString(item, "ReferenceType")) },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", this.safeCurrencyCode(currencyId, currencyResolved) },
             { "amount", this.parseNumber(amount) },
             { "before", this.parseNumber(before) },
             { "after", this.parseNumber(after) },
@@ -1681,7 +1681,7 @@ public partial class ndax : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        }, currency);
+        }, currencyResolved);
     }
 
     /**
@@ -1706,7 +1706,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
@@ -1715,7 +1715,7 @@ public partial class ndax : Exchange
         {
             request["Depth"] = limit;
         }
-        List<object> response = await this.privateGetGetAccountTransactions(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetAccountTransactions(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1894,7 +1894,7 @@ public partial class ndax : Exchange
                 orderType = 4;
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"});
         Dictionary<string, object> market = this.market(symbol);
         int orderSide = ((side == "buy")) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
@@ -1925,7 +1925,7 @@ public partial class ndax : Exchange
         {
             request["StopPrice"] = triggerPrice;
         }
-        Dictionary<string, object> response = await this.privatePostSendOrder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostSendOrder(this.extend(request, paramsOmitted));
         //
         //     {
         //         "status":"Accepted",
@@ -1962,7 +1962,7 @@ public partial class ndax : Exchange
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         Int64? clientOrderId = this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId"});
         Dictionary<string, object> market = this.market(symbol);
         int orderSide = ((side == "buy")) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
@@ -1990,7 +1990,7 @@ public partial class ndax : Exchange
         {
             request["ClientOrderId"] = clientOrderId;
         }
-        Dictionary<string, object> response = await this.privatePostCancelReplaceOrder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostCancelReplaceOrder(this.extend(request, paramsOmitted));
         //
         //     {
         //         "replacementOrderId": 1234,
@@ -2024,7 +2024,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
@@ -2043,7 +2043,7 @@ public partial class ndax : Exchange
         {
             request["Depth"] = limit;
         }
-        List<object> response = await this.privateGetGetTradesHistory(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetTradesHistory(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -2110,7 +2110,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
@@ -2120,7 +2120,7 @@ public partial class ndax : Exchange
             Dictionary<string, object> market = this.market(symbol);
             request["IntrumentId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        Dictionary<string, object> response = await this.privatePostCancelAllOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostCancelAllOrders(this.extend(request, paramsOmitted));
         //
         //     {
         //         "result":true,
@@ -2171,8 +2171,8 @@ public partial class ndax : Exchange
         {
             request["OrderId"] = parseInt(id);
         }
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "ClOrderId"});
-        Dictionary<string, object> response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "ClOrderId"});
+        Dictionary<string, object> response = await this.privatePostCancelOrder(this.extend(request, paramsOmitted));
         Dictionary<string, object> order = this.parseOrder(response, market);
         return ccxt.BaseExchange.ToOrder(this.extend(order, new Dictionary<string, object>() {             { "id", id },             { "clientOrderId", clientOrderId },         }));
     }
@@ -2199,7 +2199,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2209,7 +2209,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        List<object> response = await this.privateGetGetOpenOrders(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetOpenOrders(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -2285,7 +2285,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
@@ -2304,7 +2304,7 @@ public partial class ndax : Exchange
         {
             request["Depth"] = limit;
         }
-        List<object> response = await this.privateGetGetOrdersHistory(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetOrdersHistory(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -2379,7 +2379,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2390,7 +2390,7 @@ public partial class ndax : Exchange
             { "AccountId", accountId },
             { "OrderId", parseInt(id) },
         };
-        Dictionary<string, object> response = await this.privateGetGetOrderStatus(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetGetOrderStatus(this.extend(request, paramsOmitted));
         //
         //     {
         //         "Side":"Sell",
@@ -2550,7 +2550,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
@@ -2558,7 +2558,7 @@ public partial class ndax : Exchange
             { "ProductId", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "GenerateNewKey", false },
         };
-        Dictionary<string, object> response = await this.privateGetGetDepositInfo(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetGetDepositInfo(this.extend(request, paramsOmitted));
         //
         //     {
         //         "result":true,
@@ -2651,7 +2651,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -2661,7 +2661,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        List<object> response = await this.privateGetGetDeposits(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetDeposits(this.extend(request, paramsOmitted));
         //
         //    "[
         //        {
@@ -2719,7 +2719,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -2729,7 +2729,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        List<object> response = await this.privateGetGetWithdraws(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetWithdraws(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -2931,11 +2931,10 @@ public partial class ndax : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         // this method required login, password and twofa key
         string? sessionToken = this.safeString(this.options, "sessionToken");
         if ((sessionToken == null))
@@ -2954,8 +2953,8 @@ public partial class ndax : Exchange
         }
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
-        Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
+        Int64? accountId = this.safeInteger2(paramsWithdrawTag, "accountId", "AccountId", defaultAccountId);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, new List<object>() {"accountId", "AccountId"});
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> withdrawTemplateTypesRequest = new Dictionary<string, object>() {
             { "omsId", omsId },
@@ -3005,11 +3004,11 @@ public partial class ndax : Exchange
         }
         object withdrawTemplate = parseJson(template);
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
-        if ((tagVar != null))
+        if ((tagWithdrawTag != null))
         {
             if (inOp(withdrawTemplate, "Memo"))
             {
-                ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tagVar;
+                ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tagWithdrawTag;
             }
         }
         Dictionary<string, object> withdrawPayload = new Dictionary<string, object>() {
@@ -3024,7 +3023,7 @@ public partial class ndax : Exchange
             { "TFaCode", totp(this.twofa) },
             { "Payload", this.json(withdrawPayload) },
         };
-        Dictionary<string, object> response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters));
+        Dictionary<string, object> response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted));
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
@@ -3038,6 +3037,8 @@ public partial class ndax : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? bodySigned = null;
+        Dictionary<string, object> headersSigned = null;
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         if ((apiUrl == null))
         {
@@ -3051,7 +3052,7 @@ public partial class ndax : Exchange
             {
                 string auth = ((this.login + ":") + this.password);
                 string auth64 = this.stringToBase64(auth);
-                headers = new Dictionary<string, object>() {
+                headersSigned = new Dictionary<string, object>() {
                     { "Authorization", ("Basic " + auth64) },
                 };
             } else if (isEqual(path, "Authenticate2FA"))
@@ -3059,7 +3060,7 @@ public partial class ndax : Exchange
                 string? pending2faToken = this.safeString(this.options, "pending2faToken");
                 if ((pending2faToken != null))
                 {
-                    headers = new Dictionary<string, object>() {
+                    headersSigned = new Dictionary<string, object>() {
                         { "Pending2FaToken", pending2faToken },
                     };
                     query = this.omit(query, "pending2faToken");
@@ -3078,7 +3079,7 @@ public partial class ndax : Exchange
                 string nonce = this.nonce().ToString();
                 string auth = ((nonce + this.uid) + this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-                headers = new Dictionary<string, object>() {
+                headersSigned = new Dictionary<string, object>() {
                     { "Nonce", nonce },
                     { "APIKey", this.apiKey },
                     { "Signature", signature },
@@ -3086,14 +3087,14 @@ public partial class ndax : Exchange
                 };
             } else
             {
-                headers = new Dictionary<string, object>() {
+                headersSigned = new Dictionary<string, object>() {
                     { "APToken", sessionToken },
                 };
             }
             if ((method == "POST"))
             {
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                body = this.json(query);
+                headersSigned["Content-Type"] = "application/json";
+                bodySigned = this.json(query);
             } else
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -3102,11 +3103,13 @@ public partial class ndax : Exchange
                 }
             }
         }
+        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
+        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 

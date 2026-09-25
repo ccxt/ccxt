@@ -979,18 +979,19 @@ class bullish(Exchange, ImplicitAPI):
             await self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
-            params = self.handle_pagination_params('fetchTrades', since, params)
-            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, maxLimit)
+            paramsPagination = self.handle_pagination_params('fetchTrades', since, paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPagination, maxLimit)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        params = self.handle_since_and_until(since, params)
+        paramsSinceAndUntil = self.handle_since_and_until(since, paramsPaginate)
         if limit is not None:
             request['_pageSize'] = self.get_closest_limit(limit)
-        response = await self.publicGetV1HistoryMarketsSymbolTrades(self.extend(request, params))
+        response = await self.publicGetV1HistoryMarketsSymbolTrades(self.extend(request, paramsSinceAndUntil))
         #
         #     [
         #         {
@@ -1039,11 +1040,12 @@ class bullish(Exchange, ImplicitAPI):
             response = await self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
             paginate = False
-            paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
+            paramsPaginate = {}
+            paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
             if paginate:
-                params = self.handle_pagination_params('fetchMyTrades', since, params)
-                return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
-            params = self.handle_since_and_until(since, params)
+                paramsPagination = self.handle_pagination_params('fetchMyTrades', since, paramsPaginate)
+                return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPagination, 100)
+            paramsSinceAndUntil = self.handle_since_and_until(since, paramsPaginate)
             if limit is not None:
                 request['_pageSize'] = self.get_closest_limit(limit)
             #
@@ -1066,7 +1068,7 @@ class bullish(Exchange, ImplicitAPI):
             #         }, ...
             #     ]
             #
-            response = await self.privateGetV1HistoryTrades(self.extend(request, params))
+            response = await self.privateGetV1HistoryTrades(self.extend(request, paramsSinceAndUntil))
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1086,9 +1088,10 @@ class bullish(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         clientOrderId = self.safe_string(params, 'clientOrderId')
+        paramsExtended = params
         if clientOrderId is None:
-            params = self.extend({'orderId': id}, params)
-        return await self.fetch_my_trades(symbol, since, limit, params)
+            paramsExtended = self.extend({'orderId': id}, params)
+        return await self.fetch_my_trades(symbol, since, limit, paramsExtended)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1141,14 +1144,14 @@ class bullish(Exchange, ImplicitAPI):
         #     ]
         #
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(trade, 'createdAtTimestamp')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
         side = self.safe_string_lower(trade, 'side')
         isTaker = self.safe_bool(trade, 'isTaker')
-        currency = market['quote']
+        currency = marketResolved['quote']
         code = self.safe_currency_code(currency)
         feeCost = self.safe_number(trade, 'quoteFee')
         fee = None
@@ -1174,7 +1177,7 @@ class bullish(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1273,10 +1276,10 @@ class bullish(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(ticker, 'createdAtTimestamp')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high'),
@@ -1297,25 +1300,24 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}):
-        maxRetries = None
-        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', 3)
+        maxRetries, paramsMaxRetries = self.handle_option_integer_and_params(params, method, 'maxRetries', 3)
         if (method != 'fetchOHLCV') and (method != 'fetchFundingRateHistory') and (method != 'fetchTrades'):
             raise NotSupported(self.id + ' safeDeterministicCall() does not support the ' + method + ' method')
         errors = 0
-        params = self.omit(params, 'until')
+        paramsOmitted = self.omit(paramsMaxRetries, 'until')
         # the exchange returns the most recent data, so we do not need to pass until into paginated calls
         # the correct util value will be calculated inside of the method
         while(errors <= maxRetries):
             try:
                 if method == 'fetchOHLCV':
-                    return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)
+                    return await self.fetch_ohlcv(symbol, timeframe, since, limit, paramsOmitted)
                 elif method == 'fetchFundingRateHistory':
-                    return await self.fetch_funding_rate_history(symbol, since, limit, params)
+                    return await self.fetch_funding_rate_history(symbol, since, limit, paramsOmitted)
                 else:
-                    return await self.fetch_trades(symbol, since, limit, params)
+                    return await self.fetch_trades(symbol, since, limit, paramsOmitted)
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast
@@ -1344,16 +1346,17 @@ class bullish(Exchange, ImplicitAPI):
         market = self.market(symbol)
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
         request = {
             'symbol': market['id'],
             'timeBucket': self.safe_string(self.timeframes, timeframe, timeframe),
             '_pageSize': maxLimit,
         }
-        request, params = self.handle_until_option('createdAtDatetime[lte]', request, params)
-        until = self.safe_integer(request, 'createdAtDatetime[lte]')
+        requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, paramsPaginate)
+        until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
         duration = self.parse_timeframe(timeframe)
         maxDelta = 1000 * duration * maxLimit
         startTime = since
@@ -1365,9 +1368,9 @@ class bullish(Exchange, ImplicitAPI):
             startTime = until - maxDelta
         elif until is None:
             until = self.sum(startTime, maxDelta)
-        request['createdAtDatetime[gte]'] = self.iso8601(startTime)
-        request['createdAtDatetime[lte]'] = self.iso8601(until)
-        response = await self.publicGetV1MarketsSymbolCandle(self.extend(request, params))
+        requestUntil['createdAtDatetime[gte]'] = self.iso8601(startTime)
+        requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
+        response = await self.publicGetV1MarketsSymbolCandle(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         {
@@ -1413,10 +1416,11 @@ class bullish(Exchange, ImplicitAPI):
             await self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            params = self.handle_pagination_params('fetchFundingRateHistory', since, params)
-            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit)
+            paramsPagination = self.handle_pagination_params('fetchFundingRateHistory', since, paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit)
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap markets only')
@@ -1425,8 +1429,8 @@ class bullish(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['_pageSize'] = self.get_closest_limit(limit)
-        params = self.handle_since_and_until(since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]')
-        response = await self.publicGetV1HistoryMarketsSymbolFundingRate(self.extend(request, params))
+        paramsSinceAndUntil = self.handle_since_and_until(since, paramsPaginate, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]')
+        response = await self.publicGetV1HistoryMarketsSymbolFundingRate(self.extend(request, paramsSinceAndUntil))
         #
         #     [
         #         {
@@ -1477,8 +1481,8 @@ class bullish(Exchange, ImplicitAPI):
         tradingAccountId = await self.load_account(params)
         paginate = self.safe_bool(params, 'paginate', False)
         if paginate is True:
-            params = self.handle_pagination_params('fetchOrders', since, params)
-            return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
+            paramsPagination = self.handle_pagination_params('fetchOrders', since, params)
+            return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, paramsPagination, 100)
         market = None
         request = {
             'tradingAccountId': tradingAccountId,
@@ -1486,11 +1490,12 @@ class bullish(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        params = self.handle_since_and_until(since, params)
+        paramsSinceAndUntil = self.handle_since_and_until(since, params)
         if limit is not None:
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
-        method, params = self.handle_option_string_and_params(params, 'fetchOrders', 'method', method)
+        paramsMethod = None
+        method, paramsMethod = self.handle_option_string_and_params(paramsSinceAndUntil, 'fetchOrders', 'method', method)
         response = []
         if method == 'privateGetV2Orders':
             #
@@ -1522,9 +1527,9 @@ class bullish(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-            response = await self.privateGetV2Orders(self.extend(request, params))
+            response = await self.privateGetV2Orders(self.extend(request, paramsMethod))
         elif method == 'privateGetV2HistoryOrders':
-            response = await self.privateGetV2HistoryOrders(self.extend(request, params))
+            response = await self.privateGetV2HistoryOrders(self.extend(request, paramsMethod))
         else:
             raise BadRequest(self.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"')
         return self.parse_orders(response, market, since, limit)
@@ -1535,30 +1540,34 @@ class bullish(Exchange, ImplicitAPI):
         allowedSince = now - ninetyDays
         if (since is not None) and (since < allowedSince):
             raise BadRequest(self.id + ' ' + method + '() only allows fetching entries up to 90 days in the past')
-        params = self.omit(params, 'paginate')
-        params = self.extend(params, {'paginationDirection': 'backward'})
-        until = self.safe_integer(params, 'until')
+        paramsOmitted = self.omit(params, 'paginate')
+        paramsExtended = self.extend(paramsOmitted, {'paginationDirection': 'backward'})
+        until = self.safe_integer(paramsExtended, 'until')
         if until is None:
-            params = self.extend(params, {'until': now})
-        return params
+            return self.extend(paramsExtended, {'until': now})
+        return paramsExtended
 
     def handle_since_and_until(self, since: Int = None, params: dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]') -> dict:
         until = self.safe_integer(params, 'until')
+        sinceFromUntil = (since is None) and (until is not None)
+        paramsResult = params
+        if sinceFromUntil:
+            paramsResult = self.omit(params, 'until')
         if (since is not None) or (until is not None):
             timeDelta = 7 * 24 * 60 * 60 * 1000  # 7 days
+            sinceResolved = since
             if since is None:
-                since = until - timeDelta
-                params = self.omit(params, 'until')
-            elif until is None:
+                sinceResolved = until - timeDelta
+            if (since is not None) and (until is None):
                 until = self.sum(since, timeDelta)
                 now = self.milliseconds()
                 if until > now:
                     until = now
-            sinceDate = self.iso8601(since)
+            sinceDate = self.iso8601(sinceResolved)
             untilDate = self.iso8601(until)
-            params[sinceKey] = sinceDate
-            params[untilKey] = untilDate
-        return params
+            paramsResult[sinceKey] = sinceDate
+            paramsResult[untilKey] = untilDate
+        return paramsResult
 
     def get_closest_limit(self, limit: Int) -> Int:
         pageSize = 5
@@ -1727,24 +1736,23 @@ class bullish(Exchange, ImplicitAPI):
             'tradingAccountId': tradingAccountId,
         }
         isMarketOrder = ((type == 'market') or type == 'MARKET')
-        postOnly = False
-        postOnly, params = self.handle_post_only(isMarketOrder, type == 'POST_ONLY', params)
+        postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, type == 'POST_ONLY', params)
+        orderType = type
         if postOnly:
-            type = 'POST_ONLY'
-        timeInForce = 'GTC'  # is mandatory
-        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', timeInForce)
-        params['timeInForce'] = timeInForce.upper()
+            orderType = 'POST_ONLY'
+        timeInForce, paramsTimeInForce = self.handle_option_string_and_params(paramsPostOnly, 'createOrder', 'timeInForce', 'GTC')  # is mandatory
+        paramsTimeInForce['timeInForce'] = timeInForce.upper()
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)
-        triggerPrice = self.safe_string(params, 'triggerPrice')
+        triggerPrice = self.safe_string(paramsTimeInForce, 'triggerPrice')
         if triggerPrice is not None:
             if isMarketOrder:
                 raise NotSupported(self.id + ' createOrder() does not support market trigger orders')
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-            type = 'STOP_LIMIT'
-            params = self.omit(params, 'triggerPrice')
-        request['type'] = type.upper()
-        response = await self.privatePostV2Orders(self.extend(request, params))
+            orderType = 'STOP_LIMIT'
+        paramsOmitted = self.omit(paramsTimeInForce, 'triggerPrice') if (triggerPrice is not None) else paramsTimeInForce
+        request['type'] = orderType.upper()
+        response = await self.privatePostV2Orders(self.extend(request, paramsOmitted))
         #
         #     {
         #         "message": "Command acknowledged - CreateOrder",
@@ -1788,13 +1796,13 @@ class bullish(Exchange, ImplicitAPI):
             request['type'] = type.upper()
         postOnly = self.safe_bool(params, 'postOnly', False)
         if postOnly is True:
-            params = self.omit(params, 'postOnly')
             request['type'] = 'POST_ONLY'
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostV2Command(self.extend(request, params))
+        paramsOmitted = self.omit(params, 'postOnly') if (postOnly is True) else params
+        response = await self.privatePostV2Command(self.extend(request, paramsOmitted))
         return self.parse_order(response, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -1916,9 +1924,8 @@ class bullish(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        if market is None:
-            market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId, market)
+        marketResolved = self.safe_market(marketId) if (market is None) else market
+        symbol = self.safe_symbol(marketId, marketResolved)
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'createdAtTimestamp')
         type = self.safe_string(order, 'type')
@@ -1938,7 +1945,7 @@ class bullish(Exchange, ImplicitAPI):
         quoteFee = self.safe_number(order, 'quoteFee')
         if quoteFee is not None:
             fee['cost'] = quoteFee
-            fee['currency'] = market['quote']
+            fee['currency'] = marketResolved['quote']
         average = self.safe_string(order, 'averageFillPrice')
         return self.safe_order({
             'id': id,
@@ -1962,7 +1969,7 @@ class bullish(Exchange, ImplicitAPI):
             'fee': fee,
             'info': order,
             'average': average,
-        }, market)
+        }, marketResolved)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -1996,13 +2003,13 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         request = {}
-        request, params = self.handle_until_option('createdAtDatetime[lte]', request, params)
-        until = self.safe_integer(request, 'createdAtDatetime[lte]')
+        requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, params)
+        until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
         if until is not None:
-            request['createdAtDatetime[lte]'] = self.iso8601(until)
+            requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
         if since is not None:
-            request['createdAtDatetime[gte]'] = self.iso8601(since)
-        response = await self.privateGetV1WalletsTransactions(self.extend(request, params))
+            requestUntil['createdAtDatetime[gte]'] = self.iso8601(since)
+        response = await self.privateGetV1WalletsTransactions(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "data": [
@@ -2070,13 +2077,12 @@ class bullish(Exchange, ImplicitAPI):
                 'quantity': self.currency_to_precision(code, amount),
             },
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['network'] = self.network_code_to_id(networkCode, code)
         else:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
-        response = await self.privatePostV1WalletsWithdrawal(self.extend(request, params))
+        response = await self.privatePostV1WalletsWithdrawal(self.extend(request, paramsNetworkCode))
         #
         #     {
         #         "code": "00000",
@@ -2180,9 +2186,10 @@ class bullish(Exchange, ImplicitAPI):
 
     async def load_account(self, params: dict = {}) -> str:
         tradingAccountId = None
-        tradingAccountId, params = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
+        paramsTradingAccountId = None
+        tradingAccountId, paramsTradingAccountId = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
         if tradingAccountId is None:
-            response = await self.privateGetV1AccountsTradingAccounts(params)
+            response = await self.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)
             accounts = self.to_array(response)
             for i in range(0, len(accounts)):
                 account = self.safe_dict(accounts, i)
@@ -2325,7 +2332,7 @@ class bullish(Exchange, ImplicitAPI):
         length = len(safeResponse)
         data = self.safe_dict(safeResponse, 0, {})
         network = None
-        network, params = self.handle_network_code_and_params(params)
+        network = self.handle_network_code_and_params(params)[0]
         networkDefinedByUser = network is not None
         if (length > 1) or (networkDefinedByUser):
             # some currencies have multiple networks
@@ -2486,8 +2493,8 @@ class bullish(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        market = self.safe_market(self.safe_string(position, 'symbol'), market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(self.safe_string(position, 'symbol'), market)
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(position, 'createdAtTimestamp')
         side = self.safe_string(position, 'side')
         return self.safe_position({
@@ -2545,10 +2552,11 @@ class bullish(Exchange, ImplicitAPI):
         tradingAccountId = await self.load_account(params)
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            params = self.handle_pagination_params('fetchTransfers', since, params)
-            return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
+            paramsPagination = self.handle_pagination_params('fetchTransfers', since, paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, paramsPagination, maxLimit)
         request = {
             'tradingAccountId': tradingAccountId,
         }
@@ -2556,15 +2564,16 @@ class bullish(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['assetSymbol'] = currency['id']
-        until = self.safe_integer(params, 'until')
-        if (since is None) and (until is None):
-            # since and until are mandatory for this endpoint, set until to now if both are undefined
-            now = self.milliseconds()
-            params = self.extend(params, {'until': now})
-        params = self.handle_since_and_until(since, params)
+        until = self.safe_integer(paramsPaginate, 'until')
+        # since and until are mandatory for this endpoint, set until to now if both are undefined
+        untilMissing = (since is None) and (until is None)
+        paramsUntil = paramsPaginate
+        if untilMissing:
+            paramsUntil = self.extend(paramsPaginate, {'until': self.milliseconds()})
+        paramsSinceAndUntil = self.handle_since_and_until(since, paramsUntil)
         if limit is not None:
             request['_pageSize'] = self.get_closest_limit(limit)
-        response = await self.privateGetV1HistoryTransfer(self.extend(request, params))
+        response = await self.privateGetV1HistoryTransfer(self.extend(request, paramsSinceAndUntil))
         #
         #     [
         #         {
@@ -2694,16 +2703,16 @@ class bullish(Exchange, ImplicitAPI):
         }
         now = self.milliseconds()
         startTimestamp = since
-        request, params = self.handle_until_option('createdAtDatetime[lte]', request, params)
-        until = self.safe_integer(request, 'createdAtDatetime[lte]')
+        requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, params)
+        until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
         # current endpoint requires both since and until parameters
         if startTimestamp is None:
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90  # Only the last 90 days of data is available for querying
         if until is None:
             until = now
-        request['createdAtDatetime[gte]'] = self.iso8601(startTimestamp)
-        request['createdAtDatetime[lte]'] = self.iso8601(until)
-        response = await self.privateGetV1HistoryBorrowInterest(self.extend(request, params))
+        requestUntil['createdAtDatetime[gte]'] = self.iso8601(startTimestamp)
+        requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
+        response = await self.privateGetV1HistoryBorrowInterest(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         {
@@ -2852,6 +2861,8 @@ class bullish(Exchange, ImplicitAPI):
         }, market)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = headers
+        requestBody = body
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], api)
@@ -2865,43 +2876,43 @@ class bullish(Exchange, ImplicitAPI):
             if method == 'GET':
                 payload = timestamp + nonce + method + '/trading-api/' + path
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-                headers = {
+                requestHeaders = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                 }
             elif method == 'POST':
-                body = self.json(params)
-                payload = timestamp + nonce + method + '/trading-api/' + path + body
+                requestBody = self.json(params)
+                payload = timestamp + nonce + method + '/trading-api/' + path + requestBody
                 digest = self.hash(self.encode(payload), 'sha256', 'hex')
                 signature = self.hmac(self.encode(digest), self.encode(self.secret), hashlib.sha256, 'hex')
-                headers = {
+                requestHeaders = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                     'Content-Type': 'application/json',
                 }
-                headers['Content-Type'] = 'application/json'
+                requestHeaders['Content-Type'] = 'application/json'
                 rateLimitToken = self.safe_string(request, 'rateLimitToken')
                 if rateLimitToken is not None:
-                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
+                    requestHeaders['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
             if path == 'v1/users/hmac/login':
-                headers = {} if (headers is None) else headers
-                headers['BX-PUBLIC-KEY'] = self.apiKey
+                requestHeaders = {} if (requestHeaders is None) else requestHeaders
+                requestHeaders['BX-PUBLIC-KEY'] = self.apiKey
             else:
                 token = self.token
                 if (token is None):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
-                headers = {} if (headers is None) else headers
-                headers['Authorization'] = 'Bearer ' + token
+                requestHeaders = {} if (requestHeaders is None) else requestHeaders
+                requestHeaders['Authorization'] = 'Bearer ' + token
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
         if method == 'GET':
             query = self.urlencode(request)
             if len(query) > 0:
                 url += '?' + query
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    async def sign_in(self, params={}):
+    async def sign_in(self, params: dict = {}):
         """
         sign in, must be called prior to using other authenticated methods
 

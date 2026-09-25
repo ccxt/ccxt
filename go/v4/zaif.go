@@ -980,9 +980,9 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -997,11 +997,11 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 		"amount":   amount,
 		"address":  address,
 	}
-	if tag != nil {
-		request["message"] = tag
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["message"] = tagWithdrawTag
 	}
 
-	var result map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, params))).Raw))
+	var result map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))).Raw))
 	//
 	//     {
 	//         "success": 1,
@@ -1039,13 +1039,13 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = this.SafeCurrency(nil, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(nil, currency)
 	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
-			"currency": GetValue(currency, "code"),
+			"currency": currencyResolved["code"],
 		}
 	}
 	return map[string]any{
@@ -1059,7 +1059,7 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"addressTo":   nil,
 		"amount":      nil,
 		"type":        nil,
-		"currency":    GetValue(currency, "code"),
+		"currency":    currencyResolved["code"],
 		"status":      nil,
 		"updated":     nil,
 		"tagFrom":     nil,
@@ -1085,7 +1085,7 @@ func (this *Zaif) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var baseUrl any = GetValue(GetValue(this.Urls, "api"), "rest")
 	var url any = Add(baseUrl, "/")
@@ -1103,14 +1103,20 @@ func (this *Zaif) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, "tapi")
 		}
 		var nonce any = this.CustomNonce()
-		body = this.Urlencode(this.Extend(map[string]any{
+		var bodyEncoded string = this.Urlencode(this.Extend(map[string]any{
 			"method": path,
 			"nonce":  nonce,
 		}, params))
-		headers = map[string]any{
+		var headersSigned map[string]any = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"Key":          this.ApiKey,
-			"Sign":         this.Hmac(this.Encode(body), this.Encode(this.Secret), sha512),
+			"Sign":         this.Hmac(this.Encode(bodyEncoded), this.Encode(this.Secret), sha512),
+		}
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    bodyEncoded,
+			"headers": headersSigned,
 		}
 	}
 	return map[string]any{

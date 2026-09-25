@@ -840,7 +840,7 @@ public partial class alpaca : Exchange
             { "symbols", marketId },
             { "loc", loc },
         };
-        parameters = this.omit(parameters, new List<object>() {"loc", "method"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"loc", "method"});
         List<object> symbolTrades = null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades")
         {
@@ -852,7 +852,7 @@ public partial class alpaca : Exchange
             {
                 request["limit"] = limit;
             }
-            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters));
+            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, paramsOmitted));
             //
             //    {
             //        "next_page_token": null,
@@ -873,7 +873,7 @@ public partial class alpaca : Exchange
             symbolTrades = this.safeList(trades, marketId, new List<object>() {});
         } else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades")
         {
-            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters));
+            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, paramsOmitted));
             //
             //    {
             //       "trades": {
@@ -1003,18 +1003,19 @@ public partial class alpaca : Exchange
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object query = null;
+        IList<object> paginatequeryVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginatequeryVariable[0];
+        query = paginatequeryVariable[1];
         object paginationCalls = 10;
-        IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
-        paginationCalls = paginationCallsparametersVariable[0];
-        parameters = paginationCallsparametersVariable[1];
+        IList<object> paginationCallsqueryVariable = (IList<object>)this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
+        paginationCalls = paginationCallsqueryVariable[0];
+        query = paginationCallsqueryVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
         };
-        parameters = this.omit(parameters, new List<object>() {"loc", "method"});
+        query = this.omit(query, new List<object>() {"loc", "method"});
         List<object> ohlcvs = null;
         if (method == "marketPublicGetV1beta3CryptoLocBars")
         {
@@ -1026,14 +1027,14 @@ public partial class alpaca : Exchange
             {
                 request["start"] = this.iso8601(since);
             }
-            Int64? until = this.safeInteger(parameters, "until");
+            Int64? until = this.safeInteger(query, "until");
             if ((until != null))
             {
-                parameters = this.omit(parameters, "until");
+                query = this.omit(query, "until");
                 request["end"] = this.iso8601(until);
             }
             request["timeframe"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query));
             //
             //    {
             //        "bars": {
@@ -1077,7 +1078,7 @@ public partial class alpaca : Exchange
                         break;
                     }
                     request["page_token"] = pageToken;
-                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query));
                     bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
                     List<object> page = this.safeList(bars, marketId, new List<object>() {});
                     int pageLength = page.Count;
@@ -1091,7 +1092,7 @@ public partial class alpaca : Exchange
             }
         } else if (method == "marketPublicGetV1beta3CryptoLocLatestBars")
         {
-            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
+            Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, query));
             //
             //    {
             //        "bars": {
@@ -1149,15 +1150,14 @@ public partial class alpaca : Exchange
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        symbolVar = this.symbol(symbolVar);
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbolVar));
+        string? symbolValue = this.symbol(symbol);
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolValue}, parameters));
+        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbolValue));
     }
 
     /**
@@ -1172,27 +1172,23 @@ public partial class alpaca : Exchange
      */
     public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
     {
-        object symbolsVar = symbols;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if ((symbolsVar == null))
-        {
-            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            List<string> allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
-            symbolsVar = allSymbols;
-        }
-        symbolsVar = this.marketSymbols(symbolsVar);
+        // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+        // symbol iteration order differs per language
+        object symbolsSorted = ((symbols == null)) ? this.sort(this.symbols) : symbols;
+        IList<object> symbolsNormalized = this.marketSymbols(symbolsSorted);
         string? loc = this.safeString(parameters, "loc", "us");
-        IList<object> ids = this.marketIds(symbolsVar);
+        IList<object> ids = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", String.Join(",", ids.ToArray()) },
             { "loc", loc },
         };
-        parameters = this.omit(parameters, "loc");
-        Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, "loc");
+        Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted));
         //
         //     {
         //         "snapshots": {
@@ -1282,7 +1278,7 @@ public partial class alpaca : Exchange
             }, market);
             results.Add(ticker);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbolsVar));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbolsNormalized));
     }
 
     public virtual string? generateClientOrderId(object parameters)
@@ -1419,26 +1415,20 @@ public partial class alpaca : Exchange
         string? cost = this.safeString(parameters, "cost");
         if ((cost != null))
         {
-            parameters = this.omit(parameters, "cost");
             request["notional"] = this.costToPrecision(symbol, cost);
         } else
         {
             request["qty"] = this.amountToPrecision(symbol, amount);
         }
-        string? defaultTIF = null;
-        IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
-        defaultTIF = (string)defaultTIFparametersVariable[0];
-        parameters = defaultTIFparametersVariable[1];
-        if ((defaultTIF != null))
-        {
-            // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            defaultTIF = defaultTIF.ToLower();
-        }
-        request["time_in_force"] = defaultTIF;
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
-        request["client_order_id"] = this.generateClientOrderId(parameters);
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
-        Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, parameters));
+        object paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
+        IList<object> defaultTIFparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
+        string? defaultTIF = (string)defaultTIFparamsTimeInForceVariable[0];
+        var paramsTimeInForce = defaultTIFparamsTimeInForceVariable[1];
+        // the venue only accepts lowercase values, normalize the unified uppercase spellings
+        request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
+        object paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
+        request["client_order_id"] = this.generateClientOrderId(paramsOmitted);
+        Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new List<object>() {"clientOrderId"})));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1588,13 +1578,13 @@ public partial class alpaca : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         if ((until != null))
         {
-            parameters = this.omit(parameters, "until");
             request["until"] = this.iso8601(until);
         }
+        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         if ((since != null))
         {
             request["after"] = this.iso8601(since);
-            string? direction = this.safeString(parameters, "direction");
+            string? direction = this.safeString(paramsOmitted, "direction");
             if ((direction == null))
             {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
@@ -1605,7 +1595,7 @@ public partial class alpaca : Exchange
         {
             request["limit"] = limit;
         }
-        List<object> response = await this.traderPrivateGetV2Orders(this.extend(request, parameters));
+        List<object> response = await this.traderPrivateGetV2Orders(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1733,24 +1723,22 @@ public partial class alpaca : Exchange
         if ((triggerPrice != null))
         {
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
-            parameters = this.omit(parameters, "triggerPrice");
         }
+        object paramsTrigger = ((triggerPrice != null)) ? this.omit(parameters, "triggerPrice") : parameters;
         if ((price != null))
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
-        string? timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "editOrder", "timeInForce", "gtc");
-        timeInForce = (string)timeInForceparametersVariable[0];
-        parameters = timeInForceparametersVariable[1];
+        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
+        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
+        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request["time_in_force"] = timeInForce.ToLower();
         }
-        request["client_order_id"] = this.generateClientOrderId(parameters);
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
-        Dictionary<string, object> response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters));
+        request["client_order_id"] = this.generateClientOrderId(paramsTimeInForce);
+        Dictionary<string, object> response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, new List<object>() {"clientOrderId"})));
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
@@ -1795,8 +1783,8 @@ public partial class alpaca : Exchange
         //    }
         //
         string? marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
-        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? alpacaStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");
@@ -1841,7 +1829,7 @@ public partial class alpaca : Exchange
             { "trades", null },
             { "fee", fee },
             { "info", order },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1911,9 +1899,9 @@ public partial class alpaca : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         if ((until != null))
         {
-            parameters = this.omit(parameters, "until");
             request["until"] = this.iso8601(until);
         }
+        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         if ((since != null))
         {
             request["after"] = this.iso8601(since);
@@ -1922,10 +1910,10 @@ public partial class alpaca : Exchange
         {
             request["page_size"] = limit;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until", request, paramsOmitted);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2080,28 +2068,27 @@ public partial class alpaca : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object addressVar = address;
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
-        this.checkAddress(addressVar);
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        if (((tagVar != null)) && (!(tagVar == "")))
+        object addressValue = address;
+        if (((tagWithdrawTag != null)) && (!isEqual(tagWithdrawTag, "")))
         {
-            addressVar = add(add(addressVar, ":"), tagVar);
+            addressValue = ((address + ":") + (tagWithdrawTag));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "address", addressVar },
+            { "address", addressValue },
             { "amount", this.numberToString(amount) },
         };
-        Dictionary<string, object> response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2575,14 +2562,19 @@ public partial class alpaca : Exchange
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
         object url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0)));
-        headers = ((headers != null)) ? headers : new Dictionary<string, object>() {};
+        object headersValue = new Dictionary<string, object>() {};
+        if ((headers != null))
+        {
+            headersValue = headers;
+        }
         if (isEqual(getValue(api, 1), "private"))
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)headers)["APCA-API-KEY-ID"] = this.apiKey;
-            ((IDictionary<string,object>)headers)["APCA-API-SECRET-KEY"] = this.secret;
+            ((IDictionary<string,object>)headersValue)["APCA-API-KEY-ID"] = this.apiKey;
+            ((IDictionary<string,object>)headersValue)["APCA-API-SECRET-KEY"] = this.secret;
         }
         object query = this.omit(parameters, this.extractParams(path));
+        string? bodyJson = null;
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
             if (((method == "GET")) || ((method == "DELETE")))
@@ -2590,16 +2582,17 @@ public partial class alpaca : Exchange
                 endpoint = endpoint + ("?" + this.urlencode(query));
             } else
             {
-                body = this.json(query);
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                bodyJson = this.json(query);
+                ((IDictionary<string,object>)headersValue)["Content-Type"] = "application/json";
             }
         }
         url = add(url, endpoint);
+        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersValue },
         };
     }
 

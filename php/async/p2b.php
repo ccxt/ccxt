@@ -575,31 +575,32 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
+        $tickerInner = $ticker;
         if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
-            $ticker = $this->safe_dict($ticker, 'ticker');
+            $tickerInner = $this->safe_dict($ticker, 'ticker');
         }
-        $last = $this->safe_string($ticker, 'last');
+        $last = $this->safe_string($tickerInner, 'last');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'high'),
-            'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'bid'),
+            'high' => $this->safe_string($tickerInner, 'high'),
+            'low' => $this->safe_string($tickerInner, 'low'),
+            'bid' => $this->safe_string($tickerInner, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'ask'),
+            'ask' => $this->safe_string($tickerInner, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $this->safe_string($tickerInner, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_string($ticker, 'change'),
+            'percentage' => $this->safe_string($tickerInner, 'change'),
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume'),
-            'quoteVolume' => $this->safe_string($ticker, 'deal'),
-            'info' => $ticker,
+            'baseVolume' => $this->safe_string_2($tickerInner, 'vol', 'volume'),
+            'quoteVolume' => $this->safe_string($tickerInner, 'deal'),
+            'info' => $tickerInner,
         ), $market);
     }
 
@@ -1194,7 +1195,7 @@ class p2b extends Exchange {
             Async\await($this->load_markets());
         }
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $paramsOmitted = $this->omit($params, 'until');
         if ($until === null) {
             if ($since === null) {
                 $until = $this->milliseconds();
@@ -1202,14 +1203,12 @@ class p2b extends Exchange {
                 $until = $since + 86400000;
             }
         }
-        if ($since === null) {
-            $since = $until - 86400000;
-        }
-        if (($until - $since) > 86400000) {
+        $sinceResolved = ($since === null) ? ($until - 86400000) : $since;
+        if (($until - $sinceResolved) > 86400000) {
             throw new BadRequest($this->id . ' fetchMyTrades () the time between $since and $params["until"] cannot be greater than 24 hours');
         }
         $market = $this->market($symbol);
-        $sinceSec = $this->parse_to_int($since / 1000);
+        $sinceSec = $this->parse_to_int($sinceResolved / 1000);
         $untilSec = $this->parse_to_int($until / 1000);
         $request = array(
             'market' => $market['id'],
@@ -1219,7 +1218,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->privatePostAccountMarketDealHistory($this->extend($request, $params)));
+        $response = Async\await($this->privatePostAccountMarketDealHistory($this->extend($request, $paramsOmitted)));
         //
         //    {
         //        "success": true,
@@ -1248,7 +1247,7 @@ class p2b extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $deals = $this->safe_list($result, 'deals', array());
-        return $this->parse_trades($deals, $market, $since, $limit);
+        return $this->parse_trades($deals, $market, $sinceResolved, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1275,7 +1274,7 @@ class p2b extends Exchange {
             Async\await($this->load_markets());
         }
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $paramsOmitted = $this->omit($params, 'until');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1287,13 +1286,11 @@ class p2b extends Exchange {
                 $until = $since + 86400000;
             }
         }
-        if ($since === null) {
-            $since = $until - 86400000;
-        }
-        if (($until - $since) > 86400000) {
+        $sinceResolved = ($since === null) ? ($until - 86400000) : $since;
+        if (($until - $sinceResolved) > 86400000) {
             throw new BadRequest($this->id . ' fetchClosedOrders () the time between $since and $params["until"] cannot be greater than 24 hours');
         }
-        $sinceSec = $this->parse_to_int($since / 1000);
+        $sinceSec = $this->parse_to_int($sinceResolved / 1000);
         $untilSec = $this->parse_to_int($until / 1000);
         $request = array(
             'startTime' => $sinceSec,
@@ -1305,7 +1302,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->privatePostAccountOrderHistory($this->extend($request, $params)));
+        $response = Async\await($this->privatePostAccountOrderHistory($this->extend($request, $paramsOmitted)));
         //
         //    {
         //        "success": true,
@@ -1338,7 +1335,7 @@ class p2b extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $marketOrders = $result[$marketId];
-            $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
+            $parsedOrders = $this->parse_orders($marketOrders, $market, $sinceResolved, $limit);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
         return $orders;
@@ -1384,7 +1381,7 @@ class p2b extends Exchange {
         //
         $timestamp = $this->safe_integer_product_2($order, 'timestamp', 'ctime', 1000);
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_2($order, 'id', 'orderId'),
@@ -1392,7 +1389,7 @@ class p2b extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $this->safe_string($order, 'type'),
             'timeInForce' => null,
             'postOnly' => null,
@@ -1406,35 +1403,36 @@ class p2b extends Exchange {
             'remaining' => $this->safe_string($order, 'left'),
             'status' => null,
             'fee' => array(
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
                 'cost' => $this->safe_string($order, 'dealFee'),
             ),
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $baseUrl = $this->urls['api'][$api];
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
-        $params = $this->omit($params, $this->extract_params($path));
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            if (count($paramsOmitted) > 0) {
+                $url .= '?' . $this->urlencode($paramsOmitted);
             }
         }
         if ($api === 'private') {
-            $params['request'] = '/api/v2/' . $path;
+            $paramsOmitted['request'] = '/api/v2/' . $path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            $params['nonce'] = (string) $this->incrementing_nonce();
-            $payload = base64_encode($this->json($params));  // Body json encoded in base64
-            $headers = array(
+            $paramsOmitted['nonce'] = (string) $this->incrementing_nonce();
+            $payload = base64_encode($this->json($paramsOmitted));  // Body json encoded in base64
+            $headersSigned = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,
                 'X-TXC-PAYLOAD' => $payload,
                 'X-TXC-SIGNATURE' => $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512'),
             );
-            $body = $this->json($params);
+            $bodyJson = $this->json($paramsOmitted);
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

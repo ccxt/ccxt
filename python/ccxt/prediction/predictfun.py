@@ -335,13 +335,15 @@ class predictfun(PredictionExchange, ImplicitAPI):
             self.require_event_query(params)
         queries = self.parse_search_queries(params)
         queriesLength = len(queries)
-        params = self.omit(params, ['query', 'queries'])
-        userLimit = self.safe_integer(params, 'limit')
+        paramsValue = self.omit(params, ['query', 'queries'])
+        # keys dropped before the client-side pass; the categories listing also drops its limit
+        postOmitKeys = ['tags']
+        userLimit = self.safe_integer(paramsValue, 'limit')
         fetchCap = self.safe_integer(self.options, 'maxFetchEventsResults', 100)
         if userLimit is not None:
             fetchCap = userLimit
-        slug = self.safe_string_2(params, 'slug', 'eventId')
-        rest = self.omit(params, ['status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant'])
+        slug = self.safe_string_2(paramsValue, 'slug', 'eventId')
+        rest = self.omit(paramsValue, ['status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant'])
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
         rawTopics = []
@@ -353,16 +355,17 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # a query/queries scope is answered by the dedicated search endpoint — the categories
             # listing has no text filter, so paging it and matching client-side would both miss
             # the venue's semantic matches and cost one request per page
-            rawTopics = await self.fetch_raw_topics_by_queries(queries, params)
+            rawTopics = await self.fetch_raw_topics_by_queries(queries, paramsValue)
         else:
             request = {}
-            tags = self.safe_list(params, 'tags', [])
+            tags = self.safe_list(paramsValue, 'tags', [])
             tagsLength = len(tags)
             if tagsLength > 0:
                 tagsString = ','.join(tags)
                 request['tagIds'] = tagsString
-            params = self.omit(params, ['limit', 'tags'])
-            extendedRequest = self.extend(request, params)
+            postOmitKeys.append('limit')
+            paramsCategories = self.omit(paramsValue, ['limit', 'tags'])
+            extendedRequest = self.extend(request, paramsCategories)
             rawTopicsResponse = await self.predictfunGetV1Categories(extendedRequest)
             #
             #     {
@@ -560,10 +563,10 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # scoping already happened server-side: the tag filter needs an event-level tags field
         # predictfun topics lack, and the query filter would drop semantic-search matches whose
         # title uses different words than the query
-        postParams = self.omit(params, ['tags'])
+        postParams = self.omit(paramsValue, postOmitKeys)
         # status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         # pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-        rawStatus = self.safe_string(params, 'status')
+        rawStatus = self.safe_string(paramsValue, 'status')
         if rawStatus == 'OPEN':
             postParams = self.extend(postParams, {'status': 'active'})
         elif rawStatus == 'RESOLVED':
@@ -1831,8 +1834,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # read through the extractor rather than off the instance, so one call can opt in without
         # reconfiguring the exchange - and so the key is taken out of params instead of riding
         # along into the request body
-        warnOnMarketOrderWithoutPrice = True
-        warnOnMarketOrderWithoutPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'warnOnMarketOrderWithoutPrice', True)
+        warnOnMarketOrderWithoutPrice, paramsWarnOnMarketOrderWithoutPrice = self.handle_option_bool_and_params(params, 'createOrder', 'warnOnMarketOrderWithoutPrice', True)
         if price is None:
             # a priceless limit order already threw above, so this is a market order
             if warnOnMarketOrderWithoutPrice:
@@ -1853,7 +1855,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # a buy pays collateral for shares, a sell hands over shares for collateral
             makerAmount = costWei
             takerAmount = quantityWei
-        slippageBps = self.safe_string(params, 'slippageBps', '0')
+        slippageBps = self.safe_string(paramsWarnOnMarketOrderWithoutPrice, 'slippageBps', '0')
         if Precise.string_gt(slippageBps, '0'):
             if isBuy:
                 # widen what the taker is willing to pay, capped at one unit of collateral a share
@@ -1867,33 +1869,33 @@ class predictfun(PredictionExchange, ImplicitAPI):
         marketObj = self.safe_dict(self.markets, marketSymbol, {})
         marketRow = self.safe_dict(marketObj, 'info', {})
         marketFeeRateBps = self.safe_string(marketRow, 'feeRateBps', '200')  # should be at least 200
-        feeRateBps = self.safe_string(params, 'feeRateBps', marketFeeRateBps)
+        feeRateBps = self.safe_string(paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps)
         marketIsNegRisk = self.safe_bool(marketRow, 'isNegRisk', False)
-        isNegRisk = self.safe_bool(params, 'isNegRisk', marketIsNegRisk)
+        isNegRisk = self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk)
         marketIsYieldBearing = self.safe_bool(marketRow, 'isYieldBearing', False)
-        isYieldBearing = self.safe_bool(params, 'isYieldBearing', marketIsYieldBearing)
+        isYieldBearing = self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing)
         defaultExpiration = self.safe_integer(self.options, 'defaultExpiration', 3600)  # 1 hour
         expirationDelta = defaultExpiration
-        expiration = self.safe_integer(params, 'expiration')
+        expiration = self.safe_integer(paramsWarnOnMarketOrderWithoutPrice, 'expiration')
         if expiration is None:
             if isMarket:
                 expirationDelta = self.safe_integer(self.options, 'marketOrderExpiration', defaultExpiration)
             now = self.seconds()
             expiration = self.sum(now, expirationDelta)
         nonce = self.incrementing_nonce()
-        salt = self.safe_string(params, 'salt', self.number_to_string(nonce))
+        salt = self.safe_string(paramsWarnOnMarketOrderWithoutPrice, 'salt', self.number_to_string(nonce))
         taker = '0x0000000000000000000000000000000000000000'
-        taker, params = self.handle_option_and_params(params, 'createOrder', 'taker', taker)
+        takerOption, paramsTaker = self.handle_option_and_params(paramsWarnOnMarketOrderWithoutPrice, 'createOrder', 'taker', taker)
         contractOrder = {
             'salt': salt,
             'maker': self.walletAddress,
             'signer': self.walletAddress,
-            'taker': taker,
+            'taker': takerOption,
             'tokenId': tokenId,
             'makerAmount': self.decimal_to_precision(makerAmount, TRUNCATE, 0, DECIMAL_PLACES),
             'takerAmount': self.decimal_to_precision(takerAmount, TRUNCATE, 0, DECIMAL_PLACES),
             'expiration': expiration,
-            'nonce': self.safe_string(params, 'nonce', '0'),
+            'nonce': self.safe_string(paramsTaker, 'nonce', '0'),
             'feeRateBps': feeRateBps,
             'side': 0 if isBuy else 1,
             'signatureType': 0,  # EOA
@@ -1908,25 +1910,25 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'pricePerShare': self.decimal_to_precision(priceWei, TRUNCATE, 0, DECIMAL_PLACES),
             'strategy': strategy,
         }
-        postOnly = self.safe_bool(params, 'isPostOnly', False)
-        postOnly, params = self.handle_post_only(isMarket, postOnly, params)
-        if postOnly:
-            data['isPostOnly'] = postOnly
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_bool(paramsTaker, 'isPostOnly', False)
+        postOnlyOption, paramsPostOnly = self.handle_post_only(isMarket, postOnly, paramsTaker)
+        if postOnlyOption:
+            data['isPostOnly'] = postOnlyOption
+        timeInForce = self.safe_string_upper(paramsPostOnly, 'timeInForce')
         if timeInForce == 'FOK':
             data['isFillOrKill'] = True
         # documented, and the venue takes it inside data rather than as a top level key
-        selfTradePrevention = self.safe_string_upper(params, 'selfTradePrevention')
+        selfTradePrevention = self.safe_string_upper(paramsPostOnly, 'selfTradePrevention')
         if selfTradePrevention is not None:
             data['selfTradePrevention'] = selfTradePrevention
         # every param the method consumes itself has to come out, otherwise it survives into the
         # extend below and is posted as a top level key next to 'data'
-        params = self.omit(params, ['isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker'])
+        paramsOmitted = self.omit(paramsPostOnly, ['isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker'])
         # the JWT authorises the order, the api key only authorises the request
         request = {
             'data': data,
         }
-        response = await self.predictfunPostV1Orders(self.extend(request, params))
+        response = await self.predictfunPostV1Orders(self.extend(request, paramsOmitted))
         #
         #     {
         #         "data": {
@@ -2907,11 +2909,12 @@ class predictfun(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         messageHash = 'orders'
-        if outcome is not None:
-            await self.load_outcome(outcome)
-            outcomeObj = self.outcome(outcome)
-            outcome = self.safe_outcome_symbol(None, outcomeObj)
-            messageHash = 'orders::' + outcome
+        outcomeResolved = outcome
+        if outcomeResolved is not None:
+            await self.load_outcome(outcomeResolved)
+            outcomeObj = self.outcome(outcomeResolved)
+            outcomeResolved = self.safe_outcome_symbol(None, outcomeObj)
+            messageHash = 'orders::' + outcomeResolved
         else:
             # events arrive for whatever market the wallet traded, and the handler that resolves
             # them is synchronous - so the universe is warmed here, while there is still a place to
@@ -2920,9 +2923,10 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # without a request once the cache is warm
             await self.load_outcomes()
         orders = await self.watch_wallet_events(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(outcome, limit)
-        return self.filter_by_outcome_since_limit(orders, outcome, since, limit, True)
+            limitResolved = orders.getLimit(outcomeResolved, limitResolved)
+        return self.filter_by_outcome_since_limit(orders, outcomeResolved, since, limitResolved, True)
 
     async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
@@ -2937,19 +2941,21 @@ class predictfun(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         messageHash = 'myTrades'
-        if outcome is not None:
-            await self.load_outcome(outcome)
-            outcomeObj = self.outcome(outcome)
-            outcome = self.safe_outcome_symbol(None, outcomeObj)
-            messageHash = 'myTrades::' + outcome
+        outcomeResolved = outcome
+        if outcomeResolved is not None:
+            await self.load_outcome(outcomeResolved)
+            outcomeObj = self.outcome(outcomeResolved)
+            outcomeResolved = self.safe_outcome_symbol(None, outcomeObj)
+            messageHash = 'myTrades::' + outcomeResolved
         else:
             # same as watchOrders (): the fills come from the one wallet topic and are resolved by
             # a synchronous handler, so the cache is warmed here rather than on the first event
             await self.load_outcomes()
         trades = await self.watch_wallet_events(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(outcome, limit)
-        return self.filter_by_outcome_since_limit(trades, outcome, since, limit, True)
+            limitResolved = trades.getLimit(outcomeResolved, limitResolved)
+        return self.filter_by_outcome_since_limit(trades, outcomeResolved, since, limitResolved, True)
 
     async def un_watch_orders(self, outcome: Str = None, params: dict = {}) -> object:
         """
@@ -3607,7 +3613,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         existingHeaders = headers if (headers is not None) else {}
-        headers = existingHeaders
+        headersValue = existingHeaders
         authHeaders = {}
         if (apiKey is not None) and (not sandboxMode):
             # the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3640,10 +3646,11 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # 401 without it, so it is attached on both hosts
         if (jwtToken is not None) and self.in_array(path, walletPaths):
             authHeaders['Authorization'] = 'Bearer ' + jwtToken
+        bodyValue = body
         if method != 'GET':
             if not sandboxMode:
                 self.check_required_credentials()
             authHeaders['Content-Type'] = 'application/json'
-            body = self.json(params)
-        headers = self.extend(headers, authHeaders)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            bodyValue = self.json(params)
+        headersExtended = self.extend(headersValue, authHeaders)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

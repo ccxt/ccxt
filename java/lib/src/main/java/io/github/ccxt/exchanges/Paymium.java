@@ -271,24 +271,12 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetUser(parameters)).join();
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -308,30 +296,16 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", "price", "amount", 2);
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -354,7 +328,7 @@ public class Paymium extends PaymiumApi
         //     "size":"0.00041087"
         // }
         //
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         Long timestamp = this.safeTimestamp(ticker, "at");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
@@ -383,10 +357,6 @@ public class Paymium extends PaymiumApi
             put( "info", ticker );
         }}, market);
     }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -404,7 +374,7 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -429,41 +399,27 @@ public class Paymium extends PaymiumApi
             //     "size":"0.00041087"
             // }
             //
-            return this.parseTicker(ticker, market);
+            return this.parseTicker(ticker, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
     {
         Long timestamp = this.safeTimestamp(trade, "created_at_int");
         String id = this.safeString(trade, "uuid");
-        market = (Map<String, Object>) (this.safeMarket(null, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
         String side = this.safeString(trade, "side");
         String price = this.safeString(trade, "price");
-        String amountField = ("traded_" + ((String)((Map<String, Object>)market).get("base")).toLowerCase());
+        String amountField = ("traded_" + ((String)((Map<String, Object>)marketResolved).get("base")).toLowerCase());
         String amount = this.safeString(trade, amountField);
-        final Map<String, Object> finalMarket = market;
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
             put( "timestamp", timestamp );
             put( "datetime", Paymium.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", null );
@@ -471,11 +427,7 @@ public class Paymium extends PaymiumApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -496,31 +448,16 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paymium#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -539,7 +476,7 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privatePostUserAddresses(parameters)).join();
             //
@@ -550,22 +487,9 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response));
+            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#createDepositAddress
-     * @description create a currency deposit address
-     * @see https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -584,7 +508,7 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", code );
@@ -598,22 +522,9 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response));
+            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -632,7 +543,7 @@ public class Paymium extends PaymiumApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> response = (this.privateGetUserAddresses(parameters)).join();
             //
@@ -645,22 +556,9 @@ public class Paymium extends PaymiumApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes, false);
+            return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paymium#fetchDepositAddresses
-     * @description fetch deposit addresses for multiple currencies and chain types
-     * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
-     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
-    {
-        return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
@@ -683,10 +581,6 @@ public class Paymium extends PaymiumApi
             put( "tag", null );
         }};
     }
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
-    {
-        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -701,23 +595,22 @@ public class Paymium extends PaymiumApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String type3 = type2;
+
         return BaseExchange.supplyAsync(() -> {
-            String type = type3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final String finalType = type;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", (Paymium.this.capitalize(finalType) + "Order") );
-                put( "currency", ((Map<String, Object>)market).get("id") );
-                put( "direction", side );
-                put( "amount", amount );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "type", (this.capitalize(type) + "Order"),
+                "currency", ((Map<String, Object>)market).get("id"),
+                "direction", side,
+                "amount", amount
+            );
             if (!java.util.Objects.equals(type, "market"))
             {
                 request.put("price", price);
@@ -726,26 +619,9 @@ public class Paymium extends PaymiumApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Paymium.this.safeString(response, "uuid") );
-            }}, market);
+            }}, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#createOrder
-     * @description create a trade order
-     * @see https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -769,23 +645,9 @@ public class Paymium extends PaymiumApi
             Map<String, Object> response = (this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters))).join();
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }});
+            }}, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#cancelOrder
-     * @description cancels an open order
-     * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
-     * @param {string} id order id
-     * @param {string} symbol not used by cancelOrder ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -800,14 +662,14 @@ public class Paymium extends PaymiumApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code2, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        final String code3 = code2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             if (((String)toAccount).indexOf("@") < 0)
@@ -818,12 +680,11 @@ public class Paymium extends PaymiumApi
             {
                 throw new ExchangeError((this.id + " transfer() only allows BTC or EUR")) ;
             }
-            final String finalCode = code;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Paymium.this.currencyToPrecision((String) (finalCode), amount) );
-                put( "email", toAccount );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "currency", ((Map<String, Object>)currency).get("id"),
+                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
+                "email", toAccount
+            );
             Map<String, Object> response = (this.privatePostUserEmailTransfers(this.extend(request, parameters))).join();
             //
             //     {
@@ -857,25 +718,9 @@ public class Paymium extends PaymiumApi
             //         ]
             //     }
             //
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer(response, Helpers.toMapArg(currency));
         }).thenApply(TransferEntry::new);
 
-    }
-    /**
-     * @method
-     * @name paymium#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -915,7 +760,7 @@ public class Paymium extends PaymiumApi
         String currencyId = this.safeString(transfer, "currency");
         String updatedAt = this.safeString(transfer, "updated_at");
         Object timetstamp = this.parseDate(updatedAt);
-        List<Object> accountOperations = (List<Object>) this.safeList(transfer, "account_operations");
+        List<Object> accountOperations = (List<Object>) this.safeList(transfer, "account_operations", (Object) null);
         Map<String, Object> firstOperation = (Map<String, Object>) this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
         String status = this.safeString(transfer, "state");
         return new HashMap<String, Object>() {{
@@ -924,15 +769,11 @@ public class Paymium extends PaymiumApi
             put( "timestamp", timetstamp );
             put( "datetime", Paymium.this.iso8601(timetstamp) );
             put( "currency", Paymium.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", Paymium.this.safeNumber(transfer, "amount") );
+            put( "amount", Paymium.this.safeNumber(transfer, "amount", (Object) null) );
             put( "fromAccount", null );
             put( "toAccount", Paymium.this.safeString(firstOperation, "address") );
             put( "status", Paymium.this.parseTransferStatus(status) );
         }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTransferStatus(String status)
@@ -954,7 +795,7 @@ public class Paymium extends PaymiumApi
         Object baseUrl = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest");
         String url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(api, "public"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
@@ -962,48 +803,50 @@ public class Paymium extends PaymiumApi
             }
         } else
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             // paymium requires an increasing nonce
             String nonce = String.valueOf(this.incrementingNonce());
             Object auth = (nonce + url);
-            final String finalNonce = nonce;
-            headers = new HashMap<String, Object>() {{
-                put( "Api-Key", Paymium.this.apiKey );
-                put( "Api-Nonce", finalNonce );
-            }};
-            if (java.util.Objects.equals(method, "POST"))
+            Map<String, Object> signedHeaders = Helpers.newMap(
+                "Api-Key", this.apiKey,
+                "Api-Nonce", nonce
+            );
+            Boolean hasQuery = ((List<?>)Helpers.objectKeys(query)).size() > 0;
+            String signedBody = body;
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                signedBody = this.json(query);
+            }
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
+            {
+                if (Boolean.TRUE.equals(hasQuery))
                 {
-                    body = (String) (this.json(query));
-                    auth = Helpers.add(auth, body);
-                    ((Map<String, Object>)headers).put("Content-Type", "application/json");
+                    auth = (auth + signedBody);
+                    signedHeaders.put("Content-Type", "application/json");
                 }
             } else
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Boolean.TRUE.equals(hasQuery))
                 {
                     String queryString = this.urlencode(query);
                     auth = (auth + queryString);
                     url = (url + ("?" + queryString));
                 }
             }
-            ((Map<String, Object>)headers).put("Api-Signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+            signedHeaders.put("Api-Signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+            return Helpers.newMap(
+                "url", url,
+                "method", java.util.Objects.requireNonNullElse(method, "GET"),
+                "body", signedBody,
+                "headers", signedHeaders
+            );
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", body,
+            "headers", headers
+        );
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

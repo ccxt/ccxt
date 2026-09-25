@@ -1120,15 +1120,13 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        type, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
+        subType, paramsSubType = self.handle_sub_type_and_params('fetchBalance', None, paramsMarketType)
         response = None
         result = None
         if type == 'swap':
             if subType is not None and subType == 'inverse':
-                response = self.dapiV2PrivateGetAccount(params)
+                response = self.dapiV2PrivateGetAccount(paramsSubType)
                 result = self.safe_dict(response, 'data', {})
                 #
                 # {
@@ -1161,7 +1159,7 @@ class bitrue(Exchange, ImplicitAPI):
                 #     }
                 #
             else:
-                response = self.fapiV2PrivateGetAccount(params)
+                response = self.fapiV2PrivateGetAccount(paramsSubType)
                 result = self.safe_dict(response, 'data', {})
                 #
                 #     {
@@ -1194,7 +1192,7 @@ class bitrue(Exchange, ImplicitAPI):
                 #     }
                 #
         else:
-            response = self.spotV1PrivateGetAccount(params)
+            response = self.spotV1PrivateGetAccount(paramsSubType)
             result = response
             #
             #     {
@@ -1237,9 +1235,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'contractName': market['id'],
             }
             if limit is not None:
-                if limit > 100:
-                    limit = 100
-                request['limit'] = limit  # default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+                request['limit'] = min(limit, 100)  # default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             if market['linear'] is True:
                 response = self.fapiV1PublicGetDepth(self.extend(request, params))
             elif market['inverse'] is True:
@@ -1249,9 +1245,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'symbol': market['id'],
             }
             if limit is not None:
-                if limit > 1000:
-                    limit = 1000
-                request['limit'] = limit  # default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+                request['limit'] = min(limit, 1000)  # default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             response = self.spotV1PublicGetDepth(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchOrderBook only support spot & swap markets')
@@ -1472,9 +1466,9 @@ class bitrue(Exchange, ImplicitAPI):
                 request['limit'] = limit
             until = self.safe_integer(params, 'until')
             if until is not None:
-                params = self.omit(params, 'until')
                 request['fromIdx'] = until
-            response = self.spotV1PublicGetMarketKline(self.extend(request, params))
+            paramsOmitted = self.omit(params, 'until') if (until is not None) else params
+            response = self.spotV1PublicGetMarketKline(self.extend(request, paramsOmitted))
             data = self.safe_list(response, 'data', [])
         else:
             raise NotSupported(self.id + ' fetchOHLCV only support spot & swap markets')
@@ -1563,8 +1557,8 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
-        first = self.safe_string(symbols, 0)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        first = self.safe_string(symbolsNormalized, 0)
         market = self.market(first)
         response = None
         if market['swap'] is True:
@@ -1608,7 +1602,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         data = {}
         data[(market['id'])] = response
-        return self.parse_tickers(data, symbols)
+        return self.parse_tickers(data, symbolsNormalized)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1624,13 +1618,12 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = []
         data = []
         request = {}
-        type = None
-        if symbols is not None:
-            first = self.safe_string(symbols, 0)
+        if symbolsNormalized is not None:
+            first = self.safe_string(symbolsNormalized, 0)
             market = self.market(first)
             if market['swap'] is True:
                 raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
@@ -1640,10 +1633,10 @@ class bitrue(Exchange, ImplicitAPI):
             else:
                 raise NotSupported(self.id + ' fetchTickers only support spot & swap markets')
         else:
-            type, params = self.handle_market_type_and_params('fetchTickers', None, params)
-            if type != 'spot':
+            marketType, paramsMarketType = self.handle_market_type_and_params('fetchTickers', None, params)
+            if marketType != 'spot':
                 raise NotSupported(self.id + ' fetchTickers only support spot when symbols are not proved')
-            response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            response = self.spotV1PublicGetTicker24hr(self.extend(request, paramsMarketType))
             data = self.to_array(response)
         #
         # spot
@@ -1696,7 +1689,7 @@ class bitrue(Exchange, ImplicitAPI):
                 continue
             market = self.safe_market(marketId)
             tickers[(market['id'])] = ticker
-        return self.parse_tickers(tickers, symbols)
+        return self.parse_tickers(tickers, symbolsNormalized)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -2030,11 +2023,13 @@ class bitrue(Exchange, ImplicitAPI):
             elif timeInForce == 'ioc':
                 request['type'] = 'IOC'
             request['contractName'] = market['id']
-            createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-            if isMarket and (side == 'buy') and createMarketBuyOrderRequiresPrice:
-                cost = self.safe_string(params, 'cost')
-                params = self.omit(params, 'cost')
+            createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            isMarketBuyWithPrice = isMarket and (side == 'buy') and createMarketBuyOrderRequiresPrice
+            paramsNoCost = paramsRequiresPrice
+            if isMarketBuyWithPrice:
+                paramsNoCost = self.omit(paramsRequiresPrice, 'cost')
+            if isMarketBuyWithPrice:
+                cost = self.safe_string(paramsRequiresPrice, 'cost')
                 if price is None and cost is None:
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument (the exchange-specific behaviour)')
                 else:
@@ -2050,15 +2045,15 @@ class bitrue(Exchange, ImplicitAPI):
                 request['amount'] = self.parse_to_numeric(amount)
                 request['volume'] = self.parse_to_numeric(amount)
             request['positionType'] = 1
-            reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+            reduceOnly = self.safe_bool_2(paramsNoCost, 'reduceOnly', 'reduce_only')
             request['open'] = 'CLOSE' if (reduceOnly is True) else 'OPEN'
-            leverage = self.safe_string(params, 'leverage', '1')
+            leverage = self.safe_string(paramsNoCost, 'leverage', '1')
             request['leverage'] = self.parse_to_numeric(leverage)
-            params = self.omit(params, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce'])
+            paramsSwap = self.omit(paramsNoCost, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce'])
             if market['linear'] is True:
-                response = self.fapiV2PrivatePostOrder(self.extend(request, params))
+                response = self.fapiV2PrivatePostOrder(self.extend(request, paramsSwap))
             elif market['inverse'] is True:
-                response = self.dapiV2PrivatePostOrder(self.extend(request, params))
+                response = self.dapiV2PrivatePostOrder(self.extend(request, paramsSwap))
             data = self.safe_dict(response, 'data', {})
         elif market['spot'] is True:
             request['symbol'] = market['id']
@@ -2068,13 +2063,13 @@ class bitrue(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
             clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
             if clientOrderId is not None:
-                params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
                 request['newClientOrderId'] = clientOrderId
-            triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+            paramsNoClientOrderId = self.omit(params, ['newClientOrderId', 'clientOrderId']) if (clientOrderId is not None) else params
+            triggerPrice = self.safe_number_2(paramsNoClientOrderId, 'triggerPrice', 'stopPrice')
             if triggerPrice is not None:
-                params = self.omit(params, ['triggerPrice', 'stopPrice'])
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-            response = self.spotV1PrivatePostOrder(self.extend(request, params))
+            paramsSpot = self.omit(paramsNoClientOrderId, ['triggerPrice', 'stopPrice']) if (triggerPrice is not None) else paramsNoClientOrderId
+            response = self.spotV1PrivatePostOrder(self.extend(request, paramsSpot))
             data = response
         else:
             raise NotSupported(self.id + ' createOrder only support spot & swap markets')
@@ -2119,7 +2114,7 @@ class bitrue(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
-        params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
+        paramsOmitted = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response = None
         data = {}
         request = {}
@@ -2133,14 +2128,14 @@ class bitrue(Exchange, ImplicitAPI):
         if market['swap'] is True:
             request['contractName'] = market['id']
             if market['linear'] is True:
-                response = self.fapiV2PrivateGetOrder(self.extend(request, params))
+                response = self.fapiV2PrivateGetOrder(self.extend(request, paramsOmitted))
             elif market['inverse'] is True:
-                response = self.dapiV2PrivateGetOrder(self.extend(request, params))
+                response = self.dapiV2PrivateGetOrder(self.extend(request, paramsOmitted))
             data = self.safe_dict(response, 'data', {})
         elif market['spot'] is True:
             request['orderId'] = id  # spot market id is mandatory
             request['symbol'] = market['id']
-            response = self.spotV1PrivateGetOrder(self.extend(request, params))
+            response = self.spotV1PrivateGetOrder(self.extend(request, paramsOmitted))
             data = response
         else:
             raise NotSupported(self.id + ' fetchOrder only support spot & swap markets')
@@ -2345,7 +2340,7 @@ class bitrue(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
-        params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
+        paramsOmitted = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response = None
         data = {}
         request = {}
@@ -2359,13 +2354,13 @@ class bitrue(Exchange, ImplicitAPI):
         if market['swap'] is True:
             request['contractName'] = market['id']
             if market['linear'] is True:
-                response = self.fapiV2PrivatePostCancel(self.extend(request, params))
+                response = self.fapiV2PrivatePostCancel(self.extend(request, paramsOmitted))
             elif market['inverse'] is True:
-                response = self.dapiV2PrivatePostCancel(self.extend(request, params))
+                response = self.dapiV2PrivatePostCancel(self.extend(request, paramsOmitted))
             data = self.safe_dict(response, 'data', {})
         elif market['spot'] is True:
             request['symbol'] = market['id']
-            response = self.spotV1PrivateDeleteOrder(self.extend(request, params))
+            response = self.spotV1PrivateDeleteOrder(self.extend(request, paramsOmitted))
             data = response
         else:
             raise NotSupported(self.id + ' cancelOrder only support spot & swap markets')
@@ -2453,10 +2448,9 @@ class bitrue(Exchange, ImplicitAPI):
         request = {}
         if since is not None:
             request['startTime'] = since
-        if limit is not None:
-            if limit > 1000:
-                limit = 1000
-            request['limit'] = limit
+        limitResolved = None if (limit is None) else min(limit, 1000)
+        if limitResolved is not None:
+            request['limit'] = limitResolved
         if market['swap'] is True:
             request['contractName'] = market['id']
             if market['linear'] is True:
@@ -2515,7 +2509,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_trades(data, market, since, limit)
+        return self.parse_trades(data, market, since, limitResolved)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2794,7 +2788,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             self.load_markets()
@@ -2808,13 +2802,12 @@ class bitrue(Exchange, ImplicitAPI):
             # 'addrType': '', // type of address
             # 'tag': tag,
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
             request['chainName'] = self.network_code_to_id(networkCode, currency['code'])
-        if tag is not None:
-            request['tag'] = tag
-        response = self.spotV1PrivatePostWithdrawCommit(self.extend(request, params))
+        if tagWithdrawTag is not None:
+            request['tag'] = tagWithdrawTag
+        response = self.spotV1PrivatePostWithdrawCommit(self.extend(request, paramsNetworkCode))
         #
         #     {
         #         "code": 200,
@@ -2951,15 +2944,14 @@ class bitrue(Exchange, ImplicitAPI):
             request['coinSymbol'] = currency['id']
         if since is not None:
             request['beginTime'] = since
-        if limit is not None:
-            if limit > 200:
-                limit = 200
-            request['limit'] = limit
+        limitResolved = None if (limit is None) else min(limit, 200)
+        if limitResolved is not None:
+            request['limit'] = limitResolved
         until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, 'until')
             request['endTime'] = until
-        response = self.fapiV2PrivateGetFuturesTransferHistory(self.extend(request, params))
+        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
+        response = self.fapiV2PrivateGetFuturesTransferHistory(self.extend(request, paramsOmitted))
         #
         #     {
         #         'code': '0',
@@ -2974,7 +2966,7 @@ class bitrue(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_transfers(data, currency, since, limit)
+        return self.parse_transfers(data, currency, since, limitResolved)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
@@ -3067,7 +3059,7 @@ class bitrue(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def set_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
@@ -3103,6 +3095,8 @@ class bitrue(Exchange, ImplicitAPI):
         return self.parse_margin_modification(response, market)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestBody = None
+        requestHeaders = None
         type = self.safe_string(api, 0)
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)
@@ -3118,7 +3112,7 @@ class bitrue(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = apiUrl + '/' + version
         url = url + '/' + self.implode_params(path, params)
-        params = self.omit(params, self.extract_params(path))
+        paramsOmitted = self.omit(params, self.extract_params(path))
         if access == 'private':
             self.check_required_credentials()
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
@@ -3126,17 +3120,17 @@ class bitrue(Exchange, ImplicitAPI):
                 query = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
-                }, params))
+                }, paramsOmitted))
                 signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
                 query += '&' + 'signature=' + signature
-                headers = {
+                requestHeaders = {
                     'X-MBX-APIKEY': self.apiKey,
                 }
                 if (method == 'GET') or (method == 'DELETE'):
                     url += '?' + query
                 else:
-                    body = query
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                    requestBody = query
+                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
             else:
                 timestamp = str(self.nonce())
                 signPath = None
@@ -3147,34 +3141,36 @@ class bitrue(Exchange, ImplicitAPI):
                 signPath = signPath + '/' + version + '/' + path
                 signMessage = timestamp + method + signPath
                 if method == 'GET':
-                    keys = list(params.keys())
+                    keys = list(paramsOmitted.keys())
                     keysLength = len(keys)
                     if keysLength > 0:
-                        signMessage += '?' + self.urlencode(params)
+                        signMessage += '?' + self.urlencode(paramsOmitted)
                     signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
-                    headers = {
+                    requestHeaders = {
                         'X-CH-APIKEY': self.apiKey,
                         'X-CH-SIGN': signature,
                         'X-CH-TS': timestamp,
                     }
-                    url += '?' + self.urlencode(params)
+                    url += '?' + self.urlencode(paramsOmitted)
                 else:
                     query = self.extend({
                         'recvWindow': recvWindow,
-                    }, params)
-                    body = self.json(query)
-                    signMessage += body
+                    }, paramsOmitted)
+                    requestBody = self.json(query)
+                    signMessage += requestBody
                     signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
-                    headers = {
+                    requestHeaders = {
                         'Content-Type': 'application/json',
                         'X-CH-APIKEY': self.apiKey,
                         'X-CH-SIGN': signature,
                         'X-CH-TS': timestamp,
                     }
         else:
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            if len(paramsOmitted) > 0:
+                url += '?' + self.urlencode(paramsOmitted)
+        bodyResult = body if (requestBody is None) else requestBody
+        headersResult = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):
@@ -3194,23 +3190,22 @@ class bitrue(Exchange, ImplicitAPI):
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
+        parsedMessage = None
         if success is not True:
             messageInner = self.safe_string(response, 'msg')
-            parsedMessage = None
             if messageInner is not None:
                 try:
                     parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
-                if parsedMessage is not None:
-                    response = parsedMessage
-        message = self.safe_string(response, 'msg')
+        errorResponse = parsedMessage if (parsedMessage is not None) else response
+        message = self.safe_string(errorResponse, 'msg')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, self.id + ' ' + message)
         # checks against error codes
-        error = self.safe_string(response, 'code')
+        error = self.safe_string(errorResponse, 'code')
         if error is not None:
             # https://github.com/ccxt/ccxt/issues/6501
             # https://github.com/ccxt/ccxt/issues/7742

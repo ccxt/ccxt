@@ -1163,12 +1163,12 @@ class kalshi extends Exchange {
          * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
          */
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
-        $bids = $this->sort_by($bids, 0, true);
-        $asks = $this->sort_by($asks, 0);
+        $bidsValue = $this->sort_by($bids, 0, true);
+        $asksValue = $this->sort_by($asks, 0);
         return array(
             'outcome' => $outcome,
-            'bids' => $bids,
-            'asks' => $asks,
+            'bids' => $bidsValue,
+            'asks' => $asksValue,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
@@ -2094,7 +2094,7 @@ class kalshi extends Exchange {
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         $unifiedTif = $this->safe_string_upper($params, 'timeInForce');
-        $params = $this->omit($params, 'timeInForce');
+        $paramsOmitted = $this->omit($params, 'timeInForce');
         $defaultTif = 'good_till_canceled';
         if ($isMarket) {
             $defaultTif = 'immediate_or_cancel';
@@ -2108,10 +2108,8 @@ class kalshi extends Exchange {
         } elseif ($unifiedTif === 'GTC') {
             $defaultTif = 'good_till_canceled';
         }
-        $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'time_in_force', $defaultTif);
-        $stp = null;
-        list($stp, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
+        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsOmitted, 'createOrder', 'time_in_force', $defaultTif);
+        list($stp, $paramsSelfTradePreventionType) = $this->handle_option_string_and_params($paramsTimeInForce, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         $request = array(
             'ticker' => $ticker,
             'side' => $bookSide,
@@ -2122,7 +2120,7 @@ class kalshi extends Exchange {
         if ($yesPrice !== null) {
             $request['price'] = $this->number_to_string($yesPrice);
         }
-        $response = Async\await($this->kalshiPrivatePostPortfolioEventsOrders($this->extend($request, $params)));
+        $response = Async\await($this->kalshiPrivatePostPortfolioEventsOrders($this->extend($request, $paramsSelfTradePreventionType)));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
         $order = $this->parse_prediction_order($response, $outcomeObj);
@@ -2289,8 +2287,8 @@ class kalshi extends Exchange {
             throw new ExchangeError($this->id . ' fetchEvents() missing queries');
         }
         $queriesLength = count($queries);
-        $params = $this->omit($params, array( 'query', 'queries' ));
-        $userLimit = $this->safe_integer($params, 'limit');
+        $paramsOmitted = $this->omit($params, array( 'query', 'queries' ));
+        $userLimit = $this->safe_integer($paramsOmitted, 'limit');
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
         $fetchCap = $this->safe_integer($this->options, 'maxFetchEventsResults', 100);
@@ -2300,7 +2298,7 @@ class kalshi extends Exchange {
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
-        $requestedStatus = $this->safe_string($params, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'open'));
+        $requestedStatus = $this->safe_string($paramsOmitted, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'open'));
         $status = null;
         if (($requestedStatus === 'active') || ($requestedStatus === 'open')) {
             $status = 'open';
@@ -2310,11 +2308,11 @@ class kalshi extends Exchange {
             $status = 'settled';
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        $rest = $this->omit($params, array( 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ));
+        $rest = $this->omit($paramsOmitted, array( 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ));
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
-        $eventId = $this->safe_string_2($params, 'eventId', 'slug');
+        $eventId = $this->safe_string_2($paramsOmitted, 'eventId', 'slug');
         $rawEvents = array();
         if ($queriesLength > 0) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -2325,10 +2323,10 @@ class kalshi extends Exchange {
             $rawEvents = array( $fullEvent );
         } else {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            $seriesTickers = Async\await($this->resolve_event_series_tickers($params));
+            $seriesTickers = Async\await($this->resolve_event_series_tickers($paramsOmitted));
             $seriesTickersLength = count($seriesTickers);
             if ($seriesTickersLength === 0) {
-                $this->require_event_query($params);
+                $this->require_event_query($paramsOmitted);
             }
             $rawEvents = Async\await($this->fetch_series_events($seriesTickers, $status, $fetchCap, $rest));
         }
@@ -2350,7 +2348,7 @@ class kalshi extends Exchange {
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        $postParams = $this->omit($params, array( 'tags', 'category', 'series_ticker' ));
+        $postParams = $this->omit($paramsOmitted, array( 'tags', 'category', 'series_ticker' ));
         return $this->apply_event_fetch_params($result, $postParams, array());
     }
 
@@ -2758,10 +2756,11 @@ class kalshi extends Exchange {
             $url .= '?' . $querystring;
         }
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
+        $bodyValue = $body;
         if ($access === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
@@ -2776,16 +2775,16 @@ class kalshi extends Exchange {
             $keyParts = explode('\\n', $this->privateKey);
             $cleanPrivateKey = implode('\n', $keyParts);
             $signature = $this->rsa($payload, $cleanPrivateKey, 'sha256', 'pss');
-            $headers = $this->extend($headers, array(
+            $headersValue = $this->extend($headersValue, array(
                 'KALSHI-ACCESS-KEY' => $this->apiKey,
                 'KALSHI-ACCESS-SIGNATURE' => $signature,
                 'KALSHI-ACCESS-TIMESTAMP' => $timestamp,
             ));
             if ($method !== 'GET' && ($querystring !== '')) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                $body = $this->json($query);
+                $bodyValue = $this->json($query);
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 }

@@ -235,10 +235,7 @@ public partial class binance : PredictionExchange
     public async virtual Task<List<Dictionary<string, object>>> FetchRawTopics(object maxTopics, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
-        if (isEqual(maxTopics, null))
-        {
-            maxTopics = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
-        }
+        object maxTopicsResolved = (isEqual(maxTopics, null)) ? this.safeInteger(this.options, "maxFetchMarketsLimit", 200) : maxTopics;
         object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 100);
         if (isGreaterThan(pageLimit, 100))
         {
@@ -250,7 +247,7 @@ public partial class binance : PredictionExchange
         {
             object reqLimit = pageLimit;
             int collectedLength = (collected?.Count ?? 0);
-            object remaining = subtract(maxTopics, collectedLength);
+            object remaining = subtract(maxTopicsResolved, collectedLength);
             if (isLessThan(remaining, reqLimit))
             {
                 reqLimit = remaining;
@@ -412,17 +409,19 @@ public partial class binance : PredictionExchange
             allQueries.Add((tags != null && i < tags.Count ? tags[i] : null));
         }
         int allQueriesLength = (allQueries?.Count ?? 0);
-        parameters = this.omit(parameters, new List<object>() {"query", "queries"});
-        Int64? userLimit = this.safeInteger(parameters, "limit");
+        object paramsOmitted = this.omit(parameters, new List<object>() {"query", "queries"});
+        // keys dropped before the client-side pass; a server-side sort also drops its own keys
+        List<object> postOmitKeys = new List<object>() {"tags", "l1Category", "l2Category"};
+        Int64? userLimit = this.safeInteger(paramsOmitted, "limit");
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
         if ((userLimit != null))
         {
             fetchCap = userLimit;
         }
-        object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"});
-        string? eventId = this.safeString(parameters, "eventId");
-        string? l1Category = this.safeString(parameters, "l1Category");
-        string? l2Category = this.safeString(parameters, "l2Category");
+        object rest = this.omit(paramsOmitted, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"});
+        string? eventId = this.safeString(paramsOmitted, "eventId");
+        string? l1Category = this.safeString(paramsOmitted, "l1Category");
+        string? l2Category = this.safeString(paramsOmitted, "l2Category");
         if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
@@ -446,7 +445,7 @@ public partial class binance : PredictionExchange
             {
                 listingRequest["l2Category"] = l2Category;
             }
-            string? sortBy = this.safeStringUpper2(parameters, "sortBy", "sort");
+            string? sortBy = this.safeStringUpper2(paramsOmitted, "sortBy", "sort");
             if ((sortBy != null))
             {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
@@ -463,7 +462,8 @@ public partial class binance : PredictionExchange
                 if ((sortBy != null))
                 {
                     listingRequest["sortBy"] = sortBy;
-                    parameters = this.omit(parameters, new List<object>() {"sort", "sortBy"});
+                    postOmitKeys.Add("sort");
+                    postOmitKeys.Add("sortBy");
                 }
             }
             List<object> listed = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(fetchCap, this.extend(listingRequest, rest)));
@@ -492,7 +492,7 @@ public partial class binance : PredictionExchange
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        object postParams = this.omit(parameters, new List<object>() {"tags", "l1Category", "l2Category"});
+        object postParams = this.omit(paramsOmitted, postOmitKeys);
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
@@ -509,24 +509,24 @@ public partial class binance : PredictionExchange
      */
     public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(object queries, Int64 limit, object rest = null)
     {
-        object limitVar = limit;
         rest ??= new Dictionary<string, object>();
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> collected = new List<object>() {};
         int queriesLength = getArrayLength(queries);
-        if (isEqual(limitVar, null))
+        object limitResolved = limit;
+        if (isEqual(limit, null))
         {
-            limitVar = 20;
-        } else if (isGreaterThan(limitVar, 50))
+            limitResolved = 20;
+        } else if ((limit > 50))
         {
-            limitVar = 50;
+            limitResolved = 50;
         }
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "query", getValue(queries, qi) },
             };
-            request["topK"] = limitVar;
+            request["topK"] = limitResolved;
             List<object> response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));
             //
             //     [
@@ -558,9 +558,9 @@ public partial class binance : PredictionExchange
         }
         object capped = collected;
         int collectedLength = (collected?.Count ?? 0);
-        if ((!isEqual(limitVar, null)) && (isGreaterThan(collectedLength, limitVar)))
+        if ((!isEqual(limitResolved, null)) && (isGreaterThan(collectedLength, limitResolved)))
         {
-            capped = this.arraySlice(collected, 0, limitVar);
+            capped = this.arraySlice(collected, 0, limitResolved);
         }
         return ccxt.BaseExchange.ToDictList(await this.completeRawTopics(capped));
     }
@@ -1033,11 +1033,10 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? type = null;
-        IList<object> typeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
-        type = (string)typeparametersVariable[0];
-        parameters = typeparametersVariable[1];
-        Dictionary<string, object> response = await this.sapiPrivateGetBalancePaymentOptions(parameters);
+        IList<object> typeparamsTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
+        string? type = (string)typeparamsTypeVariable[0];
+        var paramsType = typeparamsTypeVariable[1];
+        Dictionary<string, object> response = await this.sapiPrivateGetBalancePaymentOptions(paramsType);
         //
         // {
         //     "items": [
@@ -1107,7 +1106,8 @@ public partial class binance : PredictionExchange
         // }
         //
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
-        if ((outcomeObj == null))
+        object outcomeObjResolved = outcomeObj;
+        if ((outcomeObjResolved == null))
         {
             string? marketId = this.safeString(order, "marketId");
             string? outcome = this.safeStringUpper(order, "outcome");
@@ -1118,7 +1118,7 @@ public partial class binance : PredictionExchange
                 outcomeName = marketId;
             }
             outcomeName = add(outcomeName, (":" + outcome));
-            outcomeObj = this.safeOutcome(outcomeName);
+            outcomeObjResolved = this.safeOutcome(outcomeName);
         }
         string? side = this.safeStringLower(order, "side");
         Int64? timestamp = this.safeInteger(order, "createTime");
@@ -1130,10 +1130,10 @@ public partial class binance : PredictionExchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "outcome", this.safeString(outcomeObj, "outcome") },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
-            { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "market") },
+            { "outcome", this.safeString(outcomeObjResolved, "outcome") },
+            { "outcomeId", this.safeString(outcomeObjResolved, "id") },
+            { "label", this.safeString(outcomeObjResolved, "label") },
+            { "market", this.safeString(outcomeObjResolved, "market") },
             { "type", this.safeStringLower(order, "orderType") },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1148,7 +1148,7 @@ public partial class binance : PredictionExchange
             { "remaining", null },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, outcomeObj);
+        }, outcomeObjResolved);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1190,21 +1190,21 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
-        object maxEntriesPerRequest = null;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
-        maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
-        parameters = maxEntriesPerRequestparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
+        IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100);
+        Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
+        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest));
+            return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        Int64? offSet = this.safeInteger(parameters, "offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
         {
             request["offset"] = offSet;
@@ -1221,9 +1221,9 @@ public partial class binance : PredictionExchange
         {
             request["limit"] = limit;
         }
-        Dictionary<string, object> wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchOpenOrders", parameters));
+        Dictionary<string, object> wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest));
         request["walletAddress"] = (wallet != null && ((IDictionary<string, object>)wallet).ContainsKey("walletAddress") ? ((IDictionary<string, object>)wallet)["walletAddress"] : null);
-        Dictionary<string, object> response = await this.sapiPrivateGetOrderList(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
         //
         // {
         //     "total": 2,
@@ -1283,21 +1283,21 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
-        object maxEntriesPerRequest = null;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
-        maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
-        parameters = maxEntriesPerRequestparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
+        IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100);
+        Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
+        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest));
+            return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        Int64? offSet = this.safeInteger(parameters, "offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
         {
             request["offset"] = offSet;
@@ -1316,15 +1316,15 @@ public partial class binance : PredictionExchange
         {
             request["startDate"] = this.yyyymmdd(since);
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, "until");
+        Int64? until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
+        object paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
         if ((until != null))
         {
             request["endDate"] = this.yyyymmdd(until);
         }
-        Dictionary<string, object> wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchOrders", parameters));
+        Dictionary<string, object> wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchOrders", paramsOmitted));
         request["walletAddress"] = (wallet != null && ((IDictionary<string, object>)wallet).ContainsKey("walletAddress") ? ((IDictionary<string, object>)wallet)["walletAddress"] : null);
-        Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
         //     "total": 15,
@@ -1507,7 +1507,8 @@ public partial class binance : PredictionExchange
      */
     public override Dictionary<string, object> parsePredictionPosition(object position, object outcomeObj = null)
     {
-        if ((outcomeObj == null))
+        object outcomeObjResolved = outcomeObj;
+        if ((outcomeObjResolved == null))
         {
             string? marketId = this.safeString(position, "marketId");
             string? outcome = this.safeStringUpper(position, "outcomeName");
@@ -1518,15 +1519,15 @@ public partial class binance : PredictionExchange
                 outcomeName = marketId;
             }
             outcomeName = add(outcomeName, (":" + outcome));
-            outcomeObj = this.safeOutcome(outcomeName);
+            outcomeObjResolved = this.safeOutcome(outcomeName);
         }
         Int64? timestamp = this.safeInteger(position, "createdTime");
         double? totalCost = this.parseNumber(this.safeString(position, "totalCost"));
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", this.safeInteger(position, "positionId") },
-            { "outcome", this.safeString(outcomeObj, "outcome") },
-            { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
-            { "market", this.safeString(outcomeObj, "market") },
+            { "outcome", this.safeString(outcomeObjResolved, "outcome") },
+            { "outcomeId", this.safeString2(outcomeObjResolved, "outcomeId", "id") },
+            { "market", this.safeString(outcomeObjResolved, "market") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "isolated", false },
@@ -1573,23 +1574,23 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
-        object maxEntriesPerRequest = null;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
-        maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
-        parameters = maxEntriesPerRequestparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
+        IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100);
+        Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
+        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest));
+            return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "FILLED" },
         };
-        Int64? offSet = this.safeInteger(parameters, "offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
         {
             request["offset"] = offSet;
@@ -1608,15 +1609,15 @@ public partial class binance : PredictionExchange
         {
             request["startDate"] = this.yyyymmdd(since);
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, "until");
+        Int64? until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
+        object paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
         if ((until != null))
         {
             request["endDate"] = this.yyyymmdd(until);
         }
-        Dictionary<string, object> wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchMyTrades", parameters));
+        Dictionary<string, object> wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchMyTrades", paramsOmitted));
         request["walletAddress"] = (wallet != null && ((IDictionary<string, object>)wallet).ContainsKey("walletAddress") ? ((IDictionary<string, object>)wallet)["walletAddress"] : null);
-        Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
         //     "total": 15,
@@ -1695,7 +1696,8 @@ public partial class binance : PredictionExchange
         //     "networkFee": "0.000001"
         // }
         //
-        if ((outcomeObj == null))
+        object outcomeObjResolved = outcomeObj;
+        if ((outcomeObjResolved == null))
         {
             string? marketId = this.safeString(trade, "marketId");
             string? outcome = this.safeStringUpper(trade, "outcome");
@@ -1706,7 +1708,7 @@ public partial class binance : PredictionExchange
                 outcomeName = marketId;
             }
             outcomeName = add(outcomeName, (":" + outcome));
-            outcomeObj = this.safeOutcome(outcomeName);
+            outcomeObjResolved = this.safeOutcome(outcomeName);
         }
         Int64? timestamp = this.safeInteger(trade, "createTime");
         string? filled = this.safeString(trade, "filledShareQty");
@@ -1730,10 +1732,10 @@ public partial class binance : PredictionExchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", this.safeInteger(trade, "modifyTime") },
-            { "outcome", this.safeString(outcomeObj, "outcome") },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
-            { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "market") },
+            { "outcome", this.safeString(outcomeObjResolved, "outcome") },
+            { "outcomeId", this.safeString(outcomeObjResolved, "id") },
+            { "label", this.safeString(outcomeObjResolved, "label") },
+            { "market", this.safeString(outcomeObjResolved, "market") },
             { "order", this.safeString(trade, "orderId") },
             { "type", orderType },
             { "side", this.safeStringLower(trade, "side") },
@@ -1743,7 +1745,7 @@ public partial class binance : PredictionExchange
             { "filled", filled },
             { "cost", cost },
             { "fee", fee },
-        }, outcomeObj);
+        }, outcomeObjResolved);
     }
 
     /**
@@ -1763,10 +1765,7 @@ public partial class binance : PredictionExchange
         {
             return ccxt.BaseExchange.ToDict(cachedWallet);
         }
-        string? walletAddress = null;
-        IList<object> walletAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress);
-        walletAddress = (string)walletAddressparametersVariable[0];
-        parameters = walletAddressparametersVariable[1];
+        string? walletAddress = ((string)getValue(this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress), 0));
         Dictionary<string, object> response = await this.sapiPrivateGetWalletList();
         //
         // {
@@ -1962,13 +1961,13 @@ public partial class binance : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "accountType", "cost"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "accountType", "cost"});
         Dictionary<string, object> quoteRequest = this.extend(commonRequest, new Dictionary<string, object>() {
             { "tokenId", (outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("id") ? ((IDictionary<string, object>)outcomeObj)["id"] : null) },
             { "side", sideUpper },
             { "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000") },
         });
-        Dictionary<string, object> quote = ccxt.BaseExchange.FromDict(await this.FetchQuote(quoteRequest, parameters));
+        Dictionary<string, object> quote = ccxt.BaseExchange.FromDict(await this.FetchQuote(quoteRequest, paramsOmitted));
         string? quoteId = this.safeString(quote, "quoteId");
         Dictionary<string, object> orderRequest = this.extend(commonRequest, new Dictionary<string, object>() {
             { "walletId", (wallet != null && ((IDictionary<string, object>)wallet).ContainsKey("walletId") ? ((IDictionary<string, object>)wallet)["walletId"] : null) },
@@ -1976,7 +1975,7 @@ public partial class binance : PredictionExchange
             { "timeInForce", timeInForce },
             { "accountType", accountType },
         });
-        Dictionary<string, object> response = await this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, parameters));
+        Dictionary<string, object> response = await this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted));
         return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", this.safeString(response, "orderId") },             { "clientOrderId", null },             { "info", response },             { "timestamp", null },             { "datetime", null },             { "status", null },             { "outcome", this.safeString(outcomeObj, "outcome", outcome) },             { "outcomeId", this.safeString(outcomeObj, "id") },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", null },             { "remaining", null },             { "cost", null },             { "fee", null },             { "trades", new List<object>() {} },         }, market));
     }
 
@@ -1997,7 +1996,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", side,ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -2158,22 +2157,23 @@ public partial class binance : PredictionExchange
         querystring = querystring.Replace("%5D", (string)"]");
         string signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256);
         querystring = ((querystring + "&signature=") + signature);
-        headers = new Dictionary<string, object>() {
+        Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "X-MBX-APIKEY", this.apiKey },
         };
+        object bodyValue = body;
         if (((method == "GET")) || ((method == "DELETE")))
         {
             url = ((url + "?") + querystring);
         } else
         {
-            body = querystring;
-            ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";
+            bodyValue = querystring;
+            headersValue["Content-Type"] = "application/x-www-form-urlencoded";
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersValue },
         };
     }
 }

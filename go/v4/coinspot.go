@@ -1147,17 +1147,17 @@ func (this *Coinspot) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if (side == nil || *side != "buy") && (side == nil || *side != "sell") {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\""))
 	}
-	params = MapTyped(this.Omit(params, "side"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "side"))
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
 	var response map[string]any = nil
 	if side != nil && *side == "buy" {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostMyBuyCancel(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostMyBuyCancel(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostMySellCancel(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostMySellCancel(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	//
@@ -1194,6 +1194,8 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var requestHeaders any = headers
+	var requestBody any = body
 	var isVersionedApi bool = IsArray(api)
 	var version any = func() any {
 		if isVersionedApi {
@@ -1221,20 +1223,20 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		// coinspot requires an increasing nonce
 		var nonce any = this.IncrementingNonce()
-		body = this.Json(this.Extend(map[string]any{
+		requestBody = this.Json(this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params))
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Content-Type": "application/json",
 			"key":          this.ApiKey,
-			"sign":         this.Hmac(this.Encode(body), this.Encode(this.Secret), sha512),
+			"sign":         this.Hmac(this.Encode(requestBody), this.Encode(this.Secret), sha512),
 		}
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 

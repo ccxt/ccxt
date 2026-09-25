@@ -474,8 +474,8 @@ class independentreserve extends Exchange {
         if (($baseId !== null) && ($quoteId !== null)) {
             $defaultMarketId = $baseId . '/' . $quoteId;
         }
-        $market = $this->safe_market($defaultMarketId, $market, '/');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($defaultMarketId, $market, '/');
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'LastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -498,7 +498,7 @@ class independentreserve extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -713,14 +713,15 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request['pageIndex'] = 1;
-        $request['pageSize'] = $limit;
+        $request['pageSize'] = $limitResolved;
         $response = $this->privatePostGetOpenOrders($this->extend($request, $params));
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -742,14 +743,15 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request['pageIndex'] = 1;
-        $request['pageSize'] = $limit;
+        $request['pageSize'] = $limitResolved;
         $response = $this->privatePostGetClosedOrders($this->extend($request, $params));
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()): array {
@@ -765,12 +767,13 @@ class independentreserve extends Exchange {
             $this->load_markets();
         }
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request = array(
             'pageIndex' => $pageIndex,
-            'pageSize' => $limit,
+            'pageSize' => $limitResolved,
         );
         $response = $this->privatePostGetTrades($this->extend($request, $params));
         $market = null;
@@ -778,7 +781,7 @@ class independentreserve extends Exchange {
             $market = $this->market($symbol);
         }
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return $this->parse_trades($data, $market, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1032,7 +1035,7 @@ class independentreserve extends Exchange {
          * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1042,15 +1045,14 @@ class independentreserve extends Exchange {
             'withdrawalAddress' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        if ($tag !== null) {
-            $request['destinationTag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destinationTag'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
             throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
         }
-        $response = $this->privatePostWithdrawDigitalCurrency($this->extend($request, $params));
+        $response = $this->privatePostWithdrawDigitalCurrency($this->extend($request, $paramsNetworkCode));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1164,8 +1166,9 @@ class independentreserve extends Exchange {
                 $key = $keys[$i];
                 $query[$key] = $params[$key];
             }
-            $body = $this->json($query);
-            $headers = array( 'Content-Type' => 'application/json' );
+            $signedBody = $this->json($query);
+            $signedHeaders = array( 'Content-Type' => 'application/json' );
+            return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

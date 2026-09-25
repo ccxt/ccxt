@@ -824,9 +824,10 @@ class bitvavo(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPaginate)
         request = {
             'market': market['id'],
             # "limit": 500, // default 500, max 1000
@@ -839,8 +840,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 1000)
         if since is not None:
             request['start'] = since
-        request, params = self.handle_until_option('end', request, params)
-        response = self.publicGetMarketTrades(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = self.publicGetMarketTrades(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         {
@@ -1107,15 +1108,15 @@ class bitvavo(Exchange, ImplicitAPI):
             # https://github.com/ccxt/ccxt/issues/9227
             duration = self.parse_timeframe(timeframe)
             request['start'] = since
-            if limit is None:
-                limit = 1440
-            else:
-                limit = min(limit, 1440)
-            request['end'] = self.sum(since, limit * duration * 1000)
-        request, params = self.handle_until_option('end', request, params)
-        if limit is not None:
-            request['limit'] = min(limit, 1440)  # default 1440, max 1440
-        return self.extend(request, params)
+            sinceLimit = 1440 if (limit is None) else min(limit, 1440)
+            request['end'] = self.sum(since, sinceLimit * duration * 1000)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
+        limitResolved = limit
+        if (since is not None) and (limit is None):
+            limitResolved = 1440
+        if limitResolved is not None:
+            requestUntil['limit'] = min(limitResolved, 1440)  # default 1440, max 1440
+        return self.extend(requestUntil, paramsUntil)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -1136,10 +1137,11 @@ class bitvavo(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
-        request = self.fetch_ohlcv_request(symbol, timeframe, since, limit, params)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1440)
+        request = self.fetch_ohlcv_request(symbol, timeframe, since, limit, paramsPaginate)
         response = self.publicGetMarketCandles(request)
         #
         #     [
@@ -1247,7 +1249,7 @@ class bitvavo(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         subaccountId = self.safe_string(params, 'subaccountId')
-        params = self.omit(params, 'subaccountId')
+        paramsOmitted = self.omit(params, 'subaccountId')
         direction = None
         if (fromAccount == 'master') and (toAccount == 'master'):
             raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)')
@@ -1269,7 +1271,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'symbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        response = self.privatePostSubaccountsTransfers(self.extend(request, params))
+        response = self.privatePostSubaccountsTransfers(self.extend(request, paramsOmitted))
         #
         #     {
         #         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1312,8 +1314,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
-        response = self.privateGetSubaccountsTransfers(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
+        response = self.privateGetSubaccountsTransfers(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "items": [
@@ -1458,7 +1460,10 @@ class bitvavo(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, False, params)
         stopLossPrice = self.safe_string(params, 'stopLossPrice')  # trigger when price crosses from above to below this value
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')  # trigger when price crosses from below to above this value
-        params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
+        paramsOmitted = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
+        paramsCost = paramsOmitted
+        if isMarketOrder:
+            paramsCost = self.omit(paramsOmitted, ['cost'])
         if isMarketOrder:
             cost = None
             if price is not None:
@@ -1467,13 +1472,12 @@ class bitvavo(Exchange, ImplicitAPI):
                 quoteAmount = Precise.string_mul(amountString, priceString)
                 cost = self.parse_number(quoteAmount)
             else:
-                cost = self.safe_number(params, 'cost')
+                cost = self.safe_number(paramsOmitted, 'cost')
             if cost is not None:
                 precision = self.currency(market['quote'])['precision']
                 request['amountQuote'] = self.decimal_to_precision(cost, TRUNCATE, precision, self.precisionMode)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-            params = self.omit(params, ['cost'])
         elif isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1495,20 +1499,18 @@ class bitvavo(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         if postOnly:
             request['postOnly'] = True
-        operatorId = None
-        operatorId, params = self.handle_option_and_params(params, 'createOrder', 'operatorId')
+        operatorId, paramsOperatorId = self.handle_option_and_params(paramsCost, 'createOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
-        selfTradePrevention = None
-        selfTradePrevention, params = self.handle_option_string_and_params(params, 'createOrder', 'selfTradePrevention')
+        selfTradePrevention, paramsSelfTradePrevention = self.handle_option_string_and_params(paramsOperatorId, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if selfTradePrevention == 'EXPIRE_BOTH':
                 request['selfTradePrevention'] = 'cancelBoth'
             else:
                 request['selfTradePrevention'] = selfTradePrevention
-        return self.extend(request, params)
+        return self.extend(request, paramsSelfTradePrevention)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1587,7 +1589,7 @@ class bitvavo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         amountRemaining = self.safe_number(params, 'amountRemaining')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
-        params = self.omit(params, ['amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount'])
+        paramsOmitted = self.omit(params, ['amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount'])
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
@@ -1596,14 +1598,13 @@ class bitvavo(Exchange, ImplicitAPI):
             request['amountRemaining'] = self.amount_to_precision(symbol, amountRemaining)
         if triggerPrice is not None:
             request['triggerAmount'] = self.price_to_precision(symbol, triggerPrice)
-        request = self.extend(request, params)
+        request = self.extend(request, paramsOmitted)
         if self.is_empty(request):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsOmitted, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
-        operatorId = None
-        operatorId, params = self.handle_option_and_params(params, 'editOrder', 'operatorId')
+        operatorId = self.handle_option_and_params(paramsOmitted, 'editOrder', 'operatorId')[0]
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
@@ -1643,13 +1644,12 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
-        operatorId = None
-        operatorId, params = self.handle_option_and_params(params, 'cancelOrder', 'operatorId')
+        operatorId, paramsOperatorId = self.handle_option_and_params(params, 'cancelOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
-        return self.extend(request, params)
+        return self.extend(request, paramsOperatorId)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1691,13 +1691,12 @@ class bitvavo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        operatorId = None
-        operatorId, params = self.handle_option_and_params(params, 'cancelAllOrders', 'operatorId')
+        operatorId, paramsOperatorId = self.handle_option_and_params(params, 'cancelAllOrders', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
-        response = self.privateDeleteOrders(self.extend(request, params))
+        response = self.privateDeleteOrders(self.extend(request, paramsOperatorId))
         #
         #     [
         #         {
@@ -1724,13 +1723,12 @@ class bitvavo(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds')
         if self.markets is None:
             self.load_markets()
-        codGroupId = None
-        codGroupId, params = self.handle_option_integer_and_params(params, 'cancelAllOrdersAfter', 'codGroupId', 1)
+        codGroupId, paramsCodGroupId = self.handle_option_integer_and_params(params, 'cancelAllOrdersAfter', 'codGroupId', 1)
         request = {
             'codGroupId': codGroupId,
             'expiryAfterSeconds': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
-        response = self.privatePostCancelOrdersAfter(self.extend(request, params))
+        response = self.privatePostCancelOrdersAfter(self.extend(request, paramsCodGroupId))
         #
         #     {
         #         "codGroupId": 1,
@@ -1812,8 +1810,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
-        request, params = self.handle_until_option('end', request, params)
-        return self.extend(request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
+        return self.extend(requestUntil, paramsUntil)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1834,11 +1832,12 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, paramsPaginate)
         market = self.market(symbol)
-        request = self.fetch_orders_request(symbol, since, limit, params)
+        request = self.fetch_orders_request(symbol, since, limit, paramsPaginate)
         response = self.privateGetOrders(request)
         #
         #     [
@@ -2005,8 +2004,8 @@ class bitvavo(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'created')
         marketId = self.safe_string(order, 'market')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
@@ -2054,7 +2053,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, market)
+        }, marketResolved)
 
     def fetch_my_trades_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> dict:
         market = self.market(symbol)
@@ -2070,8 +2069,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
-        request, params = self.handle_until_option('end', request, params)
-        return self.extend(request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
+        return self.extend(requestUntil, paramsUntil)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -2092,11 +2091,12 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
         market = self.market(symbol)
-        request = self.fetch_my_trades_request(symbol, since, limit, params)
+        request = self.fetch_my_trades_request(symbol, since, limit, paramsPaginate)
         response = self.privateGetTrades(request)
         #
         #     [
@@ -2141,8 +2141,8 @@ class bitvavo(Exchange, ImplicitAPI):
             request['fromDate'] = since
         if limit is not None:
             request['maxItems'] = min(limit, 100)
-        request, params = self.handle_until_option('toDate', request, params)
-        response = self.privateGetAccountHistory(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('toDate', request, params)
+        response = self.privateGetAccountHistory(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "items": [
@@ -2192,7 +2192,7 @@ class bitvavo(Exchange, ImplicitAPI):
             amount = self.safe_string(item, 'sentAmount')
             direction = 'out'
         code = self.safe_currency_code(currencyId)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         timestamp = self.parse8601(self.safe_string(item, 'executedAt'))
         fee = None
         feeCost = self.safe_string(item, 'feesAmount')
@@ -2219,7 +2219,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'after': None,
             'status': 'ok',
             'fee': fee,
-        }, currency)
+        }, currencyResolved)
 
     def withdraw_request(self, code: Str, amount: float, address: str, tag: Str = None, params: dict = {}) -> dict:
         currency = self.currency(code)
@@ -2247,12 +2247,12 @@ class bitvavo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        request = self.withdraw_request(code, amount, address, tag, params)
+        request = self.withdraw_request(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
         response = self.privatePostWithdrawal(request)
         #
         #     {
@@ -2535,6 +2535,8 @@ class bitvavo(Exchange, ImplicitAPI):
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = headers
+        requestBody = body
         query = self.omit(params, self.extract_params(path))
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
@@ -2546,25 +2548,25 @@ class bitvavo(Exchange, ImplicitAPI):
             payload = ''
             if not getOrDelete:
                 if len(query) > 0:
-                    body = self.json(query)
-                    payload = body
+                    requestBody = self.json(query)
+                    payload = requestBody
             timestamp = str(self.milliseconds())
             auth = timestamp + method + url + payload
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             accessWindow = self.safe_string_2(self.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000')
-            headers = {
+            requestHeaders = {
                 'BITVAVO-ACCESS-KEY': self.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,
                 'BITVAVO-ACCESS-TIMESTAMP': timestamp,
                 'BITVAVO-ACCESS-WINDOW': accessWindow,
             }
             if not getOrDelete:
-                headers['Content-Type'] = 'application/json'
+                requestHeaders['Content-Type'] = 'application/json'
         apiUrl = self.safe_string(self.urls['api'], api)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + url
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

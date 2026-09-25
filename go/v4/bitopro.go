@@ -581,8 +581,8 @@ func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "pair")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = this.SafeString(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -604,7 +604,7 @@ func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, "volume24hr"),
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -798,8 +798,8 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger(trade, "timestamp")
 	}
 	var marketId *string = this.SafeString(trade, "pair")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = this.SafeString(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var side *string = this.SafeStringLower(trade, "action")
@@ -848,7 +848,7 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1040,7 +1040,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1055,21 +1055,23 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"resolution": resolution,
 	}
 	// we need to have a limit argument because "to" and "from" are required
-	if limit == nil {
-		limit = 500
-	} else {
-		limit = mathMin(limit, 75000) // supports slightly more than 75k candles atm, but limit here to avoid errors
-	}
+	// supports slightly more than 75k candles atm, but limit here to avoid errors
+	var limitResolved any = func() any {
+		if limit == nil {
+			return 500
+		}
+		return mathMin(limit, 75000)
+	}()
 	var timeframeInSeconds int64 = this.ParseTimeframe(timeframe)
 	var alignedSince any = nil
 	if since == nil {
 		request["to"] = this.Seconds()
-		request["from"] = Subtract(request["to"], (Multiply(limit, timeframeInSeconds)))
+		request["from"] = Subtract(request["to"], (Multiply(limitResolved, timeframeInSeconds)))
 	} else {
 		var timeframeInMilliseconds int64 = timeframeInSeconds * 1000
 		alignedSince = Multiply(MathFloor(Divide(since, timeframeInMilliseconds)), timeframeInMilliseconds)
 		request["from"] = MathFloor(Divide(since, 1000))
-		request["to"] = this.Sum(request["from"], Multiply(limit, timeframeInSeconds))
+		request["to"] = this.Sum(request["from"], Multiply(limitResolved, timeframeInSeconds))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradingHistoryPair(this.Extend(request, params))).Raw))
@@ -1088,9 +1090,9 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var sparse any = this.ParseOHLCVs(data, market, timeframe, since, limit)
+	var sparse any = this.ParseOHLCVs(data, market, timeframe, since, limitResolved)
 
-	ch <- this.InsertMissingCandles(sparse, timeframeInSeconds, alignedSince, limit)
+	ch <- this.InsertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved)
 	return nil
 }
 func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, limit any) any {
@@ -1288,8 +1290,8 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(order, "amount", "originalAmount")
 	var price *string = this.SafeString(order, "price")
 	var marketId *string = this.SafeString(order, "pair")
-	market = this.SafeMarket(marketId, market, "_")
-	var symbol *string = this.SafeString(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var orderStatus *string = this.SafeString(order, "status")
 	var status any = this.ParseOrderStatus(orderStatus)
 	var typeVar *string = this.SafeStringLower(order, "type")
@@ -1332,7 +1334,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 		"fee":                fee,
 		"trades":             nil,
 		"info":               order,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1380,7 +1382,6 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar string, si
 	if orderType == "STOP_LIMIT" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-		params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
 		if triggerPrice == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice parameter for " + orderType + " orders"))
 		} else {
@@ -1393,12 +1394,18 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar string, si
 			request["condition"] = condition
 		}
 	}
-	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), nil, params)
+	var paramsOmitted any = func() any {
+		if orderType == "STOP_LIMIT" {
+			return this.Omit(params, []any{"triggerPrice", "stopPrice"})
+		}
+		return params
+	}()
+	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), nil, paramsOmitted)
 	if postOnly {
 		request["timeInForce"] = "POST_ONLY"
 	}
 
-	response := (<-this.PrivatePostOrdersPair(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrdersPair(this.Extend(request, paramsOmitted)))
 	PanicOnError(response)
 
 	//
@@ -2202,9 +2209,9 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2216,26 +2223,30 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 		"amount":   this.NumberToString(amount),
 		"address":  address,
 	}
-	if InOp(params, "network") {
+	var hasNetwork bool = (InOp(paramsWithdrawTag, "network"))
+	var paramsOmitted any = paramsWithdrawTag
+	if hasNetwork {
+		paramsOmitted = this.Omit(paramsWithdrawTag, []any{"network"})
+	}
+	if hasNetwork {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
-		var requestedNetwork *string = this.SafeStringUpper(params, "network")
-		params = MapTyped(this.Omit(params, []any{"network"}))
+		var requestedNetwork *string = this.SafeStringUpper(paramsWithdrawTag, "network")
 		var networkId any = func() any {
 			if requestedNetwork == nil {
 				return nil
 			}
 			return this.SafeString(networks, requestedNetwork)
 		}()
-		if networkId == nil {
+		if IsEqual(networkId, nil) {
 			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))
 		}
 		request["protocol"] = networkId
 	}
-	if tag != nil {
-		request["message"] = tag
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["message"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, paramsOmitted))).Raw))
 	var result map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
@@ -2336,25 +2347,33 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if headers == nil {
-		headers = map[string]any{}
+	var requestHeaders any = func() any {
+		if headers == nil {
+			return map[string]any{}
+		}
+		return headers
+	}()
+	var isSignedBody bool = (IsEqual(api, "private")) && ((method == "POST") || (method == "PUT"))
+	var signedBody any = this.Json(params)
+	var requestBody any = body
+	if isSignedBody {
+		requestBody = signedBody
 	}
-	AddElementToObject(headers, "X-BITOPRO-API", "ccxt")
+	AddElementToObject(requestHeaders, "X-BITOPRO-API", "ccxt")
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		if (method == "POST") || (method == "PUT") {
-			body = this.Json(params)
-			var payload string = this.StringToBase64(body)
+			var payload string = this.StringToBase64(signedBody)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
-			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
-			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
+			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
+			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
+			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
 		} else if (method == "GET") || (method == "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
 				url = Add(url, "?"+this.Urlencode(query))
@@ -2366,9 +2385,9 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 			var data any = this.Json(rawData)
 			var payload string = this.StringToBase64(data)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
-			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
-			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
+			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
+			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
+			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
 		}
 	} else if (IsEqual(api, "public")) && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
@@ -2383,8 +2402,8 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

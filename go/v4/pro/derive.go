@@ -81,12 +81,12 @@ func (this *Derive) watchPublicBody(ch chan any, messageHash any, message any, s
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
 	})
-	subscription = this.Extend(subscription, map[string]any{
+	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
 		"id":     requestId,
 		"method": "subscribe",
 	})
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscriptionExtended)))
 	return nil
 }
 
@@ -116,11 +116,14 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if limit == nil {
-		limit = ccxt.Int64PtrTyped(10)
-	}
+	var limitResolved int64 = func() int64 {
+		if limit == nil {
+			return 10
+		}
+		return *limit
+	}()
 	var market map[string]any = this.Market(symbol)
-	var topic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook.", market["id"]), ".10."), this.NumberToString(limit)))
+	var topic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook.", market["id"]), ".10."), this.NumberToString(limitResolved)))
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -130,7 +133,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var subscription map[string]any = map[string]any{
 		"name":   topic,
 		"symbol": symbol,
-		"limit":  limit,
+		"limit":  limitResolved,
 		"params": params,
 	}
 
@@ -419,12 +422,12 @@ func (this *Derive) unWatchPublicBody(ch chan any, messageHash any, message any,
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
 	})
-	subscription = this.Extend(subscription, map[string]any{
+	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
 		"id":     requestId,
 		"method": "unsubscribe",
 	})
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscriptionExtended)))
 	return nil
 }
 func (this *Derive) HandleOrderBookUnSubscription(client any, topic any) {
@@ -504,7 +507,7 @@ func (this *Derive) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -527,11 +530,12 @@ func (this *Derive) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(topic, request, subscription))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limitResolved, true)
 	return nil
 }
 func (this *Derive) HandleTrade(client any, message map[string]any) {
@@ -613,12 +617,12 @@ func (this *Derive) watchPrivateBody(ch chan any, messageHash any, message any, 
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
 	})
-	subscription = this.Extend(subscription, map[string]any{
+	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
 		"id":     requestId,
 		"method": "subscribe",
 	})
 
-	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscriptionExtended)))
 	return nil
 }
 
@@ -646,7 +650,7 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -654,16 +658,19 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchOrders", params)
-	subaccountId = ccxt.GetValue(subaccountIdparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchOrders", params)
+	subaccountId := ccxt.GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var topic any = ccxt.Add(this.NumberToString(subaccountId), ".orders")
 	var messageHash any = topic
-	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(messageHash, ":"+*symbol)
+	var symbolResolved any = func() any {
+		if symbol != nil {
+			return this.Symbol(symbol)
+		}
+		return symbol
+	}()
+	if !ccxt.IsEqual(symbolResolved, nil) {
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -673,16 +680,17 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscription map[string]any = map[string]any{
 		"name":   topic,
-		"params": params,
+		"params": paramsDeriveSubaccountId,
 	}
-	var message map[string]any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, paramsDeriveSubaccountId)
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message, subscription))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
 	return nil
 }
 func (this *Derive) HandleOrder(client any, message map[string]any) {
@@ -798,7 +806,7 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -806,16 +814,19 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var subaccountId any = nil
-	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
-	subaccountId = ccxt.GetValue(subaccountIdparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(subaccountIdparamsVariable, 1))
+	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
+	subaccountId := ccxt.GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	var paramsDeriveSubaccountId map[string]any = ccxt.MapTyped(ccxt.GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
 	var topic any = ccxt.Add(this.NumberToString(subaccountId), ".trades")
 	var messageHash any = topic
-	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(messageHash, ":"+*symbol)
+	var symbolResolved any = func() any {
+		if symbol != nil {
+			return this.Symbol(symbol)
+		}
+		return symbol
+	}()
+	if !ccxt.IsEqual(symbolResolved, nil) {
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -825,16 +836,17 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscription map[string]any = map[string]any{
 		"name":   topic,
-		"params": params,
+		"params": paramsDeriveSubaccountId,
 	}
-	var message map[string]any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, paramsDeriveSubaccountId)
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, message, subscription))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	ch <- this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)
 	return nil
 }
 func (this *Derive) HandleMyTrade(client any, message map[string]any) {

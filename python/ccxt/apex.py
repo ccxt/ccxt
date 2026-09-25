@@ -732,8 +732,8 @@ class apex(Exchange, ImplicitAPI):
         # }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, marketResolved)
         last = self.safe_string(ticker, 'lastPrice')
         percentage = self.safe_string(ticker, 'price24hPcnt')
         quoteVolume = self.safe_string(ticker, 'turnover24h')
@@ -763,7 +763,7 @@ class apex(Exchange, ImplicitAPI):
             'markPrice': self.safe_string(ticker, 'markPrice'),
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -823,17 +823,16 @@ class apex(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': self.safe_string(market, 'id2'),
         }
-        if limit is None:
-            limit = 200  # default is 200 when requested with `since`
-        limit = min(limit, 200)  # fix maxcap
-        request['limit'] = limit  # max 200, default 200
-        request, params = self.handle_until_option('end', request, params, 0.001)
+        # default is 200 when requested with `since`, max 200
+        limitResolved = 200 if (limit is None) else min(limit, 200)
+        request['limit'] = limitResolved
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params, 0.001)
         if since is not None:
-            request['start'] = int(math.floor(since / 1000))
-        response = self.publicGetV3Klines(self.extend(request, params))
+            requestUntil['start'] = int(math.floor(since / 1000))
+        response = self.publicGetV3Klines(self.extend(requestUntil, paramsUntil))
         data = self.safe_dict(response, 'data', {})
         OHLCVs = self.safe_list(data, self.safe_string(market, 'id2'), [])
-        return self.parse_ohlcvs(OHLCVs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(OHLCVs, market, timeframe, since, limitResolved)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -875,9 +874,7 @@ class apex(Exchange, ImplicitAPI):
         request = {
             'symbol': self.safe_string(market, 'id2'),
         }
-        if limit is None:
-            limit = 100  # default is 200 when requested with `since`
-        request['limit'] = limit  # max 100, default 100
+        request['limit'] = 100 if (limit is None) else limit  # max 100, default 100
         response = self.publicGetV3Depth(self.extend(request, params))
         #
         # {
@@ -931,9 +928,8 @@ class apex(Exchange, ImplicitAPI):
         request = {
             'symbol': self.safe_string(market, 'id2'),
         }
-        if limit is None:
-            limit = 500  # default is 50
-        request['limit'] = limit
+        limitResolved = 500 if (limit is None) else limit  # default is 50
+        request['limit'] = limitResolved
         response = self.publicGetV3Trades(self.extend(request, params))
         #
         # [
@@ -956,7 +952,7 @@ class apex(Exchange, ImplicitAPI):
         #  ]
         #
         trades = self.safe_list(response, 'data', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(trades, market, since, limitResolved)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -972,7 +968,7 @@ class apex(Exchange, ImplicitAPI):
         #  ]
         #
         marketId = self.safe_string_2(trade, 's', 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         id = self.safe_string_2(trade, 'i', 'id')
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
         priceString = self.safe_string_2(trade, 'p', 'price')
@@ -986,7 +982,7 @@ class apex(Exchange, ImplicitAPI):
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'takerOrMaker': None,
             'side': side,
@@ -994,7 +990,7 @@ class apex(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -1037,8 +1033,8 @@ class apex(Exchange, ImplicitAPI):
         # }
         #
         marketId = self.safe_string(interest, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, marketResolved)
         return self.safe_open_interest({
             'symbol': symbol,
             'openInterestAmount': self.safe_string(interest, 'openInterest'),
@@ -1046,7 +1042,7 @@ class apex(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
             'info': interest,
-        }, market)
+        }, marketResolved)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
@@ -1170,8 +1166,8 @@ class apex(Exchange, ImplicitAPI):
         orderId = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'clientId')
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'size')
         orderType = self.safe_string(order, 'type')
@@ -1206,10 +1202,10 @@ class apex(Exchange, ImplicitAPI):
             'trades': None,
             'fee': {
                 'cost': self.safe_string(order, 'fee'),
-                'currency': market['settleId'],
+                'currency': marketResolved['settleId'],
             },
             'info': order,
-        }, market)
+        }, marketResolved)
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
@@ -1245,13 +1241,14 @@ class apex(Exchange, ImplicitAPI):
         return self.safe_string(types, type, type)
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
+        marketResolved = None
         if market is None and marketId is not None:
             marketsMap = self.markets
             marketsById = self.markets_by_id
             if (marketsMap is not None) and (marketId in marketsMap):
-                market = marketsMap[marketId]
+                marketResolved = marketsMap[marketId]
             elif (marketsById is not None) and (marketId in marketsById):
-                market = marketsById[marketId]
+                marketResolved = marketsById[marketId]
             else:
                 newMarketId = self.add_hyphen_before_usdt(marketId)
                 if (marketsById is not None) and (newMarketId in marketsById):
@@ -1259,8 +1256,9 @@ class apex(Exchange, ImplicitAPI):
                     numMarkets = len(markets)
                     if numMarkets > 0:
                         if marketsById[newMarketId][0]['id2'] == marketId:
-                            market = marketsById[newMarketId][0]
-        return super(apex, self).safe_market(marketId, market, delimiter, marketType)
+                            marketResolved = marketsById[newMarketId][0]
+        marketValue = market if (marketResolved is None) else marketResolved
+        return super(apex, self).safe_market(marketId, marketValue, delimiter, marketType)
 
     def generate_random_client_id_omni(self, _accountId: Str):
         hasAccountId = (_accountId is not None) and (_accountId != '')
@@ -1349,14 +1347,14 @@ class apex(Exchange, ImplicitAPI):
                 timeInForce = 'POST_ONLY'
             elif timeInForce == 'ioc':
                 timeInForce = 'IMMEDIATE_OR_CANCEL'
-        params = self.omit(params, 'timeInForce')
-        params = self.omit(params, 'postOnly')
-        clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
+        paramsOmitted = self.omit(params, 'timeInForce')
+        paramsOmitted2 = self.omit(paramsOmitted, 'postOnly')
+        clientOrderId = self.safe_string_n(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id'])
         accountId = self.get_account_id()
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(accountId)
         finalClientOrderId = clientOrderId  # java req
-        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
+        paramsOmitted3 = self.omit(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         finalOrderPrice = orderPrice  # java req
         orderToSign = {
             'accountId': accountId,
@@ -1387,7 +1385,7 @@ class apex(Exchange, ImplicitAPI):
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['signature'] = signature
-        response = self.privatePostV3Order(self.extend(request, params))
+        response = self.privatePostV3Order(self.extend(request, paramsOmitted3))
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
@@ -1446,7 +1444,7 @@ class apex(Exchange, ImplicitAPI):
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(self.safe_string(self.options, 'accountId'))
         finalClientOrderId = clientOrderId  # java req
-        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
+        paramsOmitted = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
         if fromAccount is not None and fromAccount.lower() == 'contract':
             formattedUint32 = '4294967295'
             zkSignAccountId = Precise.string_mod(accountId, formattedUint32)
@@ -1472,7 +1470,7 @@ class apex(Exchange, ImplicitAPI):
                 'token': code,
                 'ethAddress': ethAddress,
             }
-            response = self.privatePostV3ContractTransferOut(self.extend(request, params))
+            response = self.privatePostV3ContractTransferOut(self.extend(request, paramsOmitted))
             data = self.safe_dict(response, 'data', {})
             currentTime = self.milliseconds()
             parsedAmount = self.parse_number(amount)
@@ -1514,7 +1512,7 @@ class apex(Exchange, ImplicitAPI):
                 'receiverAddress': receiverAddress,
                 'nonce': finalNonce,
             }
-            response = self.privatePostV3TransferOut(self.extend(request, params))
+            response = self.privatePostV3TransferOut(self.extend(request, paramsOmitted))
             data = self.safe_dict(response, 'data', {})
             currentTime = self.milliseconds()
             return self.extend(self.parse_transfer(data, self.currency(code)), {
@@ -1579,8 +1577,7 @@ class apex(Exchange, ImplicitAPI):
         response = None
         if clientOrderId is not None:
             request['id'] = clientOrderId
-            params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
-            response = self.privatePostV3DeleteClientOrderId(self.extend(request, params))
+            response = self.privatePostV3DeleteClientOrderId(self.extend(request, self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])))
         else:
             request['id'] = id
             response = self.privatePostV3DeleteOrder(self.extend(request, params))
@@ -1607,8 +1604,7 @@ class apex(Exchange, ImplicitAPI):
         response = None
         if clientOrderId is not None:
             request['id'] = clientOrderId
-            params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
-            response = self.privateGetV3OrderByClientOrderId(self.extend(request, params))
+            response = self.privateGetV3OrderByClientOrderId(self.extend(request, self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])))
         else:
             request['id'] = id
             response = self.privateGetV3Order(self.extend(request, params))
@@ -1665,8 +1661,8 @@ class apex(Exchange, ImplicitAPI):
         endTimeExclusive = self.safe_integer_n(params, ['endTime', 'endTimeExclusive', 'until'])
         if endTimeExclusive is not None:
             request['endTimeExclusive'] = endTimeExclusive
-            params = self.omit(params, ['endTime', 'endTimeExclusive', 'until'])
-        response = self.privateGetV3HistoryOrders(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until']) if (endTimeExclusive is not None) else params
+        response = self.privateGetV3HistoryOrders(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
@@ -1692,8 +1688,8 @@ class apex(Exchange, ImplicitAPI):
             request['clientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        params = self.omit(params, ['clientOrderId', 'clientId'])
-        response = self.privateGetV3OrderFills(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['clientOrderId', 'clientId'])
+        response = self.privateGetV3OrderFills(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
         return self.parse_trades(orders, None, since, limit)
@@ -1728,8 +1724,8 @@ class apex(Exchange, ImplicitAPI):
         endTimeExclusive = self.safe_integer_n(params, ['endTime', 'endTimeExclusive', 'until'])
         if endTimeExclusive is not None:
             request['endTimeExclusive'] = endTimeExclusive
-            params = self.omit(params, ['endTime', 'endTimeExclusive', 'until'])
-        response = self.privateGetV3Fills(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until']) if (endTimeExclusive is not None) else params
+        response = self.privateGetV3Fills(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
         return self.parse_trades(orders, market, since, limit)
@@ -1762,9 +1758,9 @@ class apex(Exchange, ImplicitAPI):
             request['limit'] = limit
         endTimeExclusive = self.safe_integer_n(params, ['endTime', 'endTimeExclusive', 'until'])
         if endTimeExclusive is not None:
-            params = self.omit(params, ['endTime', 'endTimeExclusive', 'until'])
             request['endTimeExclusive'] = endTimeExclusive
-        response = self.privateGetV3Funding(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until']) if (endTimeExclusive is not None) else params
+        response = self.privateGetV3Funding(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         fundingValues = self.safe_list(data, 'fundingValues', [])
         return self.parse_incomes(fundingValues, market, since, limit)
@@ -1785,12 +1781,12 @@ class apex(Exchange, ImplicitAPI):
         # }
         #
         marketId = self.safe_string(income, 'symbol')
-        market = self.safe_market(marketId, market, None, 'contract')
+        marketResolved = self.safe_market(marketId, market, None, 'contract')
         code = 'USDT'
         timestamp = self.safe_integer(income, 'fundingTime')
         return {
             'info': income,
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': self.safe_symbol(marketId, marketResolved),
             'code': code,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1859,8 +1855,8 @@ class apex(Exchange, ImplicitAPI):
         #     "customInitialMarginRate": "0"
         # }
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         side = self.safe_string_lower(position, 'side')
         quantity = self.safe_string(position, 'size')
         timestamp = self.safe_integer(position, 'updatedTime')
@@ -1896,7 +1892,7 @@ class apex(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
-        headers = {
+        headersValue = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -1917,11 +1913,11 @@ class apex(Exchange, ImplicitAPI):
             if signBody is not None:
                 messageString = messageString + signBody
             signature = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret)), hashlib.sha256, 'base64')
-            headers['APEX-SIGNATURE'] = signature
-            headers['APEX-API-KEY'] = self.apiKey
-            headers['APEX-TIMESTAMP'] = timestamp
-            headers['APEX-PASSPHRASE'] = self.password
-        return {'url': url, 'method': method, 'body': signBody, 'headers': headers}
+            headersValue['APEX-SIGNATURE'] = signature
+            headersValue['APEX-API-KEY'] = self.apiKey
+            headersValue['APEX-TIMESTAMP'] = timestamp
+            headersValue['APEX-PASSPHRASE'] = self.password
+        return {'url': url, 'method': method, 'body': signBody, 'headers': headersValue}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #

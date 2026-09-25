@@ -660,10 +660,10 @@ public partial class coincheck : Exchange
         string? id = this.safeString(trade, "id");
         string? priceString = this.safeString(trade, "rate");
         string? marketId = this.safeString(trade, "pair");
-        market = this.safeMarket(marketId, market, "_");
-        string? baseId = ((string)getValue(market, "baseId"));
-        string? quoteId = ((string)getValue(market, "quoteId"));
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        string? baseId = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("baseId") ? ((IDictionary<string, object>)marketResolved)["baseId"] : null));
+        string? quoteId = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quoteId") ? ((IDictionary<string, object>)marketResolved)["quoteId"] : null));
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? takerOrMaker = null;
         string? amountString = null;
         string? costString = null;
@@ -707,7 +707,7 @@ public partial class coincheck : Exchange
             { "amount", amountString },
             { "cost", costString },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -894,7 +894,6 @@ public partial class coincheck : Exchange
             } else
             {
                 double? cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
                 if ((cost != null))
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
@@ -907,7 +906,7 @@ public partial class coincheck : Exchange
             request["rate"] = price;
             request["amount"] = amount;
         }
-        Dictionary<string, object> response = await this.privatePostExchangeOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostExchangeOrders(this.extend(request, this.omit(parameters, "cost")));
         string? id = this.safeString(response, "id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", response },         }, market));
     }
@@ -1141,6 +1140,8 @@ public partial class coincheck : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? bodySigned = null;
+        Dictionary<string, object> headersSigned = null;
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
         if ((apiUrl == null))
         {
@@ -1158,7 +1159,7 @@ public partial class coincheck : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object queryString = "";
+            string? queryString = "";
             if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -1169,23 +1170,25 @@ public partial class coincheck : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    body = this.urlencode(this.keysort(query));
-                    queryString = body;
+                    bodySigned = this.urlencode(this.keysort(query));
+                    queryString = bodySigned;
                 }
             }
-            string auth = ((nonce + url) + (queryString));
-            headers = new Dictionary<string, object>() {
+            string auth = ((nonce + url) + queryString);
+            headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-NONCE", nonce },
                 { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
             };
         }
+        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
+        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 

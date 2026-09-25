@@ -1522,8 +1522,8 @@ class myriad extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $params = $this->omit($params, array( 'trader', 'address', 'status' ));
-        $response = Async\await($this->myriadPublicGetUsersAddressEvents($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'trader', 'address', 'status' ));
+        $response = Async\await($this->myriadPublicGetUsersAddressEvents($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "data": [
@@ -1597,9 +1597,9 @@ class myriad extends Exchange {
         }
         $fetched = $this->get_order_response_from_params($id, $params);
         $networkIdParam = $this->safe_string_2($params, 'networkId', 'network_id');
-        $params = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
+        $paramsOmitted = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
         if ($fetched === null) {
-            $fetched = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
+            $fetched = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $paramsOmitted)));
         }
         $fetchedInfo = $this->safe_dict($fetched, 'info', array());
         $rawOrder = $this->safe_dict($fetched, 'order', array());
@@ -1626,7 +1626,7 @@ class myriad extends Exchange {
             'signature' => $signature,
             'network_id' => $this->parse_to_int($networkId),
         );
-        $response = Async\await($this->myriadPublicDeleteOrdersHash($this->extend($request, $params)));
+        $response = Async\await($this->myriadPublicDeleteOrdersHash($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1717,7 +1717,7 @@ class myriad extends Exchange {
         }
         $paramsForLookup = $params;
         $networkIdParam = $this->safe_string_2($params, 'networkId', 'network_id');
-        $params = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
+        $paramsOmitted = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
         $idsLength = count($ids);
         $signedOrders = array();
         $wrappers = array();
@@ -1754,7 +1754,7 @@ class myriad extends Exchange {
             'orders' => $signedOrders,
             'network_id' => $this->parse_to_int($networkId),
         );
-        Async\await($this->myriadPublicPostOrdersCancelBatch($this->extend($request, $params)));
+        Async\await($this->myriadPublicPostOrdersCancelBatch($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "cancelled": [
@@ -1844,7 +1844,7 @@ class myriad extends Exchange {
             }
         }
         $requestedTradingModel = $this->safe_string_lower_2($params, 'tradingModel', 'trading_model');
-        $params = $this->omit($params, array( 'tradingModel', 'trading_model' ));
+        $paramsOmitted = $this->omit($params, array( 'tradingModel', 'trading_model' ));
         $outcomeObj = null;
         $outcomeSymbol = null;
         if ($outcome !== null) {
@@ -1856,9 +1856,9 @@ class myriad extends Exchange {
             }
         }
         if ($requestedTradingModel === 'amm') {
-            return Async\await($this->fetch_amm_orders($outcome, $since, $limit, $params));
+            return Async\await($this->fetch_amm_orders($outcome, $since, $limit, $paramsOmitted));
         }
-        $response = Async\await($this->myriadPublicGetOrders($this->extend($request, $params)));
+        $response = Async\await($this->myriadPublicGetOrders($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "data": [
@@ -3836,16 +3836,17 @@ class myriad extends Exchange {
          */
         $trader = $this->wallet_address_from_keys();
         $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
-        if ($outcome !== null) {
-            $outcomeObj = Async\await($this->load_outcome($outcome));
+        $outcomeResolved = $outcome;
+        if ($outcomeResolved !== null) {
+            $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $networkId = $this->safe_string($info, 'networkId', $networkId);
-            $outcome = $this->safe_outcome_symbol($outcome, $outcomeObj);
+            $outcomeResolved = $this->safe_outcome_symbol($outcomeResolved, $outcomeObj);
         }
         $channel = 'orders:' . $networkId . ':' . $trader;
         $messageHash = 'orders';
         $orders = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
-        return $this->filter_by_value_since_limit($orders, 'outcome', $outcome, $since, $limit, 'timestamp', true);
+        return $this->filter_by_value_since_limit($orders, 'outcome', $outcomeResolved, $since, $limit, 'timestamp', true);
     }
 
     public function handle_order(mixed $client, array $data) {
@@ -4063,17 +4064,18 @@ class myriad extends Exchange {
             }
         }
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
+        $bodyValue = $body;
         if ($method !== 'GET') {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);
             if ($queryKeysLength > 0) {
-                $body = $this->json($query);
+                $bodyValue = $this->json($query);
             }
         }
         if (($this->apiKey !== null) && ($this->apiKey !== '')) {
@@ -4087,8 +4089,8 @@ class myriad extends Exchange {
             $headerKey = 'x-api' . '-key';
             $headersKey = array();
             $headersKey[$headerKey] = $this->apiKey;
-            $headers = $this->extend($headers, $headersKey);
+            $headersValue = $this->extend($headersValue, $headersKey);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 }

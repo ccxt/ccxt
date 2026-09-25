@@ -556,7 +556,7 @@ public partial class cryptomus : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketTickers(parameters);
         //
         //     {
@@ -571,7 +571,7 @@ public partial class cryptomus : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -585,8 +585,8 @@ public partial class cryptomus : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "currency_pair");
-        market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -609,7 +609,7 @@ public partial class cryptomus : Exchange
             { "baseVolume", this.safeString(ticker, "base_volume") },
             { "quoteVolume", this.safeString(ticker, "quote_volume") },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -634,12 +634,12 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object level = 0;
-        IList<object> levelparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
-        level = levelparametersVariable[0];
-        parameters = levelparametersVariable[1];
-        request["level"] = level;
-        Dictionary<string, object> response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters));
+        int level = 0;
+        IList<object> levelOptionparamsLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
+        Int64? levelOption = (Int64?)levelOptionparamsLevelVariable[0];
+        var paramsLevel = levelOptionparamsLevelVariable[1];
+        request["level"] = levelOption;
+        Dictionary<string, object> response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, paramsLevel));
         //
         //     {
         //         "data": {
@@ -833,27 +833,30 @@ public partial class cryptomus : Exchange
             { "tag", "ccxt" },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, "clientOrderId") : parameters;
         if ((clientOrderId != null))
         {
-            parameters = this.omit(parameters, "clientOrderId");
             request["client_order_id"] = clientOrderId;
         }
         bool sideBuy = (side == "buy");
         string? amountToString = this.numberToString(amount);
         string? priceToString = this.numberToString(price);
-        string? cost = null;
-        IList<object> costparametersVariable = (IList<object>)this.handleParamString(parameters, "cost");
-        cost = (string)costparametersVariable[0];
-        parameters = costparametersVariable[1];
+        IList<object> costParamparamsCostVariable = (IList<object>)this.handleParamString(paramsOmitted, "cost");
+        string? costParam = (string)costParamparamsCostVariable[0];
+        IDictionary<string, object> paramsCost = ((IDictionary<string, object>)costParamparamsCostVariable[1]);
+        string? cost = costParam;
         Dictionary<string, object> response = null;
         if ((type == "market"))
         {
+            List<object> requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            object paramsMarket = paramsCost;
             if (sideBuy)
             {
-                bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
-                parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
+                paramsMarket = (requiresPriceAndParams != null && 1 < requiresPriceAndParams.Count ? requiresPriceAndParams[1] : null);
+            }
+            if (sideBuy)
+            {
+                bool? createMarketBuyOrderRequiresPrice = ((bool?)(requiresPriceAndParams != null && 0 < requiresPriceAndParams.Count ? requiresPriceAndParams[0] : null));
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if (((price == null)) && ((cost == null)))
@@ -872,7 +875,7 @@ public partial class cryptomus : Exchange
             {
                 request["quantity"] = amountToString;
             }
-            response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, parameters));
+            response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, paramsMarket));
         } else if ((type == "limit"))
         {
             if ((price == null))
@@ -881,7 +884,7 @@ public partial class cryptomus : Exchange
             }
             request["quantity"] = amountToString;
             request["price"] = price;
-            response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, parameters));
+            response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, paramsCost));
         } else
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a type parameter (limit or market)")) ;
@@ -1123,7 +1126,7 @@ public partial class cryptomus : Exchange
         //
         string? id = this.safeString2(order, "order_id", "id");
         string? marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? dateTime = this.safeString(order, "createdAt");
         Int64? timestamp = this.parse8601(dateTime);
         IDictionary<string, object> deal = this.safeDict(order, "deal", new Dictionary<string, object>() {});
@@ -1156,7 +1159,7 @@ public partial class cryptomus : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", type },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1173,7 +1176,7 @@ public partial class cryptomus : Exchange
             { "fee", fee },
             { "trades", null },
             { "info", order },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual string? parseOrderStatus(string? status = null)
@@ -1306,7 +1309,7 @@ public partial class cryptomus : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? endpoint = this.implodeParams(path, parameters);
-        parameters = this.omit(parameters, this.extractParams(path));
+        object paramsOmitted = this.omit(parameters, this.extractParams(path));
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         if ((apiUrl == null))
         {
@@ -1316,18 +1319,17 @@ public partial class cryptomus : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            object jsonParams = "";
-            headers = new Dictionary<string, object>() {
+            string jsonParams = "";
+            Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "userId", this.uid },
             };
             if ((method != "GET"))
             {
-                body = this.json(parameters);
-                jsonParams = body;
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                jsonParams = this.json(paramsOmitted);
+                privateHeaders["Content-Type"] = "application/json";
             } else
             {
-                string query = this.urlencode(parameters);
+                string query = this.urlencode(paramsOmitted);
                 if ((query.Length != 0))
                 {
                     url = url + ("?" + query);
@@ -1336,10 +1338,17 @@ public partial class cryptomus : Exchange
             string jsonParamsBase64 = this.stringToBase64(jsonParams);
             string stringToSign = (jsonParamsBase64 + this.secret);
             string signature = ((string)this.hash(this.encode(stringToSign), md5));
-            ((IDictionary<string,object>)headers)["sign"] = signature;
+            privateHeaders["sign"] = signature;
+            object privateBody = ((method != "GET")) ? jsonParams : body;
+            return new Dictionary<string, object>() {
+                { "url", url },
+                { "method", method },
+                { "body", privateBody },
+                { "headers", privateHeaders },
+            };
         } else
         {
-            string query = this.urlencode(parameters);
+            string query = this.urlencode(paramsOmitted);
             if ((query.Length != 0))
             {
                 url = url + ("?" + query);

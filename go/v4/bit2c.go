@@ -1163,6 +1163,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee map[string]any = nil
 	var side any = nil
 	var makerOrTaker *string = nil
+	var tradeMarket map[string]any = nil
 	var reference *string = this.SafeString(trade, "reference")
 	if reference != nil {
 		id = reference
@@ -1174,8 +1175,8 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = this.SafeString(trade, "firstAmount")
 		var reference_parts []string = strings.Split(*reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
-		market = this.SafeMarket(marketId, market)
-		market = this.SafeMarket(GetValue(reference_parts, 0), market)
+		var marketByPair map[string]any = this.SafeMarket(marketId, market)
+		tradeMarket = this.SafeMarket(GetValue(reference_parts, 0), marketByPair)
 		var isMaker *bool = this.SafeBool(trade, "isMaker")
 		makerOrTaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker == true {
@@ -1207,6 +1208,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		id = this.SafeString(trade, "tid")
 		price = DerefScalar(this.SafeString(trade, "price"))
 		amount = this.SafeString(trade, "amount")
+		tradeMarket = this.SafeMarket(nil, market)
 		side = this.SafeValue(trade, "isBid")
 		if side != nil {
 			if (side != nil) && (!IsEqual(side, "")) {
@@ -1216,13 +1218,13 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, tradeMarket)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"order":        orderId,
 		"type":         nil,
 		"side":         side,
@@ -1231,7 +1233,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 func (this *Bit2c) IsFiat(code any) any {
 	return (IsEqual(code, "NIS"))
@@ -1311,13 +1313,15 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
+	var requestBody any = nil
+	var requestHeaders any = nil
 	if IsEqual(api, "public") {
 		url = Add(url, ".json")
 	} else {
@@ -1333,20 +1337,32 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 				url = Add(url, "?"+auth)
 			}
 		} else {
-			body = auth
+			requestBody = auth
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512, "base64")
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"key":          this.ApiKey,
 			"sign":         signature,
 		}
 	}
+	var bodyResult any = func() any {
+		if requestBody == nil {
+			return body
+		}
+		return requestBody
+	}()
+	var headersResult any = func() any {
+		if requestHeaders == nil {
+			return headers
+		}
+		return requestHeaders
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResult,
+		"headers": headersResult,
 	}
 }
 func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

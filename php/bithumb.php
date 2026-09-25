@@ -426,11 +426,10 @@ class bithumb extends Exchange {
          */
         $result = array();
         $request = array();
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchMarkets', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchMarkets', 'generation', 2);
         if ($generation === 2) {
             $request['isDetails'] = true;
-            $response = $this->publicGetV1MarketAll($this->extend($request, $params));
+            $response = $this->publicGetV1MarketAll($this->extend($request, $paramsGeneration));
             //
             //     [
             //         {
@@ -515,7 +514,7 @@ class bithumb extends Exchange {
             $promises = array();
             for ($i = 0; $i < count($quotes); $i++) {
                 $request['quoteId'] = $quotes[$i];
-                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $params));
+                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $paramsGeneration));
                 //
                 //    {
                 //        "status": "0000",
@@ -701,11 +700,10 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchBalance', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchBalance', 'generation', 2);
         $response = null;
         if ($generation === 2) {
-            $response = $this->privateGetV1Accounts($params);
+            $response = $this->privateGetV1Accounts($paramsGeneration);
             //
             //     [
             //         {
@@ -722,7 +720,7 @@ class bithumb extends Exchange {
             $request = array(
                 'currency' => 'ALL',
             );
-            $response = $this->privatePostInfoBalance($this->extend($request, $params));
+            $response = $this->privatePostInfoBalance($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status": "0000",
@@ -753,8 +751,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         $response = null;
@@ -762,7 +759,7 @@ class bithumb extends Exchange {
         $timestamp = null;
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);
-            $response = $this->publicGetV1Orderbook($this->extend($request, $params));
+            $response = $this->publicGetV1Orderbook($this->extend($request, $paramsGeneration));
             //
             //     [
             //         {
@@ -807,7 +804,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = $this->publicGetPublicOrderbookBaseIdQuoteId($this->extend($request, $params));
+            $response = $this->publicGetPublicOrderbookBaseIdQuoteId($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -986,8 +983,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchTickers', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTickers', 'generation', 2);
         $request = array();
         $result = array();
         if ($generation === 2) {
@@ -1009,7 +1005,7 @@ class bithumb extends Exchange {
             if ($symbols !== null) {
                 $request['markets'] = implode(',', $marketIds);
                 $marketIdsChunks[] = $marketIds;
-                $promises[] = $this->publicGetV1Ticker($this->extend($request, $params));
+                $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
             } else {
                 $maxMarketIdsPerRequest = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
                 if (($maxMarketIdsPerRequest === null) || ($maxMarketIdsPerRequest < 1)) {
@@ -1023,7 +1019,7 @@ class bithumb extends Exchange {
                     if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
                         $marketIdsChunks[] = $marketIdsChunk;
                         $request['markets'] = implode(',', $marketIdsChunk);
-                        $promises[] = $this->publicGetV1Ticker($this->extend($request, $params));
+                        $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
                         $marketIdsChunk = array();
                     }
                 }
@@ -1127,7 +1123,7 @@ class bithumb extends Exchange {
             $promises = array();
             for ($i = 0; $i < count($quotes); $i++) {
                 $request['quoteId'] = $quotes[$i];
-                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $params));
+                $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $paramsGeneration));
                 //
                 //     {
                 //         "status":"0000",
@@ -1187,15 +1183,14 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchTicker', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTicker', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         $response = null;
         $data = array();
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);
-            $response = $this->publicGetV1Ticker($this->extend($request, $params));
+            $response = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
             //
             //     [
             //         {
@@ -1232,7 +1227,7 @@ class bithumb extends Exchange {
         } else {
             $request['baseId'] = $market['baseId'];
             $request['quoteId'] = $market['quoteId'];
-            $response = $this->publicGetPublicTickerBaseIdQuoteId($this->extend($request, $params));
+            $response = $this->publicGetPublicTickerBaseIdQuoteId($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1323,8 +1318,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         $response = null;
@@ -1335,18 +1329,18 @@ class bithumb extends Exchange {
                 $request['count'] = $limit;
             }
             if ($timeframe === '1d') {
-                $response = $this->publicGetV1CandlesDays($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesDays($this->extend($request, $paramsGeneration));
             } elseif ($timeframe === '1w') {
-                $response = $this->publicGetV1CandlesWeeks($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesWeeks($this->extend($request, $paramsGeneration));
             } elseif ($timeframe === '1M') {
-                $response = $this->publicGetV1CandlesMonths($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesMonths($this->extend($request, $paramsGeneration));
             } else {
                 $timeframeInteger = $this->safe_integer($this->timeframes, $timeframe);
                 if ($timeframeInteger === null) {
                     throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe);
                 }
                 $request['unit'] = $timeframeInteger;
-                $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $params));
+                $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $paramsGeneration));
             }
             //
             //     [
@@ -1383,7 +1377,7 @@ class bithumb extends Exchange {
             $request['interval'] = $this->safe_string($legacyTimeframes, $timeframe, $timeframe);
             $request['baseId'] = $market['baseId'];
             $request['quoteId'] = $market['quoteId'];
-            $response = $this->publicGetPublicCandlestickBaseIdQuoteIdInterval($this->extend($request, $params));
+            $response = $this->publicGetPublicCandlestickBaseIdQuoteIdInterval($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status": "0000",
@@ -1501,7 +1495,7 @@ class bithumb extends Exchange {
         }
         $id = $this->safe_string_2($trade, 'cont_no', 'sequential_id');
         $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $amountString = $this->safe_string($trade, 'trade_volume');
         if ($amountString === null) {
@@ -1523,7 +1517,7 @@ class bithumb extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => null,
             'type' => $type,
             'side' => $side,
@@ -1532,7 +1526,7 @@ class bithumb extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1552,8 +1546,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
         if ($limit !== null) {
@@ -1563,7 +1556,7 @@ class bithumb extends Exchange {
         $data = array();
         if ($generation === 2) {
             $request['market'] = $this->get_gen2_market_id($market);
-            $response = $this->publicGetV1TradesTicks($this->extend($request, $params));
+            $response = $this->publicGetV1TradesTicks($this->extend($request, $paramsGeneration));
             //
             //     [
             //         {
@@ -1584,7 +1577,7 @@ class bithumb extends Exchange {
         } else {
             $request['baseId'] = $market['baseId'];
             $request['quoteId'] = $market['quoteId'];
-            $response = $this->publicGetPublicTransactionHistoryBaseIdQuoteId($this->extend($request, $params));
+            $response = $this->publicGetPublicTransactionHistoryBaseIdQuoteId($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1621,8 +1614,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'createOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createOrders', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' createOrders is only supported for the $generation 2 API');
         }
@@ -1658,7 +1650,7 @@ class bithumb extends Exchange {
         $request = array(
             'batch_orders' => $ordersRequests,
         );
-        $response = $this->privatePostV2OrdersBatch($this->extend($request, $params));
+        $response = $this->privatePostV2OrdersBatch($this->extend($request, $paramsGeneration));
         //
         //     {
         //         "batch_orders_response": [
@@ -1702,17 +1694,17 @@ class bithumb extends Exchange {
             throw new InvalidOrder($this->id . ' createOrder() invalid $side ' . $side);
         }
         $request['side'] = $sideRequest;
-        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
-        if ($timeInForce === null) {
-            $timeInForce = 'GTC';
-        } else {
-            $params = $this->omit($params, 'timeInForce');
+        $timeInForceRaw = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
+        $timeInForce = ($timeInForceRaw === null) ? 'GTC' : $timeInForceRaw;
+        $paramsTimeInForce = ($timeInForceRaw === null) ? $params : $this->omit($params, 'timeInForce');
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsTimeInForce);
+        $isPostOnly = $postOnly || ($timeInForce === 'PO');
+        $paramsOrder = $paramsPostOnly;
+        if ($isPostOnly) {
+            $paramsOrder = $this->omit($paramsPostOnly, 'postOnly');
         }
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-        if ($postOnly || ($timeInForce === 'PO')) {
+        if ($isPostOnly) {
             $request['time_in_force'] = 'post_only';
-            $params = $this->omit($params, 'postOnly');
         } elseif ($timeInForce === 'FOK') {
             $request['time_in_force'] = 'fok';
         } elseif ($timeInForce === 'IOC') {
@@ -1727,10 +1719,9 @@ class bithumb extends Exchange {
             if ($side === 'buy') {
                 $typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                $cost = $this->safe_string($params, 'cost');
-                $params = $this->omit($params, 'cost');
-                $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_string($paramsOrder, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($this->omit($paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $paramsOrder = $paramsRequiresPrice;
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
@@ -1749,12 +1740,12 @@ class bithumb extends Exchange {
             }
             $request['order_type'] = $typeRequest;
         }
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        $clientOrderId = $this->safe_string_2($paramsOrder, 'clientOrderId', 'client_order_id');
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         }
-        return $this->extend($request, $params);
+        $paramsRequest = ($clientOrderId !== null) ? $this->omit($paramsOrder, 'clientOrderId') : $paramsOrder;
+        return $this->extend($request, $paramsRequest);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1783,13 +1774,12 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createOrder', 'generation', 2);
         $request = array();
         $market = $this->market($symbol);
         $response = null;
         if ($generation === 2) {
-            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsGeneration);
             $response = $this->privatePostV2Orders($request);
             //
             //     {
@@ -1814,11 +1804,11 @@ class bithumb extends Exchange {
                     $typeRequest = 'ask';
                 }
                 $request['type'] = $typeRequest;
-                $response = $this->privatePostTradePlace($this->extend($request, $params));
+                $response = $this->privatePostTradePlace($this->extend($request, $paramsGeneration));
             } elseif ($side === 'buy') {
-                $response = $this->privatePostTradeMarketBuy($this->extend($request, $params));
+                $response = $this->privatePostTradeMarketBuy($this->extend($request, $paramsGeneration));
             } else {
-                $response = $this->privatePostTradeMarketSell($this->extend($request, $params));
+                $response = $this->privatePostTradeMarketSell($this->extend($request, $paramsGeneration));
             }
             //
             //     {
@@ -1855,13 +1845,12 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'createMarketBuyOrderWithCost', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createMarketBuyOrderWithCost', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' createMarketBuyOrderWithCost() is only supported for the $generation 2 API');
         }
-        $params['createMarketBuyOrderRequiresPrice'] = false;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $paramsGeneration);
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): array {
@@ -1883,8 +1872,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'createTwapOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createTwapOrder', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' createTwapOrder() is only supported for the $generation 2 API');
         }
@@ -1905,7 +1893,7 @@ class bithumb extends Exchange {
             $sideRequest = 'ask';
         }
         $request['side'] = $sideRequest;
-        $response = $this->privatePostV1Twap($this->extend($request, $params));
+        $response = $this->privatePostV1Twap($this->extend($request, $paramsGeneration));
         //
         //     {
         //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -1934,14 +1922,13 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrder', 'generation', 2);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $twap = $this->safe_bool($params, 'twap', false);
-        $params = $this->omit($params, 'twap');
+        $twap = $this->safe_bool($paramsGeneration, 'twap', false);
+        $paramsOmitted = $this->omit($paramsGeneration, 'twap');
         $request = array();
         $response = null;
         $data = null;
@@ -1951,7 +1938,7 @@ class bithumb extends Exchange {
                     $request['market'] = $this->get_gen2_market_id($market);
                 }
                 $request['uuids'] = array( $id );
-                $response = $this->privateGetV1Twap($this->extend($request, $params));
+                $response = $this->privateGetV1Twap($this->extend($request, $paramsOmitted));
                 //
                 //     {
                 //         "has_next": false,
@@ -1979,14 +1966,14 @@ class bithumb extends Exchange {
                 $orders = $this->safe_list($response, 'orders', array());
                 $data = $this->safe_dict($orders, 0, array());
             } else {
-                $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+                $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'client_order_id');
+                $paramsClientOrderId = ($clientOrderId !== null) ? $this->omit($paramsOmitted, array( 'clientOrderId' )) : $paramsOmitted;
                 if ($clientOrderId !== null) {
                     $request['client_order_id'] = $clientOrderId;
-                    $params = $this->omit($params, array( 'clientOrderId' ));
                 } else {
                     $request['uuid'] = $id;
                 }
-                $response = $this->privateGetV1Order($this->extend($request, $params));
+                $response = $this->privateGetV1Order($this->extend($request, $paramsClientOrderId));
                 //
                 //     {
                 //         "uuid": "C0101000003152406454",
@@ -2024,7 +2011,7 @@ class bithumb extends Exchange {
             $request['order_id'] = $id;
             $request['order_currency'] = $base;
             $request['payment_currency'] = $quote;
-            $response = $this->privatePostInfoOrderDetail($this->extend($request, $params));
+            $response = $this->privatePostInfoOrderDetail($this->extend($request, $paramsOmitted));
             //
             //     {
             //         "status": "0000",
@@ -2245,10 +2232,10 @@ class bithumb extends Exchange {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
         }
+        $marketId = $this->safe_string($order, 'market');
+        $marketResolved = ($symbol === null) ? $this->safe_market($marketId, $market) : $market;
         if ($symbol === null) {
-            $marketId = $this->safe_string($order, 'market');
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($marketResolved, 'symbol');
         }
         $id = $this->safe_string_n($order, array( 'order_id', 'uuid', 'algo_order_id' ));
         $rawTrades = $this->safe_list_2($order, 'contract', 'trades', array());
@@ -2256,8 +2243,8 @@ class bithumb extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $currency = null;
-            if ($market !== null) {
-                $currency = $this->safe_string($market, 'quote');
+            if ($marketResolved !== null) {
+                $currency = $this->safe_string($marketResolved, 'quote');
             }
             $fee = array(
                 'currency' => $currency,
@@ -2293,7 +2280,7 @@ class bithumb extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $rawTrades,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2316,19 +2303,19 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchOpenOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOpenOrders', 'generation', 2);
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array();
         $market = null;
         $response = null;
         if ($generation === 2) {
-            $twap = $this->safe_bool($params, 'twap', false);
+            $twap = $this->safe_bool($paramsGeneration, 'twap', false);
             if ($twap) {
-                $params['state'] = 'progress';
+                $paramsGeneration['state'] = 'progress';
             } else {
-                $params['state'] = 'wait';
+                $paramsGeneration['state'] = 'wait';
             }
-            $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+            $orders = $this->fetch_orders($symbol, $since, $limit, $paramsGeneration);
             return $this->filter_by_since_limit($orders, $since, $limit);
         } else {
             if ($symbol === null) {
@@ -2338,13 +2325,10 @@ class bithumb extends Exchange {
             if ($since !== null) {
                 $request['after'] = $since;
             }
-            if ($limit === null) {
-                $limit = 100;
-            }
-            $request['count'] = $limit;
+            $request['count'] = $limitResolved;
             $request['order_currency'] = $market['base'];
             $request['payment_currency'] = $market['quote'];
-            $response = $this->privatePostInfoOrders($this->extend($request, $params));
+            $response = $this->privatePostInfoOrders($this->extend($request, $paramsGeneration));
             //
             //     {
             //         "status": "0000",
@@ -2366,7 +2350,7 @@ class bithumb extends Exchange {
             //
         }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2389,20 +2373,22 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrders', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchOrders is only supported for the $generation 2 API');
         }
         $request = array();
-        $twap = $this->safe_bool($params, 'twap', false);
-        $params = $this->omit($params, 'twap');
-        if (!$twap) {
-            $clientOrderIds = $this->safe_list_2($params, 'client_order_ids', 'clientOrderIds');
-            if ($clientOrderIds !== null) {
-                $request['client_order_ids'] = $clientOrderIds;
-                $params = $this->omit($params, array( 'clientOrderIds' ));
-            }
+        $twap = $this->safe_bool($paramsGeneration, 'twap', false);
+        $paramsOmitted = $this->omit($paramsGeneration, 'twap');
+        $clientOrderIds = null;
+        if ($twap) {
+            $clientOrderIds = null;
+        } else {
+            $clientOrderIds = $this->safe_list_2($paramsOmitted, 'client_order_ids', 'clientOrderIds');
+        }
+        $paramsRequest = ($clientOrderIds !== null) ? $this->omit($paramsOmitted, array( 'clientOrderIds' )) : $paramsOmitted;
+        if ($clientOrderIds !== null) {
+            $request['client_order_ids'] = $clientOrderIds;
         }
         $market = null;
         if ($symbol !== null) {
@@ -2415,7 +2401,7 @@ class bithumb extends Exchange {
         $response = null;
         $data = null;
         if ($twap) {
-            $response = $this->privateGetV1Twap($this->extend($request, $params));
+            $response = $this->privateGetV1Twap($this->extend($request, $paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2442,7 +2428,7 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_list($response, 'orders', array());
         } else {
-            $response = $this->privateGetV1Orders($this->extend($request, $params));
+            $response = $this->privateGetV1Orders($this->extend($request, $paramsRequest));
             //
             //     [
             //         {
@@ -2532,37 +2518,40 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'generation', 2);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $request = array();
         $response = null;
-        $twap = $this->safe_bool($params, 'twap', false);
-        $params = $this->omit($params, 'twap');
+        $twap = $this->safe_bool($paramsGeneration, 'twap', false);
+        $paramsOmitted = $this->omit($paramsGeneration, 'twap');
+        $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'client_order_id');
+        $useClientOrderId = !$twap && ($generation === 2) && ($clientOrderId !== null);
+        $paramsRequest = $paramsOmitted;
+        if ($useClientOrderId) {
+            $paramsRequest = $this->omit($paramsOmitted, array( 'clientOrderId' ));
+        }
         if ($twap) {
             $request['algo_order_id'] = $id;
         } else {
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-            if (($generation === 2) && ($clientOrderId !== null)) {
+            if ($useClientOrderId) {
                 $request['client_order_id'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientOrderId' ));
             } else {
                 $request['order_id'] = $id;
             }
         }
         if ($generation === 2) {
             if ($twap) {
-                $response = $this->privateDeleteV1Twap($this->extend($request, $params));
+                $response = $this->privateDeleteV1Twap($this->extend($request, $paramsRequest));
                 //
                 //     {
                 //         "algo_order_id": "TWAP-A01B02C03D04E05F06"
                 //     }
                 //
             } else {
-                $response = $this->privateDeleteV2Order($this->extend($request, $params));
+                $response = $this->privateDeleteV2Order($this->extend($request, $paramsRequest));
                 //
                 //     {
                 //         "order_id": "C0101000003152350309",
@@ -2580,22 +2569,22 @@ class bithumb extends Exchange {
             if (($base === null) || ($quote === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $market with defined $base and quote');
             }
-            $side_in_params = (is_array($params) && array_key_exists('side' ?? '', $params));
+            $side_in_params = (is_array($paramsRequest) && array_key_exists('side' ?? '', $paramsRequest));
             if (!$side_in_params) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
             }
             $side = null;
-            if ($this->safe_string($params, 'side') === 'buy') {
+            if ($this->safe_string($paramsRequest, 'side') === 'buy') {
                 $side = 'bid';
             } else {
                 $side = 'ask';
             }
-            $params = $this->omit($params, 'side');
+            $paramsSide = $this->omit($paramsRequest, 'side');
             // https://github.com/ccxt/ccxt/issues/6771
             $request['type'] = $side;
             $request['order_currency'] = $base;
             $request['payment_currency'] = $quote;
-            $response = $this->privatePostTradeCancel($this->extend($request, $params));
+            $response = $this->privatePostTradeCancel($this->extend($request, $paramsSide));
             //
             //     {
             //         "status": "0000"
@@ -2623,8 +2612,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' cancelOrders is only supported for the $generation 2 API');
         }
@@ -2633,14 +2621,14 @@ class bithumb extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array();
-        $clientOrderIds = $this->safe_list_2($params, 'client_order_ids', 'clientOrderIds');
+        $clientOrderIds = $this->safe_list_2($paramsGeneration, 'client_order_ids', 'clientOrderIds');
+        $paramsRequest = ($clientOrderIds !== null) ? $this->omit($paramsGeneration, array( 'clientOrderIds' )) : $paramsGeneration;
         if ($clientOrderIds !== null) {
             $request['client_order_ids'] = $clientOrderIds;
-            $params = $this->omit($params, array( 'clientOrderIds' ));
         } else {
             $request['order_ids'] = $ids;
         }
-        $response = $this->privatePostV2OrdersCancel($this->extend($request, $params));
+        $response = $this->privatePostV2OrdersCancel($this->extend($request, $paramsRequest));
         //
         //     {
         //         "success": [
@@ -2693,37 +2681,40 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'withdraw', 'generation', 2);
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'withdraw', 'generation', 2);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $paramsGeneration);
         $this->check_address($address);
-        $network = $this->safe_string_2($params, 'network', 'net_type');
-        $params = $this->omit($params, 'network');
+        $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'net_type');
+        $paramsNetwork = $this->omit($paramsWithdrawTag, 'network');
         $currency = $this->currency($code);
         $request = array();
         $response = null;
         $destinationRequest = null;
-        if ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM' || $code === 'TON') {
-            $destination = $this->safe_string_2($params, 'destination', 'secondary_address');
-            $params = $this->omit($params, array( 'destination', 'secondary_address' ));
-            if (($tag === null) && ($destination === null)) {
+        $requiresDestination = ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM' || $code === 'TON');
+        $paramsDestination = $paramsNetwork;
+        if ($requiresDestination) {
+            $paramsDestination = $this->omit($paramsNetwork, array( 'destination', 'secondary_address' ));
+        }
+        if ($requiresDestination) {
+            $destination = $this->safe_string_2($paramsNetwork, 'destination', 'secondary_address');
+            if (($tagWithdrawTag === null) && ($destination === null)) {
                 throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
-            } elseif ($tag !== null) {
-                $destinationRequest = $tag;
+            } elseif ($tagWithdrawTag !== null) {
+                $destinationRequest = $tagWithdrawTag;
             } else {
                 $destinationRequest = $destination;
             }
         }
-        $receiverType = $this->safe_string_2($params, 'receiver_type', 'cust_type_cd');
-        $params = $this->omit($params, array( 'receiver_type', 'cust_type_cd' ));
+        $receiverType = $this->safe_string_2($paramsDestination, 'receiver_type', 'cust_type_cd');
+        $paramsReceiverType = $this->omit($paramsDestination, array( 'receiver_type', 'cust_type_cd' ));
         if ($generation === 2) {
             if ($code === 'KRW') {
-                $twoFactorType = $this->safe_string($params, 'two_factor_type');
+                $twoFactorType = $this->safe_string($paramsReceiverType, 'two_factor_type');
                 if ($twoFactorType === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a two_factor_type parameter for withdrawing KRW');
                 }
                 $krwRequest = array( 'amount' => $this->number_to_string($amount) ); // KRW withdraw only accepts amount and two_factor_type parameters
-                $response = $this->privatePostV1WithdrawsKrw($this->extend($krwRequest, $params));
+                $response = $this->privatePostV1WithdrawsKrw($this->extend($krwRequest, $paramsReceiverType));
             } else {
                 if ($network === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $network parameter');
@@ -2738,7 +2729,7 @@ class bithumb extends Exchange {
                 if ($receiverType !== null) {
                     $request['receiver_type'] = $receiverType;
                 }
-                $response = $this->privatePostV1WithdrawsCoin($this->extend($request, $params));
+                $response = $this->privatePostV1WithdrawsCoin($this->extend($request, $paramsReceiverType));
             }
             //
             //     {
@@ -2775,7 +2766,7 @@ class bithumb extends Exchange {
                     $request['cust_type_cd'] = $receiverType;
                 }
             }
-            $response = $this->privatePostTradeBtcWithdrawal($this->extend($request, $params));
+            $response = $this->privatePostTradeBtcWithdrawal($this->extend($request, $paramsReceiverType));
             //
             //     {
             //         "status": "0000"
@@ -2810,7 +2801,7 @@ class bithumb extends Exchange {
         //
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $datetime = $this->safe_string($transaction, 'created_at');
         $timestamp = $this->parse8601($datetime);
         if (($datetime !== null) && (mb_strpos($datetime, '+09:00') > -1)) {
@@ -2831,7 +2822,7 @@ class bithumb extends Exchange {
             'addressTo' => null,
             'amount' => $this->safe_number($transaction, 'amount'),
             'type' => $type,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'state'), $type),
             'updated' => null,
             'tagFrom' => null,
@@ -2887,12 +2878,11 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchWithdrawalWhitelist', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawalWhitelist', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchWithdrawalWhitelist() is only supported for the $generation 2 API');
         }
-        $response = $this->privateGetV1WithdrawsCoinAddresses($params);
+        $response = $this->privateGetV1WithdrawsCoinAddresses($paramsGeneration);
         //
         //     [
         //         {
@@ -2926,8 +2916,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchWithdrawal', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawal', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchWithdrawal() is only supported for the $generation 2 API');
         }
@@ -2941,7 +2930,7 @@ class bithumb extends Exchange {
         if ($id !== null) {
             $request['uuid'] = $id;
         }
-        $response = $this->privateGetV1Withdraw($this->extend($request, $params));
+        $response = $this->privateGetV1Withdraw($this->extend($request, $paramsGeneration));
         //
         //     {
         //         "type": "withdraw",
@@ -2982,8 +2971,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchWithdrawals() is only supported for the $generation 2 API');
         }
@@ -2995,13 +2983,13 @@ class bithumb extends Exchange {
         $currency = null;
         if ($code === 'KRW') {
             $currency = $this->currency($code);
-            $response = $this->privateGetV1WithdrawsKrw($this->extend($request, $params));
+            $response = $this->privateGetV1WithdrawsKrw($this->extend($request, $paramsGeneration));
         } else {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = $this->privateGetV1Withdraws($this->extend($request, $params));
+            $response = $this->privateGetV1Withdraws($this->extend($request, $paramsGeneration));
         }
         //
         //     [
@@ -3039,8 +3027,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchDeposit', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDeposit', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchDeposit() is only supported for the $generation 2 API');
         }
@@ -3054,7 +3041,7 @@ class bithumb extends Exchange {
         if ($id !== null) {
             $request['uuid'] = $id;
         }
-        $response = $this->privateGetV1Deposit($this->extend($request, $params));
+        $response = $this->privateGetV1Deposit($this->extend($request, $paramsGeneration));
         //
         //     {
         //         "type": "deposit",
@@ -3095,8 +3082,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchDeposits() is only supported for the $generation 2 API');
         }
@@ -3108,13 +3094,13 @@ class bithumb extends Exchange {
         $currency = null;
         if ($code === 'KRW') {
             $currency = $this->currency($code);
-            $response = $this->privateGetV1DepositsKrw($this->extend($request, $params));
+            $response = $this->privateGetV1DepositsKrw($this->extend($request, $paramsGeneration));
         } else {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = $this->privateGetV1Deposits($this->extend($request, $params));
+            $response = $this->privateGetV1Deposits($this->extend($request, $paramsGeneration));
         }
         //
         //     [
@@ -3151,8 +3137,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'createDepositAddress', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'createDepositAddress', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' createDepositAddress() is only supported for the $generation 2 API');
         }
@@ -3160,13 +3145,13 @@ class bithumb extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_2($params, 'network', 'net_type');
-        $params = $this->omit($params, 'network');
+        $network = $this->safe_string_2($paramsGeneration, 'network', 'net_type');
+        $paramsOmitted = $this->omit($paramsGeneration, 'network');
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' createDepositAddress() requires a $network parameter');
         }
         $request['net_type'] = $network;
-        $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $params));
+        $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "currency": "BTC",
@@ -3193,8 +3178,7 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchDepositAddress', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDepositAddress', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchDepositAddress() is only supported for the $generation 2 API');
         }
@@ -3202,13 +3186,13 @@ class bithumb extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_2($params, 'network', 'net_type');
-        $params = $this->omit($params, 'network');
+        $network = $this->safe_string_2($paramsGeneration, 'network', 'net_type');
+        $paramsOmitted = $this->omit($paramsGeneration, 'network');
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' ' . $code . ' fetchDepositAddress() requires a $network parameter');
         }
         $request['net_type'] = $network;
-        $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $params));
+        $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "currency": "BTC",
@@ -3234,12 +3218,11 @@ class bithumb extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $generation = null;
-        list($generation, $params) = $this->handle_option_integer_and_params($params, 'fetchDepositAddresses', 'generation', 2);
+        list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchDepositAddresses', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' fetchDepositAddresses() is only supported for the $generation 2 API');
         }
-        $response = $this->privateGetV1DepositsCoinAddresses($params);
+        $response = $this->privateGetV1DepositsCoinAddresses($paramsGeneration);
         //
         //     [
         //         {
@@ -3329,6 +3312,8 @@ class bithumb extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $api);
         if ($apiUrl === null) {
@@ -3340,7 +3325,7 @@ class bithumb extends Exchange {
         $queryKeysLength = count($queryKeys);
         $hasQuery = ($queryKeysLength > 0);
         if ($api === 'public') {
-            $headers = array(
+            $requestHeaders = array(
                 'OPEN-API-PARTNER' => 'CCXT',
             );
             if ($hasQuery) {
@@ -3350,7 +3335,7 @@ class bithumb extends Exchange {
             $this->check_required_credentials();
             $isVersionedApi = (str_starts_with($endpoint, '/v1/') || str_starts_with($endpoint, '/v2/'));
             if ($isVersionedApi) {
-                $headers = array(
+                $requestHeaders = array(
                     'Accept' => 'application/json',
                     'OPEN-API-PARTNER' => 'CCXT',
                 );
@@ -3361,9 +3346,9 @@ class bithumb extends Exchange {
                 );
                 $auth = null;
                 if (($method !== 'GET') && ($method !== 'DELETE')) {
-                    $headers['Content-Type'] = 'application/json';
+                    $requestHeaders['Content-Type'] = 'application/json';
                     if ($hasQuery) {
-                        $body = $this->json($query);
+                        $requestBody = $this->json($query);
                         $auth = $this->urlencode_with_array_brackets($query);
                     }
                 } elseif ($hasQuery) {
@@ -3376,19 +3361,19 @@ class bithumb extends Exchange {
                     $request['query_hash_alg'] = 'SHA512';
                 }
                 $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-                $headers['Authorization'] = 'Bearer ' . $token;
+                $requestHeaders['Authorization'] = 'Bearer ' . $token;
             } else {
-                $body = $this->urlencode($this->extend(array(
+                $requestBody = $this->urlencode($this->extend(array(
                     'endpoint' => $endpoint,
                 ), $query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                $bodyParts = explode('%20', $body);
-                $body = implode('+', $bodyParts);
+                $bodyParts = explode('%20', $requestBody);
+                $requestBody = implode('+', $bodyParts);
                 $nonce = (string) $this->nonce();
-                $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
+                $auth = $endpoint . "\0" . $requestBody . "\0" . $nonce; // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
                 $signature64 = base64_encode($signature);
-                $headers = array(
+                $requestHeaders = array(
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/x-www-form-urlencoded',
                     'Api-Key' => $this->apiKey,
@@ -3398,7 +3383,9 @@ class bithumb extends Exchange {
                 );
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

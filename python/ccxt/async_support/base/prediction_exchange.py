@@ -373,12 +373,12 @@ class PredictionExchange(BaseExchange):
         if outcomeObj is not None:
             return outcomeObj
         # stub for an unknown handle; it only carries the identity keys, not the market fields
-        outcomeObj = {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
-        return outcomeObj
+        outcomeObjValue = {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
+        return outcomeObjValue
 
     def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
-        outcomeObj = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
-        return outcomeObj['outcome']
+        outcomeObjValue = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
+        return outcomeObjValue['outcome']
 
     def shorten_slug(self, slug: Str):
         replacements = {
@@ -464,9 +464,8 @@ class PredictionExchange(BaseExchange):
         # removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         # currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         # instead of leaking raw text into the outcome handle
-        if outcome is None:
-            outcome = ''
-        upper = outcome.upper()
+        outcomeValue = '' if (outcome is None) else outcome
+        upper = outcomeValue.upper()
         allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         chars = self.string_to_chars_array(upper)
         label = ''

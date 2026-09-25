@@ -590,19 +590,19 @@ class bitfinex(Exchange, ImplicitAPI):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding this will be rounded to the 8th decimal.
-        symbol = self.safe_symbol(symbol)
-        market = self.market(symbol)
+        symbolValue = self.safe_symbol(symbol)
+        market = self.market(symbolValue)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol: Str, price: object) -> str:
-        symbol = self.safe_symbol(symbol)
-        market = self.market(symbol)
-        price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
+        symbolValue = self.safe_symbol(symbol)
+        market = self.market(symbolValue)
+        priceValue = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         # Prices submit with a precision larger than 5 will be cut by the API.
-        return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
+        return self.decimal_to_precision(priceValue, TRUNCATE, 8, DECIMAL_PLACES)
 
     async def fetch_status(self, params: dict = {}) -> Status:
         """
@@ -1255,11 +1255,14 @@ class bitfinex(Exchange, ImplicitAPI):
         minusIndex = 0
         if isFetchTicker:
             minusIndex = 1
+        marketId = self.safe_string(ticker, 0)
+        marketResolved = None
+        if isFetchTicker:
+            marketResolved = market
         else:
-            marketId = self.safe_string(ticker, 0)
-            market = self.safe_market(marketId, market)
+            marketResolved = self.safe_market(marketId, market)
         isFundingCurrency = length >= 17
-        symbol = self.safe_symbol(None, market)
+        symbol = self.safe_symbol(None, marketResolved)
         last = None
         bid = None
         ask = None
@@ -1312,7 +1315,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1326,10 +1329,10 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {}
-        if symbols is not None:
-            ids = self.market_ids(symbols)
+        if symbolsNormalized is not None:
+            ids = self.market_ids(symbolsNormalized)
             request['symbols'] = ','.join(ids)
         else:
             request['symbols'] = 'ALL'
@@ -1373,7 +1376,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_tickers(tickers, symbols)
+        return self.parse_tickers(tickers, symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1492,9 +1495,10 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, 10000)
+            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPaginate, 10000)
         market = self.market(symbol)
         sort = '-1'
         request = {
@@ -1506,8 +1510,8 @@ class bitfinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 10000)  # default 120, max 10000
         request['sort'] = sort
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetTradesSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetTradesSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -1543,24 +1547,22 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000)
         market = self.market(symbol)
-        if limit is None:
-            limit = 10000
-        else:
-            limit = min(limit, 10000)
+        limitResolved = 10000 if (limit is None) else min(limit, 10000)
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         }
         if since is not None:
             request['start'] = since
             request['sort'] = 1
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
@@ -1568,7 +1570,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         #     ]
         #
-        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitResolved)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1756,8 +1758,7 @@ class bitfinex(Exchange, ImplicitAPI):
             orderType = 'IOC'
         elif fok:
             orderType = 'FOK'
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('createOrder', params)
         if (market['spot'] is True) and (marginMode is None):
             # The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType
@@ -1772,8 +1773,8 @@ class bitfinex(Exchange, ImplicitAPI):
             request['flags'] = flags
         if clientOrderId is not None:
             request['cid'] = clientOrderId
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
-        return self.extend(request, params)
+        paramsOmitted = self.omit(paramsMarginMode, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
+        return self.extend(request, paramsOmitted)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1968,12 +1969,12 @@ class bitfinex(Exchange, ImplicitAPI):
                 'cid': cid,
                 'cid_date': cidDate,
             }
-            params = self.omit(params, ['cid', 'clientOrderId'])
         else:
             request = {
                 'id': int(id),
             }
-        response = await self.privatePostAuthWOrderCancel(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['cid', 'clientOrderId']) if (cid is not None) else params
+        response = await self.privatePostAuthWOrderCancel(self.extend(request, paramsOmitted))
         order = self.safe_value(response, 4)
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
@@ -2186,23 +2187,24 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate)
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 25, max 2500
-        request, params = self.handle_until_option('end', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         market = None
         response: dict
         if symbol is None:
-            response = await self.privatePostAuthROrdersHist(self.extend(request, params))
+            response = await self.privatePostAuthROrdersHist(self.extend(requestUntil, paramsUntil))
         else:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-            response = await self.privatePostAuthROrdersSymbolHist(self.extend(request, params))
+            requestUntil['symbol'] = market['id']
+            response = await self.privatePostAuthROrdersSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #      [
         #          [
@@ -2350,13 +2352,13 @@ class bitfinex(Exchange, ImplicitAPI):
         if networkId is None:
             raise ArgumentsRequired(self.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        params = self.omit(params, 'network', 'wallet')
+        paramsOmitted = self.omit(params, 'network', 'wallet')
         request = {
             'method': networkId,
             'wallet': wallet,
             'op_renew': 0,  # a value of 1 will generate a new address
         }
-        response = await self.privatePostAuthWDepositAddress(self.extend(request, params))
+        response = await self.privatePostAuthWDepositAddress(self.extend(request, paramsOmitted))
         #
         #     [
         #         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -2728,14 +2730,14 @@ class bitfinex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
         network = self.safe_string(params, 'network', code)
-        params = self.omit(params, 'network')
+        paramsOmitted = self.omit(params, 'network')
         currencyNetworks = self.safe_dict(currency, 'networks', {})
         currencyNetwork = self.safe_dict(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
         if networkId is None:
             raise ArgumentsRequired(self.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
-        wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        params = self.omit(params, 'network', 'wallet')
+        wallet = self.safe_string(paramsOmitted, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+        paramsOmitted2 = self.omit(paramsOmitted, 'network', 'wallet')
         request = {
             'method': networkId,
             'wallet': wallet,
@@ -2748,7 +2750,7 @@ class bitfinex(Exchange, ImplicitAPI):
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
         if includeFee is True:
             request['fee_deduct'] = 1
-        response = await self.privatePostAuthWWithdraw(self.extend(request, params))
+        response = await self.privatePostAuthWWithdraw(self.extend(request, paramsOmitted2))
         #
         #     [
         #         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -2804,7 +2806,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.privatePostAuthRPositions(params)
         #
         #     [
@@ -2844,7 +2846,7 @@ class bitfinex(Exchange, ImplicitAPI):
         positionsList = []
         for i in range(0, len(rawPositions)):
             positionsList.append({'result': rawPositions[i]})
-        return self.parse_positions(positionsList, symbols)
+        return self.parse_positions(positionsList, symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -2930,6 +2932,8 @@ class bitfinex(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + request
+        requestBody = None
+        requestHeaders = None
         if api == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
@@ -2937,16 +2941,18 @@ class bitfinex(Exchange, ImplicitAPI):
             self.check_required_credentials()
             # bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             nonce = str(self.incrementing_nonce())
-            body = self.json(query)
-            auth = '/api/' + request + nonce + body
+            requestBody = self.json(query)
+            auth = '/api/' + request + nonce + requestBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384)
-            headers = {
+            requestHeaders = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': self.apiKey,
                 'bfx-signature': signature,
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        bodyResolved = body if (requestBody is None) else requestBody
+        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # ["error", 11010, "ratelimit: error"]
@@ -3011,7 +3017,7 @@ class bitfinex(Exchange, ImplicitAPI):
         id = self.safe_string(itemList, 0)
         currencyId = self.safe_string(itemList, 1)
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(itemList, 3)
         amount = self.safe_number(itemList, 5)
         after = self.safe_number(itemList, 6)
@@ -3036,7 +3042,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'after': after,
             'status': None,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -3055,23 +3061,24 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 2500)
+            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsPaginate, 2500)
         currency = None
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         response: dict
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
-            response = await self.privatePostAuthRLedgersCurrencyHist(self.extend(request, params))
+            requestUntil['currency'] = currency['id']
+            response = await self.privatePostAuthRLedgersCurrencyHist(self.extend(requestUntil, paramsUntil))
         else:
-            response = await self.privatePostAuthRLedgersHist(self.extend(request, params))
+            response = await self.privatePostAuthRLedgersHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -3163,17 +3170,18 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 5000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
         if since is not None:
             request['start'] = since
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetStatusDerivSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetStatusDerivSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #   [
         #       [
@@ -3334,10 +3342,10 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         marketIds = ['ALL']
-        if symbols is not None:
-            marketIds = self.market_ids(symbols)
+        if symbolsNormalized is not None:
+            marketIds = self.market_ids(symbolsNormalized)
         request = {
             'keys': ','.join(marketIds),
         }
@@ -3372,7 +3380,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_open_interests(response, symbols)
+        return self.parse_open_interests(response, symbolsNormalized)
 
     async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -3442,9 +3450,10 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', paramsPaginate, 5000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3453,8 +3462,8 @@ class bitfinex(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetStatusDerivSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetStatusDerivSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -3575,17 +3584,18 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', params, 500)
+            return await self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', paramsPaginate, 500)
         market = self.market(symbol)
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetLiquidationsHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetLiquidationsHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -3837,8 +3847,8 @@ class bitfinex(Exchange, ImplicitAPI):
         leverage = self.safe_integer_2(params, 'leverage', 'lev')
         if leverage is not None:
             request['lev'] = leverage
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage'])
-        response = await self.privatePostAuthWOrderUpdate(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage'])
+        response = await self.privatePostAuthWOrderUpdate(self.extend(request, paramsOmitted))
         #
         #     [
         #         1706845376402,

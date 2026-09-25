@@ -582,10 +582,10 @@ impl PaymiumCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "created_at_int", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "uuid", &[]);
-        market = self.safe_market(&[Value::Null, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), to_lower(&get_value(&market, &Value::Str("base".into())))).into());
+        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), to_lower(&get_value(&marketResolved, &Value::Str("base".into())))).into());
         let mut amount: Value = self.safe_string(trade.clone(), amountField, &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -594,7 +594,7 @@ impl PaymiumCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
@@ -603,7 +603,7 @@ impl PaymiumCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -958,26 +958,38 @@ impl PaymiumCore {
             // paymium requires an increasing nonce
             let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             let mut auth: Value = Value::Str(format!("{}{}", nonce, url).into());
-            headers = Value::Map({
+            let mut signedHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Api-Key".to_string(), self.apiKey.clone());
                     m.insert("Api-Nonce".to_string(), nonce);
                 m
             });
+            let mut hasQuery: bool = ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64);
+            let mut signedBody: Value = body.clone();
+            if (method.as_str() == Some("POST")) && hasQuery {
+                signedBody = json_stringify(&query);
+            }
             if (method.as_str() == Some("POST")) {
-                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    body = json_stringify(&query);
-                    auth = Value::Str(format!("{}{}", auth, body).into());
-                    if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                if hasQuery {
+                    auth = Value::Str(format!("{}{}", auth, signedBody).into());
+                    if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 }
             }  else {
-                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    let mut queryString: Value = self.urlencode(query.clone(), &[]);
+                if hasQuery {
+                    let mut queryString: Value = self.urlencode(query, &[]);
                     auth = Value::Str(format!("{}{}", auth, queryString).into());
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
                 }
             }
-            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Api-Signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
+            if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("Api-Signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
+            return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), url.clone());
+        m.insert("method".to_string(), method.clone());
+        m.insert("body".to_string(), signedBody);
+        m.insert("headers".to_string(), signedHeaders);
+    m
+});
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

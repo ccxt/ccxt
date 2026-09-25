@@ -1017,16 +1017,15 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	if tokenAddress == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the base token address from /metadata/obv3"))
 	}
-	var spender *string = nil
-	var spenderparamsVariable []any = this.HandleOptionStringAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
-	spender = ccxt.SafeStringPtr(ccxt.GetValue(spenderparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(spenderparamsVariable, 1))
+	var spenderparamsSpenderVariable []any = this.HandleOptionStringAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
+	var spender *string = ccxt.SafeStringPtr(ccxt.GetValue(spenderparamsSpenderVariable, 0))
+	var paramsSpender map[string]any = ccxt.MapTyped(ccxt.GetValue(spenderparamsSpenderVariable, 1))
 	if spender == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender"))
 	}
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
 	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, this.NumberToString(chainId))
-	var rpcUrl *string = this.SafeString(params, "rpcUrl", this.SafeString(chainConfig, "rpcUrl"))
+	var rpcUrl *string = this.SafeString(paramsSpender, "rpcUrl", this.SafeString(chainConfig, "rpcUrl"))
 	if rpcUrl == nil {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" approve() has no RPC endpoint configured for chainId ", this.NumberToString(chainId)), " - pass params.rpcUrl")))
 	}
@@ -1048,7 +1047,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 
 	var tokenName *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.FetchErc20NameAsync(rpcUrl, tokenAddress))))
 	var defaultDeadlineSeconds *int64 = this.SafeInteger(this.Options, "approveDeadlineSeconds", 7200)
-	var deadline *int64 = this.SafeInteger(params, "deadline", this.Sum(this.Seconds(), defaultDeadlineSeconds))
+	var deadline *int64 = this.SafeInteger(paramsSpender, "deadline", this.Sum(this.Seconds(), defaultDeadlineSeconds))
 	var value string = this.DecimalToPrecision(ccxt.Precise.StringMul(this.NumberToString(amount), "1000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
 	var domain map[string]any = map[string]any{
 		"name":              tokenName,
@@ -1092,7 +1091,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 		"deadline":     this.NumberToString(deadline),
 		"signature":    signature,
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"amount", "tokenAddress", "deadline", "rpcUrl"}))
+	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsSpender, []any{"amount", "tokenAddress", "deadline", "rpcUrl"}))
 
 	response := (<-this.SxbetPrivatePostUserTransferToProxy(this.Extend(request, rest))).Raw
 	ccxt.PanicOnError(response)
@@ -1200,10 +1199,9 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar string, sid
 	if typeVar == "limit" {
 		defaultTif = "GTC"
 	}
-	var timeInForce *string = nil
-	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", defaultTif)
-	timeInForce = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
+	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", defaultTif)
+	var timeInForce *string = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 0))
+	var paramsTimeInForce map[string]any = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 1))
 	// an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
 	// that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
 	// contradicting the immediate-fill semantics the type promises
@@ -1263,22 +1261,22 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar string, sid
 		"timeInForce":              timeInForce,
 		"orderSignature":           orderSignature,
 	}
-	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	var clientOrderId *string = this.SafeString(paramsTimeInForce, "clientOrderId")
 	if clientOrderId != nil {
 		orderItem["clientOrderId"] = clientOrderId
 	}
 	// useBetCredits and externalUserId are per-order fields - route them into the order item,
 	// not the top-level body, where the venue would silently ignore them
-	var useBetCredits *bool = this.SafeBool(params, "useBetCredits")
+	var useBetCredits *bool = this.SafeBool(paramsTimeInForce, "useBetCredits")
 	if useBetCredits != nil {
 		orderItem["useBetCredits"] = useBetCredits
 	}
-	var externalUserId *string = this.SafeString(params, "externalUserId")
+	var externalUserId *string = this.SafeString(paramsTimeInForce, "externalUserId")
 	if externalUserId != nil {
 		orderItem["externalUserId"] = externalUserId
 	}
-	var waitForOutcome *bool = this.SafeBool(params, "waitForOutcome", true)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"}))
+	var waitForOutcome *bool = this.SafeBool(paramsTimeInForce, "waitForOutcome", true)
+	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsTimeInForce, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"}))
 	var request map[string]any = map[string]any{
 		"orders":         []any{orderItem},
 		"waitForOutcome": waitForOutcome,
@@ -1770,8 +1768,8 @@ func (this *Sxbet) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes135415 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOpenOrdersAsync(outcome, since, limit, params))))
-	ch <- ccxt.BoxAbsent(retRes135415)
+	var retRes135215 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOpenOrdersAsync(outcome, since, limit, params))))
+	ch <- ccxt.BoxAbsent(retRes135215)
 	return nil
 }
 
@@ -2104,7 +2102,7 @@ func (this *Sxbet) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2727,7 +2725,7 @@ func (this *Sxbet) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan 
 func (this *Sxbet) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3659,12 +3657,12 @@ func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	headers = this.Extend(map[string]any{
+	var headersExtended map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, existingHeaders)
 	if !ccxt.IsEqual(this.ApiKey, nil) {
-		ccxt.AddElementToObject(headers, "x-sx-api-key", this.ApiKey)
+		headersExtended["x-sx-api-key"] = this.ApiKey
 	}
 	// DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
 	// /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -3673,6 +3671,7 @@ func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 		var hasOrdersList bool = (ccxt.InOp(query, "orders"))
 		sendAsQuery = !hasOrdersList
 	}
+	var bodyValue any = body
 	if sendAsQuery {
 		var querystring string = this.Urlencode(query)
 		if querystring != "" {
@@ -3682,14 +3681,14 @@ func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		var queryKeysLength int = len(queryKeys)
 		if queryKeysLength > 0 {
-			body = this.Json(query)
+			bodyValue = this.Json(query)
 		}
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyValue,
+		"headers": headersExtended,
 	}
 }
 

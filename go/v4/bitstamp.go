@@ -1707,12 +1707,12 @@ func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) any {
 	if currencyId != nil {
 		return currencyId
 	}
-	transaction = this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"})
-	var ids []string = ObjectKeys(transaction)
+	var transactionOmitted map[string]any = MapTyped(this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"}))
+	var ids []string = ObjectKeys(transactionOmitted)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
 		if strings.Index(id, "_") < 0 {
-			var value *int64 = this.SafeInteger(transaction, id)
+			var value *int64 = this.SafeInteger(transactionOmitted, id)
 			if (value != nil) && (value == nil || *value != 0) {
 				return id
 			}
@@ -1721,11 +1721,11 @@ func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) any {
 	return nil
 }
 func (this *Bitstamp) GetMarketFromTrade(trade any) any {
-	trade = this.Omit(trade, []any{"fee", "price", "datetime", "tid", "type", "order_id", "side"})
-	var currencyIds []string = ObjectKeys(trade)
+	var tradeOmitted any = this.Omit(trade, []any{"fee", "price", "datetime", "tid", "type", "order_id", "side"})
+	var currencyIds []string = ObjectKeys(tradeOmitted)
 	var numCurrencyIds int = len(currencyIds)
 	if numCurrencyIds > 2 {
-		panic(ExchangeError(Add(Add(Add(this.Id+" getMarketFromTrade() too many keys: ", this.Json(currencyIds)), " in the trade: "), this.Json(trade))))
+		panic(ExchangeError(Add(Add(Add(this.Id+" getMarketFromTrade() too many keys: ", this.Json(currencyIds)), " in the trade: "), this.Json(tradeOmitted))))
 	}
 	if numCurrencyIds == 2 {
 		var marketId any = Add(GetValue(currencyIds, 0), GetValue(currencyIds, 1))
@@ -1779,7 +1779,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	//          "type": 2                       // Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade
 	//      }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "tid")
 	var symbol *string = nil
@@ -1790,35 +1790,37 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var costString *string = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
+	// resolved in the key scan below, falling back to the passed market
+	var marketResolved any = market
 	if market == nil {
 		var keys []string = ObjectKeys(trade)
 		for i := 0; i < len(keys); i++ {
 			var currentKey string = GetValue(keys, i).(string)
 			if (currentKey != "order_id") && (strings.Index(currentKey, "_") >= 0) {
 				rawMarketId = DerefScalar(currentKey)
-				market = this.SafeMarket(rawMarketId, market, "_")
+				marketResolved = this.SafeMarket(rawMarketId, marketResolved, "_")
 			}
 		}
 	}
 	// if the market is still not defined
 	// try to deduce it from used keys
-	if market == nil {
-		market = this.GetMarketFromTrade(trade)
+	if IsEqual(marketResolved, nil) {
+		marketResolved = this.GetMarketFromTrade(trade)
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var feeCurrency *string = this.SafeString(market, "quote")
+	var feeCurrency *string = this.SafeString(marketResolved, "quote")
 	var priceId any = nil
 	if rawMarketId != nil {
 		priceId = rawMarketId
 	} else {
-		priceId = DerefScalar(this.SafeString(market, "id"))
+		priceId = DerefScalar(this.SafeString(marketResolved, "id"))
 	}
 	priceString = this.SafeString(trade, priceId, priceString)
-	amountString = this.SafeString(trade, this.SafeString(market, "baseId"), amountString)
-	costString = this.SafeString(trade, this.SafeString(market, "quoteId"), costString)
+	amountString = this.SafeString(trade, this.SafeString(marketResolved, "baseId"), amountString)
+	costString = this.SafeString(trade, this.SafeString(marketResolved, "quoteId"), costString)
 	// this endpoint is not aligned with "markets" endpoint
-	var baseIdLower *string = this.SafeStringLower(market, "baseId")
-	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
+	var baseIdLower *string = this.SafeStringLower(marketResolved, "baseId")
+	var quoteIdLower *string = this.SafeStringLower(marketResolved, "quoteId")
 	var dashedIdLower *string = SafeStringPtr(Add(Add(baseIdLower, "_"), quoteIdLower))
 	if priceString == nil {
 		priceString = this.SafeString(trade, dashedIdLower)
@@ -1829,7 +1831,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if costString == nil {
 		costString = this.SafeString(trade, quoteIdLower)
 	}
-	symbol = this.SafeString(market, "symbol")
+	symbol = this.SafeString(marketResolved, "symbol")
 	var datetimeString *string = this.SafeString2(trade, "date", "datetime")
 	var timestamp any = nil
 	if datetimeString != nil {
@@ -1892,7 +1894,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2010,13 +2012,18 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(params, "until")
 	var untilIsDefined bool = (until != nil)
+	var limitResolved any = func() any {
+		if limit == nil {
+			return 1000
+		}
+		return limit
+	}()
 	if limit == nil {
-		limit = Int64PtrTyped(1000)
 		if since == nil {
-			request["limit"] = limit
+			request["limit"] = limitResolved
 			if untilIsDefined {
 				var end any = this.ParseToInt(Divide(until, 1000))
-				request["start"] = Subtract(Subtract(end, (Multiply(duration, limit))), 1)
+				request["start"] = Subtract(Subtract(end, (Multiply(duration, limitResolved))), 1)
 				request["end"] = end
 			}
 		} else {
@@ -2025,15 +2032,15 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			if untilIsDefined {
 				request["end"] = this.ParseToInt(Divide(until, 1000))
 			} else {
-				request["end"] = this.Sum(start, Subtract(Multiply(duration, limit), 1))
+				request["end"] = this.Sum(start, Subtract(Multiply(duration, limitResolved), 1))
 			}
-			request["limit"] = limit
+			request["limit"] = limitResolved
 		}
 	} else {
 		if since != nil {
 			var start int64 = this.ParseToInt(Divide(since, 1000))
 			request["start"] = start
-			var end any = this.Sum(start, Subtract(Multiply(duration, limit), 1))
+			var end any = this.Sum(start, Subtract(Multiply(duration, limitResolved), 1))
 			if untilIsDefined {
 				end = mathMin(end, this.ParseToInt(Divide(until, 1000)))
 			}
@@ -2041,13 +2048,13 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		} else if untilIsDefined {
 			var end any = this.ParseToInt(Divide(until, 1000))
 			request["end"] = end
-			request["start"] = Subtract(Subtract(end, (Multiply(duration, limit))), 1)
+			request["start"] = Subtract(Subtract(end, (Multiply(duration, limitResolved))), 1)
 		}
-		request["limit"] = mathMin(limit, 1000) // min 1, max 1000
+		request["limit"] = mathMin(limitResolved, 1000) // min 1, max 1000
 	}
-	params = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlcPair(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlcPair(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "data": {
@@ -2063,7 +2070,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var data map[string]any = SafeMapTyped(response, "data")
 	var ohlc []any = SafeListTypedDefault(data, "ohlc", []any{})
 
-	ch <- this.ParseOHLCVs(ohlc, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(ohlc, market, timeframe, since, limitResolved)
 	return nil
 }
 func (this *Bitstamp) ParseBalance(response any) any {
@@ -2073,11 +2080,12 @@ func (this *Bitstamp) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
+	var responseList any = response
 	if IsEqual(response, nil) {
-		response = []any{}
+		responseList = []any{}
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var currencyBalance map[string]any = SafeMapTyped(response, i)
+	for i := 0; i < GetArrayLength(responseList); i++ {
+		var currencyBalance map[string]any = SafeMapTyped(responseList, i)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2434,34 +2442,39 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar string, s
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	}
+	var paramsOmitted any = func() any {
+		if clientOrderId != nil {
+			return this.Omit(params, []any{"clientOrderId"})
+		}
+		return params
+	}()
 	var response map[string]any = nil
 	var capitalizedSide string = this.Capitalize(side)
 	if typeVar == "market" {
 		if capitalizedSide == "Buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostBuyMarketPair(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostBuyMarketPair(this.Extend(request, paramsOmitted))).Raw))
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostSellMarketPair(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostSellMarketPair(this.Extend(request, paramsOmitted))).Raw))
 		}
 	} else if typeVar == "instant" {
 		if capitalizedSide == "Buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostBuyInstantPair(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostBuyInstantPair(this.Extend(request, paramsOmitted))).Raw))
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostSellInstantPair(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostSellInstantPair(this.Extend(request, paramsOmitted))).Raw))
 		}
 	} else {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		if capitalizedSide == "Buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostBuyPair(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostBuyPair(this.Extend(request, paramsOmitted))).Raw))
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostSellPair(this.Extend(request, params))).Raw))
+			response = MapTyped(PanicOnError((<-this.PrivatePostSellPair(this.Extend(request, paramsOmitted))).Raw))
 		}
 	}
 	var orderResponse any = func() any {
@@ -2520,12 +2533,17 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	} else {
 		request["id"] = id
 	}
+	var paramsOmitted any = func() any {
+		if clientOrderId != nil {
+			return this.Omit(params, []any{"clientOrderId"})
+		}
+		return params
+	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplaceOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplaceOrder(this.Extend(request, paramsOmitted))).Raw))
 	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 	order["type"] = typeVar
 
@@ -2666,12 +2684,17 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
 	var request map[string]any = map[string]any{}
 	if !IsEqual(clientOrderId, nil) {
 		request["client_order_id"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"client_order_id", "clientOrderId"}))
 	} else {
 		request["id"] = id
 	}
+	var paramsOmitted any = func() any {
+		if !IsEqual(clientOrderId, nil) {
+			return this.Omit(params, []any{"client_order_id", "clientOrderId"})
+		}
+		return params
+	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))).Raw))
 
 	ch <- this.ParseOrderStatus(this.SafeString(response, "status"))
 	return nil
@@ -2711,12 +2734,17 @@ func (this *Bitstamp) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{}
 	if !IsEqual(clientOrderId, nil) {
 		request["client_order_id"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"client_order_id", "clientOrderId"}))
 	} else {
 		request["id"] = id
 	}
+	var paramsOmitted any = func() any {
+		if !IsEqual(clientOrderId, nil) {
+			return this.Omit(params, []any{"client_order_id", "clientOrderId"})
+		}
+		return params
+	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//      {
@@ -2826,13 +2854,14 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes196519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes196519)
+		var retRes196919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
+		ch <- BoxAbsent(retRes196919)
 		return nil
 	}
 	if this.Markets == nil {
@@ -2848,14 +2877,14 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	if since != nil {
 		request["since_timestamp"] = MathRound(Divide(since, 1000))
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("until_timestamp", request, params, 0.001)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 	if limit != nil {
-		request["limit"] = limit
+		AddElementToObject(requestUntil, "limit", limit)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistoryPair(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistoryPair(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "market": "BTC/USD-PERP",
@@ -3358,6 +3387,11 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	} else {
 		var parsedTransaction map[string]any = MapTyped(this.ParseTransaction(item, currency))
 		var direction any = nil
+		var hasTransactionCurrency bool = !(InOp(item, "amount")) && (func() bool { _, ok := parsedTransaction["currency"]; return ok }()) && (!IsEqual(parsedTransaction["currency"], nil))
+		var currencyResolved any = currency
+		if hasTransactionCurrency {
+			currencyResolved = this.Currency(this.SafeString(parsedTransaction, "currency"))
+		}
 		if InOp(item, "amount") {
 			var amount *string = this.SafeString(item, "amount")
 			direction = func() string {
@@ -3367,9 +3401,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 				return "out"
 			}()
 		} else if (func() bool { _, ok := parsedTransaction["currency"]; return ok }()) && !IsEqual(parsedTransaction["currency"], nil) {
-			var currencyCode *string = this.SafeString(parsedTransaction, "currency")
-			currency = this.Currency(currencyCode)
-			var amount *string = this.SafeString(item, GetValue(currency, "id"))
+			var amount *string = this.SafeString(item, this.SafeString(currencyResolved, "id"))
 			direction = func() string {
 				if Precise.StringGt(amount, "0") {
 					return "in"
@@ -3393,7 +3425,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 			"after":            nil,
 			"status":           parsedTransaction["status"],
 			"fee":              parsedTransaction["fee"],
-		}, currency)
+		}, currencyResolved)
 	}
 }
 
@@ -3662,9 +3694,9 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3678,26 +3710,26 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	if !EvalTruthy(this.IsFiat(code)) {
 		var name any = this.GetCurrencyName(code)
 		if IsEqual(code, "XRP") {
-			if tag != nil {
-				request["destination_tag"] = tag
+			if !IsEqual(tagWithdrawTag, nil) {
+				request["destination_tag"] = tagWithdrawTag
 			}
 		} else if (IsEqual(code, "XLM")) || (IsEqual(code, "HBAR")) {
-			if tag != nil {
-				request["memo_id"] = tag
+			if !IsEqual(tagWithdrawTag, nil) {
+				request["memo_id"] = tagWithdrawTag
 			}
 		}
 		request["address"] = address
 		// the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
 		// route through request(), called here directly to avoid dynamic dispatch
 
-		response = (<-this.RequestAsync(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, params)))
+		response = (<-this.RequestAsync(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, paramsWithdrawTag)))
 		PanicOnError(response)
 	} else {
 		currency = this.Currency(code)
 		request["iban"] = address
 		request["account_currency"] = GetValue(currency, "id")
 
-		response = (<-this.PrivatePostWithdrawalOpen(this.Extend(request, params))).Raw
+		response = (<-this.PrivatePostWithdrawalOpen(this.Extend(request, paramsWithdrawTag))).Raw
 		PanicOnError(response)
 	}
 
@@ -3812,6 +3844,21 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	url = Add(url, this.Version+"/")
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
+	var isPrivatePost bool = (!IsEqual(api, "public")) && (method == "POST")
+	// an empty POST triggers an API0020 error, so empty requests send a dummy object
+	// https://github.com/ccxt/ccxt/issues/6846
+	var emptyPostBody string = this.Urlencode(map[string]any{
+		"foo": "bar",
+	})
+	var postBody string = emptyPostBody
+	if len(ObjectKeys(query)) > 0 {
+		postBody = this.Urlencode(query)
+	}
+	var requestBody any = body
+	if isPrivatePost {
+		requestBody = postBody
+	}
+	var privateHeaders any = nil
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
@@ -3823,42 +3870,35 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 		var xAuthTimestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var xAuthVersion string = "v2"
 		var contentType string = ""
-		headers = map[string]any{
+		privateHeaders = map[string]any{
 			"X-Auth":           xAuth,
 			"X-Auth-Nonce":     xAuthNonce,
 			"X-Auth-Timestamp": xAuthTimestamp,
 			"X-Auth-Version":   xAuthVersion,
 		}
 		if method == "POST" {
-			if len(ObjectKeys(query)) > 0 {
-				body = this.Urlencode(query)
-				contentType = "application/x-www-form-urlencoded"
-				AddElementToObject(headers, "Content-Type", contentType)
-			} else {
-				// sending an empty POST request will trigger
-				// an API0020 error returned by the exchange
-				// therefore for empty requests we send a dummy object
-				// https://github.com/ccxt/ccxt/issues/6846
-				body = this.Urlencode(map[string]any{
-					"foo": "bar",
-				})
-				contentType = "application/x-www-form-urlencoded"
-				AddElementToObject(headers, "Content-Type", contentType)
-			}
+			contentType = "application/x-www-form-urlencoded"
+			AddElementToObject(privateHeaders, "Content-Type", contentType)
 		}
 		var authBody any = ""
-		if (body != nil) && (!IsEqual(body, "")) {
-			authBody = body
+		if (requestBody != nil) && (!IsEqual(requestBody, "")) {
+			authBody = requestBody
 		}
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		AddElementToObject(headers, "X-Auth-Signature", signature)
+		AddElementToObject(privateHeaders, "X-Auth-Signature", signature)
 	}
+	var requestHeaders any = func() any {
+		if IsEqual(api, "public") {
+			return headers
+		}
+		return privateHeaders
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

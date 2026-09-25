@@ -1572,7 +1572,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id")
 	var marketId *string = this.SafeString(order, "pair")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var clientOrderId *string = this.SafeString(order, "orderCid")
 	var timestamp *int64 = nil
 	var createdAt *string = this.SafeString(order, "createdAt")
@@ -1608,7 +1608,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"status":              status,
-		"symbol":              GetValue(market, "symbol"),
+		"symbol":              marketResolved["symbol"],
 		"type":                typeVar,
 		"timeInForce":         "GTC",
 		"side":                side,
@@ -1623,7 +1623,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 		"info":                order,
 		"postOnly":            false,
-	}, market)
+	}, marketResolved)
 }
 func (this *Bitteam) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2035,7 +2035,7 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeStringLower(ticker, "trading_pairs")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var bestBidPrice *string = nil
 	var bestAskPrice *string = nil
 	var bestBidVolume *string = nil
@@ -2060,7 +2060,7 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 	var close *string = this.SafeString2(ticker, "lastPrice", "last_price")
 	var changePcnt *string = this.SafeString2(ticker, "change24", "price_change_percent_24h")
 	return this.SafeTicker(map[string]any{
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        marketResolved["symbol"],
 		"timestamp":     nil,
 		"datetime":      nil,
 		"open":          nil,
@@ -2079,7 +2079,7 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2382,8 +2382,8 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "pair")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var id *string = this.SafeString2(trade, "id", "trade_id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "quantity", "base_volume")
@@ -2430,7 +2430,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 		"cost":         cost,
 		"fee":          fee,
 		"info":         trade,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2780,7 +2780,7 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
@@ -2790,28 +2790,42 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(apiUrl, endpoint)
 	var query string = this.Urlencode(request)
+	var requestBody any = nil
+	var requestHeaders any = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		if method == "POST" {
-			body = this.Json(request)
+			requestBody = this.Json(request)
 		} else if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
 		var auth64 string = this.StringToBase64(auth)
 		var signature string = "Basic " + auth64
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Authorization": signature,
 			"Content-Type":  "application/json",
 		}
 	} else if len(query) != 0 {
 		url = Add(url, "?"+query)
 	}
+	var bodyResolved any = func() any {
+		if requestBody == nil {
+			return body
+		}
+		return requestBody
+	}()
+	var headersResolved any = func() any {
+		if requestHeaders == nil {
+			return headers
+		}
+		return requestHeaders
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Bitteam) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

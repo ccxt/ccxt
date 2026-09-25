@@ -196,9 +196,10 @@ class bitrue(ccxt.async_support.bitrue):
         """
         if self.markets is None:
             await self.load_markets()
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+            symbolResolved = market['symbol']
         url = await self.authenticate()
         messageHash = 'orders'
         message = {
@@ -209,9 +210,10 @@ class bitrue(ccxt.async_support.bitrue):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_order(self, client: Client, message: dict):
         #
@@ -311,8 +313,8 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'orderbook:' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'orderbook:' + symbolValue
         url = None
         channel = None
         cbId = None
@@ -452,14 +454,14 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         if market['swap'] is not True:
             raise NotSupported(self.id + ' watchTrades is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_trade_ticker'
-        messageHash = 'trades:' + symbol
+        messageHash = 'trades:' + symbolValue
         url = self.urls['api']['ws']['futurePublic']
         message = {
             'event': 'sub',
@@ -470,9 +472,10 @@ class bitrue(ccxt.async_support.bitrue):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -557,7 +560,7 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         if market['swap'] is not True:
             raise NotSupported(self.id + ' watchOHLCV is only supported for swap markets')
         futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
@@ -568,7 +571,7 @@ class bitrue(ccxt.async_support.bitrue):
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_kline_' + interval
-        messageHash = 'ohlcv:' + symbol + ':' + timeframe
+        messageHash = 'ohlcv:' + symbolValue + ':' + timeframe
         url = self.urls['api']['ws']['futurePublic']
         message = {
             'event': 'sub',
@@ -579,9 +582,10 @@ class bitrue(ccxt.async_support.bitrue):
         }
         request = self.deep_extend(message, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -651,14 +655,14 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         if market['swap'] is not True:
             raise NotSupported(self.id + ' watchTicker is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_ticker'
-        messageHash = 'ticker:' + symbol
+        messageHash = 'ticker:' + symbolValue
         url = self.urls['api']['ws']['futurePublic']
         message = {
             'event': 'sub',

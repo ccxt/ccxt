@@ -622,7 +622,7 @@ class foxbit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->v3PublicGetMarketsTicker24hr($params);
         //  {
         //    "data": [
@@ -646,7 +646,7 @@ class foxbit extends Exchange {
         //    ]
         //  }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -947,9 +947,9 @@ class foxbit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $type = strtoupper($type);
-        if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
+        $typeValue = strtoupper($type);
+        if ($typeValue !== 'LIMIT' && $typeValue !== 'MARKET' && $typeValue !== 'STOP_MARKET' && $typeValue !== 'STOP_LIMIT' && $typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order $type => ' . $typeValue . '. Must be one of => limit, $market, stop_market, stop_limit, instant.');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
@@ -958,11 +958,11 @@ class foxbit extends Exchange {
         $request = array(
             'market_symbol' => $market['id'],
             'side' => strtoupper($side),
-            'type' => $type,
+            'type' => $typeValue,
         );
-        if ($type === 'STOP_MARKET' || $type === 'STOP_LIMIT') {
+        if ($typeValue === 'STOP_MARKET' || $typeValue === 'STOP_LIMIT') {
             if ($triggerPrice === null) {
-                throw new InvalidOrder('Invalid order $type => ' . $type . '. Must have $triggerPrice->');
+                throw new InvalidOrder('Invalid order $type => ' . $typeValue . '. Must have $triggerPrice->');
             }
         }
         if ($timeInForce !== null) {
@@ -978,20 +978,20 @@ class foxbit extends Exchange {
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        if ($type === 'INSTANT') {
+        if ($typeValue === 'INSTANT') {
             $request['amount'] = $this->price_to_precision($symbol, $amount);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($type === 'LIMIT' || $type === 'STOP_LIMIT') {
+        if ($typeValue === 'LIMIT' || $typeValue === 'STOP_LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
-        $response = $this->v3PrivatePostOrders($this->extend($request, $params));
+        $paramsOmitted = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
+        $response = $this->v3PrivatePostOrders($this->extend($request, $paramsOmitted));
         // {
         //     "id": 1234567890,
         //     "sn": "OKMAKSDHRVVREK",
@@ -1527,9 +1527,9 @@ class foxbit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->check_required_argument('editOrder', $symbol, 'symbol');
-        $type = strtoupper($type);
-        if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'INSTANT') {
-            throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
+        $typeValue = strtoupper($type);
+        if ($typeValue !== 'LIMIT' && $typeValue !== 'MARKET' && $typeValue !== 'STOP_MARKET' && $typeValue !== 'INSTANT') {
+            throw new InvalidOrder('Invalid order $type => ' . $typeValue . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1543,22 +1543,22 @@ class foxbit extends Exchange {
                 'id' => $this->parse_number($id),
             ),
             'create' => array(
-                'type' => $type,
+                'type' => $typeValue,
                 'side' => strtoupper($side),
                 'market_symbol' => $market['id'],
             ),
         );
-        if ($type === 'LIMIT' || $type === 'MARKET') {
+        if ($typeValue === 'LIMIT' || $typeValue === 'MARKET') {
             $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
-            if ($type === 'LIMIT') {
+            if ($typeValue === 'LIMIT') {
                 $request['create']['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        if ($type === 'STOP_MARKET') {
+        if ($typeValue === 'STOP_MARKET') {
             $request['create']['stop_price'] = $this->price_to_precision($symbol, $price);
             $request['create']['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($type === 'INSTANT') {
+        if ($typeValue === 'INSTANT') {
             $request['create']['amount'] = $this->price_to_precision($symbol, $amount);
         }
         $response = $this->v3PrivatePostOrdersCancelReplace($this->extend($request, $params));
@@ -1588,7 +1588,7 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1598,15 +1598,14 @@ class foxbit extends Exchange {
             'amount' => $this->number_to_string($amount),
             'destination_address' => $address,
         );
-        if ($tag !== null) {
-            $request['destination_tag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destination_tag'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
             $request['network_code'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = $this->v3PrivatePostWithdrawals($this->extend($request, $params));
+        $response = $this->v3PrivatePostWithdrawals($this->extend($request, $paramsNetworkCode));
         // {
         //     "amount": "2",
         //     "currency_symbol": "xrp",
@@ -1818,11 +1817,12 @@ class foxbit extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $symbol = $this->safe_string($order, 'market_symbol');
-        if ($market === null && $symbol !== null) {
-            $market = $this->market($symbol);
+        $marketResolved = $market;
+        if (($market === null) && ($symbol !== null)) {
+            $marketResolved = $this->market($symbol);
         }
-        if ($market !== null) {
-            $symbol = $this->safe_string($market, 'symbol');
+        if ($marketResolved !== null) {
+            $symbol = $this->safe_string($marketResolved, 'symbol');
         }
         $timestamp = $this->parse_date($this->safe_string($order, 'created_at'));
         $price = $this->safe_string($order, 'price');
@@ -1840,9 +1840,9 @@ class foxbit extends Exchange {
             $cost = Precise::string_mul($priceToCalculate, $amount);
         }
         $side = $this->safe_string_lower($order, 'side');
-        $feeCurrency = $this->safe_string_upper($market, 'quoteId');
+        $feeCurrency = $this->safe_string_upper($marketResolved, 'quoteId');
         if ($side === 'buy') {
-            $feeCurrency = $this->safe_string_upper($market, 'baseId');
+            $feeCurrency = $this->safe_string_upper($marketResolved, 'baseId');
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
@@ -1852,7 +1852,7 @@ class foxbit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($this->safe_string($order, 'state')),
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'type' => $this->safe_string($order, 'type'),
             'timeInForce' => $this->safe_string($order, 'time_in_force'),
             'postOnly' => $this->safe_bool($order, 'post_only'),
@@ -2047,20 +2047,20 @@ class foxbit extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $fullPath;
-        $params = $this->omit($params, $this->extract_params($path));
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
         $timestamp = $this->milliseconds();
         $query = '';
         $signatureQuery = '';
         if ($method === 'GET') {
-            $paramKeys = is_array($params) ? array_keys($params) : array();
+            $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
             $paramKeysLength = count($paramKeys);
             if ($paramKeysLength > 0) {
-                $query = $this->urlencode($params);
+                $query = $this->urlencode($paramsOmitted);
                 $url .= '?' . $query;
             }
             for ($i = 0; $i < count($paramKeys); $i++) {
                 $key = $paramKeys[$i];
-                $value = $this->safe_string($params, $key);
+                $value = $this->safe_string($paramsOmitted, $key);
                 if ($value !== null) {
                     $signatureQuery .= $key . '=' . $value;
                 }
@@ -2069,14 +2069,15 @@ class foxbit extends Exchange {
                 }
             }
         }
+        $requestBody = $body;
         if ($method === 'POST' || $method === 'PUT') {
-            $body = $this->json($params);
+            $requestBody = $this->json($paramsOmitted);
         }
         $bodyToSignature = '';
-        if ($body !== null) {
-            $bodyToSignature = $body;
+        if ($requestBody !== null) {
+            $bodyToSignature = $requestBody;
         }
-        $headers = array(
+        $headersValue = array(
             'Content-Type' => 'application/json',
             'X-FB-CLIENT' => 'ccxt',
             'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
@@ -2085,11 +2086,11 @@ class foxbit extends Exchange {
             $this->check_required_credentials();
             $preHash = $this->number_to_string($timestamp) . $method . $fullPath . $signatureQuery . $bodyToSignature;
             $signature = $this->hmac($this->encode($preHash), $this->encode($this->secret), 'sha256', 'hex');
-            $headers['X-FB-ACCESS-KEY'] = $this->apiKey;
-            $headers['X-FB-ACCESS-TIMESTAMP'] = $this->number_to_string($timestamp);
-            $headers['X-FB-ACCESS-SIGNATURE'] = $signature;
+            $headersValue['X-FB-ACCESS-KEY'] = $this->apiKey;
+            $headersValue['X-FB-ACCESS-TIMESTAMP'] = $this->number_to_string($timestamp);
+            $headersValue['X-FB-ACCESS-SIGNATURE'] = $signature;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

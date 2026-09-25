@@ -1062,17 +1062,17 @@ public partial class coinspot : Exchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
-        parameters = this.omit(parameters, "side");
+        object paramsOmitted = this.omit(parameters, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
         Dictionary<string, object> response = null;
         if (side == "buy")
         {
-            response = await this.privatePostMyBuyCancel(this.extend(request, parameters));
+            response = await this.privatePostMyBuyCancel(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privatePostMySellCancel(this.extend(request, parameters));
+            response = await this.privatePostMySellCancel(this.extend(request, paramsOmitted));
         }
         //
         // status - ok, error
@@ -1106,6 +1106,8 @@ public partial class coinspot : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object requestHeaders = headers;
+        object requestBody = body;
         bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object version = isVersionedApi ? getValue(api, 0) : null;
         object accessType = isVersionedApi ? getValue(api, 1) : api;
@@ -1126,20 +1128,20 @@ public partial class coinspot : Exchange
             this.checkRequiredCredentials();
             // coinspot requires an increasing nonce
             Int64? nonce = this.incrementingNonce();
-            body = this.json(this.extend(new Dictionary<string, object>() {
+            requestBody = this.json(this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters));
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "key", this.apiKey },
-                { "sign", this.hmac(this.encode(body), this.encode(this.secret), sha512) },
+                { "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512) },
             };
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 }

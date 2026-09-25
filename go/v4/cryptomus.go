@@ -586,7 +586,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketTickers(params)).Raw))
 	//
@@ -603,7 +603,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- this.ParseTickers(data, symbols)
+	ch <- this.ParseTickers(data, symbolsNormalized)
 	return nil
 }
 func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -618,8 +618,8 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "currency_pair")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var last *string = this.SafeString(ticker, "last_price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -642,7 +642,7 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, "base_volume"),
 		"quoteVolume":   this.SafeString(ticker, "quote_volume"),
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -676,13 +676,13 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
 	}
-	var level any = 0
-	var levelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "level", level)
-	level = GetValue(levelparamsVariable, 0)
-	params = MapTyped(GetValue(levelparamsVariable, 1))
-	request["level"] = level
+	var level int = 0
+	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "level", level)
+	levelOption := GetValue(levelOptionparamsLevelVariable, 0)
+	paramsLevel := GetValue(levelOptionparamsLevelVariable, 1)
+	request["level"] = levelOption
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))).Raw))
 	//
 	//     {
 	//         "data": {
@@ -893,7 +893,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar string, 
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -906,33 +906,50 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar string, 
 		"tag":       "ccxt",
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	var paramsOmitted any = func() any {
+		if clientOrderId != nil {
+			return this.Omit(params, "clientOrderId")
+		}
+		return params
+	}()
 	if clientOrderId != nil {
-		params = this.Omit(params, "clientOrderId")
 		request["client_order_id"] = clientOrderId
 	}
 	var sideBuy bool = (side == "buy")
 	var amountToString *string = this.NumberToString(amount)
 	var priceToString *string = this.NumberToString(price)
-	var cost any = nil
-	var costparamsVariable []any = this.HandleParamString(params, "cost")
-	cost = GetValue(costparamsVariable, 0)
-	params = GetValue(costparamsVariable, 1)
+	var costParamparamsCostVariable []any = this.HandleParamString(paramsOmitted, "cost")
+	costParam := GetValue(costParamparamsCostVariable, 0)
+	paramsCost := GetValue(costParamparamsCostVariable, 1)
+	var cost any = costParam
 	var response map[string]any = nil
 	if typeVar == "market" {
+		var requiresPriceAndParams []any = this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var paramsMarket any = paramsCost
 		if sideBuy {
-			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			if createMarketBuyOrderRequiresPrice {
-				if (price == nil) && (cost == nil) {
+			paramsMarket = func() any {
+				if 1 >= 0 && 1 < len(requiresPriceAndParams) {
+					return DerefScalar(requiresPriceAndParams[1])
+				}
+				return nil
+			}()
+		}
+		if sideBuy {
+			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(func() any {
+				if 0 >= 0 && 0 < len(requiresPriceAndParams) {
+					return DerefScalar(requiresPriceAndParams[0])
+				}
+				return nil
+			}())
+			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
+				if (price == nil) && (IsEqual(cost, nil)) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))
-				} else if cost == nil {
+				} else if IsEqual(cost, nil) {
 					cost = Precise.StringMul(amountToString, priceToString)
 				}
 			} else {
 				cost = func() any {
-					if (cost != nil) && (!IsEqual(cost, "")) {
+					if !IsEqual(cost, nil) && !IsEqual(cost, "") {
 						return cost
 					}
 					return amountToString
@@ -943,7 +960,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar string, 
 			request["quantity"] = amountToString
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, paramsMarket))).Raw))
 	} else if typeVar == "limit" {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price parameter for a " + typeVar + " order"))
@@ -951,7 +968,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar string, 
 		request["quantity"] = amountToString
 		request["price"] = price
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, paramsCost))).Raw))
 	} else {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a type parameter (limit or market)"))
 	}
@@ -1241,7 +1258,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(order, "order_id", "id")
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var dateTime *string = this.SafeString(order, "createdAt")
 	var timestamp *int64 = this.Parse8601(dateTime)
 	var deal map[string]any = SafeMapTyped(order, "deal")
@@ -1272,7 +1289,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               typeVar,
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -1289,7 +1306,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 		"fee":                fee,
 		"trades":             nil,
 		"info":               order,
-	}, market)
+	}, marketResolved)
 }
 func (this *Cryptomus) ParseOrderStatus(optionalArgs ...any) *string {
 	status := GetArg(optionalArgs, 0, nil)
@@ -1434,10 +1451,10 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var endpoint any = this.ImplodeParams(path, params)
-	params = this.Omit(params, this.ExtractParams(path))
+	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1446,15 +1463,14 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var jsonParams any = ""
-		headers = map[string]any{
+		var privateHeaders map[string]any = map[string]any{
 			"userId": this.Uid,
 		}
 		if method != "GET" {
-			body = this.Json(params)
-			jsonParams = body
-			AddElementToObject(headers, "Content-Type", "application/json")
+			jsonParams = this.Json(paramsOmitted)
+			privateHeaders["Content-Type"] = "application/json"
 		} else {
-			var query string = this.Urlencode(params)
+			var query string = this.Urlencode(paramsOmitted)
 			if len(query) != 0 {
 				url = Add(url, "?"+query)
 			}
@@ -1462,9 +1478,21 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
 		var stringToSign *string = SafeStringPtr(Add(jsonParamsBase64, this.Secret))
 		var signature any = this.Hash(this.Encode(stringToSign), md5)
-		AddElementToObject(headers, "sign", signature)
+		privateHeaders["sign"] = signature
+		var privateBody any = func() any {
+			if method != "GET" {
+				return jsonParams
+			}
+			return body
+		}()
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    privateBody,
+			"headers": privateHeaders,
+		}
 	} else {
-		var query string = this.Urlencode(params)
+		var query string = this.Urlencode(paramsOmitted)
 		if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}

@@ -587,7 +587,7 @@ class coinmate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetTickerAll($params));
         //
         //     {
@@ -616,7 +616,7 @@ class coinmate extends Exchange {
             $ticker = $this->parse_ticker($this->safe_value($data, $keys[$i]), $market);
             $result[$market['symbol']] = $ticker;
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -803,7 +803,7 @@ class coinmate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -820,10 +820,10 @@ class coinmate extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'address' => $address,
         );
-        if ($tag !== null) {
-            $request['destinationTag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destinationTag'] = $tagWithdrawTag;
         }
-        $requestParams = $this->extend($request, $params);
+        $requestParams = $this->extend($request, $paramsWithdrawTag);
         $response = null;
         if ($method === 'privatePostBitcoinWithdrawal') {
             $response = Async\await($this->privatePostBitcoinWithdrawal($requestParams));
@@ -862,7 +862,7 @@ class coinmate extends Exchange {
             $transaction['amount'] = $amount;
             $transaction['currency'] = $code;
             $transaction['address'] = $address;
-            $transaction['tag'] = $tag;
+            $transaction['tag'] = $tagWithdrawTag;
             $transaction['type'] = 'withdrawal';
             $transaction['status'] = 'pending';
         }
@@ -888,11 +888,9 @@ class coinmate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($limit === null) {
-            $limit = 1000;
-        }
+        $limitResolved = ($limit === null) ? 1000 : $limit;
         $request = array(
-            'limit' => $limit,
+            'limit' => $limitResolved,
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -903,7 +901,7 @@ class coinmate extends Exchange {
         }
         $response = Async\await($this->privatePostTradeHistory($this->extend($request, $params)));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_trades($data, null, $since, $limit);
+        return $this->parse_trades($data, null, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -935,7 +933,7 @@ class coinmate extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($trade, 'currencyPair');
-        $market = $this->safe_market($marketId, $market, '_');
+        $marketResolved = $this->safe_market($marketId, $market, '_');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
@@ -948,7 +946,7 @@ class coinmate extends Exchange {
         if ($feeCostString !== null) {
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'feeType');
@@ -958,7 +956,7 @@ class coinmate extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'side' => $side,
             'order' => $orderId,
@@ -967,7 +965,7 @@ class coinmate extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1350,6 +1348,8 @@ class coinmate extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $bodySigned = null;
+        $headersSigned = null;
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1365,17 +1365,19 @@ class coinmate extends Exchange {
             $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $body = $this->urlencode($this->extend(array(
+            $bodySigned = $this->urlencode($this->extend(array(
                 'clientId' => $this->uid,
                 'nonce' => $nonce,
                 'publicKey' => $this->apiKey,
                 'signature' => strtoupper($signature),
             ), $params));
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
+        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

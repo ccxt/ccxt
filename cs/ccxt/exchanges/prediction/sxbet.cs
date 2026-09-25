@@ -903,17 +903,16 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest ((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
         }
-        string? spender = null;
-        IList<object> spenderparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
-        spender = (string)spenderparametersVariable[0];
-        parameters = spenderparametersVariable[1];
+        IList<object> spenderparamsSpenderVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
+        string? spender = (string)spenderparamsSpenderVariable[0];
+        var paramsSpender = spenderparamsSpenderVariable[1];
         if ((spender == null))
         {
             throw new BadRequest ((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
         }
         IDictionary<string, object> chains = this.safeDict(this.options, "chains", new Dictionary<string, object>() {});
         IDictionary<string, object> chainConfig = this.safeDict(chains, this.numberToString(chainId), new Dictionary<string, object>() {});
-        string? rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(chainConfig, "rpcUrl"));
+        string? rpcUrl = this.safeString(paramsSpender, "rpcUrl", this.safeString(chainConfig, "rpcUrl"));
         if ((rpcUrl == null))
         {
             throw new ArgumentsRequired ((((this.id + " approve() has no RPC endpoint configured for chainId ") + this.numberToString(chainId)) + " - pass params.rpcUrl")) ;
@@ -928,7 +927,7 @@ public partial class sxbet : PredictionExchange
         string? nonce = (nonceHex == "") ? "0" : this.numberToString(this.hexToInt(nonceHex));
         string? tokenName = await this.fetchErc20Name(rpcUrl, tokenAddress);
         Int64? defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
-        Int64? deadline = this.safeInteger(parameters, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
+        Int64? deadline = this.safeInteger(paramsSpender, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
         string value = this.decimalToPrecision(Precise.stringMul(this.numberToString(amount), "1000000"), ROUND, 0, DECIMAL_PLACES);
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", tokenName },
@@ -972,7 +971,7 @@ public partial class sxbet : PredictionExchange
             { "deadline", this.numberToString(deadline) },
             { "signature", signature },
         };
-        object rest = this.omit(parameters, new List<object>() {"amount", "tokenAddress", "deadline", "rpcUrl"});
+        object rest = this.omit(paramsSpender, new List<object>() {"amount", "tokenAddress", "deadline", "rpcUrl"});
         Dictionary<string, object> response = await this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
@@ -1059,14 +1058,13 @@ public partial class sxbet : PredictionExchange
         {
             defaultTif = "GTC";
         }
-        string? timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
-        timeInForce = (string)timeInForceparametersVariable[0];
-        parameters = timeInForceparametersVariable[1];
+        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
+        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
-        if (((type == "market")) && (timeInForce == "GTC"))
+        if (((type == "market")) && ((timeInForce == "GTC")))
         {
             throw new InvalidOrder ((this.id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order")) ;
         }
@@ -1123,25 +1121,25 @@ public partial class sxbet : PredictionExchange
             { "timeInForce", timeInForce },
             { "orderSignature", orderSignature },
         };
-        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        string? clientOrderId = this.safeString(paramsTimeInForce, "clientOrderId");
         if ((clientOrderId != null))
         {
             orderItem["clientOrderId"] = clientOrderId;
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        bool? useBetCredits = this.safeBool(parameters, "useBetCredits");
+        bool? useBetCredits = this.safeBool(paramsTimeInForce, "useBetCredits");
         if ((useBetCredits != null))
         {
             orderItem["useBetCredits"] = useBetCredits;
         }
-        string? externalUserId = this.safeString(parameters, "externalUserId");
+        string? externalUserId = this.safeString(paramsTimeInForce, "externalUserId");
         if ((externalUserId != null))
         {
             orderItem["externalUserId"] = externalUserId;
         }
-        bool? waitForOutcome = this.safeBool(parameters, "waitForOutcome", true);
-        object rest = this.omit(parameters, new List<object>() {"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"});
+        bool? waitForOutcome = this.safeBool(paramsTimeInForce, "waitForOutcome", true);
+        object rest = this.omit(paramsTimeInForce, new List<object>() {"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", new List<object>() {orderItem} },
             { "waitForOutcome", waitForOutcome },
@@ -1797,15 +1795,15 @@ public partial class sxbet : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         // copy to a plain list so the transpilers and the strict null checks see one shape
-        object outcomesList = ((outcomes == null)) ? new List<object>() {} : outcomes;
-        int outcomesLength = getArrayLength(outcomesList);
+        IList<object> outcomesList = ((outcomes == null)) ? new List<object>() {} : outcomes;
+        int outcomesLength = (outcomesList?.Count ?? 0);
         Dictionary<string, object> wantedMarkets = new Dictionary<string, object>() {};
         if (outcomesLength > 0)
         {
             await this.loadOutcomes(outcomesList);
             for (int i = 0; i < outcomesLength; i++)
             {
-                IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
+                IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
                 string? hash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
                 wantedMarkets[(string)hash] = true;
             }
@@ -2143,14 +2141,14 @@ public partial class sxbet : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")) ;
         }
-        object outcomesList = outcomes;
-        int outcomesLength = getArrayLength(outcomesList);
+        IList<object> outcomesList = outcomes;
+        int outcomesLength = (outcomesList?.Count ?? 0);
         List<object> hashesOrder = new List<object>() {};
         Dictionary<string, object> seenHashes = new Dictionary<string, object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
-            await this.loadOutcome(getValue(outcomesList, i));
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
+            await this.loadOutcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
             string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
             if (isEqual(this.safeBool(seenHashes, marketHash), null))
             {
@@ -3170,13 +3168,13 @@ public partial class sxbet : PredictionExchange
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
-        headers = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, existingHeaders);
         if ((this.apiKey != null))
         {
-            ((IDictionary<string,object>)headers)["x-sx-api-key"] = this.apiKey;
+            headersExtended["x-sx-api-key"] = this.apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -3186,6 +3184,7 @@ public partial class sxbet : PredictionExchange
             bool hasOrdersList = (inOp(query, "orders"));
             sendAsQuery = !hasOrdersList;
         }
+        object bodyValue = body;
         if (sendAsQuery)
         {
             string querystring = this.urlencode(query);
@@ -3199,14 +3198,14 @@ public partial class sxbet : PredictionExchange
             int queryKeysLength = queryKeys.Count;
             if (queryKeysLength > 0)
             {
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersExtended },
         };
     }
 }

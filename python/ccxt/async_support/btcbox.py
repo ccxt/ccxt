@@ -501,7 +501,7 @@ class btcbox(Exchange, ImplicitAPI):
         #      }
         #
         timestamp = self.safe_timestamp(trade, 'date')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         id = self.safe_string(trade, 'tid')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -513,7 +513,7 @@ class btcbox(Exchange, ImplicitAPI):
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': None,
@@ -521,7 +521,7 @@ class btcbox(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -602,9 +602,8 @@ class btcbox(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
-        if symbol is None:
-            symbol = 'BTC/JPY'
-        market = self.market(symbol)
+        symbolResolved = 'BTC/JPY' if (symbol is None) else symbol
+        market = self.market(symbolResolved)
         request = {
             'id': id,
             'coin': market['baseId'],
@@ -656,7 +655,7 @@ class btcbox(Exchange, ImplicitAPI):
             if Precise.string_equals(remaining, '0'):
                 status = 'closed'
         trades = None  # todo: this.parseTrades (order['trades']);
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         side = self.safe_string(order, 'type')
         return self.safe_order({
             'id': id,
@@ -672,7 +671,7 @@ class btcbox(Exchange, ImplicitAPI):
             'timeInForce': None,
             'postOnly': None,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': price,
             'triggerPrice': None,
             'cost': None,
@@ -680,7 +679,7 @@ class btcbox(Exchange, ImplicitAPI):
             'fee': None,
             'info': order,
             'average': None,
-        }, market)
+        }, marketResolved)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -696,9 +695,8 @@ class btcbox(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
-        if symbol is None:
-            symbol = 'BTC/JPY'
-        market = self.market(symbol)
+        symbolResolved = 'BTC/JPY' if (symbol is None) else symbol
+        market = self.market(symbolResolved)
         request = self.extend({
             'id': id,
             'coin': market['baseId'],
@@ -722,9 +720,8 @@ class btcbox(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
-        if symbol is None:
-            symbol = 'BTC/JPY'
-        market = self.market(symbol)
+        symbolResolved = 'BTC/JPY' if (symbol is None) else symbol
+        market = self.market(symbolResolved)
         request = {
             'type': type,  # 'open' or 'all'
             'coin': market['baseId'],
@@ -801,10 +798,11 @@ class btcbox(Exchange, ImplicitAPI):
             request = self.urlencode(query)
             secret = self.hash(self.encode(self.secret), 'md5')
             query['signature'] = self.hmac(self.encode(request), self.encode(secret), hashlib.sha256)
-            body = self.urlencode(query)
-            headers = {
+            signedBody = self.urlencode(query)
+            signedHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
+            return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

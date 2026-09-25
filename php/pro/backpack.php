@@ -208,9 +208,9 @@ class backpack extends \ccxt\async\backpack {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $topic = 'ticker' . '.' . $market['id'];
-        $messageHash = 'ticker' . ':' . $symbol;
+        $messageHash = 'ticker' . ':' . $symbolValue;
         return Async\await($this->watch_public(array( $topic ), array( $messageHash ), $params));
     }
 
@@ -244,17 +244,17 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $topics = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
             $messageHashes[] = 'ticker:' . $symbol;
             $topics[] = 'ticker.' . $marketId;
         }
         Async\await($this->watch_public($topics, $messageHashes, $params));
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -274,11 +274,11 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
             $topics[] = 'ticker.' . $marketId;
             $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
@@ -332,8 +332,8 @@ class backpack extends \ccxt\async\backpack {
         $microseconds = $this->safe_integer($ticker, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $marketId = $this->safe_string($ticker, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $last = $this->safe_string($ticker, 'c');
         $open = $this->safe_string($ticker, 'o');
         return $this->safe_ticker(array(
@@ -357,7 +357,7 @@ class backpack extends \ccxt\async\backpack {
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => $this->safe_string($ticker, 'V'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -377,17 +377,17 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
             $topics[] = 'bookTicker.' . $marketId;
             $messageHashes[] = 'bidask:' . $symbol;
         }
         Async\await($this->watch_public($topics, $messageHashes, $params));
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -404,11 +404,11 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
             $topics[] = 'bookTicker.' . $marketId;
             $messageHashes[] = 'unsubscribe:bidask:' . $symbol;
@@ -457,8 +457,8 @@ class backpack extends \ccxt\async\backpack {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($market, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $microseconds = $this->safe_integer($ticker, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $ask = $this->safe_string($ticker, 'a');
@@ -474,7 +474,7 @@ class backpack extends \ccxt\async\backpack {
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -547,10 +547,11 @@ class backpack extends \ccxt\async\backpack {
             $messageHashes[] = 'candles:' . $market['symbol'] . ':' . $interval;
         }
         list($symbol, $timeframe, $candles) = Async\await($this->watch_public($topics, $messageHashes, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $candles->getLimit($symbol, $limit);
+            $limitResolved = $candles->getLimit($symbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
+        $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
@@ -705,26 +706,27 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = count($symbolsNormalized);
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
             $topics[] = 'trade.' . $marketId;
             $messageHashes[] = 'trades:' . $symbol;
         }
         $trades = Async\await($this->watch_public($topics, $messageHashes, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        $result = $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
         return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
@@ -745,15 +747,15 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = count($symbolsNormalized);
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $marketId = $this->market_id($symbol);
             $topics[] = 'trade.' . $marketId;
             $messageHashes[] = 'unsubscribe:trades:' . $symbol;
@@ -815,7 +817,7 @@ class backpack extends \ccxt\async\backpack {
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $id = $this->safe_string($trade, 't');
         $marketId = $this->safe_string($trade, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $isBuyerMaker = $this->safe_bool($trade, 'm');
         $side = null;
         $takerOrMaker = null;
@@ -840,7 +842,7 @@ class backpack extends \ccxt\async\backpack {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -852,7 +854,7 @@ class backpack extends \ccxt\async\backpack {
                 'currency' => null,
                 'cost' => null,
             ),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -888,12 +890,12 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
-        $marketIds = $this->market_ids($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $messageHashes = array();
         $topics = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $messageHashes[] = 'orderbook:' . $symbol;
             $marketId = $marketIds[$i];
             $topic = 'depth.' . $marketId;
@@ -928,12 +930,12 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
-        $marketIds = $this->market_ids($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $messageHashes = array();
         $topics = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
             $marketId = $marketIds[$i];
             $topic = 'depth.' . $marketId;
@@ -1059,19 +1061,20 @@ class backpack extends \ccxt\async\backpack {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
+        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
         $topic = 'account.orderUpdate';
         $messageHash = 'orders';
         if ($market !== null) {
             $topic = 'account.orderUpdate.' . $market['id'];
-            $messageHash = 'orders:' . $symbol;
+            $messageHash = 'orders:' . $symbolResolved;
         }
         $orders = Async\await($this->watch_private(array( $topic ), array( $messageHash ), $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1094,13 +1097,13 @@ class backpack extends \ccxt\async\backpack {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
+        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
         $topic = 'account.orderUpdate';
         $messageHash = 'unsubscribe:orders';
         if ($market !== null) {
             $topic = 'account.orderUpdate.' . $market['id'];
-            $messageHash = 'unsubscribe:orders:' . $symbol;
+            $messageHash = 'unsubscribe:orders:' . $symbolResolved;
         }
         return Async\await($this->watch_private(array( $topic ), array( $messageHash ), $params, true));
     }
@@ -1181,8 +1184,8 @@ class backpack extends \ccxt\async\backpack {
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $status = $this->parse_ws_order_status($this->safe_string($order, 'X'), $market);
         $marketId = $this->safe_string($order, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $type = $this->safe_string_lower($order, 'o');
         $timeInForce = $this->safe_string($order, 'f');
         $side = $this->parse_ws_order_side($this->safe_string($order, 'S'));
@@ -1221,7 +1224,7 @@ class backpack extends \ccxt\async\backpack {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_ws_order_status(?string $status, ?array $market = null): ?string {
@@ -1264,12 +1267,12 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $messageHashes = array();
         $topics = array();
-        if ($symbols !== null) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions' . ':' . $symbol;
                 $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
             }
@@ -1281,7 +1284,7 @@ class backpack extends \ccxt\async\backpack {
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function un_watch_positions(?array $symbols = null, $params = array()) {
@@ -1301,12 +1304,12 @@ class backpack extends \ccxt\async\backpack {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $messageHashes = array();
         $topics = array();
-        if ($symbols !== null) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'unsubscribe:positions' . ':' . $symbol;
                 $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
             }
@@ -1382,7 +1385,6 @@ class backpack extends \ccxt\async\backpack {
         $id = $this->safe_string($position, 'i');
         $marketId = $this->safe_string($position, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $market = $marketResolved;
         $symbol = $marketResolved['symbol'];
         $notional = $this->safe_string($position, 'n');
         $liquidationPrice = $this->safe_string($position, 'l');

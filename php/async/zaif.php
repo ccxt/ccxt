@@ -799,7 +799,7 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -815,10 +815,10 @@ class zaif extends Exchange {
             // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
         );
-        if ($tag !== null) {
-            $request['message'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['message'] = $tagWithdrawTag;
         }
-        $result = Async\await($this->privatePostWithdraw($this->extend($request, $params)));
+        $result = Async\await($this->privatePostWithdraw($this->extend($request, $paramsWithdrawTag)));
         //
         //     {
         //         "success": 1,
@@ -853,13 +853,13 @@ class zaif extends Exchange {
         //         }
         //     }
         //
-        $currency = $this->safe_currency(null, $currency);
+        $currencyResolved = $this->safe_currency(null, $currency);
         $fee = null;
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $currency['code'],
+                'currency' => $currencyResolved['code'],
             );
         }
         return array(
@@ -873,7 +873,7 @@ class zaif extends Exchange {
             'addressTo' => null,
             'amount' => null,
             'type' => null,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'status' => null,
             'updated' => null,
             'tagFrom' => null,
@@ -909,15 +909,16 @@ class zaif extends Exchange {
                 $url .= 'tapi';
             }
             $nonce = $this->custom_nonce();
-            $body = $this->urlencode($this->extend(array(
+            $bodyEncoded = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'nonce' => $nonce,
             ), $params));
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($bodyEncoded), $this->encode($this->secret), 'sha512'),
             );
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodyEncoded, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

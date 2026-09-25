@@ -1038,12 +1038,13 @@ public partial class latoken : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = null;
+        object marketResolved = market;
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
             if (((this.markets != null)) && (inOp(this.markets, symbol)))
             {
-                market = this.market(symbol);
+                marketResolved = this.market(symbol);
             }
         }
         string? id = this.safeString(trade, "id");
@@ -1071,7 +1072,7 @@ public partial class latoken : Exchange
             { "amount", amountString },
             { "cost", costString },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1128,13 +1129,13 @@ public partial class latoken : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchTradingFee", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "fetchPrivateTradingFee");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        parameters = this.omit(parameters, "method");
+        object paramsOmitted = this.omit(parameters, "method");
         if (method == "fetchPrivateTradingFee")
         {
-            return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPrivateTradingFee(symbol, parameters));
+            return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPrivateTradingFee(symbol, paramsOmitted));
         } else if (method == "fetchPublicTradingFee")
         {
-            return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPublicTradingFee(symbol, parameters));
+            return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPublicTradingFee(symbol, paramsOmitted));
         } else
         {
             throw new NotSupported ((this.id + " not support this method")) ;
@@ -1330,10 +1331,12 @@ public partial class latoken : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && (inOp(this.markets, symbol)))
-            {
-                market = this.market(symbol);
-            }
+        }
+        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && (inOp(this.markets, symbol));
+        object marketResolved = market;
+        if (symbolKnown)
+        {
+            marketResolved = this.market(symbol);
         }
         string? orderSide = this.safeString(order, "side");
         string? side = null;
@@ -1384,7 +1387,7 @@ public partial class latoken : Exchange
             { "remaining", null },
             { "fee", null },
             { "trades", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1413,7 +1416,7 @@ public partial class latoken : Exchange
         }
         List<object> response = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        parameters = this.omit(parameters, "stop");
+        object paramsOmitted = this.omit(parameters, "stop");
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1422,10 +1425,10 @@ public partial class latoken : Exchange
         };
         if ((isTrigger == true))
         {
-            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, parameters));
+            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, parameters));
+            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         //
         //     [
@@ -1477,7 +1480,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if ((limit != null))
         {
             request["limit"] = limit; // default 100
@@ -1490,19 +1493,19 @@ public partial class latoken : Exchange
             request["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             if ((isTrigger == true))
             {
-                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, parameters));
+                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             } else
             {
-                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, parameters));
+                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
         } else
         {
             if ((isTrigger == true))
             {
-                response = await this.privateGetAuthStopOrder(this.extend(request, parameters));
+                response = await this.privateGetAuthStopOrder(this.extend(request, paramsOmitted));
             } else
             {
-                response = await this.privateGetAuthOrder(this.extend(request, parameters));
+                response = await this.privateGetAuthOrder(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1553,14 +1556,14 @@ public partial class latoken : Exchange
             { "id", id },
         };
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
         if ((isTrigger == true))
         {
-            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, parameters));
+            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, parameters));
+            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1629,15 +1632,15 @@ public partial class latoken : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
         Dictionary<string, object> response = null;
         if ((triggerPrice != null))
         {
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
-            response = await this.privatePostAuthStopOrderPlace(this.extend(request, parameters));
+            response = await this.privatePostAuthStopOrderPlace(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privatePostAuthOrderPlace(this.extend(request, parameters));
+            response = await this.privatePostAuthOrderPlace(this.extend(request, paramsOmitted));
         }
         //
         //    {
@@ -1677,14 +1680,14 @@ public partial class latoken : Exchange
             { "id", id },
         };
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
         if ((isTrigger == true))
         {
-            response = await this.privatePostAuthStopOrderCancel(this.extend(request, parameters));
+            response = await this.privatePostAuthStopOrderCancel(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privatePostAuthOrderCancel(this.extend(request, parameters));
+            response = await this.privatePostAuthOrderCancel(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1719,7 +1722,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
         if ((symbol != null))
         {
@@ -1728,19 +1731,19 @@ public partial class latoken : Exchange
             request["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             if ((isTrigger == true))
             {
-                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, parameters));
+                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             } else
             {
-                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, parameters));
+                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
         } else
         {
             if ((isTrigger == true))
             {
-                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, parameters));
+                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, paramsOmitted));
             } else
             {
-                response = await this.privatePostAuthOrderCancelAll(this.extend(request, parameters));
+                response = await this.privatePostAuthOrderCancelAll(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -2071,6 +2074,8 @@ public partial class latoken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object requestHeaders = headers;
+        object requestBody = body;
         string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
@@ -2087,15 +2092,15 @@ public partial class latoken : Exchange
             this.checkRequiredCredentials();
             string auth = ((method + request) + urlencodedQuery);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },
                 { "X-LA-DIGEST", "HMAC-SHA512" },
             };
             if ((method == "POST"))
             {
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                body = this.json(query);
+                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestBody = this.json(query);
             }
         }
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -2107,8 +2112,8 @@ public partial class latoken : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

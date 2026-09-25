@@ -773,13 +773,13 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var id *string = this.SafeString(trade, "id")
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"order":        order,
 		"type":         nil,
 		"side":         side,
@@ -788,7 +788,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1675,8 +1675,10 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var bodySigned any = nil
+	var headersSigned any = nil
 	var request any = "/" + this.Version + "/"
 	if IsEqual(api, "private") {
 		request = Add(request, "me/")
@@ -1700,22 +1702,34 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 		var auth any = Join(content, "")
 		if len(ObjectKeys(params)) > 0 {
 			if method != "GET" {
-				body = this.Json(params)
-				auth = Add(auth, body)
+				bodySigned = this.Json(params)
+				auth = Add(auth, bodySigned)
 			}
 		}
-		headers = map[string]any{
+		headersSigned = map[string]any{
 			"ACCESS-KEY":       this.ApiKey,
 			"ACCESS-TIMESTAMP": nonce,
 			"ACCESS-SIGN":      this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 			"Content-Type":     "application/json",
 		}
 	}
+	var headersResolved any = func() any {
+		if headersSigned == nil {
+			return headers
+		}
+		return headersSigned
+	}()
+	var bodyResolved any = func() any {
+		if bodySigned == nil {
+			return body
+		}
+		return bodySigned
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

@@ -766,7 +766,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar stri
 	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = strings.ToUpper(*orderType)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
-	params = MapTyped(this.Omit(params, []any{"ordType", "clientOrderId", "clOrdId"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"ordType", "clientOrderId", "clOrdId"}))
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"ordType":  uppercaseOrderType,
@@ -775,8 +775,8 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar stri
 		"orderQty": this.AmountToPrecision(symbol, amount),
 		"clOrdId":  clientOrderId,
 	}
-	var triggerPrice any = this.SafeValueN(params, []any{"triggerPrice", "stopPx", "stopPrice"})
-	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPx", "stopPrice"}))
+	var triggerPrice any = this.SafeValueN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
+	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"}))
 	if (uppercaseOrderType == "STOP") || (uppercaseOrderType == "STOPLIMIT") {
 		if IsEqual(triggerPrice, nil) {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a stopPx or triggerPrice param for a " + uppercaseOrderType + " order"))
@@ -805,7 +805,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar stri
 		request["stopPx"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))).Raw))
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -1102,12 +1102,12 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "qty")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
-	market = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrency *string = SafeStringPtr(market["quote"])
+		var feeCurrency *string = SafeStringPtr(marketResolved["quote"])
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrency,
@@ -1127,7 +1127,7 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 		"cost":         nil,
 		"fee":          fee,
 		"info":         trade,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1558,12 +1558,12 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountName *string = this.SafeString(params, "account", "primary")
-	params = MapTyped(this.Omit(params, "account"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "account"))
 	var request map[string]any = map[string]any{
 		"account": accountName,
 	}
 
-	response := (<-this.PrivateGetAccounts(this.Extend(request, params))).Raw
+	response := (<-this.PrivateGetAccounts(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -1665,7 +1665,7 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var requestPath any = Add("/", this.ImplodeParams(path, params))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
@@ -1674,29 +1674,38 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(apiUrl, requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
+	var isPrivate bool = (IsEqual(api, "private"))
+	var privateHeaders map[string]any = map[string]any{
+		"X-API-Token": this.Secret,
+	}
+	var requestHeaders any = headers
+	if isPrivate {
+		requestHeaders = privateHeaders
+	}
+	var isPrivatePost bool = isPrivate && (method != "GET")
+	var requestBody any = body
+	if isPrivatePost {
+		requestBody = this.Json(query)
+	}
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
-	} else if IsEqual(api, "private") {
+	} else if isPrivate {
 		this.CheckRequiredCredentials()
-		headers = map[string]any{
-			"X-API-Token": this.Secret,
-		}
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
 		} else {
-			body = this.Json(query)
-			AddElementToObject(headers, "Content-Type", "application/json")
+			privateHeaders["Content-Type"] = "application/json"
 		}
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

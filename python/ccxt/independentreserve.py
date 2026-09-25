@@ -467,8 +467,8 @@ class independentreserve(Exchange, ImplicitAPI):
         defaultMarketId = None
         if (baseId is not None) and (quoteId is not None):
             defaultMarketId = baseId + '/' + quoteId
-        market = self.safe_market(defaultMarketId, market, '/')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(defaultMarketId, market, '/')
+        symbol = marketResolved['symbol']
         last = self.safe_string(ticker, 'LastPrice')
         return self.safe_ticker({
             'symbol': symbol,
@@ -491,7 +491,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -689,13 +689,14 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['primaryCurrencyCode'] = market['baseId']
             request['secondaryCurrencyCode'] = market['quoteId']
-        if limit is None:
-            limit = 50
+        limitResolved = limit
+        if limitResolved is None:
+            limitResolved = 50
         request['pageIndex'] = 1
-        request['pageSize'] = limit
+        request['pageSize'] = limitResolved
         response = self.privatePostGetOpenOrders(self.extend(request, params))
         data = self.safe_list(response, 'Data', [])
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(data, market, since, limitResolved)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -714,13 +715,14 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['primaryCurrencyCode'] = market['baseId']
             request['secondaryCurrencyCode'] = market['quoteId']
-        if limit is None:
-            limit = 50
+        limitResolved = limit
+        if limitResolved is None:
+            limitResolved = 50
         request['pageIndex'] = 1
-        request['pageSize'] = limit
+        request['pageSize'] = limitResolved
         response = self.privatePostGetClosedOrders(self.extend(request, params))
         data = self.safe_list(response, 'Data', [])
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(data, market, since, limitResolved)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = 50, params: dict = {}) -> list[Trade]:
         """
@@ -734,18 +736,19 @@ class independentreserve(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         pageIndex = self.safe_integer(params, 'pageIndex', 1)
-        if limit is None:
-            limit = 50
+        limitResolved = limit
+        if limitResolved is None:
+            limitResolved = 50
         request = {
             'pageIndex': pageIndex,
-            'pageSize': limit,
+            'pageSize': limitResolved,
         }
         response = self.privatePostGetTrades(self.extend(request, params))
         market = None
         if symbol is not None:
             market = self.market(symbol)
         data = self.safe_list(response, 'Data', [])
-        return self.parse_trades(data, market, since, limit)
+        return self.parse_trades(data, market, since, limitResolved)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
@@ -980,7 +983,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param dict [params.comment]: withdrawal comment, should not exceed 500 characters
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -989,13 +992,12 @@ class independentreserve(Exchange, ImplicitAPI):
             'withdrawalAddress': address,
             'amount': self.currency_to_precision(code, amount),
         }
-        if tag is not None:
-            request['destinationTag'] = tag
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        if tagWithdrawTag is not None:
+            request['destinationTag'] = tagWithdrawTag
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
             raise BadRequest(self.id + ' withdraw () does not accept params["networkCode"]')
-        response = self.privatePostWithdrawDigitalCurrency(self.extend(request, params))
+        response = self.privatePostWithdrawDigitalCurrency(self.extend(request, paramsNetworkCode))
         #
         #    {
         #        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1102,6 +1104,7 @@ class independentreserve(Exchange, ImplicitAPI):
             for i in range(0, len(keys)):
                 key = keys[i]
                 query[key] = params[key]
-            body = self.json(query)
-            headers = {'Content-Type': 'application/json'}
+            signedBody = self.json(query)
+            signedHeaders = {'Content-Type': 'application/json'}
+            return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

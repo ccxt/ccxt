@@ -764,11 +764,11 @@ class dydx extends Exchange {
             $request['fromIso'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $paramsOmitted = $this->omit($params, 'until');
         if ($until !== null) {
             $request['toIso'] = $this->iso8601($until);
         }
-        $response = $this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $params));
+        $response = $this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $paramsOmitted));
         //
         // {
         //     "candles": [
@@ -857,15 +857,13 @@ class dydx extends Exchange {
     }
 
     public function handle_public_address(?string $methodName, array $params): array {
-        $userAux = null;
-        list($userAux, $params) = $this->handle_option_string_and_params($params, $methodName, 'user');
-        $user = $userAux;
-        list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
+        list($userAux, $paramsUser) = $this->handle_option_string_and_params($params, $methodName, 'user');
+        list($user, $paramsAddress) = $this->handle_option_string_and_params($paramsUser, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
-            return array( $user, $params );
+            return array( $user, $paramsAddress );
         }
         if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
-            return array( $this->walletAddress, $params );
+            return array( $this->walletAddress, $paramsAddress );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the walletAddress set');
     }
@@ -992,10 +990,8 @@ class dydx extends Exchange {
          * @param {string} [$params->subAccountNumber] sub account number
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = null;
-        $subAccountNumber = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
-        list($subAccountNumber, $params) = $this->handle_option_string_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOrders', $params);
+        list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchOrders', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1011,7 +1007,7 @@ class dydx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->indexerGetOrders($this->extend($request, $params));
+        $response = $this->indexerGetOrders($this->extend($request, $paramsSubAccountNumber));
         //
         // [
         //     {
@@ -1104,8 +1100,8 @@ class dydx extends Exchange {
         // }
         //
         $marketId = $this->safe_string($position, 'market');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'size');
         if ($side !== 'long') {
@@ -1167,10 +1163,8 @@ class dydx extends Exchange {
          * @param {string} [$params->subAccountNumber] sub account number
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $userAddress = null;
-        $subAccountNumber = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-        list($subAccountNumber, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchPositions', $params);
+        list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchPositions', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1179,7 +1173,7 @@ class dydx extends Exchange {
             'subaccountNumber' => $subAccountNumber,
             'status' => 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
         );
-        $response = $this->indexerGetPerpetualPositions($this->extend($request, $params));
+        $response = $this->indexerGetPerpetualPositions($this->extend($request, $paramsSubAccountNumber));
         //
         // {
         //     "positions": [
@@ -1334,14 +1328,14 @@ class dydx extends Exchange {
         }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
-        list($subaccountId, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
-        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        list($subaccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
+        $triggerPrice = $this->safe_string_2($paramsSubAccountId, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($paramsSubAccountId, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_value($paramsSubAccountId, 'takeProfitPrice');
         $isConditional = $triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null;
         $isMarket = $orderType === 'MARKET';
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GTT');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $timeInForce = $this->safe_string_upper($paramsSubAccountId, 'timeInForce', 'GTT');
+        $postOnly = $this->is_post_only($isMarket, null, $paramsSubAccountId);
         $amountStr = $this->amount_to_precision($symbol, $amount);
         $priceStr = $this->price_to_precision($symbol, $price);
         $marketInfo = $this->safe_dict($market, 'info', array());
@@ -1397,11 +1391,11 @@ class dydx extends Exchange {
             }
             $conditionalOrderTriggerSubticks = Precise::string_mul($conditionalOrderTriggerSubticks, $priceScale);
         }
-        $latestBlockHeight = $this->safe_integer($params, 'latestBlockHeight');
-        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        $latestBlockHeight = $this->safe_integer($paramsSubAccountId, 'latestBlockHeight');
+        $goodTillBlock = $this->safe_integer($paramsSubAccountId, 'goodTillBlock');
         $goodTillBlockTime = null;
         $goodTillBlockTimeInSeconds = 2592000;
-        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
@@ -1411,20 +1405,20 @@ class dydx extends Exchange {
                 $goodTillBlock = $latestBlockHeight + 20;
             }
         } else {
-            if ($goodTillBlockTimeInSeconds === null) {
+            if ($goodTillBlockTimeInSecondsOption === null) {
                 throw new ArgumentsRequired('goodTillBlockTimeInSeconds is required.');
             }
-            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
+            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSecondsOption;
         }
         $sideNumber = ($orderSide === 'BUY') ? 1 : 2;
         $defaultClientOrderId = $this->rand_number(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
-        $clientOrderId = $this->safe_integer($params, 'clientOrderId', $defaultClientOrderId);
+        $clientOrderId = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'clientOrderId', $defaultClientOrderId);
         $orderPayload = array(
             'order' => array(
                 'orderId' => array(
                     'subaccountId' => array(
                         'owner' => $this->get_wallet_address(),
-                        'number' => $subaccountId,
+                        'number' => $subaccountIdOption,
                     ),
                     'clientId' => $clientOrderId,
                     'orderFlags' => $orderFlag,
@@ -1447,15 +1441,15 @@ class dydx extends Exchange {
             'typeUrl' => '/dydxprotocol.clob.MsgPlaceOrder',
             'value' => $orderPayload,
         );
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
+        $paramsOmitted = $this->omit($paramsGoodTillBlockTimeInSeconds, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
         $walletAddress = $this->get_wallet_address();
         $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
-        $subaccountIdValue = ($subaccountId === null) ? 0 : $subaccountId;
+        $subaccountIdValue = ($subaccountIdOption === null) ? 0 : $subaccountIdOption;
         $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
         $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
         $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
         $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
-        return array( $orderId, $this->extend($signingPayload, $params) );
+        return array( $orderId, $this->extend($signingPayload, $paramsOmitted) );
     }
 
     public function create_order_id_from_parts(string $address, float $subAccountNumber, float $clientOrderId, float $orderFlags, float $clobPairId): string {
@@ -1571,7 +1565,7 @@ class dydx extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
         if (($isTrigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -1579,7 +1573,7 @@ class dydx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
+        $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'clientId', $id);
         if ($clientOrderId === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter, cancelling using $id is not currently supported.');
         }
@@ -1587,26 +1581,25 @@ class dydx extends Exchange {
         if ($id !== null && mb_strpos($idString, '-') > -1) {
             throw new NotSupported($this->id . ' cancelOrder() cancelling using $id is not currently supported, please use provide the $clientOrderId parameter.');
         }
-        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        $goodTillBlock = $this->safe_integer($paramsOmitted, 'goodTillBlock');
         $goodTillBlockTimeInSeconds = 2592000;
-        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
         $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
-        $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
+        $orderFlags = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
-        list($subAccountId, $params) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
-        $params = $this->omit($params, array( 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ));
+        $subAccountIdOption = $this->handle_option_integer_and_params($paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', $subAccountId)[0];
         if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
             throw new InvalidOrder($this->id . ' invalid $orderFlags, allowed values are (0, 64, 32).');
         }
         if ($orderFlags > 0) {
-            if ($goodTillBlockTimeInSeconds === null) {
+            if ($goodTillBlockTimeInSecondsOption === null) {
                 throw new ArgumentsRequired($this->id . ' $goodTillBlockTimeInSeconds is required in $params for long term or conditional order.');
             }
             if ($goodTillBlock !== null && $goodTillBlock > 0) {
                 throw new InvalidOrder($this->id . ' $goodTillBlock should be 0 for long term or conditional order.');
             }
-            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
+            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSecondsOption;
         } else {
             if ($goodTillBlock === null) {
                 $latestBlockHeight = $this->fetch_latest_block_height();
@@ -1619,7 +1612,7 @@ class dydx extends Exchange {
             'orderId' => array(
                 'subaccountId' => array(
                     'owner' => $this->get_wallet_address(),
-                    'number' => $subAccountId,
+                    'number' => $subAccountIdOption,
                 ),
                 'clientId' => $clientOrderId,
                 'orderFlags' => $orderFlags,
@@ -1677,13 +1670,12 @@ class dydx extends Exchange {
             throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
         }
         $subAccountId = 0;
-        list($subAccountId, $params) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
-        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        list($subAccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
+        $goodTillBlock = $this->safe_integer($paramsSubAccountId, 'goodTillBlock');
         if ($goodTillBlock === null) {
             $latestBlockHeight = $this->fetch_latest_block_height();
             $goodTillBlock = $latestBlockHeight + 20;
         }
-        $params = $this->omit($params, array( 'clientOrderIds', 'goodTillBlock', 'subaccountId' ));
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
         $cancelOrders = array(
@@ -1693,7 +1685,7 @@ class dydx extends Exchange {
         $cancelPayload = array(
             'subaccountId' => array(
                 'owner' => $this->get_wallet_address(),
-                'number' => $subAccountId,
+                'number' => $subAccountIdOption,
             ),
             'shortTermCancels' => array( $cancelOrders ),
             'goodTilBlock' => $goodTillBlock,
@@ -1788,7 +1780,7 @@ class dydx extends Exchange {
         //
         $currencyId = $this->safe_string($item, 'symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $type = $this->safe_string_upper($item, 'type');
         $direction = null;
         if ($type !== null) {
@@ -1818,7 +1810,7 @@ class dydx extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {
@@ -1936,7 +1928,6 @@ class dydx extends Exchange {
                 throw new ArgumentsRequired($this->id . ' transfer requires $fromSubaccountId and $toSubaccountId->');
             }
         }
-        $params = $this->omit($params, array( 'fromSubaccountId', 'toSubaccountId' ));
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
         $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
@@ -2149,7 +2140,6 @@ class dydx extends Exchange {
         if ($subaccountId === null) {
             throw new ArgumentsRequired($this->id . ' withdraw requires $subaccountId->');
         }
-        $params = $this->omit($params, array( 'subaccountId' ));
         $currency = $this->currency($code);
         $credentials = $this->retrieve_credentials();
         $account = $this->fetch_dydx_account();
@@ -2274,16 +2264,14 @@ class dydx extends Exchange {
 
     public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $methodName = $this->safe_string($params, 'methodName');
-        $params = $this->omit($params, 'methodName');
-        $userAddress = null;
-        $subAccountNumber = null;
-        list($userAddress, $params) = $this->handle_public_address($methodName, $params);
-        list($subAccountNumber, $params) = $this->handle_option_string_and_params($params, $methodName, 'subAccountNumber', '0');
+        $paramsOmitted = $this->omit($params, 'methodName');
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address($methodName, $paramsOmitted);
+        list($subAccountNumber, $paramsSubAccountNumber) = $this->handle_option_string_and_params($paramsPublicAddress, $methodName, 'subAccountNumber', '0');
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subAccountNumber,
         );
-        $response = $this->indexerGetTransfers($this->extend($request, $params));
+        $response = $this->indexerGetTransfers($this->extend($request, $paramsSubAccountNumber));
         //
         // {
         //     "transfers": [
@@ -2320,12 +2308,11 @@ class dydx extends Exchange {
          * @param {string} [$params->address] wallet address that made trades
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
          */
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchAccounts', $params);
         $request = array(
             'address' => $userAddress,
         );
-        $response = $this->indexerGetAddressesAddress($this->extend($request, $params));
+        $response = $this->indexerGetAddressesAddress($this->extend($request, $paramsPublicAddress));
         //
         // {
         //     "subaccounts": [
@@ -2398,15 +2385,13 @@ class dydx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
-        $subaccountNumber = null;
-        list($subaccountNumber, $params) = $this->handle_option_integer_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchBalance', $params);
+        list($subaccountNumber, $paramsSubaccountNumber) = $this->handle_option_integer_and_params($paramsPublicAddress, 'fetchBalance', 'subaccountNumber', 0);
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subaccountNumber,
         );
-        $response = $this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $params));
+        $response = $this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $paramsSubaccountNumber));
         //
         // {
         //     "subaccount": {
@@ -2505,26 +2490,30 @@ class dydx extends Exchange {
     }
 
     public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $pathWithParams = $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $section);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl;
-        $params = $this->omit($params, $this->extract_params($path));
-        $params = $this->keysort($params);
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
+        $paramsSorted = $this->keysort($paramsOmitted);
         $url .= '/' . $pathWithParams;
         if ($method === 'GET') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            if (count($paramsSorted) > 0) {
+                $url .= '?' . $this->urlencode($paramsSorted);
             }
         } else {
-            $body = $this->json($params);
-            $headers = array(
+            $requestBody = $this->json($paramsSorted);
+            $requestHeaders = array(
                 'Content-type' => 'application/json',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

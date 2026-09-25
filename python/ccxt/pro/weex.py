@@ -102,12 +102,12 @@ class weex(ccxt.async_support.weex):
             'method': method,
             'params': channels,
         }
-        subscription = self.extend(subscription, {'id': id})
+        subscriptionExtended = self.extend(subscription, {'id': id})
         type = 'spot'
         if isContract:
             type = 'contract'
         url = self.safe_string(self.urls['api']['ws'], type) + '/public'
-        return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, subscription)
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, subscriptionExtended)
 
     async def subscribe_private(self, messageHash: str, subscribeHash: str, channel: Str, isContract: bool = False, params: dict = {}, subscription: dict = {}):
         type = 'spot'
@@ -125,8 +125,8 @@ class weex(ccxt.async_support.weex):
             'method': method,
             'params': [channel],
         }
-        subscription = self.extend(subscription, {'id': id})
-        return await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash, subscription)
+        subscriptionExtended = self.extend(subscription, {'id': id})
+        return await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash, subscriptionExtended)
 
     def authenticate(self, url: str):
         self.check_required_credentials()
@@ -179,9 +179,9 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbol = self.symbol(symbol)
-        tickers = await self.watch_tickers([symbol], params)
-        return tickers[symbol]
+        symbolValue = self.symbol(symbol)
+        tickers = await self.watch_tickers([symbolValue], params)
+        return tickers[symbolValue]
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -196,14 +196,14 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         isContract = firstMarket['contract']
         topic = 'ticker'
         messageHashes = []
         channels = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             channelName = market['id'] + '@' + topic
             messageHash = topic + '::' + symbol
@@ -214,7 +214,7 @@ class weex(ccxt.async_support.weex):
             result = {}
             result[newTicker['symbol']] = newTicker
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
     def un_watch_ticker(self, symbol: str, params={}) -> object:
         """
@@ -229,7 +229,7 @@ class weex(ccxt.async_support.weex):
         """
         return self.un_watch_tickers([symbol], params)
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -242,15 +242,15 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         isContract = firstMarket['contract']
         topic = 'ticker'
         subHashes = []
         channels = []
         unSubHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             channelName = market['id'] + '@' + topic
             messageHash = topic + '::' + symbol
@@ -260,7 +260,7 @@ class weex(ccxt.async_support.weex):
             unSubHashes.append(unSubMessageHash)
         subscription = {
             'unsubscribe': True,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': topic,
@@ -385,25 +385,26 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         isContract = firstMarket['contract']
         topic = 'trade'
         messageHashes = []
         channels = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             channelName = market['id'] + '@' + topic
             messageHash = topic + '::' + symbol
             messageHashes.append(messageHash)
             channels.append(channelName)
         trades = await self.subscribe_public(messageHashes, channels, isContract, params)
+        first = self.safe_dict(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_dict(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def un_watch_trades(self, symbol: str, params={}) -> object:
         """
@@ -418,7 +419,7 @@ class weex(ccxt.async_support.weex):
         """
         return self.un_watch_trades_for_symbols([symbol], params)
 
-    async def un_watch_trades_for_symbols(self, symbols: list[str], params={}) -> object:
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
         """
         unsubscribes from the trades channel
 
@@ -431,15 +432,15 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         isContract = firstMarket['contract']
         topic = 'trade'
         subHashes = []
         channels = []
         unSubHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             channelName = market['id'] + '@' + topic
             messageHash = topic + '::' + symbol
@@ -449,7 +450,7 @@ class weex(ccxt.async_support.weex):
             unSubHashes.append(unSubMessageHash)
         subscription = {
             'unsubscribe': True,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'trades',
@@ -571,7 +572,7 @@ class weex(ccxt.async_support.weex):
         if self.markets is None:
             await self.load_markets()
         callerMethodName = self.safe_string(params, 'callerMethodName', 'watchOHLCVForSymbols')
-        params = self.omit(params, 'callerMethodName')
+        paramsOmitted = self.omit(params, 'callerMethodName')
         channels = []
         messageHashes = []
         firstEntry = self.safe_list(symbolsAndTimeframes, 0, [])
@@ -579,8 +580,9 @@ class weex(ccxt.async_support.weex):
         firstMarket = self.market(firstSymbol)
         isContract = firstMarket['contract']
         priceType = 'LAST_PRICE'
+        paramsPriceType = paramsOmitted
         if isContract is True:
-            priceType, params = self.handle_option_and_params_2(params, callerMethodName, 'price', 'priceType', priceType)
+            priceType, paramsPriceType = self.handle_option_string_and_params_2(paramsOmitted, callerMethodName, 'price', 'priceType', priceType)
         for i in range(0, len(symbolsAndTimeframes)):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
@@ -594,10 +596,11 @@ class weex(ccxt.async_support.weex):
             messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe
             channels.append(channel)
             messageHashes.append(messageHash)
-        symbol, timeframe, stored = await self.subscribe_public(messageHashes, channels, isContract, params)
+        symbol, timeframe, stored = await self.subscribe_public(messageHashes, channels, isContract, paramsPriceType)
+        limitResolved = limit
         if self.newUpdates:
-            limit = stored.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
+            limitResolved = stored.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(stored, since, limitResolved, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params: dict = {}) -> object:
@@ -615,7 +618,7 @@ class weex(ccxt.async_support.weex):
         params['callerMethodName'] = 'unWatchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params={}) -> object:
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params: dict = {}) -> object:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -629,7 +632,7 @@ class weex(ccxt.async_support.weex):
         if self.markets is None:
             await self.load_markets()
         callerMethodName = self.safe_string(params, 'callerMethodName', 'unWatchOHLCVForSymbols')
-        params = self.omit(params, 'callerMethodName')
+        paramsOmitted = self.omit(params, 'callerMethodName')
         channels = []
         subHashes = []
         unSubHashes = []
@@ -638,8 +641,9 @@ class weex(ccxt.async_support.weex):
         firstMarket = self.market(firstSymbol)
         isContract = firstMarket['contract']
         priceType = 'LAST_PRICE'
+        paramsPriceType = paramsOmitted
         if isContract is True:
-            priceType, params = self.handle_option_and_params_2(params, callerMethodName, 'price', 'priceType', priceType)
+            priceType, paramsPriceType = self.handle_option_string_and_params_2(paramsOmitted, callerMethodName, 'price', 'priceType', priceType)
         for i in range(0, len(symbolsAndTimeframes)):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
@@ -662,7 +666,7 @@ class weex(ccxt.async_support.weex):
             'subMessageHashes': subHashes,
             'topic': 'ohlcv',
         }
-        return await self.subscribe_public(unSubHashes, channels, isContract, params, subscription)
+        return await self.subscribe_public(unSubHashes, channels, isContract, paramsPriceType, subscription)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -753,10 +757,10 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        params = self.extend(params, {
+        paramsExtended = self.extend(params, {
             'callerMethodName': 'watchOrderBook',
         })
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return await self.watch_order_book_for_symbols([symbol], limit, paramsExtended)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -772,29 +776,29 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         isContract = firstMarket['contract']
         callerMethodName = self.safe_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
-        params = self.omit(params, 'callerMethodName')
+        paramsOmitted = self.omit(params, 'callerMethodName')
         depth = '200'
-        depth, params = self.handle_option_string_and_params(params, callerMethodName, 'depth', depth)
+        depthOption, paramsDepth = self.handle_option_string_and_params(paramsOmitted, callerMethodName, 'depth', depth)
         messageHashes = []
         channels = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             messageHash = 'orderbook::' + symbol
-            channel = market['id'] + '@depth' + depth
+            channel = market['id'] + '@depth' + depthOption
             messageHashes.append(messageHash)
             channels.append(channel)
         subscription = {
             'limit': limit,
         }
-        orderbook = await self.subscribe_public(messageHashes, channels, isContract, params, subscription)
+        orderbook = await self.subscribe_public(messageHashes, channels, isContract, paramsDepth, subscription)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -805,12 +809,12 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        params = self.extend(params, {
+        paramsExtended = self.extend(params, {
             'callerMethodName': 'unWatchOrderBook',
         })
-        return await self.un_watch_order_book_for_symbols([symbol], params)
+        return await self.un_watch_order_book_for_symbols([symbol], paramsExtended)
 
-    async def un_watch_order_book_for_symbols(self, symbols: list[str], params={}) -> object:
+    async def un_watch_order_book_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -823,33 +827,33 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         isContract = firstMarket['contract']
         callerMethodName = self.safe_string(params, 'callerMethodName', 'unWatchOrderBookForSymbols')
-        params = self.omit(params, 'callerMethodName')
+        paramsOmitted = self.omit(params, 'callerMethodName')
         depth = '200'
-        depth, params = self.handle_option_string_and_params(params, callerMethodName, 'depth', depth)
+        depthOption, paramsDepth = self.handle_option_string_and_params(paramsOmitted, callerMethodName, 'depth', depth)
         subHashes = []
         channels = []
         unSubHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             messageHash = 'orderbook::' + symbol
-            channel = market['id'] + '@depth' + depth
+            channel = market['id'] + '@depth' + depthOption
             unSubMessageHash = 'unsubscribe::' + messageHash
             subHashes.append(messageHash)
             channels.append(channel)
             unSubHashes.append(unSubMessageHash)
         subscription = {
             'unsubscribe': True,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'orderbook',
         }
-        return await self.subscribe_public(unSubHashes, channels, isContract, params, subscription)
+        return await self.subscribe_public(unSubHashes, channels, isContract, paramsDepth, subscription)
 
     def handle_order_book(self, client: Client, message: dict):
         #
@@ -911,14 +915,14 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         if firstMarket['contract'] is True:
             raise NotSupported(self.id + ' watchBidsAsks is supported for spot markets only')
         messageHashes = []
         channels = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             channelName = market['id'] + '@' + 'bookTicker'
             messageHash = 'bidask::' + symbol
@@ -929,9 +933,9 @@ class weex(ccxt.async_support.weex):
             result = {}
             result[newTicker['symbol']] = newTicker
             return result
-        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 
-    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         unWatches best bid & ask for spot symbols
 
@@ -943,15 +947,15 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        firstMarket = self.get_market_from_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True)
+        firstMarket = self.get_market_from_symbols(symbolsNormalized)
         if firstMarket['contract'] is True:
             raise NotSupported(self.id + ' unWatchBidsAsks is supported for spot markets only')
         subHashes = []
         channels = []
         unSubHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
             channelName = market['id'] + '@' + 'bookTicker'
             messageHash = 'bidask::' + symbol
@@ -961,7 +965,7 @@ class weex(ccxt.async_support.weex):
             unSubHashes.append(unSubMessageHash)
         subscription = {
             'unsubscribe': True,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'bidsasks',
@@ -1025,26 +1029,26 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        marketType = None
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-        marketType, params = self.handle_market_type_and_params('watchMyTrades', market, params)
+        symbolResolved = self.safe_string(market, 'symbol')
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         isContract = (marketType != 'spot')
         messageHash = 'myTrades'
         if isContract:
             messageHash = 'myContractTrades'
         subscriptionHash = messageHash
-        if symbol is not None:
-            messageHash += '::' + symbol
+        if symbolResolved is not None:
+            messageHash += '::' + symbolResolved
         channel = 'fill'
-        trades = await self.subscribe_private(messageHash, subscriptionHash, channel, isContract, params)
+        trades = await self.subscribe_private(messageHash, subscriptionHash, channel, isContract, paramsMarketType)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
         """
         unWatches information on multiple trades made by the user
 
@@ -1058,8 +1062,7 @@ class weex(ccxt.async_support.weex):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.')
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('unWatchMyTrades', None, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('unWatchMyTrades', None, params)
         isContract = (marketType != 'spot')
         subHash = 'myTrades'
         if isContract:
@@ -1073,7 +1076,7 @@ class weex(ccxt.async_support.weex):
             'topic': 'myTrades',
             'subHashIsPrefix': True,
         }
-        return await self.subscribe_private(unSubHash, unSubHash, channel, isContract, params, subscription)
+        return await self.subscribe_private(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription)
 
     def handle_my_trades(self, client: Client, message: dict):
         #
@@ -1171,7 +1174,6 @@ class weex(ccxt.async_support.weex):
         if positionSide is not None:
             marketType = 'swap'
         marketResolved = self.safe_market(marketId, None, None, marketType)
-        market = marketResolved
         side = self.safe_string_lower(trade, 'orderSide')
         fee = None
         commission = self.safe_string(trade, 'fillFee')
@@ -1222,23 +1224,23 @@ class weex(ccxt.async_support.weex):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
+        symbolResolved = self.safe_string(market, 'symbol')
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)
         isContract = (marketType != 'spot')
         messageHash = 'orders'
         if isContract:
             messageHash = 'contractOrders'
         subscriptionHash = messageHash
-        if symbol is not None:
-            messageHash += '::' + symbol
+        if symbolResolved is not None:
+            messageHash += '::' + symbolResolved
         channel = 'orders'
-        orders = await self.subscribe_private(messageHash, subscriptionHash, channel, isContract, params)
+        orders = await self.subscribe_private(messageHash, subscriptionHash, channel, isContract, paramsMarketType)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
         """
         unWatches information on multiple orders made by the user
 
@@ -1251,8 +1253,7 @@ class weex(ccxt.async_support.weex):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.')
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('unWatchOrders', None, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('unWatchOrders', None, params)
         isContract = (marketType != 'spot')
         subHash = 'orders'
         if isContract:
@@ -1266,7 +1267,7 @@ class weex(ccxt.async_support.weex):
             'topic': 'orders',
             'subHashIsPrefix': True,
         }
-        return await self.subscribe_private(unSubHash, unSubHash, channel, isContract, params, subscription)
+        return await self.subscribe_private(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -1433,7 +1434,7 @@ class weex(ccxt.async_support.weex):
         if positionSide is not None:
             marketType = 'swap'
         marketResolved = self.safe_market(marketId, None, None, marketType)
-        market = marketResolved
+        marketValue = marketResolved
         side = self.safe_string_lower(order, 'orderSide')
         fee = None
         commission = self.safe_string(order, 'cumFillFee')
@@ -1484,7 +1485,7 @@ class weex(ccxt.async_support.weex):
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'info': order,
-        }, market)
+        }, marketValue)
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
@@ -1499,8 +1500,7 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         isContract = (type != 'spot')
         urlType = 'spot'
         if isContract:
@@ -1515,7 +1515,7 @@ class weex(ccxt.async_support.weex):
         if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':' + 'balance'
-        return await self.subscribe_private(messageHash, type, 'account', isContract, params)
+        return await self.subscribe_private(messageHash, type, 'account', isContract, paramsMarketType)
 
     def set_balance_cache(self, client: Client, type: str):
         if (type in client.subscriptions) and (type in self.balance):
@@ -1643,22 +1643,22 @@ class weex(ccxt.async_support.weex):
         url = self.safe_string(self.urls['api']['ws'], 'contract') + '/private'
         self.authenticate(url)
         client = self.client(url)
-        symbols = self.market_symbols(symbols, 'swap', True)
+        symbolsNormalized = self.market_symbols(symbols, 'swap', True)
         messageHash = 'positions'
         subscriptionHash = messageHash
-        if symbols is not None:
-            messageHash += '::' + ','.join(symbols)
+        if symbolsNormalized is not None:
+            messageHash += '::' + ','.join(symbolsNormalized)
         channel = 'positions'
         self.set_positions_cache(client, params)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
-            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized, since, limit, True)
         newPositions = await self.subscribe_private(messageHash, subscriptionHash, channel, True, params)
         if self.newUpdates:
             return newPositions
-        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
 
     def set_positions_cache(self, client: Client, params: dict = {}):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
@@ -1682,7 +1682,7 @@ class weex(ccxt.async_support.weex):
         future.resolve(cache)
         client.resolve(cache, 'positions')
 
-    async def un_watch_positions(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_positions(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         unWatches all open positions
 

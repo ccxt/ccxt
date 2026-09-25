@@ -486,7 +486,7 @@ class cryptomus extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->publicGetV1ExchangeMarketTickers($params);
         //
         //     {
@@ -501,7 +501,7 @@ class cryptomus extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -514,8 +514,8 @@ class cryptomus extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'currency_pair');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -538,7 +538,7 @@ class cryptomus extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'base_volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quote_volume'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -561,9 +561,9 @@ class cryptomus extends Exchange {
             'currencyPair' => $market['id'],
         );
         $level = 0;
-        list($level, $params) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'level', $level);
-        $request['level'] = $level;
-        $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params));
+        list($levelOption, $paramsLevel) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'level', $level);
+        $request['level'] = $levelOption;
+        $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $paramsLevel));
         //
         //     {
         //         "data": {
@@ -743,19 +743,23 @@ class cryptomus extends Exchange {
             'tag' => 'ccxt',
         );
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, 'clientOrderId') : $params;
         if ($clientOrderId !== null) {
-            $params = $this->omit($params, 'clientOrderId');
             $request['client_order_id'] = $clientOrderId;
         }
         $sideBuy = $side === 'buy';
         $amountToString = $this->number_to_string($amount);
         $priceToString = $this->number_to_string($price);
-        $cost = null;
-        list($cost, $params) = $this->handle_param_string($params, 'cost');
+        list($costParam, $paramsCost) = $this->handle_param_string($paramsOmitted, 'cost');
+        $cost = $costParam;
         if ($type === 'market') {
+            $requiresPriceAndParams = $this->handle_option_bool_and_params($paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $paramsMarket = $paramsCost;
             if ($sideBuy) {
-                $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $paramsMarket = $requiresPriceAndParams[1];
+            }
+            if ($sideBuy) {
+                $createMarketBuyOrderRequiresPrice = $requiresPriceAndParams[0];
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option of param to false and pass the $cost to spend in the $amount argument');
@@ -769,14 +773,14 @@ class cryptomus extends Exchange {
             } else {
                 $request['quantity'] = $amountToString;
             }
-            $response = $this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params));
+            $response = $this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $paramsMarket));
         } elseif ($type === 'limit') {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
             }
             $request['quantity'] = $amountToString;
             $request['price'] = $price;
-            $response = $this->privatePostV2UserApiExchangeOrders($this->extend($request, $params));
+            $response = $this->privatePostV2UserApiExchangeOrders($this->extend($request, $paramsCost));
         } else {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
         }
@@ -1003,7 +1007,7 @@ class cryptomus extends Exchange {
         //
         $id = $this->safe_string_2($order, 'order_id', 'id');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $dateTime = $this->safe_string($order, 'createdAt');
         $timestamp = $this->parse8601($dateTime);
         $deal = $this->safe_dict($order, 'deal', array());
@@ -1034,7 +1038,7 @@ class cryptomus extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
@@ -1051,7 +1055,7 @@ class cryptomus extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_order_status(?string $status = null): ?string {
@@ -1173,7 +1177,7 @@ class cryptomus extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
-        $params = $this->omit($params, $this->extract_params($path));
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], $api);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1182,15 +1186,14 @@ class cryptomus extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $jsonParams = '';
-            $headers = array(
+            $privateHeaders = array(
                 'userId' => $this->uid,
             );
             if ($method !== 'GET') {
-                $body = $this->json($params);
-                $jsonParams = $body;
-                $headers['Content-Type'] = 'application/json';
+                $jsonParams = $this->json($paramsOmitted);
+                $privateHeaders['Content-Type'] = 'application/json';
             } else {
-                $query = $this->urlencode($params);
+                $query = $this->urlencode($paramsOmitted);
                 if (strlen($query) !== 0) {
                     $url .= '?' . $query;
                 }
@@ -1198,9 +1201,11 @@ class cryptomus extends Exchange {
             $jsonParamsBase64 = base64_encode($jsonParams);
             $stringToSign = $jsonParamsBase64 . $this->secret;
             $signature = $this->hash($this->encode($stringToSign), 'md5');
-            $headers['sign'] = $signature;
+            $privateHeaders['sign'] = $signature;
+            $privateBody = ($method !== 'GET') ? $jsonParams : $body;
+            return array( 'url' => $url, 'method' => $method, 'body' => $privateBody, 'headers' => $privateHeaders );
         } else {
-            $query = $this->urlencode($params);
+            $query = $this->urlencode($paramsOmitted);
             if (strlen($query) !== 0) {
                 $url .= '?' . $query;
             }

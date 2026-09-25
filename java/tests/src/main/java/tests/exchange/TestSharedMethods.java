@@ -433,9 +433,9 @@ public class TestSharedMethods extends BaseTest {
         Object ascending = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            if (Helpers.isGreaterThan(i, 0))
+            if (i > 0)
             {
-                Object currentTs = Helpers.GetValue(Helpers.GetValue(items, Helpers.subtract(i, 1)), "timestamp");
+                Object currentTs = Helpers.GetValue(Helpers.GetValue(items, (((long) i) - 1L)), "timestamp");
                 Object nextTs = Helpers.GetValue((items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), "timestamp");
                 if (!java.util.Objects.equals(currentTs, null) && !java.util.Objects.equals(nextTs, null))
                 {

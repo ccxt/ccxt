@@ -803,7 +803,7 @@ class luno(Exchange, ImplicitAPI):
         elif (orderType == 'BID') or (orderType == 'BUY'):
             side = 'buy'
         marketId = self.safe_string(order, 'pair')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         price = self.safe_string(order, 'limit_price')
         amount = self.safe_string(order, 'limit_volume')
         quoteFee = self.safe_number(order, 'fee_counter')
@@ -814,12 +814,12 @@ class luno(Exchange, ImplicitAPI):
         if quoteFee is not None:
             fee = {
                 'cost': quoteFee,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             }
         elif baseFee is not None:
             fee = {
                 'cost': baseFee,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             }
         id = self.safe_string(order, 'order_id')
         return self.safe_order({
@@ -829,7 +829,7 @@ class luno(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'timeInForce': None,
             'postOnly': None,
@@ -844,7 +844,7 @@ class luno(Exchange, ImplicitAPI):
             'fee': fee,
             'info': order,
             'average': None,
-        }, market)
+        }, marketResolved)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -970,7 +970,7 @@ class luno(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         rawTickers = self.safe_list(response, 'tickers', [])
         tickers = self.index_by(rawTickers, 'pair')
@@ -982,7 +982,7 @@ class luno(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1349,16 +1349,14 @@ class luno(Exchange, ImplicitAPI):
 
     def fetch_ledger_by_entries(self, code: Str = None, entry: object = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         # by default without entry number or limit number, return most recent entry
-        if entry is None:
-            entry = -1
-        if limit is None:
-            limit = 1
+        entryValue = -1 if (entry is None) else entry
+        limitValue = 1 if (limit is None) else limit
         since = None
         request = {
-            'min_row': entry,
-            'max_row': self.sum(entry, limit),
+            'min_row': entryValue,
+            'max_row': self.sum(entryValue, limitValue),
         }
-        return self.fetch_ledger(code, since, limit, self.extend(request, params))
+        return self.fetch_ledger(code, since, limitValue, self.extend(request, params))
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -1445,7 +1443,7 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         available_delta = self.safe_string(entry, 'available_delta')
         balance_delta = self.safe_string(entry, 'balance_delta')
         after = self.safe_string(entry, 'balance')
@@ -1487,7 +1485,7 @@ class luno(Exchange, ImplicitAPI):
             'after': self.parse_to_numeric(after),
             'status': status,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
@@ -1640,15 +1638,17 @@ class luno(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        requestHeaders = None
         if len(query) > 0:
             url += '?' + self.urlencode(query)
         if (api == 'private') or (api == 'exchangePrivate'):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        return {'url': url, 'method': method, 'body': body, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

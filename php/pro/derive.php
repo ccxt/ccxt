@@ -73,11 +73,11 @@ class derive extends \ccxt\async\derive {
         $request = $this->extend($message, array(
             'id' => $requestId,
         ));
-        $subscription = $this->extend($subscription, array(
+        $subscriptionExtended = $this->extend($subscription, array(
             'id' => $requestId,
             'method' => 'subscribe',
         ));
-        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscriptionExtended));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -98,11 +98,9 @@ class derive extends \ccxt\async\derive {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($limit === null) {
-            $limit = 10;
-        }
+        $limitResolved = ($limit === null) ? 10 : $limit;
         $market = $this->market($symbol);
-        $topic = 'orderbook.' . $market['id'] . '.10.' . $this->number_to_string($limit);
+        $topic = 'orderbook.' . $market['id'] . '.10.' . $this->number_to_string($limitResolved);
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -114,7 +112,7 @@ class derive extends \ccxt\async\derive {
         $subscription = array(
             'name' => $topic,
             'symbol' => $symbol,
-            'limit' => $limit,
+            'limit' => $limitResolved,
             'params' => $params,
         );
         $orderbook = Async\await($this->watch_public($topic, $request, $subscription));
@@ -373,11 +371,11 @@ class derive extends \ccxt\async\derive {
         $request = $this->extend($message, array(
             'id' => $requestId,
         ));
-        $subscription = $this->extend($subscription, array(
+        $subscriptionExtended = $this->extend($subscription, array(
             'id' => $requestId,
             'method' => 'unsubscribe',
         ));
-        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscriptionExtended));
     }
 
     public function handle_order_book_un_subscription(Client $client, string $topic) {
@@ -473,10 +471,11 @@ class derive extends \ccxt\async\derive {
             'params' => $params,
         );
         $trades = Async\await($this->watch_public($topic, $request, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limitResolved, true);
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -549,11 +548,11 @@ class derive extends \ccxt\async\derive {
         $request = $this->extend($message, array(
             'id' => $requestId,
         ));
-        $subscription = $this->extend($subscription, array(
+        $subscriptionExtended = $this->extend($subscription, array(
             'id' => $requestId,
             'method' => 'subscribe',
         ));
-        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscriptionExtended));
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -566,7 +565,7 @@ class derive extends \ccxt\async\derive {
          * @see https://docs.derive.xyz/reference/subaccount_id-$orders
          *
          * watches information on multiple $orders made by the user
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -576,14 +575,12 @@ class derive extends \ccxt\async\derive {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handleDeriveSubaccountId('watchOrders', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchOrders', $params);
         $topic = $this->number_to_string($subaccountId) . '.orders';
         $messageHash = $topic;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        if ($symbolResolved !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'method' => 'subscribe',
@@ -595,14 +592,15 @@ class derive extends \ccxt\async\derive {
         );
         $subscription = array(
             'name' => $topic,
-            'params' => $params,
+            'params' => $paramsDeriveSubaccountId,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsDeriveSubaccountId);
         $orders = Async\await($this->watch_private($messageHash, $message, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_order(Client $client, array $message) {
@@ -694,7 +692,7 @@ class derive extends \ccxt\async\derive {
          * @see https://docs.derive.xyz/reference/subaccount_id-$trades
          *
          * watches information on multiple $trades made by the user
-         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -704,14 +702,12 @@ class derive extends \ccxt\async\derive {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $subaccountId = null;
-        list($subaccountId, $params) = $this->handleDeriveSubaccountId('watchMyTrades', $params);
+        list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchMyTrades', $params);
         $topic = $this->number_to_string($subaccountId) . '.trades';
         $messageHash = $topic;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        if ($symbolResolved !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'method' => 'subscribe',
@@ -723,14 +719,15 @@ class derive extends \ccxt\async\derive {
         );
         $subscription = array(
             'name' => $topic,
-            'params' => $params,
+            'params' => $paramsDeriveSubaccountId,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsDeriveSubaccountId);
         $trades = Async\await($this->watch_private($messageHash, $message, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_my_trade(Client $client, array $message) {

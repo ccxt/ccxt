@@ -756,7 +756,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerAll(params)).Raw))
 	//
@@ -787,7 +787,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 
-	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
 func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -998,9 +998,9 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1018,10 +1018,10 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
 	}
-	if tag != nil {
-		request["destinationTag"] = tag
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["destinationTag"] = tagWithdrawTag
 	}
-	var requestParams map[string]any = this.Extend(request, params)
+	var requestParams map[string]any = this.Extend(request, paramsWithdrawTag)
 	var response map[string]any = nil
 	if method != nil && *method == "privatePostBitcoinWithdrawal" {
 
@@ -1069,7 +1069,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 		transaction["amount"] = amount
 		transaction["currency"] = code
 		transaction["address"] = address
-		transaction["tag"] = tag
+		transaction["tag"] = tagWithdrawTag
 		transaction["type"] = "withdrawal"
 		transaction["status"] = "pending"
 	}
@@ -1109,11 +1109,14 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if limit == nil {
-		limit = Int64PtrTyped(1000)
-	}
+	var limitResolved int64 = func() int64 {
+		if limit == nil {
+			return 1000
+		}
+		return *limit
+	}()
 	var request map[string]any = map[string]any{
-		"limit": limit,
+		"limit": limitResolved,
 	}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
@@ -1126,7 +1129,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeHistory(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTrades(data, nil, since, limit)
+	ch <- this.ParseTrades(data, nil, since, limitResolved)
 	return nil
 }
 func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1160,7 +1163,7 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "currencyPair")
-	market = this.SafeMarket(marketId, market, "_")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var side *string = this.SafeStringLower2(trade, "type", "tradeType")
@@ -1173,7 +1176,7 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 	if feeCostString != nil {
 		fee = map[string]any{
 			"cost":     feeCostString,
-			"currency": GetValue(market, "quote"),
+			"currency": marketResolved["quote"],
 		}
 	}
 	var takerOrMaker *string = this.SafeString(trade, "feeType")
@@ -1188,7 +1191,7 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         typeVar,
 		"side":         side,
 		"order":        orderId,
@@ -1197,7 +1200,7 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1675,8 +1678,10 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var bodySigned any = nil
+	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1692,21 +1697,33 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.IncrementingNonce())
 		var auth *string = SafeStringPtr(Add(Add(nonce, this.Uid), this.ApiKey))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		body = this.Urlencode(this.Extend(map[string]any{
+		bodySigned = this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
 			"nonce":     nonce,
 			"publicKey": this.ApiKey,
 			"signature": strings.ToUpper(signature),
 		}, params))
-		headers = map[string]any{
+		headersSigned = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 		}
 	}
+	var headersResolved any = func() any {
+		if headersSigned == nil {
+			return headers
+		}
+		return headersSigned
+	}()
+	var bodyResolved any = func() any {
+		if bodySigned == nil {
+			return body
+		}
+		return bodySigned
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

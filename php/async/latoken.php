@@ -921,10 +921,11 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
+        $marketResolved = $market;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $market = $this->market($symbol);
+                $marketResolved = $this->market($symbol);
             }
         }
         $id = $this->safe_string($trade, 'id');
@@ -951,7 +952,7 @@ class latoken extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1012,11 +1013,11 @@ class latoken extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchTradingFee', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'fetchPrivateTradingFee') {
-            return Async\await($this->fetch_private_trading_fee($symbol, $params));
+            return Async\await($this->fetch_private_trading_fee($symbol, $paramsOmitted));
         } elseif ($method === 'fetchPublicTradingFee') {
-            return Async\await($this->fetch_public_trading_fee($symbol, $params));
+            return Async\await($this->fetch_public_trading_fee($symbol, $paramsOmitted));
         } else {
             throw new NotSupported($this->id . ' not support this method');
         }
@@ -1225,9 +1226,11 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $market = $this->market($symbol);
-            }
+        }
+        $symbolKnown = ($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets));
+        $marketResolved = $market;
+        if ($symbolKnown) {
+            $marketResolved = $this->market($symbol);
         }
         $orderSide = $this->safe_string($order, 'side');
         $side = null;
@@ -1274,7 +1277,7 @@ class latoken extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1302,7 +1305,7 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, 'stop');
+        $paramsOmitted = $this->omit($params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         $market = $this->market($symbol);
         $request = array(
@@ -1310,9 +1313,9 @@ class latoken extends Exchange {
             'quote' => $market['quoteId'],
         );
         if ($isTrigger === true) {
-            $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $paramsOmitted)));
         }
         //
         //     [
@@ -1370,7 +1373,7 @@ class latoken extends Exchange {
         );
         $market = null;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
@@ -1379,15 +1382,15 @@ class latoken extends Exchange {
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
             if ($isTrigger === true) {
-                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $paramsOmitted)));
             }
         } else {
             if ($isTrigger === true) {
-                $response = Async\await($this->privateGetAuthStopOrder($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthStopOrder($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privateGetAuthOrder($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthOrder($this->extend($request, $paramsOmitted)));
             }
         }
         //
@@ -1439,11 +1442,11 @@ class latoken extends Exchange {
             'id' => $id,
         );
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isTrigger === true) {
-            $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privateGetAuthOrderGetOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthOrderGetOrderId($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
@@ -1514,12 +1517,12 @@ class latoken extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+        $paramsOmitted = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $response = Async\await($this->privatePostAuthStopOrderPlace($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthStopOrderPlace($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostAuthOrderPlace($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthOrderPlace($this->extend($request, $paramsOmitted)));
         }
         //
         //    {
@@ -1560,11 +1563,11 @@ class latoken extends Exchange {
             'id' => $id,
         );
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($isTrigger === true) {
-            $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostAuthOrderCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthOrderCancel($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
@@ -1603,21 +1606,21 @@ class latoken extends Exchange {
         );
         $market = null;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
             if ($isTrigger === true) {
-                $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $paramsOmitted)));
             }
         } else {
             if ($isTrigger === true) {
-                $response = Async\await($this->privatePostAuthStopOrderCancelAll($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthStopOrderCancelAll($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostAuthOrderCancelAll($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthOrderCancelAll($this->extend($request, $paramsOmitted)));
             }
         }
         //
@@ -1943,6 +1946,8 @@ class latoken extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = $headers;
+        $requestBody = $body;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1956,14 +1961,14 @@ class latoken extends Exchange {
             $this->check_required_credentials();
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
-            $headers = array(
+            $requestHeaders = array(
                 'X-LA-APIKEY' => $this->apiKey,
                 'X-LA-SIGNATURE' => $signature,
                 'X-LA-DIGEST' => 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             );
             if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
+                $requestHeaders['Content-Type'] = 'application/json';
+                $requestBody = $this->json($query);
             }
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -1971,7 +1976,7 @@ class latoken extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $requestString;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

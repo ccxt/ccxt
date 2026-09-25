@@ -234,6 +234,8 @@ public partial class revolutx : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string? implodedPath = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
@@ -261,24 +263,21 @@ public partial class revolutx : Exchange
                 }
             } else
             {
-                body = this.json(query);
+                requestBody = this.json(query);
             }
             string requestPath = ("/api/" + implodedPath);
-            object bodyString = "";
-            if ((body != null))
-            {
-                bodyString = body;
-            }
+            object bodyValue = ((requestBody != null)) ? requestBody : body;
+            object bodyString = ((bodyValue != null)) ? bodyValue : "";
             string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + (bodyString));
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },
                 { "X-Revx-Signature", signature },
             };
             if ((method == "POST") || (method == "PUT"))
             {
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         } else
         {
@@ -291,17 +290,19 @@ public partial class revolutx : Exchange
                 }
             } else
             {
-                body = this.json(query);
-                headers = new Dictionary<string, object>() {
+                requestBody = this.json(query);
+                requestHeaders = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
                 };
             }
         }
+        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
+        object bodyResult = ((requestBody != null)) ? requestBody : body;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResult },
+            { "headers", headersResult },
         };
     }
 

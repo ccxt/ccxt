@@ -1229,30 +1229,28 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        string? type = null;
-        IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-        type = (string)typeparametersVariable[0];
-        parameters = typeparametersVariable[1];
-        string? subType = null;
-        IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, parameters);
-        subType = (string)subTypeparametersVariable[0];
-        parameters = subTypeparametersVariable[1];
+        IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        string? type = (string)typeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
+        IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, paramsMarketType);
+        string? subType = (string)subTypeparamsSubTypeVariable[0];
+        IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         Dictionary<string, object> response = null;
         IDictionary<string, object> result = null;
-        if (type == "swap")
+        if ((type == "swap"))
         {
-            if ((subType != null) && subType == "inverse")
+            if ((subType != null) && (subType == "inverse"))
             {
-                response = await this.dapiV2PrivateGetAccount(parameters);
+                response = await this.dapiV2PrivateGetAccount(paramsSubType);
                 result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             } else
             {
-                response = await this.fapiV2PrivateGetAccount(parameters);
+                response = await this.fapiV2PrivateGetAccount(paramsSubType);
                 result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             }
         } else
         {
-            response = await this.spotV1PrivateGetAccount(parameters);
+            response = await this.spotV1PrivateGetAccount(paramsSubType);
             result = response;
         }
         return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
@@ -1272,7 +1270,6 @@ public partial class bitrue : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -1285,13 +1282,9 @@ public partial class bitrue : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "contractName", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            if ((limitVar != null))
+            if ((limit != null))
             {
-                if ((limitVar > 100))
-                {
-                    limitVar = ((Int64?)100);
-                }
-                request["limit"] = limitVar; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+                request["limit"] = mathMin(limit, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
@@ -1305,13 +1298,9 @@ public partial class bitrue : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            if ((limitVar != null))
+            if ((limit != null))
             {
-                if ((limitVar > 1000))
-                {
-                    limitVar = ((Int64?)1000);
-                }
-                request["limit"] = limitVar; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+                request["limit"] = mathMin(limit, 1000); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
             response = await this.spotV1PublicGetDepth(this.extend(request, parameters));
         } else
@@ -1567,10 +1556,10 @@ public partial class bitrue : Exchange
             Int64? until = this.safeInteger(parameters, "until");
             if ((until != null))
             {
-                parameters = this.omit(parameters, "until");
                 request["fromIdx"] = until;
             }
-            response = await this.spotV1PublicGetMarketKline(this.extend(request, parameters));
+            object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
+            response = await this.spotV1PublicGetMarketKline(this.extend(request, paramsOmitted));
             data = this.safeList(response, "data", new List<object>() {});
         } else
         {
@@ -1663,8 +1652,8 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, null, false);
-        string? first = this.safeString(symbols, 0);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        string? first = this.safeString(symbolsNormalized, 0);
         Dictionary<string, object> market = this.market(first);
         object response = null;
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -1715,7 +1704,7 @@ public partial class bitrue : Exchange
         //
         Dictionary<string, object> data = new Dictionary<string, object>() {};
         data[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = response;
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
     /**
@@ -1736,14 +1725,13 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = new List<object>() {};
         IList<object> data = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? type = null;
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            string? first = this.safeString(symbols, 0);
+            string? first = this.safeString(symbolsNormalized, 0);
             Dictionary<string, object> market = this.market(first);
             if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
             {
@@ -1758,14 +1746,14 @@ public partial class bitrue : Exchange
             }
         } else
         {
-            IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
-            type = (string)typeparametersVariable[0];
-            parameters = typeparametersVariable[1];
-            if (type != "spot")
+            IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+            string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+            IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
+            if (!(marketType == "spot"))
             {
                 throw new NotSupported ((this.id + " fetchTickers only support spot when symbols are not proved")) ;
             }
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
+            response = await this.spotV1PublicGetTicker24hr(this.extend(request, paramsMarketType));
             data = this.toArray(response);
         }
         //
@@ -1823,7 +1811,7 @@ public partial class bitrue : Exchange
             Dictionary<string, object> market = this.safeMarket(marketId);
             tickers[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = ticker;
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
@@ -2207,14 +2195,18 @@ public partial class bitrue : Exchange
                 request["type"] = "IOC";
             }
             request["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
-            bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
-            parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
-            if (isMarket && ((side == "buy")) && (createMarketBuyOrderRequiresPrice == true))
+            IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
+            var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+            bool isMarketBuyWithPrice = isMarket && ((side == "buy")) && isTrue(createMarketBuyOrderRequiresPrice);
+            object paramsNoCost = paramsRequiresPrice;
+            if (isMarketBuyWithPrice)
             {
-                string? cost = this.safeString(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                paramsNoCost = this.omit(paramsRequiresPrice, "cost");
+            }
+            if (isMarketBuyWithPrice)
+            {
+                string? cost = this.safeString(paramsRequiresPrice, "cost");
                 if ((price == null) && (cost == null))
                 {
                     throw new InvalidOrder ((this.id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
@@ -2237,17 +2229,17 @@ public partial class bitrue : Exchange
                 request["volume"] = this.parseToNumeric(amount);
             }
             request["positionType"] = 1;
-            bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+            bool? reduceOnly = this.safeBool2(paramsNoCost, "reduceOnly", "reduce_only");
             request["open"] = ((reduceOnly == true)) ? "CLOSE" : "OPEN";
-            string? leverage = this.safeString(parameters, "leverage", "1");
+            string? leverage = this.safeString(paramsNoCost, "leverage", "1");
             request["leverage"] = this.parseToNumeric(leverage);
-            parameters = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "reduce_only", "timeInForce"});
+            object paramsSwap = this.omit(paramsNoCost, new List<object>() {"leverage", "reduceOnly", "reduce_only", "timeInForce"});
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
-                response = await this.fapiV2PrivatePostOrder(this.extend(request, parameters));
+                response = await this.fapiV2PrivatePostOrder(this.extend(request, paramsSwap));
             } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
             {
-                response = await this.dapiV2PrivatePostOrder(this.extend(request, parameters));
+                response = await this.dapiV2PrivatePostOrder(this.extend(request, paramsSwap));
             }
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -2262,16 +2254,16 @@ public partial class bitrue : Exchange
             string? clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
             if ((clientOrderId != null))
             {
-                parameters = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId"});
                 request["newClientOrderId"] = clientOrderId;
             }
-            double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+            object paramsNoClientOrderId = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId"}) : parameters;
+            double? triggerPrice = this.safeNumber2(paramsNoClientOrderId, "triggerPrice", "stopPrice");
             if ((triggerPrice != null))
             {
-                parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
-            response = await this.spotV1PrivatePostOrder(this.extend(request, parameters));
+            object paramsSpot = ((triggerPrice != null)) ? this.omit(paramsNoClientOrderId, new List<object>() {"triggerPrice", "stopPrice"}) : paramsNoClientOrderId;
+            response = await this.spotV1PrivatePostOrder(this.extend(request, paramsSpot));
             data = response;
         } else
         {
@@ -2325,7 +2317,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2347,17 +2339,17 @@ public partial class bitrue : Exchange
             request["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
-                response = await this.fapiV2PrivateGetOrder(this.extend(request, parameters));
+                response = await this.fapiV2PrivateGetOrder(this.extend(request, paramsOmitted));
             } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
             {
-                response = await this.dapiV2PrivateGetOrder(this.extend(request, parameters));
+                response = await this.dapiV2PrivateGetOrder(this.extend(request, paramsOmitted));
             }
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             request["orderId"] = id; // spot market id is mandatory
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            response = await this.spotV1PrivateGetOrder(this.extend(request, parameters));
+            response = await this.spotV1PrivateGetOrder(this.extend(request, paramsOmitted));
             data = response;
         } else
         {
@@ -2594,7 +2586,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2616,16 +2608,16 @@ public partial class bitrue : Exchange
             request["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
-                response = await this.fapiV2PrivatePostCancel(this.extend(request, parameters));
+                response = await this.fapiV2PrivatePostCancel(this.extend(request, paramsOmitted));
             } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
             {
-                response = await this.dapiV2PrivatePostCancel(this.extend(request, parameters));
+                response = await this.dapiV2PrivatePostCancel(this.extend(request, paramsOmitted));
             }
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            response = await this.spotV1PrivateDeleteOrder(this.extend(request, parameters));
+            response = await this.spotV1PrivateDeleteOrder(this.extend(request, paramsOmitted));
             data = response;
         } else
         {
@@ -2718,7 +2710,6 @@ public partial class bitrue : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -2736,13 +2727,10 @@ public partial class bitrue : Exchange
         {
             request["startTime"] = since;
         }
-        if ((limitVar != null))
+        object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
+        if (!isEqual(limitResolved, null))
         {
-            if ((limitVar > 1000))
-            {
-                limitVar = ((Int64?)1000);
-            }
-            request["limit"] = limitVar;
+            request["limit"] = limitResolved;
         }
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
@@ -2809,7 +2797,7 @@ public partial class bitrue : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitVar));
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitResolved));
     }
 
     /**
@@ -3123,11 +3111,10 @@ public partial class bitrue : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -3139,19 +3126,18 @@ public partial class bitrue : Exchange
             { "amount", amount },
             { "addressTo", address },
         };
-        string? networkCode = null;
-        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = (string)networkCodeparametersVariable[0];
-        parameters = networkCodeparametersVariable[1];
+        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
+        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
         if ((networkCode != null))
         {
             request["chainName"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
         }
-        if ((tagVar != null))
+        if ((tagWithdrawTag != null))
         {
-            request["tag"] = tagVar;
+            request["tag"] = tagWithdrawTag;
         }
-        Dictionary<string, object> response = await this.spotV1PrivatePostWithdrawCommit(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.spotV1PrivatePostWithdrawCommit(this.extend(request, paramsNetworkCode));
         //
         //     {
         //         "code": 200,
@@ -3303,7 +3289,6 @@ public partial class bitrue : Exchange
      */
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -3323,21 +3308,18 @@ public partial class bitrue : Exchange
         {
             request["beginTime"] = since;
         }
-        if ((limitVar != null))
+        object limitResolved = ((limit == null)) ? null : mathMin(limit, 200);
+        if (!isEqual(limitResolved, null))
         {
-            if ((limitVar > 200))
-            {
-                limitVar = ((Int64?)200);
-            }
-            request["limit"] = limitVar;
+            request["limit"] = limitResolved;
         }
         Int64? until = this.safeInteger(parameters, "until");
         if ((until != null))
         {
-            parameters = this.omit(parameters, "until");
             request["endTime"] = until;
         }
-        Dictionary<string, object> response = await this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, parameters));
+        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
+        Dictionary<string, object> response = await this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, paramsOmitted));
         //
         //     {
         //         'code': '0',
@@ -3352,7 +3334,7 @@ public partial class bitrue : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(data, currency, since, limitVar));
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(data, currency, since, limitResolved));
     }
 
     /**
@@ -3517,6 +3499,8 @@ public partial class bitrue : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? requestBody = null;
+        Dictionary<string, object> requestHeaders = null;
         string? type = this.safeString(api, 0);
         string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
@@ -3539,7 +3523,7 @@ public partial class bitrue : Exchange
             url = ((apiUrl + "/") + version);
         }
         url = add(add(url, "/"), this.implodeParams(path, parameters));
-        parameters = this.omit(parameters, this.extractParams(path));
+        object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (access == "private")
         {
             this.checkRequiredCredentials();
@@ -3549,10 +3533,10 @@ public partial class bitrue : Exchange
                 string query = this.urlencode(this.extend(new Dictionary<string, object>() {
                     { "timestamp", this.nonce() },
                     { "recvWindow", recvWindow },
-                }, parameters));
+                }, paramsOmitted));
                 string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
                 query = query + (("&" + "signature=") + signature);
-                headers = new Dictionary<string, object>() {
+                requestHeaders = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
                 };
                 if (((method == "GET")) || ((method == "DELETE")))
@@ -3560,8 +3544,8 @@ public partial class bitrue : Exchange
                     url = add(url, ("?" + query));
                 } else
                 {
-                    body = query;
-                    ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";
+                    requestBody = query;
+                    requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
                 }
             } else
             {
@@ -3578,28 +3562,28 @@ public partial class bitrue : Exchange
                 object signMessage = ((timestamp + method) + (signPath));
                 if ((method == "GET"))
                 {
-                    List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+                    List<object> keys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
                     int keysLength = keys.Count;
                     if (keysLength > 0)
                     {
-                        signMessage = add(signMessage, ("?" + this.urlencode(parameters)));
+                        signMessage = add(signMessage, ("?" + this.urlencode(paramsOmitted)));
                     }
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
-                    headers = new Dictionary<string, object>() {
+                    requestHeaders = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
                         { "X-CH-SIGN", signature },
                         { "X-CH-TS", timestamp },
                     };
-                    url = add(url, ("?" + this.urlencode(parameters)));
+                    url = add(url, ("?" + this.urlencode(paramsOmitted)));
                 } else
                 {
                     Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                         { "recvWindow", recvWindow },
-                    }, parameters);
-                    body = this.json(query);
-                    signMessage = add(signMessage, body);
+                    }, paramsOmitted);
+                    requestBody = this.json(query);
+                    signMessage = add(signMessage, requestBody);
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
-                    headers = new Dictionary<string, object>() {
+                    requestHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
                         { "X-CH-APIKEY", this.apiKey },
                         { "X-CH-SIGN", signature },
@@ -3609,16 +3593,18 @@ public partial class bitrue : Exchange
             }
         } else
         {
-            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
+            if ((new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(paramsOmitted)));
             }
         }
+        object bodyResult = ((requestBody == null)) ? body : requestBody;
+        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResult },
+            { "headers", headersResult },
         };
     }
 
@@ -3653,10 +3639,10 @@ public partial class bitrue : Exchange
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
+        object parsedMessage = null;
         if ((success != true))
         {
             string? messageInner = this.safeString(response, "msg");
-            object parsedMessage = null;
             if ((messageInner != null))
             {
                 try
@@ -3667,20 +3653,17 @@ public partial class bitrue : Exchange
                     // do nothing
                     parsedMessage = null;
                 }
-                if ((parsedMessage != null))
-                {
-                    response = parsedMessage;
-                }
             }
         }
-        string? message = this.safeString(response, "msg");
+        object errorResponse = ((parsedMessage != null)) ? parsedMessage : response;
+        string? message = this.safeString(errorResponse, "msg");
         if ((message != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
-        string? error = this.safeString(response, "code");
+        string? error = this.safeString(errorResponse, "code");
         if ((error != null))
         {
             // https://github.com/ccxt/ccxt/issues/6501

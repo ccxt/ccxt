@@ -611,31 +611,32 @@ func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "at", 1000)
+	var tickerInner any = ticker
 	if InOp(ticker, "ticker") {
-		ticker = this.SafeDict(ticker, "ticker")
+		tickerInner = this.SafeDict(ticker, "ticker")
 	}
-	var last *string = this.SafeString(ticker, "last")
+	var last *string = this.SafeString(tickerInner, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
-		"high":          this.SafeString(ticker, "high"),
-		"low":           this.SafeString(ticker, "low"),
-		"bid":           this.SafeString(ticker, "bid"),
+		"high":          this.SafeString(tickerInner, "high"),
+		"low":           this.SafeString(tickerInner, "low"),
+		"bid":           this.SafeString(tickerInner, "bid"),
 		"bidVolume":     nil,
-		"ask":           this.SafeString(ticker, "ask"),
+		"ask":           this.SafeString(tickerInner, "ask"),
 		"askVolume":     nil,
 		"vwap":          nil,
-		"open":          this.SafeString(ticker, "open"),
+		"open":          this.SafeString(tickerInner, "open"),
 		"close":         last,
 		"last":          last,
 		"previousClose": nil,
 		"change":        nil,
-		"percentage":    this.SafeString(ticker, "change"),
+		"percentage":    this.SafeString(tickerInner, "change"),
 		"average":       nil,
-		"baseVolume":    this.SafeString2(ticker, "vol", "volume"),
-		"quoteVolume":   this.SafeString(ticker, "deal"),
-		"info":          ticker,
+		"baseVolume":    this.SafeString2(tickerInner, "vol", "volume"),
+		"quoteVolume":   this.SafeString(tickerInner, "deal"),
+		"info":          tickerInner,
 	}, market)
 }
 
@@ -1322,7 +1323,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1336,7 +1337,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var until any = this.SafeInteger(params, "until")
-	params = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 	if IsEqual(until, nil) {
 		if since == nil {
 			until = this.Milliseconds()
@@ -1344,14 +1345,17 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			until = Add(since, 86400000)
 		}
 	}
-	if since == nil {
-		since = Subtract(until, 86400000)
-	}
-	if IsGreaterThan((Subtract(until, since)), 86400000) {
+	var sinceResolved any = func() any {
+		if since == nil {
+			return (Subtract(until, 86400000))
+		}
+		return since
+	}()
+	if IsGreaterThan((Subtract(until, sinceResolved)), 86400000) {
 		panic(BadRequest(this.Id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var sinceSec int64 = this.ParseToInt(Divide(since, 1000))
+	var sinceSec int64 = this.ParseToInt(Divide(sinceResolved, 1000))
 	var untilSec int64 = this.ParseToInt(Divide(until, 1000))
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
@@ -1362,7 +1366,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountMarketDealHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountMarketDealHistory(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//    {
 	//        "success": true,
@@ -1392,7 +1396,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = SafeMapTyped(response, "result")
 	var deals []any = SafeListTypedDefault(result, "deals", []any{})
 
-	ch <- this.ParseTrades(deals, market, since, limit)
+	ch <- this.ParseTrades(deals, market, sinceResolved, limit)
 	return nil
 }
 
@@ -1421,7 +1425,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1432,7 +1436,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var until any = this.SafeInteger(params, "until")
-	params = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1444,13 +1448,16 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 			until = Add(since, 86400000)
 		}
 	}
-	if since == nil {
-		since = Subtract(until, 86400000)
-	}
-	if IsGreaterThan((Subtract(until, since)), 86400000) {
+	var sinceResolved any = func() any {
+		if since == nil {
+			return (Subtract(until, 86400000))
+		}
+		return since
+	}()
+	if IsGreaterThan((Subtract(until, sinceResolved)), 86400000) {
 		panic(BadRequest(this.Id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours"))
 	}
-	var sinceSec int64 = this.ParseToInt(Divide(since, 1000))
+	var sinceSec int64 = this.ParseToInt(Divide(sinceResolved, 1000))
 	var untilSec int64 = this.ParseToInt(Divide(until, 1000))
 	var request map[string]any = map[string]any{
 		"startTime": sinceSec,
@@ -1463,7 +1470,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrderHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrderHistory(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//    {
 	//        "success": true,
@@ -1496,7 +1503,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
 		var marketOrders any = result[marketId]
-		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
+		var parsedOrders any = this.ParseOrders(marketOrders, market, sinceResolved, limit)
 		orders = this.ArrayConcat(orders, parsedOrders)
 	}
 
@@ -1545,7 +1552,7 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "timestamp", "ctime", 1000)
 	var marketId *string = this.SafeString(order, "market")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "id", "orderId"),
@@ -1553,7 +1560,7 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               this.SafeString(order, "type"),
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -1567,11 +1574,11 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
 		"remaining":          this.SafeString(order, "left"),
 		"status":             nil,
 		"fee": map[string]any{
-			"currency": GetValue(market, "quote"),
+			"currency": marketResolved["quote"],
 			"cost":     this.SafeString(order, "dealFee"),
 		},
 		"trades": nil,
-	}, market)
+	}, marketResolved)
 }
 func (this *P2b) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -1582,29 +1589,35 @@ func (this *P2b) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
 	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
-	params = this.Omit(params, this.ExtractParams(path))
+	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
-		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+		if len(ObjectKeys(paramsOmitted)) > 0 {
+			url = Add(url, "?"+this.Urlencode(paramsOmitted))
 		}
 	}
 	if IsEqual(api, "private") {
-		AddElementToObject(params, "request", Add("/api/v2/", path))
+		AddElementToObject(paramsOmitted, "request", Add("/api/v2/", path))
 		// p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
 		// the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-		AddElementToObject(params, "nonce", ToString(this.IncrementingNonce()))
-		var payload string = this.StringToBase64(this.Json(params)) // Body json encoded in base64
-		headers = map[string]any{
+		AddElementToObject(paramsOmitted, "nonce", ToString(this.IncrementingNonce()))
+		var payload string = this.StringToBase64(this.Json(paramsOmitted)) // Body json encoded in base64
+		var headersSigned map[string]any = map[string]any{
 			"Content-Type":    "application/json",
 			"X-TXC-APIKEY":    this.ApiKey,
 			"X-TXC-PAYLOAD":   payload,
 			"X-TXC-SIGNATURE": this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512),
 		}
-		body = this.Json(params)
+		var bodyJson any = this.Json(paramsOmitted)
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    bodyJson,
+			"headers": headersSigned,
+		}
 	}
 	return map[string]any{
 		"url":     url,

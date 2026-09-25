@@ -1395,21 +1395,18 @@ class hashkey extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $params);
         if ($since !== null) {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_and_params($paramsMarketType, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $accountId = null;
-        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
+        list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($paramsUntil, $methodName, 'accountId');
         $response = null;
         if ($marketType === 'spot') {
             if ($market !== null) {
@@ -1418,7 +1415,7 @@ class hashkey extends Exchange {
             if ($accountId !== null) {
                 $request['accountId'] = $accountId;
             }
-            $response = Async\await($this->privateGetApiV1AccountTrades($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1AccountTrades($this->extend($request, $paramsAccountId)));
             //
             //     [
             //         {
@@ -1455,9 +1452,9 @@ class hashkey extends Exchange {
             $request['symbol'] = $this->safe_string($market, 'id');
             if ($accountId !== null) {
                 $request['subAccountId'] = $accountId;
-                $response = Async\await($this->privateGetApiV1FuturesSubAccountUserTrades($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV1FuturesSubAccountUserTrades($this->extend($request, $paramsAccountId)));
             } else {
-                $response = Async\await($this->privateGetApiV1FuturesUserTrades($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV1FuturesUserTrades($this->extend($request, $paramsAccountId)));
                 //
                 //     [
                 //         {
@@ -1540,7 +1537,7 @@ class hashkey extends Exchange {
         //     }
         $timestamp = $this->safe_integer_2($trade, 't', 'time');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $side = $this->safe_string_lower($trade, 'side'); // swap trades have side param
         if ($side !== null) {
             $side = $this->safe_string(explode('_', $side), 0);
@@ -1578,7 +1575,7 @@ class hashkey extends Exchange {
             'id' => $this->safe_string_2($trade, 'id', 'tradeId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'side' => $side,
             'price' => $this->safe_string_2($trade, 'p', 'price'),
             'amount' => $this->safe_string_n($trade, array( 'q', 'qty', 'quantity' )),
@@ -1588,7 +1585,7 @@ class hashkey extends Exchange {
             'order' => $this->safe_string($trade, 'orderId'),
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1615,15 +1612,16 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, $methodName, 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, $methodName, 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 1000));
         }
         $market = $this->market($symbol);
-        $timeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $timeframeValue = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $timeframe,
+            'interval' => $timeframeValue,
         );
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -1631,12 +1629,11 @@ class hashkey extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_and_params($paramsPaginate, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->publicGetQuoteV1Klines($this->extend($request, $params)));
+        $response = Async\await($this->publicGetQuoteV1Klines($this->extend($request, $paramsUntil)));
         //
         //     [
         //         [
@@ -1654,7 +1651,7 @@ class hashkey extends Exchange {
         //     ]
         //
         $ohlcvs = $this->to_array($response);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframeValue, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1740,9 +1737,9 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetQuoteV1Ticker24hr($params));
-        return $this->parse_tickers($response, $symbols);
+        return $this->parse_tickers($response, $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1762,13 +1759,13 @@ class hashkey extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
-        if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
+        if (($marketResolved['contract'] === true) && ($marketResolved['contractSize'] !== null)) {
             // 'v' counts contracts, and a ticker reports base volume
-            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($marketResolved['contractSize']));
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1791,7 +1788,7 @@ class hashkey extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_last_prices(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1812,7 +1809,7 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array();
         $response = Async\await($this->publicGetQuoteV1TickerPrice($this->extend($request, $params)));
         //
@@ -1824,14 +1821,14 @@ class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        return $this->parse_last_prices($response, $symbols);
+        return $this->parse_last_prices($response, $symbolsNormalized);
     }
 
     public function parse_last_price(array $entry, ?array $market = null): array {
         $marketId = $this->safe_string($entry, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
             // dormant listings carry a literal zero price meaning never traded,
@@ -1863,9 +1860,9 @@ class hashkey extends Exchange {
         $request = array();
         $methodName = 'fetchBalance';
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, null, $params, $marketType);
-        if ($marketType === 'swap') {
-            $response = Async\await($this->privateGetApiV1FuturesBalance($params));
+        list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params($methodName, null, $params, $marketType);
+        if ($marketTypeOption === 'swap') {
+            $response = Async\await($this->privateGetApiV1FuturesBalance($paramsMarketType));
             //
             //     [
             //         {
@@ -1880,8 +1877,8 @@ class hashkey extends Exchange {
             //
             $balance = $this->safe_dict($response, 0, array());
             return $this->parse_swap_balance($balance);
-        } elseif ($marketType === 'spot') {
-            $response = Async\await($this->privateGetApiV1Account($this->extend($request, $params)));
+        } elseif ($marketTypeOption === 'spot') {
+            $response = Async\await($this->privateGetApiV1Account($this->extend($request, $paramsMarketType)));
             //
             //     {
             //         "balances": [
@@ -1900,7 +1897,7 @@ class hashkey extends Exchange {
             //
             return $this->parse_balance($response);
         } else {
-            throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
+            throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketTypeOption . ' type of markets');
         }
     }
 
@@ -1989,13 +1986,10 @@ class hashkey extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        if ($networkCode === null) {
-            $networkCode = $this->default_network_code($code);
-        }
+        list($networkCodeInParams, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        $networkCode = ($networkCodeInParams === null) ? $this->default_network_code($code) : $networkCodeInParams;
         $request['chainType'] = $this->network_code_to_id($networkCode, $code);
-        $response = Async\await($this->privateGetApiV1AccountDepositAddress($this->extend($request, $params)));
+        $response = Async\await($this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsNetworkCode)));
         //
         //     {
         //         "canDeposit": true,
@@ -2075,12 +2069,11 @@ class hashkey extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->privateGetApiV1AccountDepositOrders($this->extend($request, $params)));
+        $response = Async\await($this->privateGetApiV1AccountDepositOrders($this->extend($request, $paramsUntil)));
         //
         //     [
         //         {
@@ -2131,12 +2124,11 @@ class hashkey extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->privateGetApiV1AccountWithdrawOrders($this->extend($request, $params)));
+        $response = Async\await($this->privateGetApiV1AccountWithdrawOrders($this->extend($request, $paramsUntil)));
         //
         //     [
         //         {
@@ -2181,7 +2173,7 @@ class hashkey extends Exchange {
          * @param {string} [$params->platform] the platform to withdraw to (hashkey, HashKey HK)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2191,15 +2183,14 @@ class hashkey extends Exchange {
             'address' => $address,
             'quantity' => $amount,
         );
-        if ($tag !== null) {
-            $request['addressExt'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['addressExt'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
             $request['chainType'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
-        $response = Async\await($this->privatePostApiV1AccountWithdraw($this->extend($request, $params)));
+        $response = Async\await($this->privatePostApiV1AccountWithdraw($this->extend($request, $paramsNetworkCode)));
         //
         //     {
         //         "success": true,
@@ -2485,8 +2476,7 @@ class hashkey extends Exchange {
         if ($since === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $since argument');
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
         if ($until === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires an $until argument');
         }
@@ -2500,17 +2490,15 @@ class hashkey extends Exchange {
             $request['limit'] = $limit;
         }
         $request['endTime'] = $until;
-        $flowType = null;
-        list($flowType, $params) = $this->handle_option_string_and_params($params, $methodName, 'flowType');
+        list($flowType, $paramsFlowType) = $this->handle_option_string_and_params($paramsUntil, $methodName, 'flowType');
         if ($flowType !== null) {
             $request['flowType'] = $this->encode_flow_type($flowType);
         }
-        $accountType = null;
-        list($accountType, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountType');
+        list($accountType, $paramsAccountType) = $this->handle_option_string_and_params($paramsFlowType, $methodName, 'accountType');
         if ($accountType !== null) {
             $request['accountType'] = $this->encode_account_type($accountType);
         }
-        $response = Async\await($this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params)));
+        $response = Async\await($this->privateGetApiV1AccountBalanceFlow($this->extend($request, $paramsAccountType)));
         //
         //     [
         //         {
@@ -2565,7 +2553,7 @@ class hashkey extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'flowTypeValue'));
         $currencyId = $this->safe_string($item, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $amountString = $this->safe_string($item, 'change');
         $amount = $this->parse_number($amountString);
         $direction = 'in';
@@ -2592,7 +2580,7 @@ class hashkey extends Exchange {
             'after' => $after,
             'status' => $status,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -2700,7 +2688,6 @@ class hashkey extends Exchange {
         $response = array();
         $test = $this->safe_bool($params, 'test');
         if ($test === true) {
-            $params = $this->omit($params, 'test');
             $response = Async\await($this->privatePostApiV1SpotOrderTest($request));
         } elseif ($isMarketBuy && ($cost === null)) {
             $response = Async\await($this->privatePostApiV11SpotOrder($request)); // the endpoint for market buy orders by amount
@@ -2827,35 +2814,34 @@ class hashkey extends Exchange {
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
-        $type = strtoupper($type);
+        $typeValue = strtoupper($type);
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
-            'type' => $type,
+            'type' => $typeValue,
         );
         if ($amount !== null) {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
-        $cost = null;
-        list($cost, $params) = $this->handle_param_string($params, 'cost');
+        list($cost, $paramsCost) = $this->handle_param_string($params, 'cost');
         if ($cost !== null) {
             $request['quantity'] = $this->cost_to_precision($symbol, $cost);
         }
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $isMarketOrder = $type === 'MARKET';
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'LIMIT_MAKER', $params);
-        if ($postOnly && ($type === 'LIMIT')) {
+        $isMarketOrder = $typeValue === 'MARKET';
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $typeValue === 'LIMIT_MAKER', $paramsCost);
+        if ($postOnly && ($typeValue === 'LIMIT')) {
             $request['type'] = 'LIMIT_MAKER';
         }
         $clientOrderId = null;
-        list($clientOrderId, $params) = $this->handle_param_string($params, 'clientOrderId');
+        $paramsClientOrderId = array();
+        list($clientOrderId, $paramsClientOrderId) = $this->handle_param_string($paramsPostOnly, 'clientOrderId');
         if ($clientOrderId !== null) {
-            $params['newClientOrderId'] = $clientOrderId;
+            $paramsClientOrderId['newClientOrderId'] = $clientOrderId;
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $paramsClientOrderId);
     }
 
     public function create_swap_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -2889,34 +2875,32 @@ class hashkey extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['priceType'] = 'INPUT';
         }
-        $reduceOnly = false;
-        list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly', $reduceOnly);
+        list($reduceOnly, $paramsReduceOnly) = $this->handle_param_bool($params, 'reduceOnly', false);
         $suffix = '_OPEN';
         if ($reduceOnly === true) {
             $suffix = '_CLOSE';
         }
         $request['side'] = strtoupper($side) . $suffix;
-        $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_param_string($params, 'timeInForce');
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'LIMIT_MAKER', $params);
+        list($timeInForceParam, $paramsTimeInForce) = $this->handle_param_string($paramsReduceOnly, 'timeInForce');
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $timeInForceParam === 'LIMIT_MAKER', $paramsTimeInForce);
+        $timeInForce = $timeInForceParam;
         if ($postOnly) {
             $timeInForce = 'LIMIT_MAKER';
         }
         if ($timeInForce !== null) {
             $request['timeInForce'] = $timeInForce;
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($paramsPostOnly, 'clientOrderId');
         if ($clientOrderId === null) {
             $request['clientOrderId'] = $this->uuid();
         }
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $triggerPrice = $this->safe_string($paramsPostOnly, 'triggerPrice');
+        $paramsOmitted = ($triggerPrice !== null) ? $this->omit($paramsPostOnly, 'triggerPrice') : $paramsPostOnly;
         if ($triggerPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['type'] = 'STOP';
-            $params = $this->omit($params, 'triggerPrice');
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $paramsOmitted);
     }
 
     public function create_swap_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -3126,11 +3110,10 @@ class hashkey extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $params, 'spot');
         $response = null;
         if ($marketType === 'spot') {
-            $response = Async\await($this->privateDeleteApiV1SpotOrder($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteApiV1SpotOrder($this->extend($request, $paramsMarketType)));
             //
             //     {
             //         "accountId": "1732885739589466112",
@@ -3148,8 +3131,7 @@ class hashkey extends Exchange {
             //     }
             //
         } elseif ($marketType === 'swap') {
-            $isTrigger = false;
-            list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
+            list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
             if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             } else {
@@ -3158,7 +3140,7 @@ class hashkey extends Exchange {
             if ($market !== null) {
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteApiV1FuturesOrder($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteApiV1FuturesOrder($this->extend($request, $paramsTrigger)));
             //
             //     {
             //         "time": "1722432302919",
@@ -3267,8 +3249,8 @@ class hashkey extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
-        if ($marketType === 'spot') {
+        $marketTypeOption = $this->handle_market_type_and_params($methodName, $market, $params, $marketType)[0];
+        if ($marketTypeOption === 'spot') {
             $response = Async\await($this->privateDeleteApiV1SpotCancelOrderByIds($request));
             //
             //     {
@@ -3276,10 +3258,10 @@ class hashkey extends Exchange {
             //         "result": []
             //     }
             //
-        } elseif ($marketType === 'swap') {
+        } elseif ($marketTypeOption === 'swap') {
             $response = Async\await($this->privateDeleteApiV1FuturesCancelOrderByIds($request));
         } else {
-            throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
+            throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketTypeOption . ' type of markets');
         }
         $order = $this->safe_order($response);
         $order['info'] = $response;
@@ -3313,8 +3295,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array();
-        $clientOrderId = null;
-        list($clientOrderId, $params) = $this->handle_param_string($params, 'clientOrderId');
+        list($clientOrderId, $paramsClientOrderId) = $this->handle_param_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
@@ -3322,14 +3303,13 @@ class hashkey extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $paramsClientOrderId, 'spot');
         $response = null;
         if ($marketType === 'spot') {
             if ($clientOrderId !== null) {
                 $request['origClientOrderId'] = $clientOrderId;
             }
-            $response = Async\await($this->privateGetApiV1SpotOrder($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1SpotOrder($this->extend($request, $paramsMarketType)));
             //
             //     {
             //         "accountId": "1732885739589466112",
@@ -3360,12 +3340,11 @@ class hashkey extends Exchange {
             //     }
             //
         } elseif ($marketType === 'swap') {
-            $isTrigger = false;
-            list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
+            list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
             if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             }
-            $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $paramsTrigger)));
             //
             //     {
             //         "time": "1722429951611",
@@ -3431,14 +3410,14 @@ class hashkey extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
-        $params = $this->extend(array( 'methodName' => $methodName ), $params);
-        if ($marketType === 'spot') {
-            return Async\await($this->fetch_open_spot_orders($symbol, $since, $limit, $params));
-        } elseif ($marketType === 'swap') {
-            return Async\await($this->fetch_open_swap_orders($symbol, $since, $limit, $params));
+        list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
+        $paramsExtended = $this->extend(array( 'methodName' => $methodName ), $paramsMarketType);
+        if ($marketTypeOption === 'spot') {
+            return Async\await($this->fetch_open_spot_orders($symbol, $since, $limit, $paramsExtended));
+        } elseif ($marketTypeOption === 'swap') {
+            return Async\await($this->fetch_open_swap_orders($symbol, $since, $limit, $paramsExtended));
         } else {
-            throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
+            throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketTypeOption . ' type of markets');
         }
     }
 
@@ -3467,15 +3446,14 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $methodName = 'fetchOpenSpotOrders';
-        list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
+        list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
         $market = null;
         $request = array();
         $response = null;
-        $accountId = null;
-        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
+        list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($paramsMethodName, $methodNameOption, 'accountId');
         if ($accountId !== null) {
             $request['subAccountId'] = $accountId;
-            $response = Async\await($this->privateGetApiV1SpotSubAccountOpenOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1SpotSubAccountOpenOrders($this->extend($request, $paramsAccountId)));
         } else {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -3484,7 +3462,7 @@ class hashkey extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetApiV1SpotOpenOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1SpotOpenOrders($this->extend($request, $paramsAccountId)));
             //
             //     [
             //         {
@@ -3540,17 +3518,17 @@ class hashkey extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'fetchOpenSwapOrders';
-        list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
+        list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap $market orders');
+            throw new ArgumentsRequired($this->id . ' ' . $methodNameOption . '() requires a $symbol argument for swap $market orders');
         }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $isTrigger = false;
-        list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
-        if ($isTrigger === true) {
+        list($isTriggerTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMethodName, $methodNameOption, $isTrigger);
+        if ($isTriggerTrigger === true) {
             $request['type'] = 'STOP';
         } else {
             $request['type'] = 'LIMIT';
@@ -3559,13 +3537,12 @@ class hashkey extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        $accountId = null;
-        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
+        list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($paramsTrigger, $methodNameOption, 'accountId');
         if ($accountId !== null) {
             $request['subAccountId'] = $accountId;
-            $response = Async\await($this->privateGetApiV1FuturesSubAccountOpenOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1FuturesSubAccountOpenOrders($this->extend($request, $paramsAccountId)));
         } else {
-            $response = Async\await($this->privateGetApiV1FuturesOpenOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1FuturesOpenOrders($this->extend($request, $paramsAccountId)));
             // 'LIMIT'
             //     [
             //         {
@@ -3651,19 +3628,16 @@ class hashkey extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $accountId = null;
-        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
+        list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($paramsUntil, $methodName, 'accountId');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $paramsAccountId, 'spot');
         $response = null;
         if ($marketType === 'spot') {
             if ($market !== null) {
@@ -3672,7 +3646,7 @@ class hashkey extends Exchange {
             if ($accountId !== null) {
                 $request['accountId'] = $accountId;
             }
-            $response = Async\await($this->privateGetApiV1SpotTradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1SpotTradeOrders($this->extend($request, $paramsMarketType)));
             //
             //     [
             //         {
@@ -3707,8 +3681,7 @@ class hashkey extends Exchange {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
             }
             $request['symbol'] = $this->safe_string($market, 'id');
-            $isTrigger = false;
-            list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
+            list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
             if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             } else {
@@ -3716,9 +3689,9 @@ class hashkey extends Exchange {
             }
             if ($accountId !== null) {
                 $request['subAccountId'] = $accountId;
-                $response = Async\await($this->privateGetApiV1FuturesSubAccountHistoryOrders($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV1FuturesSubAccountHistoryOrders($this->extend($request, $paramsTrigger)));
             } else {
-                $response = Async\await($this->privateGetApiV1FuturesHistoryOrders($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV1FuturesHistoryOrders($this->extend($request, $paramsTrigger)));
                 //
                 //     [
                 //         {
@@ -3763,8 +3736,8 @@ class hashkey extends Exchange {
 
     public function handle_trigger_option_and_params(array $params, string $methodName, ?bool $defaultValue = null): array {
         $isTrigger = $defaultValue;
-        list($isTrigger, $params) = $this->handle_option_bool_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
-        return array( $isTrigger, $params );
+        list($isTriggerStop, $paramsStop) = $this->handle_option_bool_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
+        return array( $isTriggerStop, $paramsStop );
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -3878,7 +3851,7 @@ class hashkey extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'transactTime', 'time');
         $status = $this->safe_string($order, 'status');
         $type = $this->safe_string($order, 'type');
@@ -3916,7 +3889,7 @@ class hashkey extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'status' => $this->parse_order_status($status),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'side' => $side,
@@ -3937,7 +3910,7 @@ class hashkey extends Exchange {
             'reduceOnly' => $reduceOnly,
             'postOnly' => $postOnly,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_order_side_and_reduce_only(mixed $unparsed) {
@@ -3972,14 +3945,16 @@ class hashkey extends Exchange {
 
     public function parse_order_type_time_in_force_and_post_only(?string $type, ?string $timeInForce): array {
         $postOnly = null;
-        if ($type === 'LIMIT_MAKER') {
+        $isMakerTimeInForce = ($timeInForce === 'LIMIT_MAKER') || ($timeInForce === 'MAKER');
+        if (($type === 'LIMIT_MAKER') || $isMakerTimeInForce) {
             $postOnly = true;
-        } elseif (($timeInForce === 'LIMIT_MAKER') || ($timeInForce === 'MAKER')) {
-            $postOnly = true;
-            $timeInForce = 'PO';
         }
-        $type = $this->parse_order_type($type);
-        return array( $type, $timeInForce, $postOnly );
+        $timeInForceParsed = $timeInForce;
+        if (($type !== 'LIMIT_MAKER') && $isMakerTimeInForce) {
+            $timeInForceParsed = 'PO';
+        }
+        $typeValue = $this->parse_order_type($type);
+        return array( $typeValue, $timeInForceParsed, $postOnly );
     }
 
     public function parse_order_type(?string $type): ?string {
@@ -4041,7 +4016,7 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'timestamp' => $this->milliseconds(),
         );
@@ -4052,7 +4027,7 @@ class hashkey extends Exchange {
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        return $this->parse_funding_rates($response, $symbols);
+        return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -4064,12 +4039,12 @@ class hashkey extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
-        $market = $this->safe_market($marketId, $market, null, 'swap');
+        $marketResolved = $this->safe_market($marketId, $market, null, 'swap');
         $fundingRate = $this->safe_number($contract, 'rate');
         $fundingTimestamp = $this->safe_integer($contract, 'nextSettleTime');
         return array(
             'info' => $contract,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => null,
@@ -4201,14 +4176,14 @@ class hashkey extends Exchange {
         }
         $market = $this->market($symbol);
         $methodName = 'fetchPosition';
-        list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
+        list($methodNameOption, $paramsMethodName) = $this->handle_param_string($params, 'methodName', $methodName);
         if ($market['swap'] !== true) {
-            throw new NotSupported($this->id . ' ' . $methodName . '() supports swap markets only');
+            throw new NotSupported($this->id . ' ' . $methodNameOption . '() supports swap markets only');
         }
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = Async\await($this->privateGetApiV1FuturesPositions($this->extend($request, $params)));
+        $response = Async\await($this->privateGetApiV1FuturesPositions($this->extend($request, $paramsMethodName)));
         //
         //     [
         //         {
@@ -4235,8 +4210,8 @@ class hashkey extends Exchange {
 
     public function parse_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         return $this->safe_position(array(
             'symbol' => $symbol,
             'id' => null,
@@ -4374,11 +4349,9 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $marginMode = strtoupper($marginMode);
-        if ($marginMode === 'CROSSED') {
-            $marginMode = 'CROSS';
-        }
-        if (($marginMode !== 'CROSS') && ($marginMode !== 'ISOLATED')) {
+        $marginModeUpper = strtoupper($marginMode);
+        $marginModeValue = ($marginModeUpper === 'CROSSED') ? 'CROSS' : $marginModeUpper;
+        if (($marginModeValue !== 'CROSS') && ($marginModeValue !== 'ISOLATED')) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
         }
         $market = $this->market($symbol);
@@ -4387,7 +4360,7 @@ class hashkey extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'marginType' => $marginMode,
+            'marginType' => $marginModeValue,
         );
         return Async\await($this->privatePostApiV1FuturesMarginType($this->extend($request, $params)));
     }
@@ -4442,12 +4415,11 @@ class hashkey extends Exchange {
         if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' modifyMarginHelper() supports swap markets only');
         }
-        $side = null;
-        list($side, $params) = $this->handle_param_string($params, 'side');
-        if ($side === null) {
+        list($sideParam, $paramsSide) = $this->handle_param_string($params, 'side');
+        if ($sideParam === null) {
             throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() requires a $params["side"] argument, either "long" or "short"');
         }
-        $side = strtoupper($side);
+        $side = strtoupper($sideParam);
         if (($side !== 'LONG') && ($side !== 'SHORT')) {
             throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() $params["side"] must be either long or short');
         }
@@ -4460,7 +4432,7 @@ class hashkey extends Exchange {
             'side' => $side,
             'amount' => $amountString,
         );
-        $response = Async\await($this->privatePostApiV1FuturesPositionMargin($this->extend($request, $params)));
+        $response = Async\await($this->privatePostApiV1FuturesPositionMargin($this->extend($request, $paramsSide)));
         //
         //     {
         //         "code": "0000",
@@ -4477,18 +4449,18 @@ class hashkey extends Exchange {
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
         $marketId = $this->safe_string($data, 'symbol');
-        $market = $this->safe_market($marketId, $market, null, 'swap');
+        $marketResolved = $this->safe_market($marketId, $market, null, 'swap');
         $timestamp = $this->safe_integer($data, 'timestamp');
         $errorCode = $this->safe_string($data, 'code');
         $success = $errorCode === '0000';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
-            'code' => $market['settle'],
+            'code' => $marketResolved['settle'],
             'status' => ($success) ? 'ok' : 'failed',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4515,8 +4487,8 @@ class hashkey extends Exchange {
         $response = Async\await($this->publicGetApiV1ExchangeInfo($params));
         // response is the same as in fetchMarkets()
         $data = $this->safe_list($response, 'contracts', array());
-        $symbols = $this->market_symbols($symbols);
-        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+        $symbolsNormalized = $this->market_symbols($symbols);
+        return $this->parse_leverage_tiers($data, $symbolsNormalized, 'symbol');
     }
 
     public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
@@ -4599,15 +4571,15 @@ class hashkey extends Exchange {
         //
         $riskLimits = $this->safe_list($info, 'riskLimits', array());
         $marketId = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($riskLimits); $i++) {
             $tier = $riskLimits[$i];
             $initialMarginRate = $this->safe_string($tier, 'initialMargin');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
-                'symbol' => $this->safe_symbol($marketId, $market),
-                'currency' => $market['settle'],
+                'symbol' => $this->safe_symbol($marketId, $marketResolved),
+                'currency' => $marketResolved['settle'],
                 'minNotional' => null,
                 'maxNotional' => $this->safe_number($tier, 'quantity'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintMargin'),
@@ -4730,10 +4702,10 @@ class hashkey extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return array(
             'info' => $fee,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'maker' => $this->safe_number_2($fee, 'openMakerFee', 'actualMakerRate'),
             'taker' => $this->safe_number_2($fee, 'openTakerFee', 'actualTakerRate'),
             'percentage' => true,
@@ -4758,14 +4730,15 @@ class hashkey extends Exchange {
             if ($recvWindow !== null) {
                 $additionalParams['recvWindow'] = $recvWindow;
             }
-            $headers = array(
+            $headersSigned = array(
                 'X-HK-APIKEY' => $this->apiKey,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
             $signature = null;
+            $bodySigned = null;
             if (($method === 'POST') && (($path === 'api/v1/spot/batchOrders') || ($path === 'api/v1/futures/batchOrders'))) {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($this->safe_list($params, 'orders'));
+                $headersSigned['Content-Type'] = 'application/json';
+                $bodySigned = $this->json($this->safe_list($params, 'orders'));
                 $signature = $this->hmac($this->encode($this->custom_urlencode($additionalParams)), $this->encode($this->secret), 'sha256');
                 $query = $this->custom_urlencode($this->extend($additionalParams, array( 'signature' => $signature )));
                 $url .= '?' . $query;
@@ -4777,11 +4750,13 @@ class hashkey extends Exchange {
                 if ($method === 'GET') {
                     $url .= '?' . $query;
                 } else {
-                    $body = $query;
+                    $bodySigned = $query;
                 }
             }
-            $headers['INPUT-SOURCE'] = $this->safe_string($this->options, 'broker', '10000700011');
-            $headers['broker_sign'] = $signature;
+            $headersSigned['INPUT-SOURCE'] = $this->safe_string($this->options, 'broker', '10000700011');
+            $headersSigned['broker_sign'] = $signature;
+            $bodyResolved = ($method === 'GET') ? $body : $bodySigned;
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersSigned );
         } else {
             $query = $this->urlencode($params);
             if (strlen($query) !== 0) {

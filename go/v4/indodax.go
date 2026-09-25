@@ -891,23 +891,26 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var selectedTimeframe *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var now int64 = this.Seconds()
 	var until *int64 = this.SafeInteger(params, "until", now)
-	params = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
 	var request map[string]any = map[string]any{
 		"to":     until,
 		"tf":     selectedTimeframe,
 		"symbol": market["id"],
 	}
-	if limit == nil {
-		limit = Int64PtrTyped(1000)
-	}
+	var limitResolved any = func() any {
+		if limit == nil {
+			return 1000
+		}
+		return limit
+	}()
 	if since != nil {
 		request["from"] = MathFloor(Divide(since, 1000))
 	} else {
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["from"] = Subtract(Subtract(now, Multiply(limit, duration)), 1)
+		request["from"] = Subtract(Subtract(now, Multiply(limitResolved, duration)), 1)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradingviewHistoryV2(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradingviewHistoryV2(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     [
@@ -921,7 +924,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     ]
 	//
-	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limitResolved)
 	return nil
 }
 func (this *Indodax) ParseOrderStatus(status *string) *string {
@@ -974,7 +977,7 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var side *string = nil
 	if InOp(order, "type") {
@@ -988,15 +991,15 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = nil
 	var filled *string = nil
 	var marketId *string = this.SafeString(order, "pair")
-	market = this.SafeMarket(marketId, market)
-	if market != nil {
-		symbol = GetValue(market, "symbol")
-		var quoteId *string = SafeStringPtr(GetValue(market, "quoteId"))
-		var baseId *string = SafeStringPtr(GetValue(market, "baseId"))
-		if (IsEqual(GetValue(market, "quoteId"), "idr")) && (InOp(order, "order_rp")) {
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	if marketResolved != nil {
+		symbol = marketResolved["symbol"]
+		var quoteId *string = SafeStringPtr(marketResolved["quoteId"])
+		var baseId *string = SafeStringPtr(marketResolved["baseId"])
+		if (IsEqual(marketResolved["quoteId"], "idr")) && (InOp(order, "order_rp")) {
 			quoteId = SafeStringPtr("rp")
 		}
-		if (IsEqual(GetValue(market, "baseId"), "idr")) && (InOp(order, "remain_rp")) {
+		if (IsEqual(marketResolved["baseId"], "idr")) && (InOp(order, "remain_rp")) {
 			baseId = SafeStringPtr("rp")
 		}
 		cost = this.SafeString(order, Add("order_", quoteId))
@@ -1234,11 +1237,15 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar string, si
 	}
 	var priceIsRequired bool = false
 	var quantityIsRequired bool = false
+	var isMarketBuy bool = (typeVar == "market") && (side == "buy")
+	var paramsOmitted any = params
+	if isMarketBuy {
+		paramsOmitted = this.Omit(params, "cost")
+	}
 	if typeVar == "market" {
 		if side == "buy" {
 			var quoteAmount any = nil
 			var cost *float64 = this.SafeNumber(params, "cost")
-			params = MapTyped(this.Omit(params, "cost"))
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else {
@@ -1271,7 +1278,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar string, si
 		AddElementToObject(request, market["baseId"], this.AmountToPrecision(symbol, amount))
 	}
 
-	result := (<-this.PrivatePostTrade(this.Extend(request, params))).Raw
+	result := (<-this.PrivatePostTrade(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(result)
 	var data map[string]any = SafeMapTyped(result, "return")
 	var id *string = this.SafeString(data, "order_id")
@@ -1596,9 +1603,9 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1618,11 +1625,11 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 		"withdraw_address": address,
 		"request_id":       strconv.FormatInt(requestId, 10),
 	}
-	if (tag != nil) && (!IsEqual(tag, "")) {
-		request["withdraw_memo"] = tag
+	if (!IsEqual(tagWithdrawTag, nil)) && (!IsEqual(tagWithdrawTag, "")) {
+		request["withdraw_memo"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Raw))
 
 	//
 	//     {
@@ -1863,14 +1870,17 @@ func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = apiUrl
-	if IsEqual(api, "public") {
+	var privateBody any = nil
+	var privateHeaders any = nil
+	var isPublic bool = (IsEqual(api, "public"))
+	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath any = Add("/", this.ImplodeParams(path, params))
 		url = Add(url, requestPath)
@@ -1879,22 +1889,30 @@ func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		body = this.Urlencode(this.Extend(map[string]any{
+		privateBody = this.Urlencode(this.Extend(map[string]any{
 			"method":     path,
 			"timestamp":  this.Nonce(),
 			"recvWindow": GetValue(this.Options, "recvWindow"),
 		}, params))
-		headers = map[string]any{
+		privateHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"Key":          this.ApiKey,
-			"Sign":         this.Hmac(this.Encode(body), this.Encode(this.Secret), sha512),
+			"Sign":         this.Hmac(this.Encode(privateBody), this.Encode(this.Secret), sha512),
 		}
+	}
+	var requestBody any = privateBody
+	if isPublic {
+		requestBody = body
+	}
+	var requestHeaders any = privateHeaders
+	if isPublic {
+		requestHeaders = headers
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Indodax) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

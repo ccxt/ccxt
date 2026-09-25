@@ -61,25 +61,26 @@ class luno extends \ccxt\async\luno {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
-        $subscription = array( 'symbol' => $symbol );
+        $subscription = array( 'symbol' => $symbolValue );
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
         }
         $url = $wsUrl . $subscriptionHash;
-        $messageHash = 'trades:' . $symbol;
+        $messageHash = 'trades:' . $symbolValue;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
             'api_key_secret' => $this->secret,
         );
         $request = $this->deep_extend($subscribe, $params);
         $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message, array $subscription) {
@@ -178,15 +179,15 @@ class luno extends \ccxt\async\luno {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
-        $subscription = array( 'symbol' => $symbol );
+        $subscription = array( 'symbol' => $symbolValue );
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
         }
         $url = $wsUrl . $subscriptionHash;
-        $messageHash = 'orderbook:' . $symbol;
+        $messageHash = 'orderbook:' . $symbolValue;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
             'api_key_secret' => $this->secret,
@@ -265,10 +266,10 @@ class luno extends \ccxt\async\luno {
     }
 
     public function parse_order_book_bids_asks(mixed $bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
-        $bidasks = $this->to_array($bidasks);
+        $bidasksValue = $this->to_array($bidasks);
         $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->custom_parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $thirdKey);
+        for ($i = 0; $i < count($bidasksValue); $i++) {
+            $result[] = $this->custom_parse_bid_ask($bidasksValue[$i], $priceKey, $amountKey, $thirdKey);
         }
         return $result;
     }

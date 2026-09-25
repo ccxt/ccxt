@@ -730,22 +730,20 @@ class indodax extends Exchange {
         $selectedTimeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $now = $this->seconds();
         $until = $this->safe_integer($params, 'until', $now);
-        $params = $this->omit($params, array( 'until' ));
+        $paramsOmitted = $this->omit($params, array( 'until' ));
         $request = array(
             'to' => $until,
             'tf' => $selectedTimeframe,
             'symbol' => $market['id'],
         );
-        if ($limit === null) {
-            $limit = 1000;
-        }
+        $limitResolved = ($limit === null) ? 1000 : $limit;
         if ($since !== null) {
             $request['from'] = (int) floor($since / 1000);
         } else {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = $now - $limit * $duration - 1;
+            $request['from'] = $now - $limitResolved * $duration - 1;
         }
-        $response = $this->publicGetTradingviewHistoryV2($this->extend($request, $params));
+        $response = $this->publicGetTradingviewHistoryV2($this->extend($request, $paramsOmitted));
         //
         //     [
         //         {
@@ -758,7 +756,7 @@ class indodax extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_order_status(?string $status) {
@@ -824,15 +822,15 @@ class indodax extends Exchange {
         $remaining = null;
         $filled = null;
         $marketId = $this->safe_string($order, 'pair');
-        $market = $this->safe_market($marketId, $market);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $quoteId = $market['quoteId'];
-            $baseId = $market['baseId'];
-            if (($market['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp' ?? '', $order))) {
+        $marketResolved = $this->safe_market($marketId, $market);
+        if ($marketResolved !== null) {
+            $symbol = $marketResolved['symbol'];
+            $quoteId = $marketResolved['quoteId'];
+            $baseId = $marketResolved['baseId'];
+            if (($marketResolved['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp' ?? '', $order))) {
                 $quoteId = 'rp';
             }
-            if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp' ?? '', $order))) {
+            if (($marketResolved['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp' ?? '', $order))) {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
@@ -998,11 +996,15 @@ class indodax extends Exchange {
         );
         $priceIsRequired = false;
         $quantityIsRequired = false;
+        $isMarketBuy = ($type === 'market') && ($side === 'buy');
+        $paramsOmitted = $params;
+        if ($isMarketBuy) {
+            $paramsOmitted = $this->omit($params, 'cost');
+        }
         if ($type === 'market') {
             if ($side === 'buy') {
                 $quoteAmount = null;
                 $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } else {
@@ -1034,7 +1036,7 @@ class indodax extends Exchange {
         if ($quantityIsRequired) {
             $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
         }
-        $result = $this->privatePostTrade($this->extend($request, $params));
+        $result = $this->privatePostTrade($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($result, 'return', array());
         $id = $this->safe_string($data, 'order_id');
         return $this->safe_order(array(
@@ -1283,7 +1285,7 @@ class indodax extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             $this->load_markets();
@@ -1302,10 +1304,10 @@ class indodax extends Exchange {
             'withdraw_address' => $address,
             'request_id' => (string) $requestId,
         );
-        if (($tag !== null) && ($tag !== '')) {
-            $request['withdraw_memo'] = $tag;
+        if (($tagWithdrawTag !== null) && ($tagWithdrawTag !== '')) {
+            $request['withdraw_memo'] = $tagWithdrawTag;
         }
-        $response = $this->privatePostWithdrawCoin($this->extend($request, $params));
+        $response = $this->privatePostWithdrawCoin($this->extend($request, $paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -1517,7 +1519,10 @@ class indodax extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl;
-        if ($api === 'public') {
+        $privateBody = null;
+        $privateHeaders = null;
+        $isPublic = ($api === 'public');
+        if ($isPublic) {
             $query = $this->omit($params, $this->extract_params($path));
             $requestPath = '/' . $this->implode_params($path, $params);
             $url = $url . $requestPath;
@@ -1526,18 +1531,26 @@ class indodax extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode($this->extend(array(
+            $privateBody = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $this->options['recvWindow'],
             ), $params));
-            $headers = array(
+            $privateHeaders = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($privateBody), $this->encode($this->secret), 'sha512'),
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $requestBody = $privateBody;
+        if ($isPublic) {
+            $requestBody = $body;
+        }
+        $requestHeaders = $privateHeaders;
+        if ($isPublic) {
+            $requestHeaders = $headers;
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

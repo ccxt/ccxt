@@ -738,19 +738,19 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var method *string = this.SafeString(params, "method")
-	params = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
 	if method == nil {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFees")
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
 
-		var retRes62819 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeesAsync(params))))
+		var retRes62819 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeesAsync(paramsOmitted))))
 		ch <- BoxAbsent(retRes62819)
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFees" {
 
-		var retRes63019 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeesAsync(params))))
+		var retRes63019 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeesAsync(paramsOmitted))))
 		ch <- BoxAbsent(retRes63019)
 		return nil
 	} else {
@@ -1092,7 +1092,7 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTicker(params)).Raw))
 	//
@@ -1130,7 +1130,7 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
 
@@ -1315,9 +1315,12 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var unit *string = SafeStringPtr(GetValue(periodunitVariable, 1))
 	var durationInSeconds int64 = this.ParseTimeframe(timeframe)
 	var duration int64 = durationInSeconds * 1000
-	if limit == nil {
-		limit = Int64PtrTyped(1500)
-	}
+	var limitResolved any = func() any {
+		if limit == nil {
+			return 1500
+		}
+		return limit
+	}()
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 		"period":          period,
@@ -1326,10 +1329,10 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	if since == nil {
 		var now int64 = this.Milliseconds()
 		request["to"] = this.Iso8601(now)
-		request["from"] = this.Iso8601(Subtract(now, Multiply(limit, duration)))
+		request["from"] = this.Iso8601(Subtract(now, Multiply(limitResolved, duration)))
 	} else {
 		request["from"] = this.Iso8601(since)
-		request["to"] = this.Iso8601(this.Sum(since, Multiply(limit, duration)))
+		request["to"] = this.Iso8601(this.Sum(since, Multiply(limitResolved, duration)))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params))).Raw))
@@ -1342,7 +1345,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var ohlcv []any = SafeListTyped(response, "candlesticks")
 
-	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limitResolved)
 	return nil
 }
 func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1387,16 +1390,16 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var feeInfo map[string]any = SafeMapTyped(trade, "fee")
-	trade = this.SafeDict(trade, "trade", trade)
-	var timestamp *int64 = this.SafeInteger(trade, "trade_timestamp")
+	var tradeValue any = this.SafeDict(trade, "trade", trade)
+	var timestamp *int64 = this.SafeInteger(tradeValue, "trade_timestamp")
 	if timestamp == nil {
-		timestamp = this.Parse8601(this.SafeString(trade, "time"))
+		timestamp = this.Parse8601(this.SafeString(tradeValue, "time"))
 	}
-	var side *string = this.SafeStringLower2(trade, "side", "taker_side")
-	var priceString *string = this.SafeString(trade, "price")
-	var amountString *string = this.SafeString(trade, "amount")
-	var costString *string = this.SafeString(trade, "volume")
-	var marketId *string = this.SafeString(trade, "instrument_code")
+	var side *string = this.SafeStringLower2(tradeValue, "side", "taker_side")
+	var priceString *string = this.SafeString(tradeValue, "price")
+	var amountString *string = this.SafeString(tradeValue, "amount")
+	var costString *string = this.SafeString(tradeValue, "volume")
+	var marketId *string = this.SafeString(tradeValue, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
 	var takerOrMaker *string = nil
@@ -1413,8 +1416,8 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 		takerOrMaker = this.SafeStringLower(feeInfo, "fee_type")
 	}
 	return this.SafeTrade(map[string]any{
-		"id":           this.SafeString2(trade, "trade_id", "sequence"),
-		"order":        this.SafeString(trade, "order_id"),
+		"id":           this.SafeString2(tradeValue, "trade_id", "sequence"),
+		"order":        this.SafeString(tradeValue, "order_id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
@@ -1425,7 +1428,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 		"cost":         costString,
 		"takerOrMaker": takerOrMaker,
 		"fee":          fee,
-		"info":         trade,
+		"info":         tradeValue,
 	}, market)
 }
 func (this *Onetrading) ParseBalance(response any) any {
@@ -1675,7 +1678,6 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar string,
 		}
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["type"] = "STOP"
-		params = MapTyped(this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"}))
 	} else if uppercaseType == "STOP" {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice param for " + typeVar + " orders"))
 	}
@@ -1685,13 +1687,24 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar string,
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	}
+	var triggerKeys any = func() any {
+		if triggerPrice != nil {
+			return []any{"triggerPrice", "trigger_price", "stopPrice"}
+		}
+		return []any{}
+	}()
+	var clientOrderIdKeys any = func() any {
+		if clientOrderId != nil {
+			return []any{"clientOrderId", "client_id"}
+		}
+		return []any{}
+	}()
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, this.ArrayConcat(this.ArrayConcat(triggerKeys, clientOrderIdKeys), []any{"timeInForce"})))
 	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED")
-	params = MapTyped(this.Omit(params, "timeInForce"))
 	request["time_in_force"] = timeInForce
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrders(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     {
@@ -1740,7 +1753,7 @@ func (this *Onetrading) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
-	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	var method string = "privateDeleteAccountOrdersOrderId"
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
@@ -1752,10 +1765,10 @@ func (this *Onetrading) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	var response map[string]any = nil
 	if method == "privateDeleteAccountOrdersOrderId" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	//
@@ -1975,15 +1988,20 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted any = func() any {
+		if until != nil {
+			return this.Omit(params, "until")
+		}
+		return params
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, "until"))
 		request["to"] = this.Iso8601(until)
 	}
 	if limit != nil {
 		request["max_page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "order_history": [
@@ -2101,8 +2119,8 @@ func (this *Onetrading) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		"with_cancelled_and_rejected": true,
 	}
 
-	var retRes176615 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes176615)
+	var retRes176415 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes176415)
 	return nil
 }
 
@@ -2228,15 +2246,20 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted any = func() any {
+		if until != nil {
+			return this.Omit(params, "until")
+		}
+		return params
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, "until"))
 		request["to"] = this.Iso8601(until)
 	}
 	if limit != nil {
 		request["max_page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountTrades(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "trade_history": [
@@ -2281,7 +2304,7 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
@@ -2295,17 +2318,28 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		headers = map[string]any{
+		var headersSigned map[string]any = map[string]any{
 			"Accept":        "application/json",
 			"Authorization": Add("Bearer ", this.ApiKey),
 		}
+		var bodyJson any = func() any {
+			if method == "POST" {
+				return this.Json(query)
+			}
+			return body
+		}()
 		if method == "POST" {
-			body = this.Json(query)
-			AddElementToObject(headers, "Content-Type", "application/json")
+			headersSigned["Content-Type"] = "application/json"
 		} else {
 			if len(ObjectKeys(query)) > 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
+		}
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    bodyJson,
+			"headers": headersSigned,
 		}
 	}
 	return map[string]any{

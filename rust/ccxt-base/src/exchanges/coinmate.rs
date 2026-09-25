@@ -1047,7 +1047,7 @@ impl CoinmateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.public_get_ticker_all(&[params]).await;
         //
         //     {
@@ -1086,7 +1086,7 @@ impl CoinmateCore {
             add_element_to_object(&mut result, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker);
         }
         }
-        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -1300,7 +1300,9 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1325,10 +1327,10 @@ impl CoinmateCore {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destinationTag".into(), tag.clone()); }
+        if (tagWithdrawTag != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destinationTag".into(), tagWithdrawTag.clone()); }
         }
-        let mut requestParams: Value = self.extend(request, &[params]);
+        let mut requestParams: Value = self.extend(request, &[paramsWithdrawTag]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privatePostBitcoinWithdrawal")) {
             response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await;
@@ -1370,7 +1372,7 @@ impl CoinmateCore {
             add_element_to_object(&mut transaction, &Value::Str("amount".into()), amount);
             add_element_to_object(&mut transaction, &Value::Str("currency".into()), code);
             add_element_to_object(&mut transaction, &Value::Str("address".into()), address);
-            add_element_to_object(&mut transaction, &Value::Str("tag".into()), tag);
+            add_element_to_object(&mut transaction, &Value::Str("tag".into()), tagWithdrawTag);
             add_element_to_object(&mut transaction, &Value::Str("type".into()), Value::Str("withdrawal".into()));
             add_element_to_object(&mut transaction, &Value::Str("status".into()), Value::Str("pending".into()));
         }
@@ -1401,12 +1403,10 @@ impl CoinmateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if (limit == Value::Null) {
-            limit = Value::Int(1000);
-        }
+        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("limit".to_string(), limit.clone());
+                m.insert("limit".to_string(), limitResolved.clone());
             m
         });
         if (symbol != Value::Null) {
@@ -1419,7 +1419,7 @@ impl CoinmateCore {
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[Value::Null, since, limit]);
+        return self.parse_trades(data, &[Value::Null, since, limitResolved]);
 
     Value::Null
 }
@@ -1454,7 +1454,7 @@ impl CoinmateCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "currencyPair", &[]);
-        market = self.safe_market(&[marketId, market.clone(), Value::Str("_".into())]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Str("_".into())]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]);
@@ -1468,7 +1468,7 @@ impl CoinmateCore {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString);
-                    m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m
             });
         }
@@ -1480,7 +1480,7 @@ impl CoinmateCore {
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
         m.insert("order".to_string(), orderId);
@@ -1490,7 +1490,7 @@ impl CoinmateCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1957,6 +1957,8 @@ impl CoinmateCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let mut bodySigned: Value = Value::Null;
+        let mut headersSigned: Value = Value::Null;
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -1980,19 +1982,21 @@ impl CoinmateCore {
                     m.insert("signature".to_string(), to_upper(&signature));
                 m
             }), &[params]);
-            body = self.urlencode(__ws_arg_10, &[]);
-            headers = Value::Map({
+            bodySigned = self.urlencode(__ws_arg_10, &[]);
+            headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                 m
             });
         }
+        let mut headersResolved: Value = (if (headersSigned == Value::Null) { headers } else { headersSigned });
+        let mut bodyResolved: Value = (if (bodySigned == Value::Null) { body } else { bodySigned });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResolved);
+        m.insert("headers".to_string(), headersResolved);
     m
 });
 

@@ -566,7 +566,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "executed_timestamp")
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var id *string = this.SafeString2(trade, "tid", "operation_id")
 	var typeVar any = nil
 	var side *string = this.SafeString(trade, "type")
@@ -585,7 +585,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"order":        nil,
 		"type":         typeVar,
 		"side":         side,
@@ -594,7 +594,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -881,11 +881,11 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "coin_pair")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(order, "created_timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "fee"),
-		"currency": GetValue(market, "quote"),
+		"currency": marketResolved["quote"],
 	}
 	var price *string = this.SafeString(order, "limit_price")
 	// price = this.safeNumber (order, 'executed_price_avg', price);
@@ -894,7 +894,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
 	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -917,7 +917,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             rawTrades,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -985,9 +985,9 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1000,27 +1000,27 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 		"address":  address,
 	}
 	if IsEqual(code, "BRL") {
-		var account_ref bool = (InOp(params, "account_ref"))
+		var account_ref bool = (InOp(paramsWithdrawTag, "account_ref"))
 		if !account_ref {
 			panic(ArgumentsRequired(Add(this.Id+" withdraw() requires account_ref parameter to withdraw ", code)))
 		}
 	} else if !IsEqual(code, "LTC") {
-		var tx_fee bool = (InOp(params, "tx_fee"))
+		var tx_fee bool = (InOp(paramsWithdrawTag, "tx_fee"))
 		if !tx_fee {
 			panic(ArgumentsRequired(Add(this.Id+" withdraw() requires tx_fee parameter to withdraw ", code)))
 		}
 		if IsEqual(code, "XRP") {
-			if tag == nil {
-				if !(InOp(params, "destination_tag")) {
+			if IsEqual(tagWithdrawTag, nil) {
+				if !(InOp(paramsWithdrawTag, "destination_tag")) {
 					panic(ArgumentsRequired(Add(this.Id+" withdraw() requires a tag argument or destination_tag parameter to withdraw ", code)))
 				}
 			} else {
-				request["destination_tag"] = tag
+				request["destination_tag"] = tagWithdrawTag
 			}
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Raw))
 	//
 	//     {
 	//         "response_data": {
@@ -1062,7 +1062,7 @@ func (this *Mercado) ParseTransaction(transaction any, optionalArgs ...any) any 
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = this.SafeCurrency(nil, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(nil, currency)
 	return map[string]any{
 		"id":          this.SafeString(transaction, "id"),
 		"txid":        nil,
@@ -1074,7 +1074,7 @@ func (this *Mercado) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"addressTo":   nil,
 		"amount":      nil,
 		"type":        nil,
-		"currency":    GetValue(currency, "code"),
+		"currency":    currencyResolved["code"],
 		"status":      nil,
 		"updated":     nil,
 		"tagFrom":     nil,
@@ -1128,23 +1128,27 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     Add(Add(market["base"], "-"), market["quote"]),
 	}
-	if limit == nil {
-		limit = Int64PtrTyped(100) // set some default limit, as it's required if user doesn't provide it
-	}
+	// set some default limit, as it's required if user doesn't provide it
+	var limitResolved any = func() any {
+		if limit == nil {
+			return 100
+		}
+		return limit
+	}()
 	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
-		request["to"] = this.Sum(request["from"], Multiply(limit, this.ParseTimeframe(timeframe)))
+		request["to"] = this.Sum(request["from"], Multiply(limitResolved, this.ParseTimeframe(timeframe)))
 	} else {
 		var to int64 = this.Seconds()
 		request["to"] = to
-		request["from"] = Subtract(to, (Multiply(limit, this.ParseTimeframe(timeframe))))
+		request["from"] = Subtract(to, (Multiply(limitResolved, this.ParseTimeframe(timeframe))))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw))
 
 	// parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
 	// then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
-	ch <- this.ParseTradingViewOHLCV(response, market, timeframe, since, limit)
+	ch <- this.ParseTradingViewOHLCV(response, market, timeframe, since, limitResolved)
 	return nil
 }
 
@@ -1317,7 +1321,7 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
@@ -1325,7 +1329,10 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet")) {
+	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet"))
+	var privateBody *string = nil
+	var privateHeaders any = nil
+	if isPublic {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
@@ -1335,22 +1342,30 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 		url = Add(url, this.Version+"/")
 		// mercado requires each tonce to be greater than the previous one
 		var nonce any = this.IncrementingNonce()
-		body = this.Urlencode(this.Extend(map[string]any{
+		privateBody = SafeStringPtr(this.Urlencode(this.Extend(map[string]any{
 			"tapi_method": path,
 			"tapi_nonce":  nonce,
-		}, params))
-		var auth *string = SafeStringPtr(Add("/tapi/"+this.Version+"/"+"?", body))
-		headers = map[string]any{
+		}, params)))
+		var auth string = "/tapi/" + this.Version + "/" + "?" + *privateBody
+		privateHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"TAPI-ID":      this.ApiKey,
 			"TAPI-MAC":     this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512),
 		}
 	}
+	var requestBody *string = privateBody
+	if isPublic {
+		requestBody = body
+	}
+	var requestHeaders any = privateHeaders
+	if isPublic {
+		requestHeaders = headers
+	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Mercado) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

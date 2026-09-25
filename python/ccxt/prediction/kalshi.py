@@ -1052,12 +1052,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         # Sort bids descending, asks ascending, match CCXT OrderBook shape
-        bids = self.sort_by(bids, 0, True)
-        asks = self.sort_by(asks, 0)
+        bidsValue = self.sort_by(bids, 0, True)
+        asksValue = self.sort_by(asks, 0)
         return {
             'outcome': outcome,
-            'bids': bids,
-            'asks': asks,
+            'bids': bidsValue,
+            'asks': asksValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'nonce': None,
@@ -1844,7 +1844,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         # `time_in_force` param (handled below) still overrides
         unifiedTif = self.safe_string_upper(params, 'timeInForce')
-        params = self.omit(params, 'timeInForce')
+        paramsOmitted = self.omit(params, 'timeInForce')
         defaultTif = 'good_till_canceled'
         if isMarket:
             defaultTif = 'immediate_or_cancel'
@@ -1856,10 +1856,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             defaultTif = 'fill_or_kill'
         elif unifiedTif == 'GTC':
             defaultTif = 'good_till_canceled'
-        timeInForce = None
-        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'time_in_force', defaultTif)
-        stp = None
-        stp, params = self.handle_option_string_and_params(params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross')
+        timeInForce, paramsTimeInForce = self.handle_option_string_and_params(paramsOmitted, 'createOrder', 'time_in_force', defaultTif)
+        stp, paramsSelfTradePreventionType = self.handle_option_string_and_params(paramsTimeInForce, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross')
         request = {
             'ticker': ticker,
             'side': bookSide,
@@ -1869,7 +1867,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         }
         if yesPrice is not None:
             request['price'] = self.number_to_string(yesPrice)
-        response = await self.kalshiPrivatePostPortfolioEventsOrders(self.extend(request, params))
+        response = await self.kalshiPrivatePostPortfolioEventsOrders(self.extend(request, paramsSelfTradePreventionType))
         # the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         # the known order details and resolve the status from the remaining count
         order = self.parse_prediction_order(response, outcomeObj)
@@ -2002,8 +2000,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if queries is None:
             raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
-        params = self.omit(params, ['query', 'queries'])
-        userLimit = self.safe_integer(params, 'limit')
+        paramsOmitted = self.omit(params, ['query', 'queries'])
+        userLimit = self.safe_integer(paramsOmitted, 'limit')
         # bound how many events are actually FETCHED (not just returned) so a broad scope like
         # category='Crypto' (hundreds of series) doesn't page every one of them
         fetchCap = self.safe_integer(self.options, 'maxFetchEventsResults', 100)
@@ -2012,7 +2010,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         # map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         # silently rewritten to 'open'); 'all' sends no filter
-        requestedStatus = self.safe_string(params, 'status', self.safe_string(self.options, 'defaultEventStatus', 'open'))
+        requestedStatus = self.safe_string(paramsOmitted, 'status', self.safe_string(self.options, 'defaultEventStatus', 'open'))
         status = None
         if (requestedStatus == 'active') or (requestedStatus == 'open'):
             status = 'open'
@@ -2021,10 +2019,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
         elif (requestedStatus == 'settled') or (requestedStatus == 'resolved'):
             status = 'settled'
         # anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker'])
+        rest = self.omit(paramsOmitted, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker'])
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
-        eventId = self.safe_string_2(params, 'eventId', 'slug')
+        eventId = self.safe_string_2(paramsOmitted, 'eventId', 'slug')
         rawEvents = []
         if queriesLength > 0:
             # free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -2035,10 +2033,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
             rawEvents = [fullEvent]
         else:
             # tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            seriesTickers = await self.resolve_event_series_tickers(params)
+            seriesTickers = await self.resolve_event_series_tickers(paramsOmitted)
             seriesTickersLength = len(seriesTickers)
             if seriesTickersLength == 0:
-                self.require_event_query(params)
+                self.require_event_query(paramsOmitted)
             rawEvents = await self.fetch_series_events(seriesTickers, status, fetchCap, rest)
         rawEventsLength = len(rawEvents)
         result = []
@@ -2056,7 +2054,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # scoping already happened server-side, so strip the resolved scopes before the client-side
         # pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         # and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        postParams = self.omit(params, ['tags', 'category', 'series_ticker'])
+        postParams = self.omit(paramsOmitted, ['tags', 'category', 'series_ticker'])
         return self.apply_event_fetch_params(result, postParams, [])
 
     async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[object]:
@@ -2397,10 +2395,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if method == 'GET' and (querystring != ''):
             url += '?' + querystring
         existingHeaders = headers if (headers is not None) else {}
-        headers = self.extend({
+        headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
+        bodyValue = body
         if access == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
@@ -2415,12 +2414,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
             keyParts = self.privateKey.split('\\n')
             cleanPrivateKey = '\n'.join(keyParts)
             signature = self.rsa(payload, cleanPrivateKey, 'sha256', 'pss')
-            headers = self.extend(headers, {
+            headersValue = self.extend(headersValue, {
                 'KALSHI-ACCESS-KEY': self.apiKey,
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             })
             if method != 'GET' and (querystring != ''):
                 # kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = self.json(query)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                bodyValue = self.json(query)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}

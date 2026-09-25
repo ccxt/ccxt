@@ -1213,8 +1213,9 @@ impl SxbetCore {
         if (tokenAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the base token address from /metadata/obv3".into()))));
         }
-        let mut spender: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_string_and_params2(params.clone(), Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress]); spender = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut spenderparamsSpenderVariable = self.handle_option_string_and_params2(params, Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress]);
+        let mut spender: Value = spenderparamsSpenderVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSpender: Value = spenderparamsSpenderVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender".into()))));
         }
@@ -1226,7 +1227,7 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rpcUrl: Value = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(chainConfig, Value::Str("rpcUrl".into()), &[])]);
+        let mut rpcUrl: Value = self.safe_string_k(paramsSpender.clone(), "rpcUrl", &[self.safe_string(chainConfig, Value::Str("rpcUrl".into()), &[])]);
         if (rpcUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() has no RPC endpoint configured for chainId ".into())).into()), self.number_to_string(chainId.clone())).into()), Value::Str(" - pass params.rpcUrl".into()))));
         }
@@ -1242,7 +1243,7 @@ impl SxbetCore {
         let mut nonce: Value = (if (nonceHex.as_str() == Some("")) { Value::Str("0".into()) } else { self.number_to_string(self.hex_to_int(nonceHex)) });
         let mut tokenName: Value = self.fetch_erc20_name(rpcUrl, tokenAddress.clone()).await;
         let mut defaultDeadlineSeconds: Value = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]);
-        let mut deadline: Value = self.safe_integer_k(params.clone(), "deadline", &[self.sum(&[self.seconds(), defaultDeadlineSeconds])]);
+        let mut deadline: Value = self.safe_integer_k(paramsSpender.clone(), "deadline", &[self.sum(&[self.seconds(), defaultDeadlineSeconds])]);
         let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&self.number_to_string(amount), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut domain: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1304,7 +1305,7 @@ impl SxbetCore {
                 m.insert("signature".to_string(), signature);
             m
         });
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("amount".into()), Value::Str("tokenAddress".into()), Value::Str("deadline".into()), Value::Str("rpcUrl".into())]), &[]);
+        let mut rest: Value = self.omit(paramsSpender, Value::from(vec![Value::Str("amount".into()), Value::Str("tokenAddress".into()), Value::Str("deadline".into()), Value::Str("rpcUrl".into())]), &[]);
         let __ws_arg_5 = self.extend(request, &[rest]);
         let mut response: Value = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -1403,8 +1404,9 @@ impl SxbetCore {
         if (type_var.as_str() == Some("limit")) {
             defaultTif = Value::Str("GTC".into());
         }
-        let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut timeInForceparamsTimeInForceVariable = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]);
+        let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1486,22 +1488,22 @@ impl SxbetCore {
                 m.insert("orderSignature".to_string(), orderSignature);
             m
         });
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
+        let mut clientOrderId: Value = self.safe_string_k(paramsTimeInForce.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert("clientOrderId".into(), clientOrderId.clone()); }
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        let mut useBetCredits: Value = self.safe_bool_k(params.clone(), "useBetCredits", &[]);
+        let mut useBetCredits: Value = self.safe_bool_k(paramsTimeInForce.clone(), "useBetCredits", &[]);
         if (useBetCredits != Value::Null) {
             if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert("useBetCredits".into(), useBetCredits); }
         }
-        let mut externalUserId: Value = self.safe_string_k(params.clone(), "externalUserId", &[]);
+        let mut externalUserId: Value = self.safe_string_k(paramsTimeInForce.clone(), "externalUserId", &[]);
         if (externalUserId != Value::Null) {
             if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert("externalUserId".into(), externalUserId); }
         }
-        let mut waitForOutcome: Value = self.safe_bool_k(params.clone(), "waitForOutcome", &[Value::Bool(true)]);
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]);
+        let mut waitForOutcome: Value = self.safe_bool_k(paramsTimeInForce.clone(), "waitForOutcome", &[Value::Bool(true)]);
+        let mut rest: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(vec![orderItem]));
@@ -3861,18 +3863,18 @@ impl SxbetCore {
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("sxbet")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut existingHeaders: Value = (if (headers != Value::Null) { headers.clone() } else { Value::Map({
+        let mut existingHeaders: Value = (if (headers != Value::Null) { headers } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        headers = self.extend(Value::Map({
+        let mut headersExtended: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
         }), &[existingHeaders]);
         if (self.apiKey.clone() != Value::Null) {
-            add_element_to_object(&mut headers, &Value::Str("x-sx-api-key".into()), self.apiKey.clone());
+            add_element_to_object(&mut headersExtended, &Value::Str("x-sx-api-key".into()), self.apiKey.clone());
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -3881,6 +3883,7 @@ impl SxbetCore {
             let mut hasOrdersList: bool = in_op(&query, &Value::Str("orders".into()));
             sendAsQuery = !hasOrdersList;
         }
+        let mut bodyValue: Value = body;
         if sendAsQuery {
             let mut querystring: Value = self.urlencode(query.clone(), &[]);
             if (querystring.as_str() != Some("")) {
@@ -3890,15 +3893,15 @@ impl SxbetCore {
             let mut queryKeys: Value = object_keys(&query);
             let mut queryKeysLength: f64 = ((queryKeys.len() as i64) as f64);
             if queryKeysLength > ((0i64) as f64) {
-                body = json_stringify(&query);
+                bodyValue = json_stringify(&query);
             }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyValue);
+        m.insert("headers".to_string(), headersExtended);
     m
 });
 

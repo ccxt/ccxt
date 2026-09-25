@@ -281,7 +281,6 @@ public partial class coinone : ccxt.coinone
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -300,11 +299,12 @@ public partial class coinone : ccxt.coinone
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limitVar));
+            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -362,7 +362,7 @@ public partial class coinone : ccxt.coinone
             symbol = ((bs + "/") + quote);
         }
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        market = this.safeMarket(symbol, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if ((isSellerMaker != null))
@@ -377,7 +377,7 @@ public partial class coinone : ccxt.coinone
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "order", null },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -385,7 +385,7 @@ public partial class coinone : ccxt.coinone
             { "amount", amountString },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)

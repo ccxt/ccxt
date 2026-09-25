@@ -1468,11 +1468,11 @@ class tokocrypto extends Exchange {
         $maxLimit = 1500;
         $price = $this->safe_string($params, 'price');
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, array( 'price', 'until' ));
-        $limit = ($limit === null) ? $defaultLimit : min($limit, $maxLimit);
+        $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
+        $limitValue = ($limit === null) ? $defaultLimit : min($limit, $maxLimit);
         $request = array(
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'limit' => $limit,
+            'limit' => $limitValue,
         );
         if ($price === 'index') {
             $request['pair'] = $market['id'];   // Index price takes this argument instead of symbol
@@ -1488,9 +1488,9 @@ class tokocrypto extends Exchange {
         }
         $response = null;
         if ($this->is_native_market($market)) {
-            $response = $this->publicGetOpenV1MarketKlines($this->extend($request, $params));
+            $response = $this->publicGetOpenV1MarketKlines($this->extend($request, $paramsOmitted));
         } else {
-            $response = $this->binanceGetKlines($this->extend($request, $params));
+            $response = $this->binanceGetKlines($this->extend($request, $paramsOmitted));
         }
         //
         // binanceGetKlines
@@ -1537,7 +1537,7 @@ class tokocrypto extends Exchange {
                 $data = $this->safe_list($dataDict, 'list', array());
             }
         }
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitValue);
     }
 
     public function fetch_balance($params = array()): array {
@@ -1817,15 +1817,13 @@ class tokocrypto extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         // only supported for spot/margin api
-        if ($postOnly === true) {
-            $type = 'LIMIT_MAKER';
-        }
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
-        $initialUppercaseType = strtoupper($type);
+        $typeResolved = ($postOnly === true) ? 'LIMIT_MAKER' : $type;
+        $initialUppercaseType = strtoupper($typeResolved);
         $uppercaseType = $initialUppercaseType;
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $triggerKeys = ($triggerPrice !== null) ? array( 'triggerPrice', 'stopPrice' ) : array();
+        $paramsRequest = $this->omit($params, $this->array_concat(array( 'clientId', 'clientOrderId' ), $triggerKeys));
         if ($triggerPrice !== null) {
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_LOSS';
             } elseif ($uppercaseType === 'LIMIT') {
@@ -1835,9 +1833,9 @@ class tokocrypto extends Exchange {
         $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
-                throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $typeResolved . ' orders');
             } else {
-                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+                throw new InvalidOrder($this->id . ' ' . $typeResolved . ' is not a valid order $type for the ' . $symbol . ' market');
             }
         }
         $reverseOrderTypeMapping = array(
@@ -1889,9 +1887,9 @@ class tokocrypto extends Exchange {
                 $precision = $market['precision']['price'];
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
-                $params = $this->omit($params, array( 'cost', 'quoteOrderQty' ));
+                list($createMarketBuyOrderRequiresPrice, $paramsRequest) = $this->handle_option_bool_and_params($paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number_2($paramsRequest, 'cost', 'quoteOrderQty');
+                $paramsRequest = $this->omit($paramsRequest, array( 'cost', 'quoteOrderQty' ));
                 if ($cost !== null) {
                     $quoteAmount = $cost;
                 } elseif ($createMarketBuyOrderRequiresPrice) {
@@ -1931,18 +1929,18 @@ class tokocrypto extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $typeResolved . ' order');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($triggerPriceIsRequired) {
             if ($triggerPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $typeResolved . ' order');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
         }
-        $response = $this->privatePostOpenV1Orders($this->extend($request, $params));
+        $response = $this->privatePostOpenV1Orders($this->extend($request, $paramsRequest));
         //
         //     {
         //         "code": 0,
@@ -2204,14 +2202,14 @@ class tokocrypto extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
+        $paramsOmitted = ($endTime !== null) ? $this->omit($params, array( 'endTime', 'until' )) : $params;
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
-            $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenV1OrdersTrades($this->extend($request, $params));
+        $response = $this->privateGetOpenV1OrdersTrades($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -2263,13 +2261,13 @@ class tokocrypto extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
             $request['network'] = $network;
-            $params = $this->omit($params, 'network');
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        $response = $this->privateGetOpenV1DepositsAddress($this->extend($request, $params));
+        $response = $this->privateGetOpenV1DepositsAddress($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "code":0,
@@ -2574,7 +2572,7 @@ class tokocrypto extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2588,10 +2586,10 @@ class tokocrypto extends Exchange {
             // 'addressTag': 'string', // for coins like XRP, XMR, etc
             'amount' => $this->number_to_string($amount),
         );
-        if ($tag !== null) {
-            $request['addressTag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['addressTag'] = $tagWithdrawTag;
         }
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        list($networkCode, $query) = $this->handle_network_code_and_params($paramsWithdrawTag);
         $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId !== null) {
             $request['network'] = strtoupper($networkId);
@@ -2623,13 +2621,12 @@ class tokocrypto extends Exchange {
         if ($userDataStream) {
             if (($this->apiKey !== null) && ($this->apiKey !== '')) {
                 // v1 special case for userDataStream
-                $headers = array(
+                $headersStream = array(
                     'X-MBX-APIKEY' => $this->apiKey,
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
-                if ($method !== 'GET') {
-                    $body = $this->urlencode($params);
-                }
+                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : $body;
+                return array( 'url' => $url, 'method' => $method, 'body' => $bodyStream, 'headers' => $headersStream );
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
@@ -2656,15 +2653,20 @@ class tokocrypto extends Exchange {
             }
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             $query .= '&' . 'signature=' . $signature;
-            $headers = array(
+            $headersSigned = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
+            $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi');
+            $bodySigned = $query;
+            if ($queryInUrl) {
+                $bodySigned = $body;
+            }
+            if ($queryInUrl) {
                 $url .= '?' . $query;
             } else {
-                $body = $query;
-                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                $headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         } else {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
@@ -2697,9 +2699,9 @@ class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
+        $parsedMessage = null;
         if ($success !== true) {
             $messageInner = $this->safe_string($response, 'msg');
-            $parsedMessage = null;
             if ($messageInner !== null) {
                 try {
                     $parsedMessage = json_decode($messageInner, $as_associative_array = true);
@@ -2707,18 +2709,16 @@ class tokocrypto extends Exchange {
                     // do nothing
                     $parsedMessage = null;
                 }
-                if ($parsedMessage !== null) {
-                    $response = $parsedMessage;
-                }
             }
         }
-        $message = $this->safe_string($response, 'msg');
+        $responseParsed = ($parsedMessage !== null) ? $parsedMessage : $response;
+        $message = $this->safe_string($responseParsed, 'msg');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $this->id . ' ' . $message);
         }
         // checks against error codes
-        $error = $this->safe_string($response, 'code');
+        $error = $this->safe_string($responseParsed, 'code');
         if ($error !== null) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742

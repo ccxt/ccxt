@@ -2146,13 +2146,14 @@ class polymarket extends Exchange {
         if ($orderTypeStr === null) {
             $orderTypeStr = $isMarket ? 'FOK' : 'GTC';
         }
-        if ($price === null) {
+        $priceResolved = $price;
+        if ($priceResolved === null) {
             if (!$isMarket) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
-            $price = $this->safe_number($outcomeObj, 'price');
-            if ($price === null) {
+            $priceResolved = $this->safe_number($outcomeObj, 'price');
+            if ($priceResolved === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() could not determine a $price from the $outcome, pass an explicit price');
             }
         }
@@ -2177,7 +2178,7 @@ class polymarket extends Exchange {
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         $cost = $this->safe_number($params, 'cost');
         $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode' ));
-        $amounts = $this->polymarket_order_raw_amounts($sideStr, $amount, $price, $tickSize, $cost);
+        $amounts = $this->polymarket_order_raw_amounts($sideStr, $amount, $priceResolved, $tickSize, $cost);
         $makerAmount = $this->safe_string($amounts, 'makerAmount');
         $takerAmount = $this->safe_string($amounts, 'takerAmount');
         $sideInt = ($sideStr === 'BUY') ? 0 : 1;
@@ -2263,7 +2264,7 @@ class polymarket extends Exchange {
         // them and return a fully-populated order instead of undefined side/price/amount
         $requestEcho = array(
             'side' => $sideStr,
-            'price' => $price,
+            'price' => $priceResolved,
             'asset_id' => $tokenId,
             'time_in_force' => $orderTypeStr,
             'postOnly' => $postOnly,
@@ -2829,6 +2830,7 @@ class polymarket extends Exchange {
         if (!$isArrayBody) {
             $query = $this->omit($params, $this->extract_params($path));
         }
+        $bodyValue = $body;
         if ($method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2850,16 +2852,16 @@ class polymarket extends Exchange {
                 $url .= '?' . $querystring;
             }
         } elseif ($isArrayBody) {
-            $body = $this->json($params);
+            $bodyValue = $this->json($params);
         } else {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);
             if ($queryKeysLength > 0) {
-                $body = $this->json($query);
+                $bodyValue = $this->json($query);
             }
         }
         $headerDefaults = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $headerDefaults);
@@ -2880,7 +2882,7 @@ class polymarket extends Exchange {
                 $timestamp = (string) $this->seconds();
                 $nonce = $this->safe_integer($params, 'nonce', 0);
                 $l1signature = $this->sign_clob_auth($address, $timestamp, $nonce);
-                $headers = $this->extend($headers, array(
+                $headersValue = $this->extend($headersValue, array(
                     'POLY_ADDRESS' => $address,
                     'POLY_SIGNATURE' => $l1signature,
                     'POLY_TIMESTAMP' => $timestamp,
@@ -2905,8 +2907,8 @@ class polymarket extends Exchange {
                 // @polymarket/clob-client — query params are sent separately, not signed
                 $requestPath = '/' . $this->implode_params($path, $params);
                 $auth = $timestamp . $method . $requestPath;
-                if ($body !== null) {
-                    $auth = $auth . $body;
+                if ($bodyValue !== null) {
+                    $auth = $auth . $bodyValue;
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
@@ -2919,7 +2921,7 @@ class polymarket extends Exchange {
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 $signature = str_replace('+', '-', $signature);
                 $signature = str_replace('/', '_', $signature);
-                $headers = $this->extend($headers, array(
+                $headersValue = $this->extend($headersValue, array(
                     'POLY_ADDRESS' => $address,
                     'POLY_API_KEY' => $apiKey,
                     'POLY_PASSPHRASE' => $passphrase,
@@ -2928,7 +2930,7 @@ class polymarket extends Exchange {
                 ));
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 
     public function hash_message(mixed $message): string {
@@ -3272,8 +3274,8 @@ class polymarket extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-        $outcome = $this->safe_string($outcomeObj, 'outcome');
-        $messageHash = 'orderbook::' . $outcome;
+        $outcomeValue = $this->safe_string($outcomeObj, 'outcome');
+        $messageHash = 'orderbook::' . $outcomeValue;
         $subscribeHash = 'subscribe::' . $tokenId;
         $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
         $url = $this->urls['api']['ws'];
@@ -3296,8 +3298,8 @@ class polymarket extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-        $outcome = $this->safe_string($outcomeObj, 'outcome');
-        $messageHash = 'trades::' . $outcome;
+        $outcomeValue = $this->safe_string($outcomeObj, 'outcome');
+        $messageHash = 'trades::' . $outcomeValue;
         $subscribeHash = 'subscribe::' . $tokenId;
         $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
         $url = $this->urls['api']['ws'];
@@ -3318,17 +3320,17 @@ class polymarket extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-        $outcome = $this->safe_string($outcomeObj, 'outcome');
-        $messageHash = 'ticker::' . $outcome;
+        $outcomeValue = $this->safe_string($outcomeObj, 'outcome');
+        $messageHash = 'ticker::' . $outcomeValue;
         $subscribeHash = 'subscribe::' . $tokenId;
         $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
-        if ($outcome === null) {
+        if ($outcomeValue === null) {
             throw new ExchangeError($this->id . ' watchTicker() missing outcome');
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($outcome ?? '', $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($outcomeValue ?? '', $this->orderbooks))) {
             $seededBook = $this->order_book(array());
-            if ($outcome !== null) {
-                $this->orderbooks[$outcome] = $seededBook;
+            if ($outcomeValue !== null) {
+                $this->orderbooks[$outcomeValue] = $seededBook;
             }
         }
         $url = $this->urls['api']['ws'];
@@ -3364,9 +3366,9 @@ class polymarket extends Exchange {
         } else {
             $mid = $bestAsk;
         }
-        $market = $this->safe_outcome($outcome);
+        $market = $this->safe_outcome($outcomeValue);
         return $this->safe_prediction_ticker(array(
-            'outcome' => $outcome,
+            'outcome' => $outcomeValue,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
@@ -3410,16 +3412,18 @@ class polymarket extends Exchange {
          */
         Async\await($this->load_api_credentials());
         $messageHash = 'orders';
-        if ($outcome !== null) {
-            $outcomeObj = Async\await($this->load_outcome($outcome));
-            $outcome = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'orders::' . $outcome;
+        $outcomeResolved = $outcome;
+        if ($outcomeResolved !== null) {
+            $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
+            $outcomeResolved = $this->safe_string($outcomeObj, 'outcome');
+            $messageHash = 'orders::' . $outcomeResolved;
         }
         $orders = Async\await($this->subscribe_user_channel($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($outcome, $limit);
+            $limitResolved = $orders->getLimit($outcomeResolved, $limitResolved);
         }
-        return $this->filter_by_outcome_since_limit($orders, $outcome, $since, $limit, true);
+        return $this->filter_by_outcome_since_limit($orders, $outcomeResolved, $since, $limitResolved, true);
     }
 
     public function watch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3440,16 +3444,18 @@ class polymarket extends Exchange {
          */
         Async\await($this->load_api_credentials());
         $messageHash = 'myTrades';
-        if ($outcome !== null) {
-            $outcomeObj = Async\await($this->load_outcome($outcome));
-            $outcome = $this->safe_string($outcomeObj, 'outcome');
-            $messageHash = 'myTrades::' . $outcome;
+        $outcomeResolved = $outcome;
+        if ($outcomeResolved !== null) {
+            $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
+            $outcomeResolved = $this->safe_string($outcomeObj, 'outcome');
+            $messageHash = 'myTrades::' . $outcomeResolved;
         }
         $trades = Async\await($this->subscribe_user_channel($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($outcome, $limit);
+            $limitResolved = $trades->getLimit($outcomeResolved, $limitResolved);
         }
-        return $this->filter_by_outcome_since_limit($trades, $outcome, $since, $limit, true);
+        return $this->filter_by_outcome_since_limit($trades, $outcomeResolved, $since, $limitResolved, true);
     }
 
     public function subscribe_user_channel(string $messageHash, $params = array()) {

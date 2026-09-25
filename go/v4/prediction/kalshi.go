@@ -1255,7 +1255,7 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketAny any = market
 	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
@@ -1610,12 +1610,12 @@ func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
  */
 func (this *Kalshi) SortedOrders(outcome any, timestamp any, bids any, asks any) any {
 	// Sort bids descending, asks ascending, match CCXT ccxt.OrderBook shape
-	bids = this.SortBy(bids, 0, true)
-	asks = this.SortBy(asks, 0)
+	var bidsValue []any = this.SortBy(bids, 0, true)
+	var asksValue []any = this.SortBy(asks, 0)
 	return map[string]any{
 		"outcome":   outcome,
-		"bids":      bids,
-		"asks":      asks,
+		"bids":      bidsValue,
+		"asks":      asksValue,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"nonce":     nil,
@@ -1646,7 +1646,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	_ = timeframe
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1877,7 +1877,7 @@ func (this *Kalshi) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "trade_id")
 	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_time"))
@@ -2755,7 +2755,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, si
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi has no market orders — every order is a limit order and the price is required
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2791,7 +2791,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, si
 	// accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
 	// `time_in_force` param (handled below) still overrides
 	var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
-	params = ccxt.MapTyped(this.Omit(params, "timeInForce"))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "timeInForce"))
 	var defaultTif string = "good_till_canceled"
 	if isMarket {
 		defaultTif = "immediate_or_cancel"
@@ -2805,14 +2805,12 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, si
 	} else if unifiedTif != nil && *unifiedTif == "GTC" {
 		defaultTif = "good_till_canceled"
 	}
-	var timeInForce *string = nil
-	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "time_in_force", defaultTif)
-	timeInForce = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
-	var stp *string = nil
-	var stpparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "self_trade_prevention_type", "taker_at_cross")
-	stp = ccxt.SafeStringPtr(ccxt.GetValue(stpparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(stpparamsVariable, 1))
+	var timeInForceparamsTimeInForceVariable []any = this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif)
+	var timeInForce *string = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 0))
+	var paramsTimeInForce map[string]any = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsTimeInForceVariable, 1))
+	var stpparamsSelfTradePreventionTypeVariable []any = this.HandleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross")
+	var stp *string = ccxt.SafeStringPtr(ccxt.GetValue(stpparamsSelfTradePreventionTypeVariable, 0))
+	var paramsSelfTradePreventionType map[string]any = ccxt.MapTyped(ccxt.GetValue(stpparamsSelfTradePreventionTypeVariable, 1))
 	var request map[string]any = map[string]any{
 		"ticker":                     ticker,
 		"side":                       bookSide,
@@ -2824,7 +2822,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, si
 		request["price"] = this.NumberToString(yesPrice)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivatePostPortfolioEventsOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivatePostPortfolioEventsOrders(this.Extend(request, paramsSelfTradePreventionType))).Raw))
 	// the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
 	// the known order details and resolve the status from the remaining count
 	var order any = this.ParsePredictionOrder(response, outcomeObj)
@@ -2899,8 +2897,8 @@ func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any,
 
 	ccxt.PanicOnError((<-this.CancelOrderAsync(id, outcome)))
 
-	var retRes212615 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params))))
-	ch <- ccxt.BoxAbsent(retRes212615)
+	var retRes212415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params))))
+	ch <- ccxt.BoxAbsent(retRes212415)
 	return nil
 }
 
@@ -3048,8 +3046,8 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)
-	params = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
-	var userLimit *int64 = this.SafeInteger(params, "limit")
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
+	var userLimit *int64 = this.SafeInteger(paramsOmitted, "limit")
 	// bound how many events are actually FETCHED (not just returned) so a broad scope like
 	// category='Crypto' (hundreds of series) doesn't page every one of them
 	var fetchCap *int64 = this.SafeInteger(this.Options, "maxFetchEventsResults", 100)
@@ -3059,7 +3057,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
 	// map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
 	// silently rewritten to 'open'); 'all' sends no filter
-	var requestedStatus *string = this.SafeString(params, "status", this.SafeString(this.Options, "defaultEventStatus", "open"))
+	var requestedStatus *string = this.SafeString(paramsOmitted, "status", this.SafeString(this.Options, "defaultEventStatus", "open"))
 	var status any = nil
 	if (requestedStatus != nil && *requestedStatus == "active") || (requestedStatus != nil && *requestedStatus == "open") {
 		status = "open"
@@ -3069,11 +3067,11 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		status = "settled"
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"}))
+	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"}))
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
-	var eventId *string = this.SafeString2(params, "eventId", "slug")
+	var eventId *string = this.SafeString2(paramsOmitted, "eventId", "slug")
 	var rawEvents any = []any{}
 	if queriesLength > 0 {
 		// free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -3089,11 +3087,11 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		// tags / category / series_ticker resolve to a set of series; fetch their events, capped
 
-		seriesTickers := (<-this.ResolveEventSeriesTickersAsync(params))
+		seriesTickers := (<-this.ResolveEventSeriesTickersAsync(paramsOmitted))
 		ccxt.PanicOnError(seriesTickers)
 		var seriesTickersLength int = ccxt.GetArrayLength(seriesTickers)
 		if seriesTickersLength == 0 {
-			this.RequireEventQuery(params)
+			this.RequireEventQuery(paramsOmitted)
 		}
 
 		rawEvents = (<-this.FetchSeriesEventsAsync(seriesTickers, status, fetchCap, rest))
@@ -3122,7 +3120,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side, so strip the resolved scopes before the client-side
 	// pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
 	// and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"tags", "category", "series_ticker"}))
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, []any{"tags", "category", "series_ticker"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -3682,10 +3680,11 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	headers = this.Extend(map[string]any{
+	var headersValue map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, existingHeaders)
+	var bodyValue any = body
 	if ccxt.IsEqual(access, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
@@ -3705,21 +3704,21 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 		var keyParts []string = ccxt.Split(this.PrivateKey, "\\n")
 		var cleanPrivateKey string = strings.Join(keyParts, "\n")
 		var signature string = ccxt.Rsa(payload, cleanPrivateKey, ccxt.Sha256, "pss")
-		headers = this.Extend(headers, map[string]any{
+		headersValue = this.Extend(headersValue, map[string]any{
 			"KALSHI-ACCESS-KEY":       this.ApiKey,
 			"KALSHI-ACCESS-SIGNATURE": signature,
 			"KALSHI-ACCESS-TIMESTAMP": timestamp,
 		})
 		if (method != "GET") && (querystring != "") {
 			// kalshi expects a JSON body; the signature covers only timestamp+method+path
-			body = this.Json(query)
+			bodyValue = this.Json(query)
 		}
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyValue,
+		"headers": headersValue,
 	}
 }
 

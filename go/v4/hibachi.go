@@ -624,8 +624,8 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var id *string = this.SafeString(trade, "id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
@@ -668,7 +668,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 		"type":         orderType,
 		"fee":          fee,
 		"info":         trade,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -811,7 +811,7 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var status *string = this.SafeString(order, "status")
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	var price *string = this.SafeString2(order, "price", "avgFillPrice")
@@ -860,7 +860,7 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) any {
 		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"status":              this.ParseOrderStatus(status),
-		"symbol":              GetValue(market, "symbol"),
+		"symbol":              marketResolved["symbol"],
 		"type":                typeVar,
 		"timeInForce":         timeInForce,
 		"side":                side,
@@ -875,7 +875,7 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) any {
 		"reduceOnly":          reduceOnly,
 		"postOnly":            postOnly,
 		"triggerPrice":        this.SafeNumber(order, "triggerPrice"),
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1089,8 +1089,8 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	if triggerPrice != nil {
 		request["triggerPrice"] = triggerPrice
 	}
-	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}))
-	return this.Extend(request, params)
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}))
+	return this.Extend(request, paramsOmitted)
 }
 
 /**
@@ -1942,15 +1942,14 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	if since != nil {
 		request["startTime"] = since
 	}
-	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrdersByStatus", "until")
-	until = GetValue(untilparamsVariable, 0)
-	params = MapTyped(GetValue(untilparamsVariable, 1))
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrdersByStatus", "until")
+	until := GetValue(untilparamsUntilVariable, 0)
+	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeOrdersHistory(this.Extend(request, paramsUntil))).Raw))
 	//
 	//     {
 	//         "hasMore": false,
@@ -2079,7 +2078,7 @@ func (this *Hibachi) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2092,23 +2091,22 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	timeframe = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
+	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
-		"interval": timeframe,
+		"interval": timeframeValue,
 	}
 	if since != nil {
 		request["fromMs"] = since
 	}
-	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
-	until = GetValue(untilparamsVariable, 0)
-	params = MapTyped(GetValue(untilparamsVariable, 1))
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
+	until := GetValue(untilparamsUntilVariable, 0)
+	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
 		request["toMs"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataKlines(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketDataKlines(this.Extend(request, paramsUntil))).Raw))
 	//
 	// [
 	//     {
@@ -2124,7 +2122,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//
 	var klines []any = SafeListTypedDefault(response, "klines", []any{})
 
-	ch <- this.ParseOHLCVs(klines, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(klines, market, timeframeValue, since, limit)
 	return nil
 }
 
@@ -2153,7 +2151,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
@@ -2203,7 +2201,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "positions", []any{})
 
-	ch <- this.ParsePositions(data, symbols)
+	ch <- this.ParsePositions(data, symbolsNormalized)
 	return nil
 }
 func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
@@ -2221,8 +2219,8 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
@@ -2261,9 +2259,9 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
@@ -2271,7 +2269,7 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = Add(apiUrl, endpoint)
-	headers = map[string]any{
+	var headersValue map[string]any = map[string]any{
 		"Hibachi-Client": "HibachiCCXT/unversioned",
 	}
 	if method == "GET" {
@@ -2281,19 +2279,23 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, "?"+query)
 		}
 	}
-	if (method == "POST") || (method == "PUT") || (method == "DELETE") {
-		AddElementToObject(headers, "Content-Type", "application/json")
-		body = this.Json(params)
+	var hasJsonBody bool = ((method == "POST") || (method == "PUT") || (method == "DELETE"))
+	if hasJsonBody {
+		headersValue["Content-Type"] = "application/json"
+	}
+	var bodyResult any = body
+	if hasJsonBody {
+		bodyResult = this.Json(params)
 	}
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		AddElementToObject(headers, "Authorization", this.ApiKey)
+		headersValue["Authorization"] = this.ApiKey
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResult,
+		"headers": headersValue,
 	}
 }
 func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
@@ -2814,10 +2816,11 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
+	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = GetValue(market, "numericId")
-		symbol = SafeStringPtr(market["symbol"])
+		symbolResolved = GetValue(market, "symbol")
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))
@@ -2825,15 +2828,14 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMySettlementHistory", "until")
-	until = GetValue(untilparamsVariable, 0)
-	params = MapTyped(GetValue(untilparamsVariable, 1))
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMySettlementHistory", "until")
+	until := GetValue(untilparamsUntilVariable, 0)
+	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, paramsUntil))).Raw))
 	//
 	//     {
 	//         "settlements": [
@@ -2853,7 +2855,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)
 	return nil
 }
 

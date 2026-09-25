@@ -133,15 +133,15 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         bool isBatch = ((string)name).IndexOf("batch", StringComparison.Ordinal) >= 0;
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         List<object> messageHashes = new List<object>() {};
-        if ((symbols != null) && !isBatch)
+        if ((symbolsNormalized != null) && !isBatch)
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
-                messageHashes.Add(add(add(messageHashPrefix, "::"), getValue(symbols, i)));
+                messageHashes.Add(add(add(messageHashPrefix, "::"), symbolsNormalized[i]));
             }
         } else
         {
@@ -374,7 +374,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
@@ -382,16 +382,16 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speed },
         });
-        parameters = this.omit(parameters, new List<object>() {"method", "speed"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "speed"});
         List<object> marketIds = new List<object>() {};
-        if ((symbols == null))
+        if ((symbolsNormalized == null))
         {
             marketIds.Add("*");
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
-                string? marketId = this.marketId(getValue(symbols, i));
+                string? marketId = this.marketId(symbolsNormalized[i]);
                 if ((marketId != null))
                 {
                     marketIds.Add(marketId);
@@ -403,7 +403,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", marketIds },
             } },
         };
-        object newTickers = await this.subscribePublic(name, "tickers", symbols, this.deepExtend(request, parameters));
+        object newTickers = await this.subscribePublic(name, "tickers", symbolsNormalized, this.deepExtend(request, paramsOmitted));
         if (this.newUpdates)
         {
             if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -413,7 +413,7 @@ public partial class hitbtc : ccxt.hitbtc
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbolsNormalized));
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -549,7 +549,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         IDictionary<string, object> options = this.safeDict(this.options, "watchBidsAsks");
         string? defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
@@ -557,14 +557,14 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speed },
         });
-        parameters = this.omit(parameters, new List<object>() {"method", "speed"});
-        IList<object> marketIds = this.marketIds(symbols);
+        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "speed"});
+        IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
                 { "symbols", marketIds },
             } },
         };
-        object newTickers = await this.subscribePublic(name, "bidask", symbols, this.deepExtend(request, parameters));
+        object newTickers = await this.subscribePublic(name, "bidask", symbolsNormalized, this.deepExtend(request, paramsOmitted));
         if (this.newUpdates)
         {
             if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -574,7 +574,7 @@ public partial class hitbtc : ccxt.hitbtc
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbolsNormalized));
     }
 
     public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
@@ -644,7 +644,6 @@ public partial class hitbtc : ccxt.hitbtc
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -656,17 +655,18 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
-        if ((limitVar != null))
+        if ((limit != null))
         {
-            request["limit"] = limitVar;
+            request["limit"] = limit;
         }
         string name = "trades";
         object trades = await this.subscribePublic(name, "trades", new List<object>() {symbol}, this.deepExtend(request, parameters));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp"));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
     }
 
     public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -794,7 +794,6 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -805,16 +804,17 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
-        if ((limitVar != null))
+        if ((limit != null))
         {
-            ((IDictionary<string,object>)request["params"])["limit"] = limitVar;
+            ((IDictionary<string,object>)request["params"])["limit"] = limit;
         }
         object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
+            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limit}));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0));
     }
 
     public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -917,33 +917,32 @@ public partial class hitbtc : ccxt.hitbtc
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        string? marketType = null;
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
-        marketType = (string)marketTypeparametersVariable[0];
-        parameters = marketTypeparametersVariable[1];
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
+        string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         string name = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
             { "spot", "spot_subscribe" },
             { "margin", "margin_subscribe" },
             { "swap", "futures_subscribe" },
             { "future", "futures_subscribe" },
         });
-        object orders = await this.subscribePrivate(name, symbol, parameters);
+        object orders = await this.subscribePrivate(name, symbol, paramsMarketType);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limitVar}));
+            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limit}));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp"));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp"));
     }
 
     public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -1128,12 +1127,12 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? timestamp = this.safeString(order, "created_at");
         string? marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? tradeId = this.safeString(order, "trade_id");
         List<object> trades = null;
         if ((tradeId != null))
         {
-            Dictionary<string, object> trade = this.parseWsOrderTrade(order, market);
+            Dictionary<string, object> trade = this.parseWsOrderTrade(order, marketResolved);
             trades = new List<object>() {trade};
         }
         string? rawStatus = this.safeString(order, "status");
@@ -1153,7 +1152,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "price", this.safeString(order, "price") },
             { "amount", this.safeString(order, "quantity") },
             { "type", this.safeString(order, "type") },
@@ -1168,7 +1167,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "average", null },
             { "trades", trades },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1191,21 +1190,20 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        string? type = null;
-        IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        type = (string)typeparametersVariable[0];
-        parameters = typeparametersVariable[1];
+        IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
+        string? type = (string)typeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         string name = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot_balance_subscribe" },
             { "swap", "futures_balance_subscribe" },
             { "future", "futures_balance_subscribe" },
         });
-        string? mode = this.safeString(parameters, "mode", "batches");
-        parameters = this.omit(parameters, "mode");
+        string? mode = this.safeString(paramsMarketType, "mode", "batches");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, "mode");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "mode", mode },
         };
-        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, null, this.extend(request, parameters)));
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, null, this.extend(request, paramsOmitted)));
     }
 
     /**
@@ -1236,23 +1234,20 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? marketType = null;
-        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
-        marketType = (string)marketTypeparametersVariable[0];
-        parameters = marketTypeparametersVariable[1];
-        string? marginMode = null;
-        IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = (string)marginModeparametersVariable[0];
-        parameters = marginModeparametersVariable[1];
-        var requestparametersVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
-        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
-        request = this.extend(request, parameters);
-        if (marketType == "swap")
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
+        string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
+        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsMarketType);
+        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
+        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        var orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
+        Dictionary<string, object> orderRequest = (Dictionary<string, object>)((IList<object>) orderRequestparamsValueVariable)[0];
+        var paramsValue = ((IList<object>) orderRequestparamsValueVariable)[1];
+        Dictionary<string, object> request = this.extend(orderRequest, paramsValue);
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_new_order", request));
-        } else if ((marketType == "margin") || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_new_order", request));
         } else
@@ -1290,18 +1285,17 @@ public partial class hitbtc : ccxt.hitbtc
         {
             market = this.market(symbol);
         }
-        string? marketType = null;
-        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrderWs", market, parameters);
-        marketType = (string)marketTypeparametersVariable[0];
-        parameters = marketTypeparametersVariable[1];
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrderWs", parameters);
-        var marginMode = marginModequeryVariable[0];
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrderWs", market, parameters);
+        string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
+        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType);
+        string? marginMode = (string)marginModequeryVariable[0];
         var query = marginModequeryVariable[1];
         request = this.extend(request, query);
-        if (marketType == "swap")
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_cancel_order", request));
-        } else if ((marketType == "margin") || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_cancel_order", request));
         } else
@@ -1334,23 +1328,21 @@ public partial class hitbtc : ccxt.hitbtc
         {
             market = this.market(symbol);
         }
-        string? marketType = null;
-        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters);
-        marketType = (string)marketTypeparametersVariable[0];
-        parameters = marketTypeparametersVariable[1];
-        string? marginMode = null;
-        IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrdersWs", parameters);
-        marginMode = (string)marginModeparametersVariable[0];
-        parameters = marginModeparametersVariable[1];
-        if (marketType == "swap")
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters);
+        string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
+        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType);
+        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
+        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        if ((marketType == "swap"))
         {
-            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", parameters));
-        } else if ((marketType == "margin") || ((marginMode != null)))
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", paramsMarginMode));
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             throw new NotSupported ((this.id + " cancelAllOrdersWs is not supported for margin orders")) ;
         } else
         {
-            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_cancel_orders", parameters));
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_cancel_orders", paramsMarginMode));
         }
     }
 
@@ -1383,18 +1375,14 @@ public partial class hitbtc : ccxt.hitbtc
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        string? marketType = null;
-        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters);
-        marketType = (string)marketTypeparametersVariable[0];
-        parameters = marketTypeparametersVariable[1];
-        string? marginMode = null;
-        IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrdersWs", parameters);
-        marginMode = (string)marginModeparametersVariable[0];
-        parameters = marginModeparametersVariable[1];
-        if (marketType == "swap")
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters);
+        string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
+        string? marginMode = ((string)getValue(this.handleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType), 0));
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_get_orders", request));
-        } else if ((marketType == "margin") || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("margin_get_orders", request));
         } else

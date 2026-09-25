@@ -728,10 +728,10 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "id")
 	var priceString *string = this.SafeString(trade, "rate")
 	var marketId *string = this.SafeString(trade, "pair")
-	market = this.SafeMarket(marketId, market, "_")
-	var baseId *string = SafeStringPtr(market["baseId"])
-	var quoteId *string = SafeStringPtr(market["quoteId"])
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
+	var baseId *string = SafeStringPtr(marketResolved["baseId"])
+	var quoteId *string = SafeStringPtr(marketResolved["quoteId"])
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var takerOrMaker *string = nil
 	var amountString *string = nil
 	var costString *string = nil
@@ -771,7 +771,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1002,7 +1002,6 @@ func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar string, 
 			request["amount"] = amount
 		} else {
 			var cost *float64 = this.SafeNumber(params, "cost")
-			params = MapTyped(this.Omit(params, "cost"))
 			if cost != nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders"))
 			}
@@ -1014,7 +1013,7 @@ func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar string, 
 		request["amount"] = amount
 	}
 
-	response := (<-this.PrivatePostExchangeOrders(this.Extend(request, params))).Raw
+	response := (<-this.PrivatePostExchangeOrders(this.Extend(request, this.Omit(params, "cost")))).Raw
 	PanicOnError(response)
 	var id *string = this.SafeString(response, "id")
 
@@ -1296,8 +1295,10 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var bodySigned any = nil
+	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1318,23 +1319,35 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			if len(ObjectKeys(query)) > 0 {
-				body = this.Urlencode(this.Keysort(query))
-				queryString = body
+				bodySigned = this.Urlencode(this.Keysort(query))
+				queryString = bodySigned
 			}
 		}
 		var auth *string = SafeStringPtr(Add(Add(nonce, url), queryString))
-		headers = map[string]any{
+		headersSigned = map[string]any{
 			"Content-Type":     "application/x-www-form-urlencoded",
 			"ACCESS-KEY":       this.ApiKey,
 			"ACCESS-NONCE":     nonce,
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
 	}
+	var headersResolved any = func() any {
+		if headersSigned == nil {
+			return headers
+		}
+		return headersSigned
+	}()
+	var bodyResolved any = func() any {
+		if bodySigned == nil {
+			return body
+		}
+		return bodySigned
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

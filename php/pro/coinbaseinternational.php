@@ -97,13 +97,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $market = null;
         $messageHash = $name;
         $productIds = null;
-        if ($symbols === null) {
-            $symbols = $this->get_active_symbols();
-        }
-        $symbolsLength = count($symbols);
+        $symbolsResolved = ($symbols === null) ? $this->get_active_symbols() : $symbols;
+        $symbolsLength = count($symbolsResolved);
         $messageHashes = array();
         if ($symbolsLength > 1) {
-            $parsedSymbols = $this->market_symbols($symbols);
+            $parsedSymbols = $this->market_symbols($symbolsResolved);
             $marketIds = $this->market_ids($parsedSymbols);
             $productIds = $marketIds;
             for ($i = 0; $i < count($parsedSymbols); $i++) {
@@ -111,7 +109,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             }
             // messageHash = messageHash + '::' + parsedSymbols.join (',');
         } elseif ($symbolsLength === 1) {
-            $market = $this->market($symbols[0]);
+            $market = $this->market($symbolsResolved[0]);
             $messageHash = $name . '::' . $market['symbol'];
             $productIds = array( ($market['id']) );
         }
@@ -160,15 +158,16 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $this->check_required_credentials();
+        $symbolsResolved = null;
         if ($this->is_empty($symbols)) {
-            $symbols = $this->symbols;
+            $symbolsResolved = $this->symbols;
         } else {
-            $symbols = $this->market_symbols($symbols);
+            $symbolsResolved = $this->market_symbols($symbols);
         }
         $messageHashes = array();
         $productIds = array();
-        for ($i = 0; $i < count(($symbols)); $i++) {
-            $marketId = $this->market_id(($symbols)[$i]);
+        for ($i = 0; $i < count(($symbolsResolved)); $i++) {
+            $marketId = $this->market_id(($symbolsResolved)[$i]);
             $symbol = $this->symbol($marketId);
             $productIds[] = $marketId;
             $messageHashes[] = $name . '::' . $symbol;
@@ -253,9 +252,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $channel = null;
-        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
-        return Async\await($this->subscribe($channel, array( $symbol ), $params));
+        list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
+        return Async\await($this->subscribe($channel, array( $symbol ), $paramsChannel));
     }
 
     public function get_active_symbols(): array {
@@ -289,9 +287,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $channel = null;
-        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
-        $ticker = Async\await($this->subscribe($channel, $symbols, $params));
+        list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
+        $ticker = Async\await($this->subscribe($channel, $symbols, $paramsChannel));
         if ($this->newUpdates) {
             $result = array();
             $result[$ticker['symbol']] = $ticker;
@@ -504,14 +501,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $options = $this->safe_dict($this->options, 'timeframes', array());
         $interval = $this->safe_string($options, $timeframe, $timeframe);
-        $ohlcv = Async\await($this->subscribe($interval, array( $symbol ), $params));
+        $ohlcv = Async\await($this->subscribe($interval, array( $symbolValue ), $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -584,14 +582,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
-        $trades = Async\await($this->subscribe_multiple('MATCH', $symbols, $params));
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
+        $trades = Async\await($this->subscribe_multiple('MATCH', $symbolsNormalized, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
             $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trade(Client $client, array $message): array {

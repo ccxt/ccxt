@@ -821,7 +821,7 @@ impl BtcboxCore {
         //      }
         //
         let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "date", &[]);
-        market = self.safe_market(&[Value::Null, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -834,7 +834,7 @@ impl BtcboxCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
@@ -843,7 +843,7 @@ impl BtcboxCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -943,10 +943,8 @@ impl BtcboxCore {
             self.load_markets(&[]).await;
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol == Value::Null) {
-            symbol = Value::Str("BTC/JPY".into());
-        }
-        let mut market: Value = self.market(symbol);
+        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
+        let mut market: Value = self.market(symbolResolved);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1010,7 +1008,7 @@ impl BtcboxCore {
             }
         }
         let mut trades: Value = Value::Null; // todo: this.parseTrades (order['trades']);
-        market = self.safe_market(&[Value::Null, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1027,7 +1025,7 @@ impl BtcboxCore {
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("status".to_string(), status);
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
@@ -1036,7 +1034,7 @@ impl BtcboxCore {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1061,10 +1059,8 @@ impl BtcboxCore {
             self.load_markets(&[]).await;
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol == Value::Null) {
-            symbol = Value::Str("BTC/JPY".into());
-        }
-        let mut market: Value = self.market(symbol);
+        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
+        let mut market: Value = self.market(symbolResolved);
         let mut request: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1090,10 +1086,8 @@ impl BtcboxCore {
             self.load_markets(&[]).await;
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol == Value::Null) {
-            symbol = Value::Str("BTC/JPY".into());
-        }
-        let mut market: Value = self.market(symbol);
+        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
+        let mut market: Value = self.market(symbolResolved);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
@@ -1217,12 +1211,20 @@ impl BtcboxCore {
             let mut request: Value = self.urlencode(query.clone(), &[]);
             let mut secret: Value = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
             add_element_to_object(&mut query, &Value::Str("signature".into()), self.hmac(self.encode(request), self.encode(secret), Value::Str("sha256".into()), &[]));
-            body = self.urlencode(query, &[]);
-            headers = Value::Map({
+            let mut signedBody: Value = self.urlencode(query, &[]);
+            let mut signedHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                 m
             });
+            return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), url.clone());
+        m.insert("method".to_string(), method.clone());
+        m.insert("body".to_string(), signedBody);
+        m.insert("headers".to_string(), signedHeaders);
+    m
+});
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

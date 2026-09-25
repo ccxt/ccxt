@@ -1577,7 +1577,6 @@ public partial class tokocrypto : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1585,17 +1584,17 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        // binance docs say that the default limitVar 500, max 1500 for futures, max 1000 for spot markets
+        // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         int defaultLimit = 500;
         int maxLimit = 1500;
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, new List<object>() {"price", "until"});
-        limitVar = ((limitVar == null)) ? defaultLimit : mathMin(limitVar, maxLimit);
+        object paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
+        object limitValue = ((limit == null)) ? defaultLimit : mathMin(limit, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
-            { "limit", limitVar },
+            { "limit", limitValue },
         };
         if (price == "index")
         {
@@ -1616,10 +1615,10 @@ public partial class tokocrypto : Exchange
         object response = null;
         if (this.isNativeMarket(market))
         {
-            response = await this.publicGetOpenV1MarketKlines(this.extend(request, parameters));
+            response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.binanceGetKlines(this.extend(request, parameters));
+            response = await this.binanceGetKlines(this.extend(request, paramsOmitted));
         }
         //
         // binanceGetKlines
@@ -1670,7 +1669,7 @@ public partial class tokocrypto : Exchange
                 data = this.safeList(dataDict, "list", new List<object>() {});
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limitValue));
     }
 
     /**
@@ -1956,7 +1955,6 @@ public partial class tokocrypto : Exchange
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
-        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -1966,17 +1964,14 @@ public partial class tokocrypto : Exchange
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
         // only supported for spot/margin api
-        if ((postOnly == true))
-        {
-            typeVar = "LIMIT_MAKER";
-        }
-        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId"});
-        string initialUppercaseType = typeVar.ToUpper();
+        object typeResolved = ((postOnly == true)) ? "LIMIT_MAKER" : type;
+        string initialUppercaseType = ((string)typeResolved).ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        List<object> triggerKeys = ((triggerPrice != null)) ? new List<object>() {"triggerPrice", "stopPrice"} : new List<object>() {};
+        object paramsRequest = this.omit(parameters, this.arrayConcat(new List<object>() {"clientId", "clientOrderId"}, triggerKeys));
         if ((triggerPrice != null))
         {
-            parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
             if (uppercaseType == "MARKET")
             {
                 uppercaseType = "STOP_LOSS";
@@ -1990,10 +1985,10 @@ public partial class tokocrypto : Exchange
         {
             if ((initialUppercaseType != uppercaseType))
             {
-                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + (typeVar)) + " orders")) ;
+                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + (typeResolved)) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((((((this.id + " ") + (typeVar)) + " is not a valid order type for the ") + symbol) + " market")) ;
+                throw new InvalidOrder ((((((this.id + " ") + (typeResolved)) + " is not a valid order type for the ") + symbol) + " market")) ;
             }
         }
         Dictionary<string, object> reverseOrderTypeMapping = new Dictionary<string, object>() {
@@ -2031,7 +2026,7 @@ public partial class tokocrypto : Exchange
         {
             request["clientId"] = clientOrderId;
         }
-        // additional required fields depending on the order typeVar
+        // additional required fields depending on the order type
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
         bool quantityIsRequired = false;
@@ -2053,11 +2048,11 @@ public partial class tokocrypto : Exchange
                 object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 object quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
-                parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
-                double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
-                parameters = this.omit(parameters, new List<object>() {"cost", "quoteOrderQty"});
+                IList<object> createMarketBuyOrderRequiresPriceparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequestVariable[0];
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable[1];
+                double? cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty");
+                paramsRequest = this.omit(paramsRequest, new List<object>() {"cost", "quoteOrderQty"});
                 if ((cost != null))
                 {
                     quoteAmount = cost;
@@ -2111,7 +2106,7 @@ public partial class tokocrypto : Exchange
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + (typeVar)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + (typeResolved)) + " order")) ;
             }
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2119,13 +2114,13 @@ public partial class tokocrypto : Exchange
         {
             if ((triggerPrice == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice extra param for a ") + (typeVar)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice extra param for a ") + (typeResolved)) + " order")) ;
             } else
             {
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
-        Dictionary<string, object> response = await this.privatePostOpenV1Orders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOpenV1Orders(this.extend(request, paramsRequest));
         //
         //     {
         //         "code": 0,
@@ -2403,16 +2398,16 @@ public partial class tokocrypto : Exchange
         {
             request["startTime"] = since;
         }
+        object paramsOmitted = ((endTime != null)) ? this.omit(parameters, new List<object>() {"endTime", "until"}) : parameters;
         if ((endTime != null))
         {
             request["endTime"] = endTime;
-            parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         }
         if ((limit != null))
         {
             request["limit"] = limit;
         }
-        Dictionary<string, object> response = await this.privateGetOpenV1OrdersTrades(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetOpenV1OrdersTrades(this.extend(request, paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -2466,14 +2461,14 @@ public partial class tokocrypto : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
+        object paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         if ((network != null))
         {
             request["network"] = network;
-            parameters = this.omit(parameters, "network");
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        Dictionary<string, object> response = await this.privateGetOpenV1DepositsAddress(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetOpenV1DepositsAddress(this.extend(request, paramsOmitted));
         //
         //     {
         //         "code":0,
@@ -2798,11 +2793,10 @@ public partial class tokocrypto : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2814,12 +2808,12 @@ public partial class tokocrypto : Exchange
             { "address", address },
             { "amount", this.numberToString(amount) },
         };
-        if ((tagVar != null))
+        if ((tagWithdrawTag != null))
         {
-            request["addressTag"] = tagVar;
+            request["addressTag"] = tagWithdrawTag;
         }
-        IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        var networkCode = networkCodequeryVariable[0];
+        IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = (string)networkCodequeryVariable[0];
         var query = networkCodequeryVariable[1];
         string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
@@ -2861,14 +2855,17 @@ public partial class tokocrypto : Exchange
             if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
             {
                 // v1 special case for userDataStream
-                headers = new Dictionary<string, object>() {
+                Dictionary<string, object> headersStream = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                if ((method != "GET"))
-                {
-                    body = this.urlencode(parameters);
-                }
+                object bodyStream = ((method != "GET")) ? this.urlencode(parameters) : body;
+                return new Dictionary<string, object>() {
+                    { "url", url },
+                    { "method", method },
+                    { "body", bodyStream },
+                    { "headers", headersStream },
+                };
             } else
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
@@ -2902,17 +2899,28 @@ public partial class tokocrypto : Exchange
             }
             string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             query = add(query, (("&" + "signature=") + signature));
-            headers = new Dictionary<string, object>() {
+            Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            if (((method == "GET")) || ((method == "DELETE")) || (isEqual(api, "wapi")))
+            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || (isEqual(api, "wapi"));
+            object bodySigned = query;
+            if (queryInUrl)
+            {
+                bodySigned = body;
+            }
+            if (queryInUrl)
             {
                 url = add(url, ("?" + (query)));
             } else
             {
-                body = query;
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";
+                headersSigned["Content-Type"] = "application/x-www-form-urlencoded";
             }
+            return new Dictionary<string, object>() {
+                { "url", url },
+                { "method", method },
+                { "body", bodySigned },
+                { "headers", headersSigned },
+            };
         } else
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -2959,10 +2967,10 @@ public partial class tokocrypto : Exchange
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
+        object parsedMessage = null;
         if ((success != true))
         {
             string? messageInner = this.safeString(response, "msg");
-            object parsedMessage = null;
             if ((messageInner != null))
             {
                 try
@@ -2973,20 +2981,17 @@ public partial class tokocrypto : Exchange
                     // do nothing
                     parsedMessage = null;
                 }
-                if ((parsedMessage != null))
-                {
-                    response = parsedMessage;
-                }
             }
         }
-        string? message = this.safeString(response, "msg");
+        object responseParsed = ((parsedMessage != null)) ? parsedMessage : response;
+        string? message = this.safeString(responseParsed, "msg");
         if ((message != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
-        string? error = this.safeString(response, "code");
+        string? error = this.safeString(responseParsed, "code");
         if ((error != null))
         {
             // https://github.com/ccxt/ccxt/issues/6501

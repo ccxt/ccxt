@@ -1050,12 +1050,12 @@ class gemini(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(volume, 'timestamp')
         symbol = None
         marketId = self.safe_string_lower(ticker, 'pair')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         baseId = None
         quoteId = None
         base = None
         quote = None
-        if (marketId is not None) and (market is None):
+        if (marketId is not None) and (marketResolved is None):
             idLength = len(marketId) - 0
             if idLength == 7:
                 baseId = marketId[0:4]
@@ -1067,10 +1067,10 @@ class gemini(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             if (base is not None) and (quote is not None):
                 symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            baseId = self.safe_string_upper(market, 'baseId')
-            quoteId = self.safe_string_upper(market, 'quoteId')
+        if (symbol is None) and (marketResolved is not None):
+            symbol = marketResolved['symbol']
+            baseId = self.safe_string_upper(marketResolved, 'baseId')
+            quoteId = self.safe_string_upper(marketResolved, 'quoteId')
         price = self.safe_string(ticker, 'price')
         last = self.safe_string_2(ticker, 'last', 'close', price)
         percentage = self.safe_string(ticker, 'percentChange24h')
@@ -1098,7 +1098,7 @@ class gemini(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1584,7 +1584,6 @@ class gemini(Exchange, ImplicitAPI):
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
-        params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:
             clientOrderId = str(self.milliseconds())
         market = self.market(symbol)
@@ -1599,19 +1598,20 @@ class gemini(Exchange, ImplicitAPI):
             'type': 'exchange limit',  # gemini allows limit orders only
             # 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         }
-        orderType = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
+        typeValue = self.safe_string(params, 'type', type)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price', 'stopPrice'])
-        params = self.omit(params, ['triggerPrice', 'stop_price', 'stopPrice', 'type'])
-        if orderType == 'stopLimit':
-            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + orderType + ' orders')
+        # timeInForce and postOnly are consumed only by non-trigger orders
+        omitKeys = ['clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice']
+        optionKeys = ['timeInForce', 'postOnly'] if (triggerPrice is None) else []
+        paramsOmitted = self.omit(params, self.array_concat(omitKeys, optionKeys))
+        if typeValue == 'stopLimit':
+            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders')
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
             request['type'] = 'exchange stop limit'
         else:
             # No options can be applied to stop-limit orders at this time.
             timeInForce = self.safe_string(params, 'timeInForce')
-            params = self.omit(params, 'timeInForce')
             if timeInForce is not None:
                 if (timeInForce == 'IOC') or (timeInForce == 'immediate-or-cancel'):
                     request['options'] = ['immediate-or-cancel']
@@ -1620,14 +1620,13 @@ class gemini(Exchange, ImplicitAPI):
                 elif timeInForce == 'PO':
                     request['options'] = ['maker-or-cancel']
             postOnly = self.safe_bool(params, 'postOnly', False)
-            params = self.omit(params, 'postOnly')
             if postOnly is True:
                 request['options'] = ['maker-or-cancel']
             # allowing override for auction-only and indication-of-interest order options
             options = self.safe_string(params, 'options')
             if options is not None:
                 request['options'] = [options]
-        response = self.privatePostV1OrderNew(self.extend(request, params))
+        response = self.privatePostV1OrderNew(self.extend(request, paramsOmitted))
         #
         #      {
         #          "order_id":"106027397702",
@@ -1736,7 +1735,8 @@ class gemini(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
+        paramsWithdrawTag = tagAndParams[1]
         self.check_address(address)
         if self.markets is None:
             self.load_markets()
@@ -1746,7 +1746,7 @@ class gemini(Exchange, ImplicitAPI):
             'amount': amount,
             'address': address,
         }
-        response = self.privatePostV1WithdrawCurrency(self.extend(request, params))
+        response = self.privatePostV1WithdrawCurrency(self.extend(request, paramsWithdrawTag))
         #
         #   for BTC
         #     {
@@ -1898,8 +1898,7 @@ class gemini(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         indexedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode = self.handle_network_code_and_params(params)[0]
         return self.safe_value(indexedByNetwork, networkCode)
 
     def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
@@ -1916,17 +1915,16 @@ class gemini(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        code = currency['code']
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        codeValue = currency['code']
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
         networkId = self.network_code_to_id(networkCode, currency['code'])
         request = {
             'network': networkId,
         }
-        response = self.privatePostV1AddressesNetwork(self.extend(request, params))
-        results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
+        response = self.privatePostV1AddressesNetwork(self.extend(request, paramsNetworkCode))
+        results = self.parse_deposit_addresses(response, [codeValue], False, {'network': networkCode, 'currency': codeValue})
         # one address structure per network, like every other venue (the endpoint is scoped to a
         # single network, so the last address the venue lists for it wins — same as before)
         return self.index_by(results, 'network')
@@ -1934,6 +1932,7 @@ class gemini(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        headersSigned = None
         if api == 'private':
             self.check_required_credentials()
             apiKey = self.apiKey
@@ -1949,7 +1948,7 @@ class gemini(Exchange, ImplicitAPI):
             payload = self.json(request)
             payload = self.string_to_base64(payload)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
-            headers = {
+            headersSigned = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
@@ -1962,9 +1961,11 @@ class gemini(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + url
+        headersResolved = headersSigned if (api == 'private') else headers
+        bodyResolved = body
         if (method == 'POST') or (method == 'DELETE'):
-            body = self.json(query)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            bodyResolved = self.json(query)
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

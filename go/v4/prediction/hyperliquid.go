@@ -1014,9 +1014,9 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1054,9 +1054,9 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 			"endTime":   until,
 		},
 	}
-	params = ccxt.MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "until"))
 
-	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
 	ccxt.PanicOnError(response)
 	//
 	//     [
@@ -1131,16 +1131,15 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)
-	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
+	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsPublicAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"type": "spotClearinghouseState",
 		"user": userAddress,
 	}
 
-	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsPublicAddress)))
 	ccxt.PanicOnError(response)
 	//
 	//     {
@@ -1211,10 +1210,9 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	}
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
-	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
+	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsPublicAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"type": "spotClearinghouseState",
 		"user": userAddress,
@@ -1222,7 +1220,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	// outcome positions are spot token balances under the "+<encoding>" coin form; they carry
 	// the size (total) and entry notional (entryNtl). hyperliquid does not return the position
 	// value / entry price / pnl, so they are computed from the current mid prices
-	var promises []any = []any{this.PublicPostInfo(this.Extend(request, params)), this.PublicPostInfo(map[string]any{
+	var promises []any = []any{this.PublicPostInfo(this.Extend(request, paramsPublicAddress)), this.PublicPostInfo(map[string]any{
 		"type": "allMids",
 	})}
 
@@ -1548,11 +1546,8 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar strin
 	if clientOrderId != nil {
 		orderObj["c"] = clientOrderId
 	}
-	var vaultAddress any = nil
-	var vaultAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
-	vaultAddress = ccxt.GetValue(vaultAddressparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(vaultAddressparamsVariable, 1))
-	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress"), 0))
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
 		"orders":   []any{orderObj},
@@ -1695,7 +1690,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
 	var nonce any = this.IncrementingNonce()
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
-	params = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	var cancelReq []any = []any{}
 	var cancelAction map[string]any = map[string]any{
 		"type":    "cancel",
@@ -1725,11 +1720,8 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		}
 	}
 	cancelAction["cancels"] = cancelReq
-	var vaultAddress any = nil
-	var vaultAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "cancelOrders", "vaultAddress")
-	vaultAddress = ccxt.GetValue(vaultAddressparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(vaultAddressparamsVariable, 1))
-	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress"), 0))
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    cancelAction,
@@ -1823,20 +1815,18 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandlePublicAddress("fetchOpenOrders", params)
-	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
-	var method *string = nil
-	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOpenOrders", "method", "frontendOpenOrders")
-	method = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOpenOrders", params)
+	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsPublicAddressVariable, 1))
+	var methodparamsMethodVariable []any = this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
+	var method *string = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsMethodVariable, 0))
+	var paramsMethod map[string]any = ccxt.MapTyped(ccxt.GetValue(methodparamsMethodVariable, 1))
 	var request map[string]any = map[string]any{
 		"type": method,
 		"user": userAddress,
 	}
 
-	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsMethod)))
 	ccxt.PanicOnError(response)
 	var ordersWithStatus []any = []any{}
 	var rawOrders []any = []any{}
@@ -1895,16 +1885,15 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandlePublicAddress("fetchOrders", params)
-	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOrders", params)
+	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsPublicAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"type": "historicalOrders",
 		"user": userAddress,
 	}
 
-	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsPublicAddress)))
 	ccxt.PanicOnError(response)
 	// Deduplicate by oid keeping most recent statusTimestamp
 	var deduped map[string]any = map[string]any{}
@@ -1985,17 +1974,17 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandlePublicAddress("fetchOrder", params)
-	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
-	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	userAddressparamsAddressVariable := this.HandlePublicAddress("fetchOrder", params)
+	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsAddressVariable, 0))
+	var paramsAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsAddressVariable, 1))
+	var clientOrderId *string = this.SafeString(paramsAddress, "clientOrderId")
 	var request map[string]any = map[string]any{
 		"type": "orderStatus",
 		"user": userAddress,
 	}
+	var paramsValue any = paramsAddress
 	if clientOrderId != nil {
-		params = ccxt.MapTyped(this.Omit(params, "clientOrderId"))
+		paramsValue = this.Omit(paramsAddress, "clientOrderId")
 		request["oid"] = clientOrderId
 	} else {
 		var isCloid bool = (ccxt.GetLength(id) >= 34)
@@ -2007,7 +1996,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		}()
 	}
 
-	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsValue)))
 	ccxt.PanicOnError(response)
 	var orderStatus any = map[string]any{}
 	if (!ccxt.IsString(response)) && !ccxt.IsArray(response) {
@@ -2058,7 +2047,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 	//   "statusTimestamp": 1704346468838
 	// }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var entry any = this.SafeDict(order, "order", order) // eslint-disable-line
 	var status any = this.ParseOrderStatus(this.SafeString2(order, "ccxtStatus", "status"))
@@ -2256,10 +2245,9 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	}
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandlePublicAddress("fetchMyTrades", params)
-	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
-	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
+	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchMyTrades", params)
+	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsPublicAddressVariable, 0))
+	var paramsPublicAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsPublicAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 	}
@@ -2269,13 +2257,13 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	} else {
 		request["type"] = "userFills"
 	}
-	var until *int64 = this.SafeInteger(params, "until")
-	params = ccxt.MapTyped(this.Omit(params, "until"))
+	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsPublicAddress, "until"))
 	if until != nil {
 		request["endTime"] = until
 	}
 
-	response := (<-this.PublicPostInfo(this.Extend(request, params)))
+	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
 	ccxt.PanicOnError(response)
 	var fills []any = []any{}
 	if ccxt.IsArray(response) {
@@ -2320,7 +2308,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	//   "time": 1704262888911
 	// }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "time")
 	var price *string = this.SafeString(trade, "px")
@@ -2848,19 +2836,17 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 	return nil
 }
 func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any {
-	var userAux any = nil
-	var userAuxparamsVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
-	userAux = ccxt.GetValue(userAuxparamsVariable, 0)
-	params = ccxt.GetValue(userAuxparamsVariable, 1)
-	var user any = userAux
-	var userparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "address", userAux)
-	user = ccxt.GetValue(userparamsVariable, 0)
-	params = ccxt.GetValue(userparamsVariable, 1)
-	if (user != nil) && (!ccxt.IsEqual(user, "")) {
-		return []any{user, params}
+	var userAuxparamsUserVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
+	userAux := ccxt.GetValue(userAuxparamsUserVariable, 0)
+	paramsUser := ccxt.GetValue(userAuxparamsUserVariable, 1)
+	var userparamsAddressVariable []any = this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
+	var user *string = ccxt.SafeStringPtr(ccxt.GetValue(userparamsAddressVariable, 0))
+	paramsAddress := ccxt.GetValue(userparamsAddressVariable, 1)
+	if (user != nil) && (user == nil || *user != "") {
+		return []any{user, paramsAddress}
 	}
 	if !ccxt.IsEqual(this.WalletAddress, nil) && (this.WalletAddress != "") {
-		return []any{this.WalletAddress, params}
+		return []any{this.WalletAddress, paramsAddress}
 	}
 	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }
@@ -2903,17 +2889,19 @@ func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
 		baseUrl = this.SafeString(apiUrls, apiGroup, this.SafeString(apiUrls, "public", ""))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(*baseUrl+"/", path))
+	var headersValue any = headers
+	var bodyValue any = body
 	if method == "POST" {
-		headers = map[string]any{
+		headersValue = map[string]any{
 			"Content-Type": "application/json",
 		}
-		body = this.Json(params)
+		bodyValue = this.Json(params)
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyValue,
+		"headers": headersValue,
 	}
 }
 func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

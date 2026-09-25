@@ -757,14 +757,14 @@ class coinspot extends Exchange {
         if ($side !== 'buy' && $side !== 'sell') {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
         }
-        $params = $this->omit($params, 'side');
+        $paramsOmitted = $this->omit($params, 'side');
         $request = array(
             'id' => $id,
         );
         if ($side === 'buy') {
-            $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostMySellCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMySellCancel($this->extend($request, $paramsOmitted)));
         }
         //
         // status - ok, error
@@ -792,6 +792,8 @@ class coinspot extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = $headers;
+        $requestBody = $body;
         $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;
@@ -809,13 +811,13 @@ class coinspot extends Exchange {
             $this->check_required_credentials();
             // coinspot requires an increasing nonce
             $nonce = $this->incrementing_nonce();
-            $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
-            $headers = array(
+            $requestBody = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
+            $requestHeaders = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
+                'sign' => $this->hmac($this->encode($requestBody), $this->encode($this->secret), 'sha512'),
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 }

@@ -2283,7 +2283,7 @@ class opinion extends Exchange {
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
@@ -2296,9 +2296,9 @@ class opinion extends Exchange {
                 $actionByMethod = array( 'POST' => 'create', 'GET' => 'get', 'DELETE' => 'delete' );
                 $action = $this->safe_string($actionByMethod, $method, 'get');
                 $timestamp = $this->number_to_string($this->seconds());
-                $headers['OPINION_ADDRESS'] = $this->walletAddress;
-                $headers['OPINION_SIGNATURE'] = $this->sign_api_key_auth($this->walletAddress, $action, $timestamp);
-                $headers['OPINION_TIMESTAMP'] = $timestamp;
+                $headersExtended['OPINION_ADDRESS'] = $this->walletAddress;
+                $headersExtended['OPINION_SIGNATURE'] = $this->sign_api_key_auth($this->walletAddress, $action, $timestamp);
+                $headersExtended['OPINION_TIMESTAMP'] = $timestamp;
             } else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
@@ -2307,16 +2307,17 @@ class opinion extends Exchange {
                 if ($apiKey === null) {
                     throw new AuthenticationError($this->id . ' ' . $path . ' requires an $apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }
-                $headers['apikey'] = $apiKey;
+                $headersExtended['apikey'] = $apiKey;
             }
         }
+        $bodyValue = $body;
         if ($method === 'GET') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
-            $body = $this->json($query);
+            $bodyValue = $this->json($query);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersExtended );
     }
 }

@@ -126,7 +126,7 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         name = 'SubscribeTrades'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
@@ -144,9 +144,10 @@ class ndax(ccxt.async_support.ndax):
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict):
         payload = self.safe_list(message, 'o', [])
@@ -208,7 +209,7 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         name = 'SubscribeTicker'
         messageHash = name + ':' + timeframe + ':' + market['id']
         url = self.urls['api']['ws']
@@ -227,9 +228,10 @@ class ndax(ccxt.async_support.ndax):
         }
         message = self.extend(request, params)
         ohlcv = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -345,17 +347,17 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         name = 'SubscribeLevel2'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        limit = 100 if (limit is None) else limit
+        limitValue = 100 if (limit is None) else limit
         payload = {
             'OMSId': omsId,
             'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
             # 'Symbol': market['info']['symbol'], // conditionally optional
-            'Depth': limit,  # default 100
+            'Depth': limitValue,  # default 100
         }
         request = {
             'm': 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
@@ -367,10 +369,10 @@ class ndax(ccxt.async_support.ndax):
             'id': requestId,
             'messageHash': messageHash,
             'name': name,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'marketId': market['id'],
             'method': self.handle_order_book_subscription,
-            'limit': limit,
+            'limit': limitValue,
             'params': params,
         }
         message = self.extend(request, params)
