@@ -2495,7 +2495,7 @@ func (this *Poloniex) createOrderBody(ch chan any, symbol string, typeVar string
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	requestValueparamsValueVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)

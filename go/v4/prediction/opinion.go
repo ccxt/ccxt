@@ -1323,7 +1323,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome string, typeVar string
 	ccxt.PanicOnError(outcomeObj)
 	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var isMarket bool = (typeVar == "market")
-	var sideStr string = ccxt.ToUpper(side)
+	var sideStr string = strings.ToUpper(side)
 	if price == nil {
 		if !isMarket {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))

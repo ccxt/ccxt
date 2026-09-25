@@ -1848,7 +1848,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderSide string = ToUpper(side)
+	var orderSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   orderSide,

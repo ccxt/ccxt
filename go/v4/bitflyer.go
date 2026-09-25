@@ -927,7 +927,7 @@ func (this *Bitflyer) createOrderBody(ch chan any, symbol string, typeVar string
 	var request map[string]any = map[string]any{
 		"product_code":     this.MarketId(symbol),
 		"child_order_type": strings.ToUpper(typeVar),
-		"side":             ToUpper(side),
+		"side":             strings.ToUpper(side),
 		"price":            price,
 		"size":             amount,
 	}

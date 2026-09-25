@@ -2307,7 +2307,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol string, typeVar string,
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
 		"symbol":           market["id"],
-		"side":             ToUpper(side),
+		"side":             strings.ToUpper(side),
 		"quantity":         this.AmountToPrecision(symbol, amount),
 		"tradingAccountId": tradingAccountId,
 	}

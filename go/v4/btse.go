@@ -2363,7 +2363,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
 	var typeValue string = strings.ToUpper(typeVar)
-	var upperSide string = ToUpper(side)
+	var upperSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"orderSide": upperSide,
@@ -2585,7 +2585,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	var typeValue string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":    this.FuturesRequestId(market),
-		"orderSide": ToUpper(side),
+		"orderSide": strings.ToUpper(side),
 		"orderSize": this.AmountToPrecision(symbol, amount),
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")

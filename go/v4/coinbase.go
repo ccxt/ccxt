@@ -3837,7 +3837,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol string, typeVar string
 	var request any = map[string]any{
 		"client_order_id": *id + "-" + this.Uuid(),
 		"product_id":      market["id"],
-		"side":            ToUpper(side),
+		"side":            strings.ToUpper(side),
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
