@@ -15702,7 +15702,8 @@ function coreArgParamType (csharp, node) {
     }
     const strings = CORE_STRING_ARGS[name];
     const numerics = CORE_NUMERIC_ARGS[name];
-    if (strings === undefined && numerics === undefined) {
+    const stringParam = csharpStringParamType (csharp, declaration);
+    if (strings === undefined && numerics === undefined && stringParam === undefined) {
         return undefined;
     }
     const position = owner.parameters.indexOf(declaration);
@@ -15726,7 +15727,7 @@ function coreArgParamType (csharp, node) {
             || (init.kind === ts.SyntaxKind.TrueKeyword) || (init.kind === ts.SyntaxKind.FalseKeyword))) {
         return undefined;
     }
-    if (strings !== undefined && strings.indexOf(position) >= 0) {
+    if ((strings !== undefined && strings.indexOf(position) >= 0) || (stringParam !== undefined)) {
         return 'string';
     }
     return (numerics === undefined) ? undefined : numerics[position];
@@ -16449,4 +16450,337 @@ export function installCsharpGuardedMinMax (transpiler) {
         return native;
     };
     csharp._guardedMinMaxPatched = true;
+}
+
+// ===== string parameters =====
+//
+// Positions every ts/src declaration of the method annotates `Str`/`string`, that no body writes,
+// and that every generated C# caller feeds a literal, null or a string-typed value (fixpoint over
+// callers, name-keyed so base and overrides move together). `string` = required, never null.
+export const CSHARP_STRING_PARAMS = {
+    'amountToPredictionPrecision': { 0: 'string?' },
+    'applyScale': { 0: 'string?' },
+    'approveBuilderCode': { 0: 'string?', 1: 'string?' },
+    'bindAgentWallet': { 0: 'string' },
+    'buildClobOrderBody': { 0: 'string?' },
+    'buildGen2SubscriptionRequest': { 0: 'string?' },
+    'buildMessageHash': { 0: 'string?' },
+    'buildOrderbookOrder': { 0: 'string?' },
+    'calculateFeeWithRate': { 0: 'string?', 1: 'string?', 2: 'string?' },
+    'chainIdToNetworkCode': { 0: 'string?' },
+    'checkContractMarket': { 1: 'string' },
+    'checkProxySettings': { 0: 'string?', 1: 'string?' },
+    'checkRequiredArgument': { 0: 'string?', 2: 'string' },
+    'checkRequiredMarginArgument': { 0: 'string' },
+    'checkTypeParam': { 0: 'string?' },
+    'cleanPath': { 0: 'string?' },
+    'codeFromOptions': { 0: 'string?' },
+    'coinToMarketId': { 0: 'string?' },
+    'connectCentrifugo': { 0: 'string?' },
+    'connectSxbetCentrifugo': { 0: 'string?' },
+    'convertExpireDate': { 0: 'string?' },
+    'convertExpireDateToMarketIdDate': { 0: 'string?' },
+    'convertMarketIdExpireDate': { 0: 'string?' },
+    'convertToX18': { 0: 'string?' },
+    'costToPredictionPrecision': { 0: 'string?' },
+    'createAuthToken': { 2: 'string?' },
+    'createCcxtTradeId': { 1: 'string?', 2: 'string?', 3: 'string?', 4: 'string?' },
+    'createEditOrderRequest': { 1: 'string?' },
+    'createOrderSettlementData': { 1: 'string?', 2: 'string?' },
+    'createPublicSubscriptionRequest': { 0: 'string' },
+    'createRegularOrderRequest': { 0: 'string?' },
+    'createSignedRequest': { 1: 'string?', 3: 'string?' },
+    'createSubAccount': { 0: 'string' },
+    'createSubaccount': { 1: 'string?' },
+    'createSwapOrderRequest': { 0: 'string?' },
+    'createTriggerOrderRequest': { 0: 'string?' },
+    'createUtaOrderRequest': { 0: 'string?' },
+    'createVault': { 0: 'string', 1: 'string' },
+    'customParseBalance': { 1: 'string?' },
+    'customParseOrderBook': { 3: 'string?' },
+    'editContractOrderRequest': { 1: 'string?' },
+    'editSpotOrderRequest': { 1: 'string?' },
+    'eipMessageForOrder': { 1: 'string?' },
+    'encodeOrderType': { 0: 'string?' },
+    'encodeTriggerPriceType': { 0: 'string?' },
+    'encodeWithdrawMessage': { 2: 'string?' },
+    'encodeWorkingType': { 0: 'string?' },
+    'ensureErc20Allowance': { 0: 'string?', 1: 'string?', 2: 'string?', 3: 'string?', 4: 'string?' },
+    'estimateTxFee': { 1: 'string?' },
+    'ethChecksumAddress': { 0: 'string?' },
+    'ethRpc': { 0: 'string?', 1: 'string' },
+    'featureValue': { 1: 'string?', 2: 'string?' },
+    'featureValueByType': { 2: 'string?', 3: 'string?' },
+    'featuresMapper': { 1: 'string?', 2: 'string?' },
+    'feeToPrecision': { 0: 'string?' },
+    'fetchAccountIdByType': { 1: 'string?' },
+    'fetchBuilderApprovals': { 0: 'string' },
+    'fetchContractOrder': { 1: 'string?' },
+    'fetchErc20Name': { 0: 'string?', 1: 'string?' },
+    'fetchMarketsByTypeAndSubType': { 0: 'string?', 1: 'string?' },
+    'fetchMyTradesRequest': { 0: 'string?' },
+    'fetchOrderClassic': { 1: 'string?' },
+    'fetchOrderDefault': { 1: 'string?' },
+    'fetchOrderRequest': { 1: 'string?' },
+    'fetchOrderSupplement': { 1: 'string?' },
+    'fetchOrdersHelper': { 0: 'string?' },
+    'fetchOrdersRequest': { 0: 'string?' },
+    'fetchPaginatedCallCursor': { 0: 'string', 5: 'string?', 6: 'string?' },
+    'fetchPaginatedCallDynamic': { 0: 'string?' },
+    'fetchPaginatedCallIncremental': { 0: 'string', 1: 'string?', 5: 'string?' },
+    'fetchPortfolioDetails': { 0: 'string' },
+    'fetchRawTopicDetail': { 0: 'string?' },
+    'fetchSpotOrder': { 1: 'string?' },
+    'fetchUtaOrder': { 1: 'string?' },
+    'fetchWallet': { 0: 'string' },
+    'fetchWebEndpoint': { 0: 'string', 3: 'string?', 4: 'string?' },
+    'filterEventsBySearchIn': { 2: 'string?' },
+    'filterEventsByStatus': { 1: 'string?' },
+    'filterRawMarketsByFixture': { 1: 'string?' },
+    'filterTransfersByType': { 1: 'string' },
+    'findOutcomeInMarket': { 1: 'string?' },
+    'findSubscription': { 1: 'string' },
+    'findSwapMarketByWsBaseQuote': { 0: 'string?' },
+    'fixCommaNumber': { 0: 'string?' },
+    'formatVaultAddress': { 0: 'string?' },
+    'fromSandboxMarketId': { 0: 'string?' },
+    'fromWei': { 0: 'string?' },
+    'generateBatchPayload': { 1: 'string?', 2: 'string?', 3: 'string?' },
+    'getBaseDomainFromUrl': { 0: 'string?' },
+    'getCost': { 0: 'string?' },
+    'getCurrentPosition': { 0: 'string?' },
+    'getEvent': { 0: 'string' },
+    'getExceptionsByUrl': { 0: 'string?', 1: 'string' },
+    'getExtendedCurrencyCodeById': { 0: 'string?' },
+    'getExtendedStringToFelt': { 0: 'string?' },
+    'getExtendedWithdrawalMsgHash': { 1: 'string?' },
+    'getLeverageTiersPaginated': { 0: 'string?' },
+    'getLighterPrivateKey': { 0: 'string?', 1: 'string?' },
+    'getNetworkCodeByNetworkUrl': { 0: 'string?', 1: 'string?' },
+    'getNetworkCodeForCurrency': { 0: 'string?' },
+    'getOrderChannelAndMessageHash': { 0: 'string?', 1: 'string?' },
+    'getOrderResponseFromParams': { 0: 'string?' },
+    'getOrdersMessageHashSuffix': { 0: 'string?' },
+    'getOutcomeBySlugAndLabel': { 0: 'string?', 1: 'string?' },
+    'getPositionFromClobEntry': { 0: 'string?' },
+    'getPrivateType': { 0: 'string?' },
+    'getSettlementCurrencies': { 1: 'string?' },
+    'getStockUnifiedSymbol': { 1: 'string?' },
+    'getStockWsUrl': { 0: 'string?' },
+    'getTifFromRawOrderType': { 0: 'string?' },
+    'getV5LinearChannelAndMessageHash': { 0: 'string?' },
+    'getWsUrl': { 1: 'string?' },
+    'handleAccountIndex': { 1: 'string?', 2: 'string', 3: 'string' },
+    'handleApiKeyIndex': { 1: 'string?', 2: 'string', 3: 'string' },
+    'handleDeriveSubaccountId': { 0: 'string' },
+    'handleDeriveWalletAddress': { 0: 'string' },
+    'handleNetworkIdAndParams': { 0: 'string?', 1: 'string' },
+    'handleOption': { 1: 'string' },
+    'handleOptionAndParams2': { 2: 'string?', 3: 'string?' },
+    'handleOptionBoolAndParams': { 2: 'string' },
+    'handleOptionBoolAndParams2': { 1: 'string?', 2: 'string', 3: 'string' },
+    'handleOptionIntegerAndParams': { 2: 'string' },
+    'handleOptionIntegerAndParams2': { 2: 'string', 3: 'string' },
+    'handleOptionStringAndParams': { 2: 'string' },
+    'handleOptionStringAndParams2': { 1: 'string?', 2: 'string?', 3: 'string', 4: 'string?' },
+    'handleOrderOrPositionError': { 0: 'string?', 1: 'string?' },
+    'handleOrdersUnSubscription': { 1: 'string?' },
+    'handleOriginAndSingleAddress': { 0: 'string' },
+    'handlePaginationParams': { 0: 'string' },
+    'handleParamBool': { 1: 'string' },
+    'handleParamBool2': { 1: 'string', 2: 'string' },
+    'handleParamInteger': { 1: 'string' },
+    'handleParamInteger2': { 1: 'string', 2: 'string' },
+    'handleParamString': { 1: 'string' },
+    'handleParamString2': { 1: 'string', 2: 'string', 3: 'string?' },
+    'handlePortfolioAndParams': { 0: 'string' },
+    'handlePublicAddress': { 0: 'string?' },
+    'handleTakerOrMaker': { 0: 'string?' },
+    'handleTickerAndBidAsk': { 0: 'string' },
+    'handleTickersAndBidsAsks': { 2: 'string' },
+    'handleTradeType': { 1: 'string?' },
+    'handleTriggerDirectionAndParams': { 1: 'string?' },
+    'handleTriggerOptionAndParams': { 1: 'string?' },
+    'handleTypePostOnlyAndTimeInForce': { 0: 'string?' },
+    'handleUTAAndParams': { 1: 'string?' },
+    'handleUnSubscriptionTrades': { 1: 'string?' },
+    'handleUnsubscriptionCache': { 0: 'string?' },
+    'handleUnsubscriptionOHLCV': { 1: 'string?', 2: 'string?' },
+    'handleUnsubscriptionOrderBook': { 1: 'string?' },
+    'handleUnsubscriptionTicker': { 1: 'string?' },
+    'handleUntilOption': { 0: 'string?' },
+    'handleUntilOptionString': { 0: 'string' },
+    'helperForWatchMultipleConstruct': { 0: 'string' },
+    'hexToInt': { 0: 'string?' },
+    'integerPrecisionToAmount': { 0: 'string?' },
+    'isFuturesMethod': { 0: 'string' },
+    'isHfOrMining': { 0: 'string?', 1: 'string?' },
+    'isLinear': { 1: 'string?' },
+    'loadCurrencyNetworks': { 0: 'string?' },
+    'loadQuoteToken': { 0: 'string?' },
+    'mapSide': { 0: 'string?' },
+    'mapTimeInForce': { 0: 'string?' },
+    'marketOrNull': { 0: 'string?' },
+    'marketOutcomeToSymbol': { 1: 'string?', 2: 'string?' },
+    'mintTokenizedAsset': { 0: 'string', 1: 'string' },
+    'modifyLeverageAndMarginMode': { 2: 'string?' },
+    'networkCodeToChainId': { 0: 'string?' },
+    'orderBookMessageHashes': { 0: 'string?' },
+    'orderBookSuffix': { 1: 'string' },
+    'orderRequestWs': { 0: 'string' },
+    'outcomeForToken': { 0: 'string?' },
+    'outcomesByMarketId': { 0: 'string?' },
+    'padHexToEven': { 0: 'string?' },
+    'parseAccountId': { 0: 'string?' },
+    'parseBorrowRates': { 1: 'string?' },
+    'parseCreateEditOrderArgs': { 0: 'string?', 1: 'string?' },
+    'parseDepositWithdrawFees': { 2: 'string?' },
+    'parseExpiryDate': { 0: 'string?' },
+    'parseFundingFeeToPrecision': { 2: 'string?' },
+    'parseFundingInterval': { 0: 'string?' },
+    'parseLedgerDirection': { 0: 'string?' },
+    'parseLeverageFromSetting': { 0: 'string?' },
+    'parseMarginBalanceHelper': { 1: 'string?' },
+    'parseMarginModeFromSetting': { 0: 'string?' },
+    'parseMarginType': { 0: 'string?' },
+    'parseMyriadMarket': { 1: 'string?' },
+    'parseOpinionMarket': { 1: 'string?' },
+    'parseOptionChain': { 1: 'string?', 2: 'string?' },
+    'parseOrderFlags': { 0: 'string?' },
+    'parseOrderState': { 0: 'string?' },
+    'parseOrderTypeByMarket': { 1: 'string?' },
+    'parseOutcomeDescription': { 0: 'string?' },
+    'parseOutcomeInputSideHint': { 0: 'string?' },
+    'parsePolyTimestamp': { 0: 'string?' },
+    'parseSafeNumber': { 0: 'string?' },
+    'parseTakerOrMaker': { 0: 'string?' },
+    'parseTradeSide': { 0: 'string?' },
+    'parseTransactionState': { 0: 'string?' },
+    'parseTransferType': { 0: 'string?' },
+    'parseUnits': { 0: 'string?', 1: 'string?' },
+    'parseValueToPricision': { 1: 'string', 3: 'string' },
+    'parseWsMarginMode': { 0: 'string?' },
+    'parseWsPositionSide': { 0: 'string?' },
+    'parseWsTimeInForce': { 0: 'string?' },
+    'parseWsTimestamp': { 1: 'string' },
+    'polymarketOrderRawAmounts': { 3: 'string?' },
+    'postActionRequest': { 0: 'string?' },
+    'redeem': { 0: 'string?' },
+    'redeemTokenizedAsset': { 0: 'string', 1: 'string' },
+    'registerSxbetWsRequest': { 1: 'string?', 2: 'string?' },
+    'removeCommaFromValue': { 0: 'string?' },
+    'removeMarketSuffix': { 0: 'string?' },
+    'requestPrivate': { 0: 'string?' },
+    'requireValue': { 1: 'string?' },
+    'resolveAuthType': { 0: 'string' },
+    'resolveMarketByAltnameOrId': { 0: 'string?' },
+    'resolveOutcomeInput': { 0: 'string' },
+    'revokeApiKey': { 0: 'string' },
+    'revokeBuilderCode': { 0: 'string' },
+    'rlpEncodeBytes': { 0: 'string?' },
+    'roundOddsToLadder': { 0: 'string?', 1: 'string?' },
+    'safeMarket': { 2: 'string?' },
+    'safeSymbol': { 2: 'string?' },
+    'seedOrderBook': { 0: 'string?', 1: 'string?' },
+    'seedPositionBalances': { 0: 'string?' },
+    'selectNetworkIdFromRawNetworks': { 0: 'string?' },
+    'sendEvmTransaction': { 0: 'string?', 2: 'string?', 3: 'string?', 4: 'string?', 5: 'string?', 6: 'string?' },
+    'setAgentAbstraction': { 0: 'string' },
+    'setContractLeverage': { 1: 'string?' },
+    'setOrderBookSnapshot': { 2: 'string' },
+    'setPositionCache': { 1: 'string?' },
+    'setTakeProfitAndStopLossParams': { 0: 'string?' },
+    'setUserAbstraction': { 0: 'string' },
+    'setupApiKeyHeaders': { 0: 'string?' },
+    'signAndCancelAllOrders': { 0: 'string' },
+    'signAndCancelOrder': { 0: 'string', 2: 'string?' },
+    'signAndCreateOrder': { 0: 'string' },
+    'signApiKeyAuth': { 1: 'string?', 2: 'string?' },
+    'signCancelAll': { 1: 'string?' },
+    'signCancellation': { 1: 'string?', 2: 'string?' },
+    'signCancellationProducts': { 1: 'string?', 2: 'string?' },
+    'signClobAuth': { 0: 'string?', 1: 'string?' },
+    'signDigest': { 0: 'string?' },
+    'signDydxTx': { 2: 'string?', 3: 'string?' },
+    'signFetchTriggerOrders': { 1: 'string?', 2: 'string?' },
+    'signOpinionOrder': { 1: 'string?' },
+    'signStreamAuthentication': { 1: 'string?', 2: 'string?' },
+    'sortedOrders': { 0: 'string?' },
+    'stream': { 0: 'string?' },
+    'stripPriceFormatting': { 0: 'string?' },
+    'subscribeMyriadChannel': { 0: 'string?', 1: 'string?' },
+    'subscribeOpinionChannel': { 0: 'string?', 1: 'string' },
+    'subscribePublicUta': { 0: 'string?', 1: 'string?', 2: 'string?' },
+    'subscribeSxbetChannel': { 0: 'string?', 1: 'string?' },
+    'subscribeUserChannel': { 0: 'string?' },
+    'subscribeWatchTickersAndBidsAsks': { 1: 'string?' },
+    'subscriptionExistsForHash': { 0: 'string?', 1: 'string?' },
+    'tagToSlug': { 0: 'string?' },
+    'titleForMarketSymbol': { 0: 'string?', 1: 'string?' },
+    'tokenIdToSymbol': { 0: 'string?' },
+    'tokenizedConvertStatus': { 0: 'string', 1: 'string' },
+    'tradeRequest': { 0: 'string' },
+    'unWatch': { 0: 'string?', 1: 'string?', 2: 'string?', 3: 'string?', 4: 'string?', 6: 'string?' },
+    'unWatchPrivate': { 1: 'string?' },
+    'unWatchTicker': { 0: 'string?' },
+    'unWatchWalletEvents': { 0: 'string' },
+    'unsubscribe': { 0: 'string?' },
+    'unsubscribePublic': { 1: 'string?', 2: 'string?' },
+    'unwatchPublic': { 0: 'string?', 2: 'string?' },
+    'waitForTransactionReceipt': { 0: 'string?' },
+    'walletEventMessageHashes': { 1: 'string?' },
+    'watchExecuteRequest': { 0: 'string?' },
+    'watchMany': { 0: 'string?', 2: 'string?' },
+    'watchMultiHelper': { 0: 'string' },
+    'watchMultiTickerHelper': { 0: 'string' },
+    'watchMultipleSubscription': { 0: 'string?', 1: 'string?', 2: 'string?' },
+    'watchPrivateSubscribe': { 0: 'string?' },
+    'watchRequest': { 0: 'string?' },
+    'watchSpotPrivate': { 0: 'string?', 1: 'string?' },
+    'watchSwapPrivate': { 0: 'string?' },
+    'watchWalletEvents': { 0: 'string?' },
+    'wathPublic': { 1: 'string?', 2: 'string?' },
+};
+
+// the table type for a parameter of a listed generated method whose checker type is string-ish
+function csharpStringParamType (csharp, node) {
+    const owner = node?.parent;
+    if ((node?.kind !== ts.SyntaxKind.Parameter) || (owner?.kind !== ts.SyntaxKind.MethodDeclaration)) {
+        return undefined;
+    }
+    const wanted = CSHARP_STRING_PARAMS[owner.name?.text]?.[owner.parameters.indexOf (node)];
+    const file = owner.getSourceFile ().fileName.replace (/\\/g, '/');
+    if ((wanted === undefined) || file.includes ('/test/') || !/(^|\/)ts\/src\//.test (file)) {
+        return undefined;
+    }
+    const annotation = node.type?.getText ();
+    if ((annotation !== 'Str') && (annotation !== 'string')) {
+        return undefined;
+    }
+    return wanted;
+}
+
+export function installCsharpStringParams (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printParameterType !== 'function' || csharp._stringParamsPatched) {
+        return;
+    }
+    const upstream = csharp.printParameterType.bind (csharp);
+    // an `= null` default makes printParameter append the `?` itself
+    csharp.printParameterType = (node) => {
+        const own = csharpStringParamType (csharp, node);
+        if (own === undefined) {
+            return upstream (node);
+        }
+        return (node.initializer !== undefined) ? 'string' : own;
+    };
+    // an override printing its parent's parameters goes through a path that never appends the
+    // nullable `?` for an `= null` default (CS8610 against the virtual)
+    const upstreamCustom = csharp.printParameteCustomName.bind (csharp);
+    csharp.printParameteCustomName = (node, name, defaultValue = true) => {
+        const printed = upstreamCustom (node, name, defaultValue);
+        const own = (node?.initializer !== undefined) ? csharpStringParamType (csharp, node) : undefined;
+        return ((own !== undefined) && printed.startsWith ('string ')) ? 'string? ' + printed.slice (7) : printed;
+    };
+    csharp._stringParamsPatched = true;
 }
