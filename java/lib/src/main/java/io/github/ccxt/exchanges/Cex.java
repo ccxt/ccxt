@@ -924,9 +924,9 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> dataTypeparamsDataTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType", (String) null);
-            String dataType = (String) ((List<Object>) dataTypeparamsDataTypeVariable).get(0);
-            Map<String, Object> paramsDataType = (Map<String, Object>) ((List<Object>) dataTypeparamsDataTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "dataType", (String) null);
+            String dataType = dataTypeparamsDataTypeVariable.first();
+            Map<String, Object> paramsDataType = dataTypeparamsDataTypeVariable.second();
             if (java.util.Objects.equals(dataType, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
@@ -1525,9 +1525,9 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "accountId", (String) null);
-            String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
+            String accountId = accountIdparamsAccountIdVariable.first();
+            Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (java.util.Objects.equals(accountId, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1548,9 +1548,9 @@ public class Cex extends CexApi
                 "timestamp", this.milliseconds(),
                 "amountCcy1", this.amountToPrecision(symbol, amount)
             );
-            List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
-            String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
-            Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceparamsTimeInForceVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsAccountId), "createOrder", "timeInForce", "GTC");
+            String timeInForce = timeInForceparamsTimeInForceVariable.first();
+            Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             if (java.util.Objects.equals(type, "limit"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -2095,9 +2095,9 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "accountId", (String) null);
-            String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
+            String accountId = accountIdparamsAccountIdVariable.first();
+            Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (java.util.Objects.equals(accountId, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;

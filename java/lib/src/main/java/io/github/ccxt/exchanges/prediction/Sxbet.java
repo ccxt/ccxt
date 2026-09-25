@@ -966,9 +966,9 @@ public class Sxbet extends SxbetApi
             {
                 throw new BadRequest((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
             }
-            List<Object> spenderparamsSpenderVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
-            String spender = (String) ((List<Object>) spenderparamsSpenderVariable).get(0);
-            Map<String, Object> paramsSpender = (Map<String, Object>) ((List<Object>) spenderparamsSpenderVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> spenderparamsSpenderVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "approve", "spender", "transferToProxySpender", executorAddress);
+            String spender = spenderparamsSpenderVariable.first();
+            Map<String, Object> paramsSpender = spenderparamsSpenderVariable.second();
             if (java.util.Objects.equals(spender, null))
             {
                 throw new BadRequest((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
@@ -1125,9 +1125,9 @@ public class Sxbet extends SxbetApi
             {
                 defaultTif = "GTC";
             }
-            List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
-            String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
-            Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceparamsTimeInForceVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "timeInForce", defaultTif);
+            String timeInForce = timeInForceparamsTimeInForceVariable.first();
+            Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
             // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
             // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
             // contradicting the immediate-fill semantics the type promises

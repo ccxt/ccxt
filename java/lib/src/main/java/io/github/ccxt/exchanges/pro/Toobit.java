@@ -671,9 +671,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            List<Object> channelparamsChannelVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
-            String channel = (String) ((List<Object>) channelparamsChannelVariable).get(0);
-            Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelparamsChannelVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "channel", "depth");
+            String channel = channelparamsChannelVariable.first();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -830,9 +830,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             String type = "contract";
             if (Boolean.TRUE.equals(isSpot))

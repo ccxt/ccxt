@@ -900,7 +900,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
             {
-                List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (paramsCost), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Object paramsMarket = paramsCost;
                 if (Boolean.TRUE.equals(sideBuy))
                 {

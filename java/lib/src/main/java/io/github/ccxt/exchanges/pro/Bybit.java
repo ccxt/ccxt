@@ -229,9 +229,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 type = this.safeString(market, "type");
             } else
             {
-                List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodValue, (Map<String, Object>) null, parameters, (Object) null);
-                String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-                Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodValue, (Map<String, Object>) null, parameters, (String) null);
+                String marketType = marketTypeparamsMarketTypeVariable.first();
+                Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 type = marketType;
                 String defaultSettle = this.safeString(this.options, "defaultSettle");
                 defaultSettle = this.safeString2(paramsMarketType, "settle", "defaultSettle", defaultSettle);
@@ -1594,8 +1594,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "usdc", "user.openapi.perp.trade" );
             }};
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
-            List<Object> executionFastparamsExecutionFastVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
-            Boolean executionFast = (Boolean) ((List<Object>) executionFastparamsExecutionFastVariable).get(0);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
+            Boolean executionFast = executionFastparamsExecutionFastVariable.first();
             var paramsExecutionFast = ((List<Object>) executionFastparamsExecutionFastVariable).get(1);
             if (Boolean.TRUE.equals(executionFast))
             {
@@ -1648,8 +1648,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "usdc", "user.openapi.perp.trade" );
             }};
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
-            List<Object> executionFastparamsExecutionFastVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
-            Boolean executionFast = (Boolean) ((List<Object>) executionFastparamsExecutionFastVariable).get(0);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
+            Boolean executionFast = executionFastparamsExecutionFastVariable.first();
             var paramsExecutionFast = ((List<Object>) executionFastparamsExecutionFastVariable).get(1);
             if (Boolean.TRUE.equals(executionFast))
             {
@@ -2078,8 +2078,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String url = (this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters)).join();
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(this.cleanParams((Map<String, Object>) (parameters)), "watchLiquidations", "method", "allLiquidation");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.cleanParams((Map<String, Object>) (parameters))), "watchLiquidations", "method", "allLiquidation");
+            String method = methodparamsMethodVariable.first();
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             String messageHash = ("liquidations::" + symbolValue);
             String topic = ((method + ".") + market.get("id"));
@@ -2457,10 +2457,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             String method = "watchBalance";
             String messageHash = "balances";
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();

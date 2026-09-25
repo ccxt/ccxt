@@ -957,9 +957,9 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Long maxLimit = 300L;
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, maxLimit);
@@ -1124,9 +1124,9 @@ public class Btse extends BtseApi
             }
             String period = null;
             Map<String, Object> paramsPeriod = null;
-            List<Object> periodparamsPeriodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period", (String) null);
-            period = (String) ((List<Object>) periodparamsPeriodVariable).get(0);
-            paramsPeriod = (Map<String, Object>) ((List<Object>) periodparamsPeriodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> periodparamsPeriodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "period", (String) null);
+            period = periodparamsPeriodVariable.first();
+            paramsPeriod = periodparamsPeriodVariable.second();
             if (java.util.Objects.equals(period, null))
             {
                 period = "7D";
@@ -1221,9 +1221,9 @@ public class Btse extends BtseApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1249,9 +1249,9 @@ public class Btse extends BtseApi
                 response = (List<Object>) this.safeList(walletResponse, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                List<Object> walletparamsWalletVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
-                String wallet = (String) ((List<Object>) walletparamsWalletVariable).get(0);
-                Map<String, Object> paramsWallet = (Map<String, Object>) ((List<Object>) walletparamsWalletVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchBalance", "wallet", "CROSS@");
+                String wallet = walletparamsWalletVariable.first();
+                Map<String, Object> paramsWallet = walletparamsWalletVariable.second();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "wallet", wallet );
                 }};
@@ -1927,12 +1927,12 @@ public class Btse extends BtseApi
                 ((Map<String, Object>)request).put("count", limit);
             }
             Map<String, Object> paramsUntil = null;
-            List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            request = ((List<Object>) requestparamsUntilVariable).get(0);
-            paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            request = requestparamsUntilVariable.first();
+            paramsUntil = requestparamsUntilVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2306,9 +2306,9 @@ public class Btse extends BtseApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPricequeryVariable = (List<Object>) this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPricequeryVariable).get(0);
-                query = ((List<Object>) createMarketBuyOrderRequiresPricequeryVariable).get(1);
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.first();
+                query = createMarketBuyOrderRequiresPricequeryVariable.second();
                 String cost = this.safeString(query, "cost");
                 query = this.omit(query, "cost");
                 if (!java.util.Objects.equals(cost, null))
@@ -2514,13 +2514,13 @@ public class Btse extends BtseApi
             if (java.util.Objects.equals(positionMode, null))
             {
                 Boolean hedged = false;
-                List<Object> hedgedqueryVariable = (List<Object>) this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
-                hedged = (Boolean) ((List<Object>) hedgedqueryVariable).get(0);
-                query = ((List<Object>) hedgedqueryVariable).get(1);
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "hedged", hedged);
+                hedged = hedgedqueryVariable.first();
+                query = hedgedqueryVariable.second();
                 String marginMode = "cross";
-                List<Object> marginModequeryVariable = (List<Object>) this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
-                marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
-                query = ((List<Object>) marginModequeryVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "createOrder", "marginMode", marginMode);
+                marginMode = marginModequeryVariable.first();
+                query = marginModequeryVariable.second();
                 if (java.util.Objects.equals(marginMode, "isolated"))
                 {
                     if (Boolean.TRUE.equals(hedged))
@@ -2759,9 +2759,9 @@ public class Btse extends BtseApi
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2967,9 +2967,9 @@ public class Btse extends BtseApi
                 market = this.market(symbol);
             }
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             if (java.util.Objects.equals(marketTypeOption, "spot"))
@@ -3014,9 +3014,9 @@ public class Btse extends BtseApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
                 request.put("timeout", timeout);
@@ -3058,9 +3058,9 @@ public class Btse extends BtseApi
                 market = this.market(symbol);
             }
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             List<Object> response = null;
             if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
@@ -3267,9 +3267,9 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<Object> response = null;
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
                 response = (this.privateGetSpotApiV4TradeFees(paramsMarketType)).join();
@@ -4175,9 +4175,9 @@ public class Btse extends BtseApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Btse.this.futuresRequestId(market) );
             }};
-            List<Object> orderTypeparamsOrderTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
-            String orderType = (String) ((List<Object>) orderTypeparamsOrderTypeVariable).get(0);
-            Map<String, Object> paramsOrderType = (Map<String, Object>) ((List<Object>) orderTypeparamsOrderTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "closePosition", "type", "market");
+            String orderType = orderTypeparamsOrderTypeVariable.first();
+            Map<String, Object> paramsOrderType = orderTypeparamsOrderTypeVariable.second();
             String typeUpper = ((String)orderType).toUpperCase();
             request.put("orderType", typeUpper);
             if (java.util.Objects.equals(typeUpper, "LIMIT"))
@@ -4306,9 +4306,9 @@ public class Btse extends BtseApi
             // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
             // verified live - a bare call on a cross account silently changes the
             // isolated leverage only, so the unified marginMode param is translated here
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, (String) null);
-            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (!java.util.Objects.equals(marginMode, null))
             {
                 request.put("marginMode", ((String)marginMode).toUpperCase());

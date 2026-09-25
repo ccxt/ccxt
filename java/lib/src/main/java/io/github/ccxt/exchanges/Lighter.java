@@ -527,7 +527,7 @@ public class Lighter extends LighterApi
             {
                 return signer;
             }
-            String libraryPath = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath", (String) null)).get(0);
+            String libraryPath = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "libraryPath", (String) null)).get(0);
             Boolean lighterPrivateKeyIsSet = (!java.util.Objects.equals(privateKey, null)) && (!java.util.Objects.equals(privateKey, ""));
             if (Boolean.TRUE.equals(lighterPrivateKeyIsSet) && (!java.util.Objects.equals(libraryPath, null)) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
             {
@@ -1176,7 +1176,7 @@ public class Lighter extends LighterApi
                 return nonceInOptions;
             }
             // avoid skipNonce for l1 operations
-            Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true)).get(0);
+            Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchNonce", "skipNonce", true)).get(0);
             if (Boolean.TRUE.equals(skipNonce))
             {
                 return this.milliseconds();
@@ -3062,9 +3062,9 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
@@ -3182,16 +3182,16 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
             }
-            List<Object> addressparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address", (String) null);
-            String address = (String) ((List<Object>) addressparamsAddressVariable).get(0);
-            Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) addressparamsAddressVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPaginate), "fetchDeposits", "address", "l1_address", (String) null);
+            String address = addressparamsAddressVariable.first();
+            Map<String, Object> paramsAddress = addressparamsAddressVariable.second();
             if (java.util.Objects.equals(address, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDeposits() requires an address parameter")) ;
@@ -3262,9 +3262,9 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
@@ -3476,9 +3476,9 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, 50L)).join();
@@ -3655,9 +3655,9 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "setLeverage", "marginMode", "margin_mode", (String) null);
-            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "setLeverage", "marginMode", "margin_mode", (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires an marginMode parameter")) ;

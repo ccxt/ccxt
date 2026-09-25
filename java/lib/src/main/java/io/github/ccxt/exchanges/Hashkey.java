@@ -1565,9 +1565,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -1583,9 +1583,9 @@ public class Hashkey extends HashkeyApi
             {
                 request.put("endTime", until);
             }
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsUntil, methodName, "accountId", (String) null);
-            String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUntil), methodName, "accountId", (String) null);
+            String accountId = accountIdparamsAccountIdVariable.first();
+            Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1760,9 +1760,9 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), methodName, "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 1000L)).join();
@@ -2022,9 +2022,9 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String methodName = "fetchBalance";
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, (Map<String, Object>) null, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, (Map<String, Object>) null, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketTypeOption, "swap"))
             {
                 List<Object> response = (this.privateGetApiV1FuturesBalance(paramsMarketType)).join();
@@ -2729,16 +2729,16 @@ public class Hashkey extends HashkeyApi
                 request.put("limit", limit);
             }
             request.put("endTime", until);
-            List<Object> flowTypeparamsFlowTypeVariable = (List<Object>) this.handleOptionStringAndParams(paramsUntil, methodName, "flowType", (String) null);
-            String flowType = (String) ((List<Object>) flowTypeparamsFlowTypeVariable).get(0);
-            Map<String, Object> paramsFlowType = (Map<String, Object>) ((List<Object>) flowTypeparamsFlowTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> flowTypeparamsFlowTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUntil), methodName, "flowType", (String) null);
+            String flowType = flowTypeparamsFlowTypeVariable.first();
+            Map<String, Object> paramsFlowType = flowTypeparamsFlowTypeVariable.second();
             if (!java.util.Objects.equals(flowType, null))
             {
                 request.put("flowType", this.encodeFlowType(flowType));
             }
-            List<Object> accountTypeparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType", (String) null);
-            String accountType = (String) ((List<Object>) accountTypeparamsAccountTypeVariable).get(0);
-            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeparamsAccountTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsFlowType), methodName, "accountType", (String) null);
+            String accountType = accountTypeparamsAccountTypeVariable.first();
+            Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
             if (!java.util.Objects.equals(accountType, null))
             {
                 request.put("accountType", this.encodeAccountType(accountType));
@@ -3294,9 +3294,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3470,9 +3470,9 @@ public class Hashkey extends HashkeyApi
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, paramsClientOrderId, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, paramsClientOrderId, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3538,9 +3538,9 @@ public class Hashkey extends HashkeyApi
                 market = this.market(symbol);
             }
             String marketType = "spot";
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             Map<String, Object> paramsExtended = this.extend(new HashMap<String, Object>() {{
                 put( "methodName", methodName );
             }}, paramsMarketType);
@@ -3590,9 +3590,9 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> response = null;
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId", (String) null);
-            String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMethodName), methodNameOption, "accountId", (String) null);
+            String accountId = accountIdparamsAccountIdVariable.first();
+            Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (!java.util.Objects.equals(accountId, null))
             {
                 request.put("subAccountId", accountId);
@@ -3665,9 +3665,9 @@ public class Hashkey extends HashkeyApi
                 request.put("limit", limit);
             }
             List<Object> response = null;
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId", (String) null);
-            String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTrigger), methodNameOption, "accountId", (String) null);
+            String accountId = accountIdparamsAccountIdVariable.first();
+            Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             if (!java.util.Objects.equals(accountId, null))
             {
                 request.put("subAccountId", accountId);
@@ -3729,17 +3729,17 @@ public class Hashkey extends HashkeyApi
             {
                 request.put("endTime", until);
             }
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsUntil, methodName, "accountId", (String) null);
-            String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUntil), methodName, "accountId", (String) null);
+            String accountId = accountIdparamsAccountIdVariable.first();
+            Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, paramsAccountId, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, paramsAccountId, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3801,9 +3801,9 @@ public class Hashkey extends HashkeyApi
     public Object handleTriggerOptionAndParams(Object parameters, Object methodName, Object defaultValue)
     {
         Object isTrigger = defaultValue;
-        List<Object> isTriggerStopparamsStopVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
-        Boolean isTriggerStop = (Boolean) ((List<Object>) isTriggerStopparamsStopVariable).get(0);
-        var paramsStop = ((List<Object>) isTriggerStopparamsStopVariable).get(1);
+        io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), methodName, "stop", "trigger", isTrigger);
+        Boolean isTriggerStop = isTriggerStopparamsStopVariable.first();
+        Map<String, Object> paramsStop = isTriggerStopparamsStopVariable.second();
         return new ArrayList<Object>(Arrays.asList(isTriggerStop, paramsStop));
     }
 

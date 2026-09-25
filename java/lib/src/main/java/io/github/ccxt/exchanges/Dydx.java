@@ -1036,12 +1036,12 @@ public class Dydx extends DydxApi
 
     public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
-        List<Object> userAuxparamsUserVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "user", (String) null);
-        String userAux = (String) ((List<Object>) userAuxparamsUserVariable).get(0);
-        Map<String, Object> paramsUser = (Map<String, Object>) ((List<Object>) userAuxparamsUserVariable).get(1);
-        List<Object> userparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsUser, (String) (methodName), "address", userAux);
-        String user = (String) ((List<Object>) userparamsAddressVariable).get(0);
-        Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) userparamsAddressVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "user", (String) null);
+        String userAux = userAuxparamsUserVariable.first();
+        Map<String, Object> paramsUser = userAuxparamsUserVariable.second();
+        io.github.ccxt.base.Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUser), (String) (methodName), "address", userAux);
+        String user = userparamsAddressVariable.first();
+        Map<String, Object> paramsAddress = userparamsAddressVariable.second();
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
         {
             return new ArrayList<Object>(Arrays.asList(user, paramsAddress));
@@ -1192,9 +1192,9 @@ public class Dydx extends DydxApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            List<Object> subAccountNumberparamsSubAccountNumberVariable = (List<Object>) this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
-            String subAccountNumber = (String) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(0);
-            Map<String, Object> paramsSubAccountNumber = (Map<String, Object>) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchOrders", "subAccountNumber", "0");
+            String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
+            Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1398,9 +1398,9 @@ public class Dydx extends DydxApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            List<Object> subAccountNumberparamsSubAccountNumberVariable = (List<Object>) this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
-            String subAccountNumber = (String) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(0);
-            Map<String, Object> paramsSubAccountNumber = (Map<String, Object>) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchPositions", "subAccountNumber", "0");
+            String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
+            Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2712,9 +2712,9 @@ public class Dydx extends DydxApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress(methodName, (Map<String, Object>) (paramsOmitted));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            List<Object> subAccountNumberparamsSubAccountNumberVariable = (List<Object>) this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
-            String subAccountNumber = (String) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(0);
-            Map<String, Object> paramsSubAccountNumber = (Map<String, Object>) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), methodName, "subAccountNumber", "0");
+            String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
+            Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", userAddress );
                 put( "subaccountNumber", subAccountNumber );

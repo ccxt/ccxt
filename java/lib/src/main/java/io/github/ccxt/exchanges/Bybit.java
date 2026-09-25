@@ -2575,12 +2575,12 @@ public class Bybit extends BybitApi
 
     public List<Object> getBybitType(Object method, Object market, Map<String, Object> parameters)
     {
-        List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (Object) null);
-        String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-        Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(method, Helpers.toMapArg(market), paramsMarketType, (Object) null);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (String) null);
+        String type = typeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+        io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams(method, Helpers.toMapArg(market), paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-        Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         if (java.util.Objects.equals(type, "option") || java.util.Objects.equals(type, "spot"))
         {
             return new ArrayList<Object>(Arrays.asList(type, paramsSubType));
@@ -3696,7 +3696,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 parsedSymbols = new ArrayList<Object>(Arrays.asList());
-                String defaultType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (Object) null)).get(0); // don't omit here
+                String defaultType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null)).get(0); // don't omit here
                 // we can't use marketSymbols here due to the conflicting ids between markets
                 String currentType = null;
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -3868,9 +3868,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 1000L)).join();
@@ -3898,9 +3898,9 @@ public class Bybit extends BybitApi
             }
             request.put("limit", limitResolved); // max 1000, default 1000
             Map<String, Object> paramsUntil = null;
-            List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            request = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(0);
-            paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            request = requestparamsUntilVariable.first();
+            paramsUntil = requestparamsUntilVariable.second();
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
@@ -4078,16 +4078,16 @@ public class Bybit extends BybitApi
                     request.put("symbol", market.get("id"));
                 }
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingRates", market, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(marketType, "swap"))
             {
                 throw new NotSupported((((this.id + " fetchFundingRates() does not support ") + marketType) + " markets")) ;
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", market, paramsMarketType, "linear");
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRates", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             request.put("category", subType);
             Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, paramsSubType))).join();
             //
@@ -4164,9 +4164,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 200L, true)).join();
@@ -4878,12 +4878,12 @@ public class Bybit extends BybitApi
             Object type = null;
             Map<String, Object> paramsMarketType = null;
             // don't use getBybitType here
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            type = typeparamsMarketTypeVariable.first();
+            paramsMarketType = typeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
             {
                 type = subType;
@@ -4919,9 +4919,9 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String unifiedType = this.safeStringUpper(accountTypes, type, type);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
-            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(marginMode, null)))
             {
@@ -5456,7 +5456,7 @@ public class Bybit extends BybitApi
             {
                 defaultMethod = "privatePostV5OrderCreate";
             }
-            String method = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod)).get(0);
+            String method = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "method", defaultMethod)).get(0);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostV5PositionTradingStop"))
             {
@@ -5528,9 +5528,9 @@ public class Bybit extends BybitApi
         }
         String method = null;
         Object query = null;
-        List<Object> methodqueryVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod);
-        method = (String) ((List<Object>) methodqueryVariable).get(0);
-        query = ((List<Object>) methodqueryVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> methodqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "method", defaultMethod);
+        method = methodqueryVariable.first();
+        query = methodqueryVariable.second();
         Boolean endpointIsTradingStop = java.util.Objects.equals(method, "privatePostV5PositionTradingStop");
         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(lowerCaseType, "limit")) && !Boolean.TRUE.equals(endpointIsTradingStop))
         {
@@ -5696,9 +5696,9 @@ public class Bybit extends BybitApi
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             Boolean createMarketBuyOrderRequiresPrice = true;
-            List<Object> createMarketBuyOrderRequiresPricequeryVariable = (List<Object>) this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", false);
-            createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPricequeryVariable).get(0);
-            query = ((List<Object>) createMarketBuyOrderRequiresPricequeryVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "createMarketBuyOrderRequiresPrice", false);
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.first();
+            query = createMarketBuyOrderRequiresPricequeryVariable.second();
             if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
             {
                 if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
@@ -6406,9 +6406,9 @@ public class Bybit extends BybitApi
             Map<String, Object> request = Helpers.newMap(
                 "timeWindow", this.parseToInt(Helpers.divide(timeout, 1000))
             );
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, "swap");
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, "swap");
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Map<String, Object> productMap = new HashMap<String, Object>() {{
                 put( "spot", "SPOT" );
                 put( "swap", "DERIVATIVES" );
@@ -6710,9 +6710,9 @@ public class Bybit extends BybitApi
             {
                 return (this.fetchOrderClassic(id, symbol, parameters)).join();
             }
-            List<Object> acknowledgeparamsAcknowledgedVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrder", "acknowledged", false);
-            Boolean acknowledge = (Boolean) ((List<Object>) acknowledgeparamsAcknowledgedVariable).get(0);
-            Map<String, Object> paramsAcknowledged = (Map<String, Object>) ((List<Object>) acknowledgeparamsAcknowledgedVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> acknowledgeparamsAcknowledgedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "acknowledged", false);
+            Boolean acknowledge = acknowledgeparamsAcknowledgedVariable.first();
+            Map<String, Object> paramsAcknowledged = acknowledgeparamsAcknowledgedVariable.second();
             if (!Boolean.TRUE.equals(acknowledge))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
@@ -6830,9 +6830,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrdersClassic", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersClassic", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrdersClassic", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -7047,9 +7047,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -7255,9 +7255,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -7419,9 +7419,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 100L)).join();
@@ -7447,9 +7447,9 @@ public class Bybit extends BybitApi
             {
                 request.put("startTime", since);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsValue), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsValue), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -7634,9 +7634,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -7656,9 +7656,9 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5AssetDepositQueryRecord(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -7715,9 +7715,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -7737,9 +7737,9 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5AssetWithdrawQueryRecord(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -7916,9 +7916,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -7950,9 +7950,9 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals((enableUnified == null || 1 >= ((List<?>)enableUnified).size() ? null : ((List<?>)enableUnified).get(1)), true))
             {
@@ -8218,9 +8218,9 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
-            List<Object> accountTypeOptionparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType", (String) null);
-            String accountTypeOption = (String) ((List<Object>) accountTypeOptionparamsAccountTypeVariable).get(0);
-            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeOptionparamsAccountTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountTypeOptionparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWithdrawTag), "withdraw", "accountType", (String) null);
+            String accountTypeOption = accountTypeOptionparamsAccountTypeVariable.first();
+            Map<String, Object> paramsAccountType = accountTypeOptionparamsAccountTypeVariable.second();
             String defaultAccountType = (((java.util.Objects.equals(isUta, true)))) ? "UTA" : "SPOT";
             String accountType = (((java.util.Objects.equals(accountTypeOption, null)))) ? defaultAccountType : accountTypeOption;
             if (java.util.Objects.equals(this.markets, null))
@@ -8373,9 +8373,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositions", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositions", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchPositions", symbols, (Long) null, (Long) null, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 200L)).join();
@@ -9596,9 +9596,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
@@ -9618,9 +9618,9 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5AssetTransferQueryInterTransferList(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -9995,9 +9995,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> typeparamsTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTradingFees", "type", "future");
-            String type = (String) ((List<Object>) typeparamsTypeVariable).get(0);
-            Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeparamsTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchTradingFees", "type", "future");
+            String type = typeparamsTypeVariable.first();
+            Map<String, Object> paramsType = typeparamsTypeVariable.second();
             if (java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchTradingFees() is not supported for spot market")) ;
@@ -10684,9 +10684,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyLiquidations", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 100L)).join();
@@ -10712,9 +10712,9 @@ public class Bybit extends BybitApi
             {
                 request.put("startTime", since);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsValue), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsValue), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -10826,16 +10826,16 @@ public class Bybit extends BybitApi
             {
                 market = this.market(symbol);
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "getLeverageTiersPaginated", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "getLeverageTiersPaginated", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, (Long) null, (Long) null, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 100L)).join();
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("getLeverageTiersPaginated", market, paramsPaginate, "linear");
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("getLeverageTiersPaginated", market, paramsPaginate, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", subType );
             }};
@@ -10994,9 +10994,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 100L)).join();
@@ -11029,9 +11029,9 @@ public class Bybit extends BybitApi
             {
                 request.put("size", 100);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsValue), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsValue), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
             Object fundings = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseIncomes(fundings, market, since, limit);
@@ -11325,9 +11325,9 @@ public class Bybit extends BybitApi
                 }
             }
             Long until = this.safeInteger(parameters, "until");
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> paramsOmitted = this.omit(paramsSubType, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", subType );
@@ -11422,9 +11422,9 @@ public class Bybit extends BybitApi
             {
                 accountTypeDefault = "eb_convert_uta";
             }
-            List<Object> accountTypeparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
-            String accountType = (String) ((List<Object>) accountTypeparamsAccountTypeVariable).get(0);
-            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeparamsAccountTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchConvertCurrencies", "accountType", accountTypeDefault);
+            String accountType = accountTypeparamsAccountTypeVariable.first();
+            Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountType", accountType );
             }};
@@ -11540,9 +11540,9 @@ public class Bybit extends BybitApi
             {
                 accountTypeDefault = "eb_convert_uta";
             }
-            List<Object> accountTypeparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
-            String accountType = (String) ((List<Object>) accountTypeparamsAccountTypeVariable).get(0);
-            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeparamsAccountTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchConvertQuote", "accountType", accountTypeDefault);
+            String accountType = accountTypeparamsAccountTypeVariable.first();
+            Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fromCoin", fromCode );
                 put( "toCoin", toCode );
@@ -11653,9 +11653,9 @@ public class Bybit extends BybitApi
             {
                 accountTypeDefault = "eb_convert_uta";
             }
-            List<Object> accountTypeparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
-            String accountType = (String) ((List<Object>) accountTypeparamsAccountTypeVariable).get(0);
-            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeparamsAccountTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchConvertTrade", "accountType", accountTypeDefault);
+            String accountType = accountTypeparamsAccountTypeVariable.first();
+            Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quoteTxId", id );
                 put( "accountType", accountType );

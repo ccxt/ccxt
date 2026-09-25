@@ -1091,9 +1091,9 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 2000L)).join();
@@ -1192,9 +1192,9 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
@@ -1203,16 +1203,16 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             List<Object> rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));
             if (Boolean.TRUE.equals(isFullHistoryEndpoint))
             {
-                List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
-                var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-                Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+                io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
+                Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+                Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 if (!java.util.Objects.equals(since, null))
                 {
                     ((Map<String, Object>)requestUntil).put("since", since);
@@ -1287,9 +1287,9 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
             } else
             {
-                List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("lastTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
-                var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-                Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+                io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("lastTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMethod), 1);
+                Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+                Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
                 Map<String, Object> response = (this.publicGetHistory(this.extend(requestUntil, paramsUntil))).join();
                 //
                 //    {

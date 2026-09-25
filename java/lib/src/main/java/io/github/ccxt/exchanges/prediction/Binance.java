@@ -1107,9 +1107,9 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> typeparamsTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
-            String type = (String) ((List<Object>) typeparamsTypeVariable).get(0);
-            Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeparamsTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "type", "SPOT");
+            String type = typeparamsTypeVariable.first();
+            Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Map<String, Object> response = (this.sapiPrivateGetBalancePaymentOptions(paramsType)).join();
             //
             // {
@@ -1269,9 +1269,9 @@ public class Binance extends BinanceApi
 
             Boolean paginate = false;
             Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+            paginate = paginateparamsPaginateVariable.first();
+            paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
@@ -1366,9 +1366,9 @@ public class Binance extends BinanceApi
 
             Boolean paginate = false;
             Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            paginate = paginateparamsPaginateVariable.first();
+            paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
@@ -1669,9 +1669,9 @@ public class Binance extends BinanceApi
 
             Boolean paginate = false;
             Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            paginate = paginateparamsPaginateVariable.first();
+            paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
@@ -1863,7 +1863,7 @@ public class Binance extends BinanceApi
             {
                 return cachedWallet;
             }
-            String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, (String) (methodName), "walletAddress", Helpers.toStringArg(this.walletAddress))).get(0);
+            String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", Helpers.toStringArg(this.walletAddress))).get(0);
             Map<String, Object> response = (this.sapiPrivateGetWalletList()).join();
             //
             // {
