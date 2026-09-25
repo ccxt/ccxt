@@ -2007,7 +2007,7 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual string? intToRlpHex(object value)
     {
-        if (isEqual(value, null))
+        if ((value == null))
         {
             throw new ArgumentsRequired ((this.id + " intToRlpHex() requires a value argument")) ;
         }

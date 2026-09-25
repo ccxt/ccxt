@@ -2221,7 +2221,7 @@ public partial class mexc : Exchange
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            if (!isEqual(start, null))
+            if (!(start == null))
             {
                 request["startTime"] = start;
                 if ((until == null))
@@ -2720,7 +2720,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public virtual Dictionary<string, object> createSpotOrderRequest(IDictionary<string, object> market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object symbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
@@ -2728,13 +2728,13 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a type and a side argument")) ;
         }
-        string orderSide = ((string)side).ToUpper();
+        string orderSide = side.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market != null && market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
-            { "type", ((string)type).ToUpper() },
+            { "type", type.ToUpper() },
         };
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
             if ((cost != null))
@@ -2761,7 +2761,7 @@ public partial class mexc : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        object paramsWithoutCost = (isEqual(type, "market")) ? this.omit(parameters, "cost") : parameters;
+        object paramsWithoutCost = ((type == "market")) ? this.omit(parameters, "cost") : parameters;
         string? clientOrderId = this.safeString(paramsWithoutCost, "clientOrderId");
         if ((clientOrderId != null))
         {
@@ -2775,10 +2775,10 @@ public partial class mexc : Exchange
                 throw new BadRequest ((((this.id + " createOrder() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
             }
         }
-        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, "LIMIT_MAKER"), paramsWithoutClientOrderId);
+        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "LIMIT_MAKER"), paramsWithoutClientOrderId);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             request["type"] = "LIMIT_MAKER";
         }
@@ -2813,7 +2813,7 @@ public partial class mexc : Exchange
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, string? marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2890,7 +2890,7 @@ public partial class mexc : Exchange
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSwapOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSwapOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, string? marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2901,10 +2901,10 @@ public partial class mexc : Exchange
         object openType = null;
         if ((marginMode != null))
         {
-            if (isEqual(marginMode, "cross"))
+            if ((marginMode == "cross"))
             {
                 openType = 2;
-            } else if (isEqual(marginMode, "isolated"))
+            } else if ((marginMode == "isolated"))
             {
                 openType = 1;
             } else
@@ -2923,7 +2923,7 @@ public partial class mexc : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         object orderType = null;
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             orderType = 2;
         } else if ((type == "limit"))
@@ -4194,12 +4194,12 @@ public partial class mexc : Exchange
         return this.safeString(statuses, ((string)orderType), orderType);
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchAccountHelper(object type, object parameters)
+    public async virtual Task<Dictionary<string, object>> FetchAccountHelper(string? type, object parameters)
     {
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             return ccxt.BaseExchange.ToDict(await this.spotPrivateGetAccount(parameters));
-        } else if (isEqual(type, "swap"))
+        } else if ((type == "swap"))
         {
             Dictionary<string, object> response = await this.contractPrivateGetAccountAssets(parameters);
             //

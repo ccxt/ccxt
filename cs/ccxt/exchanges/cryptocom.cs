@@ -2154,7 +2154,7 @@ public partial class cryptocom : Exchange
             }
         }
         object paramsOmitted = ((id == null)) ? this.omit(parameters, new List<object>() {"orig_client_oid", "clientOrderId"}) : parameters;
-        if ((isEqual(amount, null)) || ((price == null)))
+        if (((amount == null)) || ((price == null)))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }

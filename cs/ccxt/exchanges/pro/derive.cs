@@ -302,7 +302,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         object limit = this.safeInteger(parameters, "limit");
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             limit = 10;
         }

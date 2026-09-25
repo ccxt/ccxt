@@ -358,7 +358,7 @@ public partial class bithumb : ccxt.bithumb
         string kstDatetime = ((((((((((((date == null) ? null : date.Substring(0, Math.Min(4, date.Length))) + "-") + ((date == null) ? null : date.Substring(Math.Min(4, date.Length), Math.Min(6, date.Length) - Math.Min(4, date.Length)))) + "-") + ((date == null) ? null : date.Substring(Math.Min(6, date.Length), Math.Min(8, date.Length) - Math.Min(6, date.Length)))) + "T") + ((time == null) ? null : time.Substring(0, Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(2, time.Length), Math.Min(4, time.Length) - Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(4, time.Length), Math.Min(6, time.Length) - Math.Min(4, time.Length))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         object timestamp = this.parse8601(kstDatetime);
-        if (!isEqual(timestamp, null))
+        if (!(timestamp == null))
         {
             timestamp = (subtract(timestamp, 32400000));
         }

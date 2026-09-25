@@ -1599,7 +1599,7 @@ public partial class coinex : ccxt.coinex
         }
     }
 
-    public async virtual Task<object> authenticate(object type)
+    public async virtual Task<object> authenticate(string? type)
     {
         object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
         var client = this.client(url);

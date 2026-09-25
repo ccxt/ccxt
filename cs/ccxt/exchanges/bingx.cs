@@ -3596,7 +3596,7 @@ public partial class bingx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarketOrder, timeInForce == "PostOnly", paramsMarketType);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((isEqual(postOnly, true)) || (timeInForce == "PostOnly"))
+        if (((postOnly == true)) || (timeInForce == "PostOnly"))
         {
             request["timeInForce"] = "PostOnly";
         } else if (timeInForce == "IOC")

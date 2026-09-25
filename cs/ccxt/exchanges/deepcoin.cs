@@ -1841,7 +1841,7 @@ public partial class deepcoin : Exchange
         }
     }
 
-    public virtual Dictionary<string, object> createRegularOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createRegularOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -1903,7 +1903,7 @@ public partial class deepcoin : Exchange
             keysToOmit.Add("takeProfit");
             request["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitPrice);
         }
-        bool isMarketOrder = (isEqual(type, "market"));
+        bool isMarketOrder = ((type == "market"));
         if ((price != null))
         {
             if (isMarketOrder)
@@ -1953,19 +1953,19 @@ public partial class deepcoin : Exchange
             bool? reduceOnly = this.safeBool(paramsMrgPosition, "reduceOnly", false);
             if ((reduceOnly == true))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     posSide = "short";
-                } else if (isEqual(side, "sell"))
+                } else if ((side == "sell"))
                 {
                     posSide = "long";
                 }
             } else
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     posSide = "long";
-                } else if (isEqual(side, "sell"))
+                } else if ((side == "sell"))
                 {
                     posSide = "short";
                 }
@@ -1975,7 +1975,7 @@ public partial class deepcoin : Exchange
         return this.extend(request, paramsRequest);
     }
 
-    public virtual Dictionary<string, object> createTriggerOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createTriggerOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -2024,7 +2024,7 @@ public partial class deepcoin : Exchange
         if ((price != null))
         {
             request["price"] = this.priceToPrecision(symbol, price);
-        } else if (isEqual(type, "limit"))
+        } else if ((type == "limit"))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
         }
@@ -2045,19 +2045,19 @@ public partial class deepcoin : Exchange
         {
             if ((reduceOnly == true))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     request["posSide"] = "short";
-                } else if (isEqual(side, "sell"))
+                } else if ((side == "sell"))
                 {
                     request["posSide"] = "long";
                 }
             } else
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     request["posSide"] = "long";
-                } else if (isEqual(side, "sell"))
+                } else if ((side == "sell"))
                 {
                     request["posSide"] = "short";
                 }

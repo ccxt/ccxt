@@ -3443,7 +3443,7 @@ public partial class kucoin : Exchange
         }, marketResolved);
     }
 
-    public virtual string? typeToTradeType(object type)
+    public virtual string? typeToTradeType(string? type)
     {
         Dictionary<string, object> tradeTypes = new Dictionary<string, object>() {
             { "spot", "SPOT" },
@@ -3454,7 +3454,7 @@ public partial class kucoin : Exchange
         {
             return null;
         }
-        return this.safeString(tradeTypes, ((string)type), type);
+        return this.safeString(tradeTypes, type, type);
     }
 
     /**
@@ -4696,14 +4696,14 @@ public partial class kucoin : Exchange
         {
             if (isMarginOrder)
             {
-                if (isEqual(hf, true))
+                if ((hf == true))
                 {
                     response = await this.privatePostHfMarginOrderTest(orderRequest);
                 } else
                 {
                     response = await this.privatePostMarginOrderTest(orderRequest);
                 }
-            } else if (isEqual(hf, true))
+            } else if ((hf == true))
             {
                 response = await this.privatePostHfOrdersTest(orderRequest);
             } else
@@ -4721,7 +4721,7 @@ public partial class kucoin : Exchange
             }
         } else if (isMarginOrder)
         {
-            if (isEqual(hf, true))
+            if ((hf == true))
             {
                 response = await this.privatePostHfMarginOrder(orderRequest);
             } else
@@ -4731,7 +4731,7 @@ public partial class kucoin : Exchange
         } else if (isTrue(useSync))
         {
             response = await this.privatePostHfOrdersSync(orderRequest);
-        } else if (isEqual(hf, true))
+        } else if ((hf == true))
         {
             response = await this.privatePostHfOrders(orderRequest);
         } else
@@ -4750,7 +4750,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -4778,7 +4778,7 @@ public partial class kucoin : Exchange
         IList<object> marginModeparamsOmittedVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsOmitted);
         marginMode = (string)marginModeparamsOmittedVariable[0];
         paramsOmitted = marginModeparamsOmittedVariable[1];
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             if ((quoteAmount != null))
             {
@@ -4814,11 +4814,11 @@ public partial class kucoin : Exchange
             {
                 if (!isEqual(stopLossPrice, null))
                 {
-                    request["stop"] = (isEqual(side, "buy")) ? "entry" : "loss";
+                    request["stop"] = ((side == "buy")) ? "entry" : "loss";
                     request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
                 } else
                 {
-                    request["stop"] = (isEqual(side, "buy")) ? "loss" : "entry";
+                    request["stop"] = ((side == "buy")) ? "loss" : "entry";
                     request["stopPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
                 }
             }
@@ -4837,7 +4837,7 @@ public partial class kucoin : Exchange
             }
         }
         bool? postOnly = null;
-        IList<object> postOnlyparamsOmittedVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, paramsOmitted);
+        IList<object> postOnlyparamsOmittedVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsOmitted);
         postOnly = (bool?)postOnlyparamsOmittedVariable[0];
         paramsOmitted = postOnlyparamsOmittedVariable[1];
         if ((postOnly == true))
@@ -4933,7 +4933,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -4968,7 +4968,7 @@ public partial class kucoin : Exchange
             request["valueQty"] = this.costToPrecision(symbol, cost);
         } else
         {
-            if (isEqual(amount, null))
+            if ((amount == null))
             {
                 throw new ArgumentsRequired ((this.id + " requires an amount argument")) ;
             }
@@ -5001,7 +5001,7 @@ public partial class kucoin : Exchange
         paramsOmitted = this.omit(paramsOmitted, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"});
         if (!isEqual(triggerPrice, null))
         {
-            request["stop"] = (isEqual(side, "buy")) ? "up" : "down";
+            request["stop"] = ((side == "buy")) ? "up" : "down";
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             request["stopPriceType"] = triggerPriceTypeValue;
         } else if (hasStopLoss || hasTakeProfit)
@@ -5026,17 +5026,17 @@ public partial class kucoin : Exchange
         {
             if (!isEqual(stopLossPrice, null))
             {
-                request["stop"] = (isEqual(side, "buy")) ? "up" : "down";
+                request["stop"] = ((side == "buy")) ? "up" : "down";
                 request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
             } else
             {
-                request["stop"] = (isEqual(side, "buy")) ? "down" : "up";
+                request["stop"] = ((side == "buy")) ? "down" : "up";
                 request["stopPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
             }
             request["reduceOnly"] = true;
             request["stopPriceType"] = triggerPriceTypeValue;
         }
-        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = type.ToUpper();
         string? timeInForce = this.safeStringUpper(paramsOmitted, "timeInForce");
         if (uppercaseType == "LIMIT")
         {
@@ -5053,7 +5053,7 @@ public partial class kucoin : Exchange
             }
         }
         bool? postOnly = null;
-        IList<object> postOnlyparamsOmittedVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, paramsOmitted);
+        IList<object> postOnlyparamsOmittedVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsOmitted);
         postOnly = (bool?)postOnlyparamsOmittedVariable[0];
         paramsOmitted = postOnlyparamsOmittedVariable[1];
         if ((postOnly == true))
@@ -5085,7 +5085,7 @@ public partial class kucoin : Exchange
             if ((hedged == true))
             {
                 string reduceOnlyPosSide = "SHORT";
-                if (isEqual(side, "sell"))
+                if ((side == "sell"))
                 {
                     reduceOnlyPosSide = "LONG";
                 }
@@ -5096,7 +5096,7 @@ public partial class kucoin : Exchange
             if ((hedged == true))
             {
                 string posSide = "SHORT";
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     posSide = "LONG";
                 }
@@ -5168,7 +5168,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> createUtaOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createUtaOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -5200,15 +5200,15 @@ public partial class kucoin : Exchange
             { "tradeType", tradeType },
             { "clientOid", clientOrderId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
-            { "orderType", ((string)type).ToUpper() },
+            { "side", side.ToUpper() },
+            { "orderType", type.ToUpper() },
         };
         if ((tradeType != null))
         {
             request["tradeType"] = tradeType;
         }
         request["clientOid"] = clientOrderId;
-        bool isMarketOrder = (isEqual(type, "market"));
+        bool isMarketOrder = ((type == "market"));
         string? cost = this.safeString(paramsRequest, "cost");
         if ((cost != null))
         {
@@ -5275,7 +5275,7 @@ public partial class kucoin : Exchange
                 if ((hedged == true))
                 {
                     string positionSide = "SHORT";
-                    if (isEqual(side, "buy"))
+                    if ((side == "buy"))
                     {
                         positionSide = "LONG";
                     }
@@ -5334,7 +5334,7 @@ public partial class kucoin : Exchange
         {
             if (!isEqual(stopLossPrice, null))
             {
-                request["triggerDirection"] = (isEqual(side, "buy")) ? "UP" : "DOWN";
+                request["triggerDirection"] = ((side == "buy")) ? "UP" : "DOWN";
                 request["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
                 if ((isContract == true))
                 {
@@ -5343,7 +5343,7 @@ public partial class kucoin : Exchange
                 }
             } else
             {
-                request["triggerDirection"] = (isEqual(side, "buy")) ? "DOWN" : "UP";
+                request["triggerDirection"] = ((side == "buy")) ? "DOWN" : "UP";
                 request["triggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
                 if ((isContract == true))
                 {
@@ -5546,7 +5546,7 @@ public partial class kucoin : Exchange
         if (isTrue(useSync))
         {
             response = await this.privatePostHfOrdersMultiSync(this.extend(request, paramsSync));
-        } else if (isEqual(hf, true))
+        } else if ((hf == true))
         {
             response = await this.privatePostHfOrdersMulti(this.extend(request, paramsSync));
         } else
@@ -5804,7 +5804,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         string? tradeType = this.safeString(paramsMarginMode, "tradeType"); // keep it for backward compatibility
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
-        if ((isEqual(hf, true)) || isTrue(useSync) || isMarginOrder)
+        if (((hf == true)) || isTrue(useSync) || isMarginOrder)
         {
             if ((trigger != true))
             {
@@ -5849,7 +5849,7 @@ public partial class kucoin : Exchange
             } else if (isTrue(useSync))
             {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, paramsOmitted));
-            } else if (isEqual(hf, true))
+            } else if ((hf == true))
             {
                 response = await this.privateDeleteHfOrdersClientOrderClientOid(this.extend(request, paramsOmitted));
             } else
@@ -5882,7 +5882,7 @@ public partial class kucoin : Exchange
             } else if (isTrue(useSync))
             {
                 response = await this.privateDeleteHfOrdersSyncOrderId(this.extend(request, paramsOmitted));
-            } else if (isEqual(hf, true))
+            } else if ((hf == true))
             {
                 response = await this.privateDeleteHfOrdersOrderId(this.extend(request, paramsOmitted));
                 //
@@ -6144,7 +6144,7 @@ public partial class kucoin : Exchange
         } else if (isMarginOrders)
         {
             response = await this.privateDeleteHfMarginOrders(this.extend(request, query));
-        } else if (isEqual(hf, true))
+        } else if ((hf == true))
         {
             if ((symbol == null))
             {
@@ -6241,7 +6241,7 @@ public partial class kucoin : Exchange
         bool? triggerOption = (bool?)triggerOptionparamsTriggerVariable[0];
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable[1]);
         string orderFilter = "NORMAL";
-        if (isEqual(triggerOption, true))
+        if ((triggerOption == true))
         {
             orderFilter = "ADVANCED";
         }
@@ -6387,7 +6387,7 @@ public partial class kucoin : Exchange
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(parameters);
         bool? hf = (bool?)hfparamsHfVariable[0];
         IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
-        if ((isEqual(hf, true)) && ((symbol == null)))
+        if (((hf == true)) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
         }
@@ -6446,7 +6446,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateGetHfMarginOrdersDone(this.extend(request, query));
-            } else if (isEqual(hf, true))
+            } else if ((hf == true))
             {
                 if (lowercaseStatus == "active")
                 {
@@ -6935,7 +6935,7 @@ public partial class kucoin : Exchange
         {
             market = this.market(symbol);
         }
-        if ((isEqual(hf, true)) || isMarginOrder)
+        if (((hf == true)) || isMarginOrder)
         {
             if ((trigger != true))
             {
@@ -6967,7 +6967,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateGetHfMarginOrdersClientOrderClientOid(this.extend(request, paramsOmitted));
-            } else if (isEqual(hf, true))
+            } else if ((hf == true))
             {
                 response = await this.privateGetHfOrdersClientOrderClientOid(this.extend(request, paramsOmitted));
             } else
@@ -6996,7 +6996,7 @@ public partial class kucoin : Exchange
             } else if (isMarginOrder)
             {
                 response = await this.privateGetHfMarginOrdersOrderId(this.extend(request, paramsOmitted));
-            } else if (isEqual(hf, true))
+            } else if ((hf == true))
             {
                 response = await this.privateGetHfOrdersOrderId(this.extend(request, paramsOmitted));
             } else
@@ -9354,7 +9354,7 @@ public partial class kucoin : Exchange
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(paramsOmitted);
         bool? hf = (bool?)hfparamsHfVariable[0];
         IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
-        if ((isEqual(hf, true)) && (type != "main"))
+        if (((hf == true)) && (type != "main"))
         {
             type = "trade_hf";
         }

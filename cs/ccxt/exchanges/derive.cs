@@ -1639,7 +1639,7 @@ public partial class derive : Exchange
         IList<object> maxFeeparamsMaxFeeVariable = (IList<object>)this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee");
         maxFee = maxFeeparamsMaxFeeVariable[0];
         paramsMaxFee = maxFeeparamsMaxFeeVariable[1];
-        if (isEqual(maxFee, null))
+        if ((maxFee == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a max_fee argument in params")) ;
         }

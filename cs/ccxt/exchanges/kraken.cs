@@ -2451,7 +2451,7 @@ public partial class kraken : Exchange
         bool isViqcOrder = ((flags != null)) && (flags.IndexOf("viqc", StringComparison.Ordinal) > -1); // volume in quote currency
         if (isMarketOrder && ((cost != null) || isViqcOrder))
         {
-            if ((cost == null) && (!isEqual(amount, null)))
+            if ((cost == null) && (!(amount == null)))
             {
                 ((IDictionary<string,object>)request)["volume"] = this.costToPrecision(symbol, this.numberToString(amount));
             } else
@@ -2569,7 +2569,7 @@ public partial class kraken : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, false, paramsOmitted2);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             string extendedPostFlags = "post";
             if ((flags != null))
@@ -3073,7 +3073,7 @@ public partial class kraken : Exchange
     public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(timeout, null))
+        if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
@@ -3085,7 +3085,7 @@ public partial class kraken : Exchange
         {
             await this.loadMarkets();
         }
-        if (isEqual(timeout, null))
+        if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
@@ -3401,7 +3401,7 @@ public partial class kraken : Exchange
         }
         string? type = this.safeString(transaction, "type"); // injected from the outside
         object feeCost = this.safeNumber(transaction, "fee");
-        if (isEqual(feeCost, null))
+        if ((feeCost == null))
         {
             if (type == "deposit")
             {

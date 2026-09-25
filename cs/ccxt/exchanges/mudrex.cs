@@ -390,7 +390,7 @@ public partial class mudrex : Exchange
         {
             startTime = subtract(now, multiply(duration, requestLimit));
         }
-        if (isEqual(startTime, null))
+        if ((startTime == null))
         {
             throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
         }

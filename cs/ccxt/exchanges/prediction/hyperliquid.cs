@@ -847,7 +847,7 @@ public partial class hyperliquid : PredictionExchange
         double? askVolume = ((topAsk != null)) ? this.safeNumber(topAsk, "sz") : null;
         // Use synthetic mid if no l2Book
         object mid = this.safeNumber(raw, "mid");
-        if (isEqual(mid, null) && (bid != null) && (ask != null))
+        if ((mid == null) && (bid != null) && (ask != null))
         {
             mid = divide(this.sum(bid, ask), 2);
         }
@@ -972,7 +972,7 @@ public partial class hyperliquid : PredictionExchange
             object candleCount = ((limit != null)) ? limit : 100;
             object startOffset = multiply(multiply(tf, candleCount), -1000);
             startTime = this.sum(until, startOffset);
-            if (isEqual(startTime, null))
+            if ((startTime == null))
             {
                 throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
             }

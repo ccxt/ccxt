@@ -902,7 +902,7 @@ public partial class blofin : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object limitValue = ((limit == null)) ? 50 : limit;
-        if (!isEqual(limitValue, null))
+        if (!(limitValue == null))
         {
             request["size"] = limitValue; // max 100
         }
