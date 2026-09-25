@@ -2240,6 +2240,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         String error = this.safeString(message, "error");
+        if (java.util.Objects.equals(error, null))
+        {
+            return null;
+        }
         Long code = this.safeInteger(error, "errorCode");
         String action = this.safeString(message, "action");
         Object buildMessage = this.buildMessageHash((String) (action), Helpers.toMapArg(message));
@@ -2247,7 +2251,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Boolean rejected = false;
         try
         {
-            this.handleErrors(code, ((String)error), client.url, "", new HashMap<String, Object>() {{}}, ((String)error), message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+            this.handleErrors(code, error, client.url, "", new HashMap<String, Object>() {{}}, error, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
         } catch(Exception e)
         {
             rejected = true;
