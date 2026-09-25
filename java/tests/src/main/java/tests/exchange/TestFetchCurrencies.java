@@ -34,7 +34,7 @@ public class TestFetchCurrencies extends BaseTest {
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
         if (!java.util.Objects.equals(isFetchCurrenciesPrivate, true))
         {
-            Object values = Helpers.objectValues(currencies);
+            Object values = new ArrayList<Object>(((Map<String, Object>)currencies).values());
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
             Object currenciesLength = ((List<?>)values).size();
             // ensure exchange returns enough length of currencies

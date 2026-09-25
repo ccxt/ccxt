@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -34,7 +35,7 @@ public class TestFetchLastPrices extends BaseTest {
             checkedSymbol = symbol;
         }
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, checkedSymbol);
-        Object values = Helpers.objectValues(response);
+        Object values = new ArrayList<Object>(((Map<String, Object>)response).values());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Boolean atLeastOnePassed = false;
         for (var i = 0; i < ((List<?>)values).size(); i++)

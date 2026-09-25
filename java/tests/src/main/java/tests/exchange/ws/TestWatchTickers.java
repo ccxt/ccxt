@@ -76,7 +76,7 @@ public class TestWatchTickers extends BaseTest {
             if (java.util.Objects.equals(success, true))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
-                Object values = Helpers.objectValues(response);
+                Object values = new ArrayList<Object>(((Map<String, Object>)response).values());
                 Object checkedSymbol = null;
                 if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
                 {

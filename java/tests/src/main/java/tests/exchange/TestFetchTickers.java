@@ -47,7 +47,7 @@ public class TestFetchTickers extends BaseTest {
         String method = "fetchTickers";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{argSymbols, argParams})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
-        Object values = Helpers.objectValues(response);
+        Object values = new ArrayList<Object>(((Map<String, Object>)response).values());
         Object checkedSymbol = null;
         if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
         {
