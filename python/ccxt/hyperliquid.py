@@ -3899,7 +3899,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         # moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         # params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
         transferType = self.safe_string(params, 'type')
-        isUsdc = (code is None) or (code.upper() == 'USDC')
+        isUsdc = (code.upper() == 'USDC')
         if isUsdc and (transferType != 'spot'):
             # Transfer USDC with subAccountTransfer
             usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
@@ -3981,9 +3981,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.check_address(address)
-        if code is not None:
-            if code.upper() != 'USDC':
-                raise NotSupported(self.id + ' withdraw() only support USDC')
+        if code.upper() != 'USDC':
+            raise NotSupported(self.id + ' withdraw() only support USDC')
         vaultAddressOption = self.handle_option_string_and_params(params, 'withdraw', 'vaultAddress')[0]
         vaultAddress = self.format_vault_address(vaultAddressOption)
         nonce = self.incrementing_nonce()

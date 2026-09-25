@@ -1145,7 +1145,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         orders = self.safe_list(result, 'list', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def fetch_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches a single order by id
 

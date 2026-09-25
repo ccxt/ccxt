@@ -1427,7 +1427,7 @@ class apex(Exchange, ImplicitAPI):
         accountId = self.safe_string(accountData, 'id', '')
         currency = {}
         assets = []
-        if fromAccount is not None and fromAccount.lower() == 'contract':
+        if fromAccount.lower() == 'contract':
             assets = contractAssets
         else:
             assets = spotAssets
@@ -1445,7 +1445,7 @@ class apex(Exchange, ImplicitAPI):
             clientOrderId = self.generate_random_client_id_omni(self.safe_string(self.options, 'accountId'))
         finalClientOrderId = clientOrderId  # java req
         paramsOmitted = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
-        if fromAccount is not None and fromAccount.lower() == 'contract':
+        if fromAccount.lower() == 'contract':
             formattedUint32 = '4294967295'
             zkSignAccountId = Precise.string_mod(accountId, formattedUint32)
             expireTime = timestampSeconds + 3600 * 24 * 28

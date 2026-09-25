@@ -2808,10 +2808,9 @@ class woofipro(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         self.check_address(address)
-        codeUpper = code.upper() if (code is not None) else code
-        if codeUpper is not None:
-            if codeUpper != 'USDC':
-                raise NotSupported(self.id + ' withdraw() only support USDC')
+        codeUpper = code.upper()
+        if codeUpper != 'USDC':
+            raise NotSupported(self.id + ' withdraw() only support USDC')
         currency = self.currency(codeUpper)
         verifyingContractAddress = self.safe_string(self.options, 'verifyingContractAddress')
         chainId = self.safe_string(params, 'chainId')
