@@ -8388,6 +8388,13 @@ const GO_TUPLE_PAIR_PRODUCERS: string[] = [
     'HandleOptionBoolAndParamsNullable', 'HandleOptionBoolAndParams2Nullable',
     'HandleOptionIntegerAndParamsNullable', 'HandleOptionIntegerAndParams2Nullable',
 ];
+// elements every return path stores already derefScalar-invariant (a GetValue/Omit result, a bool
+// literal, a non-nil map), so a bare `x := GetValue(h, k)` reads the same as `x := h[k]`
+const GO_TUPLE_PLAIN_ELEMENTS: { [producer: string]: string[] } = {
+    'HandleOptionAndParams': [ '1' ], 'HandleOptionAndParams2': [ '1' ], 'HandlePostOnly': [ '0', '1' ],
+    'HandleOptionBoolAndParamsNullable': [ '1' ], 'HandleOptionBoolAndParams2Nullable': [ '1' ],
+    'HandleOptionIntegerAndParamsNullable': [ '1' ], 'HandleOptionIntegerAndParams2Nullable': [ '1' ],
+};
 // consumers that apply derefScalar to their argument first, so GetValue's own deref is redundant
 const GO_TUPLE_DEREF_CONSUMERS: string[] = [ 'MapTyped', 'ListTyped', 'SafeStringPtr', 'SafeBoolPtr', 'Float64PtrTyped' ];
 
@@ -8406,44 +8413,61 @@ function nativeTupleHolderReads (content: string): string {
     const { 'blocks': blocks } = goTextBlocks (maskedLines);
     const consumers = GO_TUPLE_DEREF_CONSUMERS.join ('|');
     const readRx = new RegExp ('\\b((?:ccxt\\.)?(?:' + consumers + '))\\((?:ccxt\\.)?GetValue\\(([A-Za-z_]\\w*), ([01])\\)\\)', 'g');
+    const bareRx = /^(\s*[A-Za-z_]\w* :?= )(?:ccxt\.)?GetValue\(([A-Za-z_]\w*), ([01])\)(\s*)$/;
+    // the table producer of an unwritten `var holder []any = this.P(...)` declared in a block enclosing line `index`
+    const holderProducer = (holder: string, index: number): string => {
+        const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
+        if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
+            return undefined;
+        }
+        const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+        const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], holder);
+        if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
+            return undefined;
+        }
+        const init = new RegExp ('^\\s*var ' + holder + ' \\[\\]any = this\\.(\\w+)\\(').exec (decl.line);
+        if ((init === null) || !GO_TUPLE_PAIR_PRODUCERS.includes (init[1]) || overridden.includes (init[1])) {
+            return undefined;
+        }
+        let declLine = -1;
+        for (let k = fn.open + 1; k < fn.close; k++) {
+            if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (maskedLines[k])) {
+                declLine = k;
+                continue;
+            }
+            if (goTextWritesName (maskedLines[k], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (maskedLines[k])) {
+                return undefined;
+            }
+        }
+        if ((declLine < 0) || (declLine >= index)) {
+            return undefined;
+        }
+        // the declaration's block must enclose the read
+        const declBlock = goTextEnclosingBlock (blocks, declLine);
+        if ((declBlock === undefined) || !((declBlock.open < index) && (index <= declBlock.close))) {
+            return undefined;
+        }
+        return init[1];
+    };
     let changed = false;
     for (let index = 0; index < lines.length; index++) {
         if (maskedLines[index].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const bare = bareRx.exec (maskedLines[index]);
+        if ((bare !== null) && (lines[index] === maskedLines[index])) {
+            const producer = holderProducer (bare[2], index);
+            if ((producer !== undefined) && (GO_TUPLE_PLAIN_ELEMENTS[producer] || []).includes (bare[3])) {
+                lines[index] = bare[1] + bare[2] + '[' + bare[3] + ']' + bare[4];
+                changed = true;
+            }
             continue;
         }
         lines[index] = lines[index].replace (readRx, (match: string, consumer: string, holder: string, slot: string, offset: number) => {
             if ((maskedLines[index].substr (offset, match.length) !== match) || (offset > 0 && /[\w.]$/.test (maskedLines[index].substring (0, offset)) && !/ccxt\.$/.test (maskedLines[index].substring (0, offset)))) {
                 return match;
             }
-            const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
-            if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
-                return match;
-            }
-            const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
-            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], holder);
-            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
-                return match;
-            }
-            const init = new RegExp ('^\\s*var ' + holder + ' \\[\\]any = this\\.(\\w+)\\(').exec (decl.line);
-            if ((init === null) || !GO_TUPLE_PAIR_PRODUCERS.includes (init[1]) || overridden.includes (init[1])) {
-                return match;
-            }
-            let declLine = -1;
-            for (let k = fn.open + 1; k < fn.close; k++) {
-                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (maskedLines[k])) {
-                    declLine = k;
-                    continue;
-                }
-                if (goTextWritesName (maskedLines[k], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (maskedLines[k])) {
-                    return match;
-                }
-            }
-            if ((declLine < 0) || (declLine >= index)) {
-                return match;
-            }
-            // the declaration's block must enclose the read
-            const declBlock = goTextEnclosingBlock (blocks, declLine);
-            if ((declBlock === undefined) || !((declBlock.open < index) && (index <= declBlock.close))) {
+            if (holderProducer (holder, index) === undefined) {
                 return match;
             }
             changed = true;
@@ -8468,6 +8492,12 @@ function goTupleIndexSelfTest (): string[] {
         d + '\th = append(h, p)\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
         d + '\tvar c any = MapTyped(GetValue(h, 2))\n',
         d + '\tx := GetValue(h, 0)\n',
+        d + '\tx := GetValue(h, 1)\n',
+        '\tvar h []any = this.HandleOptionAndParams(p, \"m\", \"k\")\n\tx := GetValue(h, 0)\n',
+        '\tvar h []any = this.HandleOptionBoolAndParamsNullable(p, \"m\", \"k\")\n\tx := GetValue(h, 0)\n',
+        '\tvar h []any = this.HandleParamString(p, \"k\")\n\tx := GetValue(h, 1)\n',
+        '\tvar h []any = this.HandleOptionAndParams(p, \"m\", \"k\")\n\th = nil\n\tx := GetValue(h, 1)\n',
+        '\tvar h []any = this.HandleOptionAndParams(p, \"m\", \"k\")\n\tx := GetValue(h, 1) + 1\n',
         d + '\tvar c any = IsEqual(GetValue(h, 0), nil)\n',
         '\tvar h []any = this.HandleProductTypeAndParams(p)\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
         '\tif p != nil {\n\t\tvar h []any = this.HandleParamString(p, \"k\")\n\t}\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
@@ -8476,6 +8506,9 @@ function goTupleIndexSelfTest (): string[] {
     const overridden = 'func (this *X) HandleWithdrawTagAndParams(t any, p any) []any {\n\treturn nil\n}\n' + 'func (this *X) f(p any) any {\n' + d + '\tvar b map[string]any = MapTyped(GetValue(h, 1))\n\treturn nil\n}\n';
     ok (nativeTupleHolderReads (overridden).indexOf ('GetValue(h, 1)') >= 0, 'producer overridden in the file keeps GetValue');
     ok (nativeTupleHolderReads (pos) === pos, 'second application is a no-op');
+    const bare = f ('\tvar h []any = this.HandleOptionAndParams2(p, \"m\", \"a\", \"b\")\n\tx := GetValue(h, 1)\n\tvar q []any = this.HandlePostOnly(false, false, p)\n\tpo := ccxt.GetValue(q, 0)\n\tx = GetValue(q, 1)\n');
+    ok (bare.indexOf ('x := h[1]') >= 0 && bare.indexOf ('po := q[0]') >= 0 && bare.indexOf ('x = q[1]') >= 0, 'plain tuple elements read natively: ' + bare);
+    ok (nativeTupleHolderReads (bare) === bare, 'bare rewrite is idempotent');
     return problems;
 }
 
