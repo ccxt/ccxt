@@ -1704,8 +1704,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 continue;
             }
             Long timestamp = this.safeInteger(message, "E");
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }

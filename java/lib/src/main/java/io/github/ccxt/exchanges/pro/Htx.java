@@ -2023,8 +2023,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             Object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {

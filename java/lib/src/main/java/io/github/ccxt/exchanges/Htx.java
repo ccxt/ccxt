@@ -10023,8 +10023,8 @@ public class Htx extends HtxApi
             }
             Long timestamp = this.safeInteger(response, "ts");
             Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.extend(position, omitted)), market);
-            Helpers.addElementToObject(parsed, "timestamp", timestamp);
-            Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
+            parsed.put("timestamp", timestamp);
+            parsed.put("datetime", this.iso8601(timestamp));
             return parsed;
         }).thenApply(Position::new);
 

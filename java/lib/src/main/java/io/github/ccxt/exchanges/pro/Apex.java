@@ -1047,7 +1047,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 cache.append(position);
                 position.put("side", "short");
                 cache.append(position);
-                Helpers.addElementToObject(position, "side", null);
+                position.put("side", null);
             } else
             {
                 // regular update

@@ -1880,14 +1880,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Map<String, Object> prevLongPosition = (Map<String, Object>) this.safeDict(cache, (symbol + "long"), (Object) null);
                 if (!java.util.Objects.equals(prevLongPosition, null))
                 {
-                    Helpers.addElementToObject(position, "side", prevLongPosition.get("side"));
+                    position.put("side", prevLongPosition.get("side"));
                     ((List<Object>)newPositions).add(position);
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
                 Map<String, Object> prevShortPosition = (Map<String, Object>) this.safeDict(cache, (symbol + "short"), (Object) null);
                 if (!java.util.Objects.equals(prevShortPosition, null))
                 {
-                    Helpers.addElementToObject(position, "side", prevShortPosition.get("side"));
+                    position.put("side", prevShortPosition.get("side"));
                     ((List<Object>)newPositions).add(position);
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }

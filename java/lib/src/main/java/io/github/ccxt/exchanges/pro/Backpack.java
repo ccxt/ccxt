@@ -1572,8 +1572,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data), (Map<String, Object>) null);
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
-        Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
-        Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
+        parsedPosition.put("timestamp", timestamp);
+        parsedPosition.put("datetime", this.iso8601(timestamp));
         cache.append(parsedPosition);
         String symbolSpecificMessageHash = ((messageHash + ":") + parsedPosition.get("symbol"));
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);

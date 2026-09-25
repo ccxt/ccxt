@@ -1372,8 +1372,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
             Long timestamp = this.safeInteger(rawPosition, "E");
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }

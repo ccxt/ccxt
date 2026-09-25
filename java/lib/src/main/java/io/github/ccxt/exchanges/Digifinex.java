@@ -4632,8 +4632,8 @@ public class Digifinex extends DigifinexApi
                 return position;
             } else
             {
-                Helpers.addElementToObject(position, "collateral", this.safeNumber(response, "margin", (Object) null));
-                Helpers.addElementToObject(position, "marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
+                position.put("collateral", this.safeNumber(response, "margin", (Object) null));
+                position.put("marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
                 return position;
             }
         }).thenApply(Position::new);

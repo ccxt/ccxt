@@ -8603,7 +8603,7 @@ public Object describe()
                 {
                     if (!java.util.Objects.equals(fetchData, null))
                     {
-                        Helpers.addElementToObject(fetchData, "error", e);
+                        fetchData.put("error", e);
                         this.addFetchCache(fetchData);
                     }
                     if (Helpers.isInstance(e, OperationFailed.class))

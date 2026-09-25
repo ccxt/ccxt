@@ -6002,18 +6002,18 @@ public class Gate extends GateApi
                 }};
                 if (!java.util.Objects.equals(market.get("option"), true))
                 {
-                    Helpers.addElementToObject(request, "settle", market.get("settleId")); // filled in prepareRequest above
+                    request.put("settle", market.get("settleId")); // filled in prepareRequest above
                 }
                 if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     request.put("price", "0"); // set to 0 for market orders
                 } else
                 {
-                    Helpers.addElementToObject(request, "price", (((Helpers.isEqual(priceResolved, 0)))) ? "0" : this.priceToPrecision(symbol, priceResolved));
+                    request.put("price", (((Helpers.isEqual(priceResolved, 0)))) ? "0" : this.priceToPrecision(symbol, priceResolved));
                 }
                 if (!java.util.Objects.equals(reduceOnly, null))
                 {
-                    Helpers.addElementToObject(request, "reduce_only", reduceOnly);
+                    request.put("reduce_only", reduceOnly);
                 }
                 if (!java.util.Objects.equals(timeInForce, null))
                 {
@@ -6060,14 +6060,14 @@ public class Gate extends GateApi
                     {
                         quoteAmount = this.costToPrecision(symbol, amountResolved);
                     }
-                    Helpers.addElementToObject(request, "amount", quoteAmount);
+                    request.put("amount", quoteAmount);
                 } else
                 {
-                    Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amountResolved));
+                    request.put("amount", this.amountToPrecision(symbol, amountResolved));
                 }
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
-                    Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, priceResolved));
+                    request.put("price", this.priceToPrecision(symbol, priceResolved));
                 }
                 if (!java.util.Objects.equals(timeInForce, null))
                 {

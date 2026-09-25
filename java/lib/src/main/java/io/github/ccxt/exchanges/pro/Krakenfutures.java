@@ -459,8 +459,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
             Long timestamp = this.safeInteger(message, "timestamp");
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }

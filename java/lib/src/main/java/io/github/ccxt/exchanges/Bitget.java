@@ -6082,10 +6082,10 @@ public class Bitget extends BitgetApi
             Boolean deduction = ((java.util.Objects.equals(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
             if (Boolean.TRUE.equals(deduction))
             {
-                Helpers.addElementToObject(fee, "cost", feeCostString);
+                fee.put("cost", feeCostString);
             } else
             {
-                Helpers.addElementToObject(fee, "cost", Precise.stringNeg(feeCostString));
+                fee.put("cost", Precise.stringNeg(feeCostString));
             }
         }
         return this.safeTrade(Helpers.newMap(

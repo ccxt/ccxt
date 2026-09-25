@@ -1586,7 +1586,7 @@ public class Blofin extends BlofinApi
                 account.put("total", eq);
                 account.put("free", availEq);
             }
-            Helpers.addElementToObject(result, code, account);
+            result.put(code, account);
         }
         result.put("timestamp", timestamp);
         result.put("datetime", this.iso8601(timestamp));
@@ -1624,7 +1624,7 @@ public class Blofin extends BlofinApi
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "frozen"));
-            Helpers.addElementToObject(result, code, account);
+            result.put(code, account);
         }
         return this.safeBalance(result);
     }

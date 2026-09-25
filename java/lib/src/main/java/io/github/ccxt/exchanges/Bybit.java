@@ -8343,8 +8343,8 @@ public class Bybit extends BybitApi
             Long timestamp = this.safeInteger(response, "time");
             Map<String, Object> first = (Map<String, Object>) this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (first), market);
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             return position;
         }).thenApply(Position::new);
 
