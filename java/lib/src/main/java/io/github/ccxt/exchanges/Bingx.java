@@ -5595,19 +5595,19 @@ public class Bingx extends BingxApi
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("startTime", since);
+                    request.put("startTime", since);
                 }
-                Long until = (Long) this.safeInteger2(parameters, "until", "till");
+                Long until = (Long) this.safeInteger2(paramsStandard, "until", "till");
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("endTime", until);
+                    request.put("endTime", until);
                 }
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+                Map<String, Object> paramsSpot = (Map<String, Object>) this.omit(paramsStandard, new ArrayList<Object>(Arrays.asList("until", "till")));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("pageSize", limit);
                 }
-                response = (this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, paramsStandard))).join();
+                response = (this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, paramsSpot))).join();
             } else
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsStandard, "twap", false);

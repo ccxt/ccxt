@@ -2601,7 +2601,6 @@ public class Woo extends WooApi
         String symbol = (String) marketResolved.get("symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity"); // This is base amount
-        String cost = this.safeString(order, "amount"); // This is quote amount
         String orderType = this.safeStringLower(order, "type");
         String status = this.safeString2(order, "status", "algoStatus");
         String side = this.safeStringLower(order, "side");
@@ -2650,7 +2649,7 @@ public class Woo extends WooApi
             "amount", amount,
             "filled", filled,
             "remaining", null,
-            "cost", cost,
+            "cost", null,
             "trades", null,
             "fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
