@@ -5667,6 +5667,34 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
+    return problems.concat(mapLocalsSelfTest());
+}
+
+// section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
+function mapLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzmaplocalsselftest extends Exchange {',
+        "    nestedIntKey (response: any, params = {}) { let data = this.extend (params, {}); if (Array.isArray (response)) { data = this.safeDict (response, 0, {}); } return this.omit (data, 'a'); }",
+        "    nestedStrKey (ticker: any, params = {}) { let raw = this.extend (params, {}); if (ticker !== undefined) { if (ticker['x'] !== undefined) { raw = this.safeDict (ticker, 'market', {}); } } return this.omit (raw, 'a'); }",
+        "    closure (params = {}) { let p = this.extend (params, {}); const f = () => { p = this.safeValue (params, 'q'); }; f (); return this.omit (p, 'a'); }",
+        "    positive (params = {}) { let q = this.extend (params, {}); if (params['z'] !== undefined) { q = this.extend (q, {}); } return this.omit (q, 'a'); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        for (const name of [ 'data', 'raw', 'p' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`map locals: '${name}' has an unproven write and must stay Object`);
+        }
+        if (!/Map<String, Object> q = /.test(out)) problems.push("map locals: 'q' (every write a Map) must print Map<String, Object>");
+    } catch (e: any) {
+        problems.push(`map locals self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
     return problems;
 }
 

@@ -3523,6 +3523,25 @@ function assertedPrintsNoUnsatisfiableCast (asserted, javaType) {
     }
 }
 
+// `n` written by a for-in/of head or a nested / object destructuring pattern (not `[a, n] = f()`)
+function writeOnlyPatternTarget (n) {
+    let child = n;
+    let current = n.parent;
+    let nested = false;
+    while (current !== undefined && (ts.isArrayLiteralExpression (current) || ts.isObjectLiteralExpression (current)
+        || ts.isShorthandPropertyAssignment (current) || ts.isPropertyAssignment (current) || ts.isSpreadElement (current)
+        || ts.isParenthesizedExpression (current))) {
+        nested = nested || child !== n || !ts.isArrayLiteralExpression (current);
+        child = current;
+        current = current.parent;
+    }
+    if (current !== undefined && (ts.isForInStatement (current) || ts.isForOfStatement (current))) {
+        return current.initializer === child;
+    }
+    return nested && current !== undefined && ts.isBinaryExpression (current) && current.left === child
+        && current.operatorToken.kind === ts.SyntaxKind.EqualsToken;
+}
+
 function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
@@ -3598,6 +3617,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isSpreadElement (parent)) {
             return false;
         }
+        if (info?.writeOnly === true && writeOnlyPatternTarget (n)) {
+            return false; // loop-variable / nested destructuring writes are outside writeOk
+        }
         if (ts.isTypeOfExpression (parent)) {
             // `typeof x === 'string'` prints `x instanceof String` — the exact expression
             // the Object declaration printed, and legal on a String box; only the
@@ -3633,7 +3655,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 let ok;
-                if (javaType === 'String') {
+                if (info?.writeOnly === true) {
+                    ok = false; // only the family's own writeOk decides
+                } else if (javaType === 'String') {
                     // the narrowed declaration can only take writes whose printed Java is
                     // statically String (isStaticallyStringExpression) or a same-family
                     // helper call the reassignment hook casts
@@ -14897,6 +14921,7 @@ function mapLocalIsMap (printer, declaration) {
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_MAP_TYPE, isProFile, {
         noCastAssertions: true,
+        writeOnly: true,
         writeOk: (right) => mapLocalValueIsMap (printer, right, declaration),
         destructureOk: (assignment, index) => mapLocalDestructureOk (printer, assignment, index),
     });
