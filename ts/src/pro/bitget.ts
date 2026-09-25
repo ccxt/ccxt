@@ -1364,14 +1364,10 @@ export default class bitget extends bitgetRest {
         if (hasSymbols) {
             market = this.getMarketFromSymbols (symbolsNormalized);
         }
-        let instTypeAndParams: [ Str, Dict ] = [ undefined, {} ];
+        let paramsInstType: Dict = paramsUta;
         if (hasSymbols) {
-            instTypeAndParams = this.getInstType ('watchPositions', market, uta, paramsUta);
-        } else {
-            instTypeAndParams = [ instType, paramsUta ];
+            [ instType, paramsInstType ] = this.getInstType ('watchPositions', market, uta, paramsUta);
         }
-        const paramsInstType: Dict = instTypeAndParams[1];
-        instType = instTypeAndParams[0];
         if (uta) {
             instType = 'UTA';
         }
@@ -1671,14 +1667,11 @@ export default class bitget extends bitgetRest {
             messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
         const useSpotInstType = (market === undefined && type === 'spot');
-        let instTypeAndParams: [ Str, Dict ] = [ undefined, {} ];
-        if (useSpotInstType) {
-            instTypeAndParams = [ 'SPOT', paramsSubType ];
-        } else {
-            instTypeAndParams = this.getInstType ('watchOrders', market, uta, paramsSubType);
+        let instType: Str = 'SPOT';
+        let paramsInstType: Dict = paramsSubType;
+        if (!useSpotInstType) {
+            [ instType, paramsInstType ] = this.getInstType ('watchOrders', market, uta, paramsSubType);
         }
-        let instType: Str = instTypeAndParams[0];
-        const paramsInstType: Dict = instTypeAndParams[1];
         if (type === 'spot' && (symbolResolved !== undefined)) {
             subscriptionHash = subscriptionHash + ':' + symbolResolved;
         }
@@ -2188,14 +2181,11 @@ export default class bitget extends bitgetRest {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsMarketType, 'watchMyTrades', 'uta', false);
         const useSpotInstType = (market === undefined && type === 'spot');
-        let instTypeAndParams: [ Str, Dict ] = [ undefined, {} ];
-        if (useSpotInstType) {
-            instTypeAndParams = [ 'SPOT', paramsUta ];
-        } else {
-            instTypeAndParams = this.getInstType ('watchMyTrades', market, uta, paramsUta);
+        let instType: Str = 'SPOT';
+        let paramsInstType: Dict = paramsUta;
+        if (!useSpotInstType) {
+            [ instType, paramsInstType ] = this.getInstType ('watchMyTrades', market, uta, paramsUta);
         }
-        let instType: Str = instTypeAndParams[0];
-        const paramsInstType: Dict = instTypeAndParams[1];
         if (uta) {
             instType = 'UTA';
         }

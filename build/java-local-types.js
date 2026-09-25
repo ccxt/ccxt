@@ -7240,6 +7240,58 @@ function untilOptionEchoesElement0 (printer, assignment, n) {
     }
 }
 
+// the other arm prints Object (Math.min/max -> Helpers.mathMin), is a literal, or is an
+// identifier the condition null-checks so it is selected only when non-null
+function literalOtherArmNeverUnboxesNull (conditional, n) {
+    const whenTrue = unwrapParens (conditional.whenTrue);
+    const other = (whenTrue === n) ? unwrapParens (conditional.whenFalse) : whenTrue;
+    const onTrue = other === whenTrue;
+    if (other === undefined) {
+        return false;
+    }
+    if (other.kind === ts.SyntaxKind.NumericLiteral) {
+        return true;
+    }
+    if (ts.isCallExpression (other) && ts.isPropertyAccessExpression (other.expression)
+        && ts.isIdentifier (other.expression.expression) && other.expression.expression.escapedText === 'Math'
+        && [ 'min', 'max' ].includes (String (other.expression.name.escapedText))) {
+        return true;
+    }
+    const cond = unwrapParens (conditional.condition);
+    if (!ts.isIdentifier (other) || cond === undefined || !ts.isBinaryExpression (cond)) {
+        return false;
+    }
+    const op = cond.operatorToken.kind;
+    const isEq = op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsToken;
+    const isNe = op === ts.SyntaxKind.ExclamationEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsToken;
+    const left = unwrapParens (cond.left);
+    const right = unwrapParens (cond.right);
+    const nullish = (e) => e.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (e) && e.escapedText === 'undefined');
+    if (!ts.isIdentifier (left) || left.escapedText !== other.escapedText || !nullish (right)) {
+        return false;
+    }
+    return (isNe && onTrue) || (isEq && !onTrue);
+}
+
+// a numeric local read as a ternary ARM whose conditional only initializes / assigns a
+// local: no enclosing call, so no overload can flip; the other arm is evaluated only
+// on its own branch, so a numeric join never unboxes a null
+function literalArmReadIsInert (conditional, n) {
+    let top = conditional;
+    while (top.parent !== undefined && ts.isParenthesizedExpression (top.parent)) {
+        top = top.parent;
+    }
+    const holder = top.parent;
+    if (holder === undefined || !literalOtherArmNeverUnboxesNull (conditional, n)) {
+        return false;
+    }
+    if (ts.isVariableDeclaration (holder) && holder.initializer === top) {
+        return true;
+    }
+    return ts.isBinaryExpression (holder) && holder.right === top
+        && holder.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (holder.left);
+}
+
 // reject the refinement when a later use needs the local to stay `Object` (see the
 // header for the per-parent rule set)
 function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, isProFile) {
@@ -7306,7 +7358,7 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 // `x ? a : b` prints through printCondition (`Helpers.isTrue(x)`) — fine.
                 // An ARM read unifies the conditional's static type, which can then flip
                 // an enclosing overload, so arm reads keep the local Object.
-                if (parent.condition !== n) {
+                if (parent.condition !== n && !(isNumeric && literalArmReadIsInert (parent, n))) {
                     return false;
                 }
                 break;
@@ -10601,6 +10653,27 @@ const JOIN_PARAMETER_TYPES = new Map ([
     [ 'java.util.Map<String, Object>', JAVA_STRUCTURE_TYPE ], [ 'Map<String, Object>', JAVA_STRUCTURE_TYPE ],
 ]);
 
+function parameterIsWritten (declaration) {
+    const scope = declaration.parent;
+    const name = declaration.name.escapedText;
+    let written = false;
+    const visit = (node) => {
+        if (written) {
+            return;
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment
+            && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const targets = ts.isArrayLiteralExpression (node.left) ? node.left.elements : [ node.left ];
+            written = targets.some ((t) => ts.isIdentifier (t) && t.escapedText === name);
+        }
+        ts.forEachChild (node, visit);
+    };
+    if (scope.body !== undefined) {
+        visit (scope.body);
+    }
+    return written;
+}
+
 function joinParameterReadType (printer, identifier) {
     if (typeof printer.javaNativeParameterType !== 'function') {
         return undefined;
@@ -10616,8 +10689,8 @@ function joinParameterReadType (printer, identifier) {
         || !ts.isMethodDeclaration (declaration.parent) || enclosingFunction (identifier) !== declaration.parent) {
         return undefined;
     }
-    // an async body reads a hoisted copy whose declaration other passes type
-    if (typeof printer.isAsyncFunction !== 'function' || printer.isAsyncFunction (declaration.parent)) {
+    // full-arity async cores read the parameter itself (no hoisted copy); a reassigned one stays out
+    if (parameterIsWritten (declaration)) {
         return undefined;
     }
     let printed;
@@ -12262,11 +12335,42 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
         return JAVA_STRING_LIST_RETURN_METHODS.has (name) && file !== undefined && HELPER_SOURCE_FILE.test (file)
             && resolvesToMethodNamed (printer, value, name) && !value.arguments.some ((a) => ts.isSpreadElement (a));
     }
+    if (stringListBaseSymbolsRead (printer, value)) {
+        return true; // printed through Helpers.toStringListArg (stringListRetypeValue)
+    }
     if (ts.isIdentifier (value)) {
         const declaration = stringListLocalDeclaration (printer, value);
-        return declaration !== undefined && stringListLocalType (printer, declaration, seen) !== undefined;
+        if (declaration === undefined) {
+            return stringListParameterRead (printer, value);
+        }
+        return stringListLocalType (printer, declaration, seen) !== undefined;
     }
     return false;
+}
+
+// `this.symbols` (base field, printed List<Object>): its values are the market symbols
+function stringListBaseSymbolsRead (printer, value) {
+    if (!ts.isPropertyAccessExpression (value) || value.expression.kind !== ts.SyntaxKind.ThisKeyword
+        || value.name.escapedText !== 'symbols') {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (value.name)?.valueDeclaration;
+        return declaration !== undefined && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName);
+    } catch (e) {
+        return false;
+    }
+}
+
+// a parameter the printer declares List<String> (a `Strings` param of a typed core)
+function stringListParameterRead (printer, value) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration;
+        return declaration !== undefined && ts.isParameter (declaration) && typeof printer.javaDeclaredTypeOf === 'function'
+            && /^(java\.util\.)?List<String>$/.test (String (printer.javaDeclaredTypeOf (value) ?? '').trim ());
+    } catch (e) {
+        return false;
+    }
 }
 
 // `a[k] = x` prints a Map put / helper call whose value slot is Object
@@ -12355,7 +12459,7 @@ function stringListJoinLocal (printer, declaration, seen) {
             }
             continue;
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope) && !literalFeedsVenueOwnAsyncCall (printer, n, scope)) {
             return false;
         }
         if (stringListFeedsJoinedLocal (printer, host, seen)) {
@@ -12403,7 +12507,8 @@ function stringListLocalType (printer, declaration, seen = undefined) {
 
 function stringListRetypeValue (text) {
     return text.split (STRING_LIST_ARRAY_OPEN).join ('new java.util.ArrayList<String>(java.util.Arrays.asList(')
-        .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1');
+        .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1')
+        .replace (/(?<![\w.$(])this\.symbols(?![\w$(])/g, 'Helpers.toStringListArg(this.symbols)');
 }
 
 export function patchJavaStringListReturnLocals (transpiler) {
