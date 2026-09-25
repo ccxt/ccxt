@@ -195,11 +195,11 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        this.handleDelta(storedOrderBook, delta);
+        this.handleBookDelta(storedOrderBook, delta);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeTimestamp(delta, "timestamp");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

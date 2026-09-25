@@ -777,7 +777,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         } else
         {
             List<object> changes = this.safeList(message, "changes", new List<object>() {});
-            this.handleDeltas(orderbook, changes);
+            this.handleBookDeltas(orderbook, changes);
         }
         orderbook["nonce"] = this.safeInteger(message, "sequence");
         orderbook["datetime"] = datetime;
@@ -789,7 +789,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         string? rawSide = this.safeStringLower(delta, 0);
         string side = "asks";
@@ -803,11 +803,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(object orderbook, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, getValue(deltas, i));
+            this.handleBookDelta(orderbook, getValue(deltas, i));
         }
     }
 

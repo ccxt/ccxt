@@ -597,7 +597,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Orderbooks, legacySymbol, ob)
 		}
 		var legacyOrderbook any = ccxt.GetValue(this.Orderbooks, legacySymbol)
-		this.HandleDeltas(legacyOrderbook, list)
+		this.HandleBookDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
 		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
 		var legacyMessageHash string = "orderbook" + ":" + *legacySymbol
@@ -653,7 +653,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Bithumb) HandleDelta(orderbook any, delta any) {
+func (this *Bithumb) HandleBookDelta(orderbook any, delta any) {
 	//
 	//    {
 	//        symbol: "ETH_BTC",
@@ -672,9 +672,9 @@ func (this *Bithumb) HandleDelta(orderbook any, delta any) {
 	var orderbookSide any = ccxt.GetValue(orderbook, side)
 	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Bithumb) HandleDeltas(orderbook any, deltas any) {
+func (this *Bithumb) HandleBookDeltas(orderbook any, deltas any) {
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(orderbook, ccxt.GetValue(deltas, i))
+		this.HandleBookDelta(orderbook, ccxt.GetValue(deltas, i))
 	}
 }
 

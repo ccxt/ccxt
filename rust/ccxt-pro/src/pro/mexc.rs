@@ -223,8 +223,8 @@ impl MexcCore {
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bookside_delta" => { self.handle_bookside_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
@@ -1340,7 +1340,7 @@ impl MexcCore {
             return;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_delta(storedOrderBook.clone(), data.clone());
+            self.handle_book_delta(storedOrderBook.clone(), data.clone());
             let mut timestamp: Value = self.safe_integer_n(message.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("ts".into()), Value::Str("sendTime".into())]), &[]);
             add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
@@ -1375,7 +1375,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut existingNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut deltaNonce: Value = self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("r".into()), Value::Str("version".into()), Value::Str("fromVersion".into())]), &[]);
         if (deltaNonce != Value::Null) && (existingNonce != Value::Null) && (deltaNonce.as_f64().unwrap_or(f64::NAN) < existingNonce.as_f64().unwrap_or(f64::NAN)) {

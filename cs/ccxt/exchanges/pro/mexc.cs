@@ -971,7 +971,7 @@ public partial class mexc : ccxt.mexc
         }
         try
         {
-            this.handleDelta(storedOrderBook, data);
+            this.handleBookDelta(storedOrderBook, data);
             Int64? timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
             storedOrderBook["timestamp"] = timestamp;
             storedOrderBook["datetime"] = this.iso8601(timestamp);
@@ -1012,7 +1012,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
         Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});

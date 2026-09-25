@@ -2037,7 +2037,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return;
             }
         }
-        this.handleDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
+        this.handleBookDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
@@ -2103,7 +2103,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return;
             }
         }
-        this.handleDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
+        this.handleBookDelta(((Map<?, ?>)this.orderbooks).get(symbol), data);
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
@@ -2137,7 +2137,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return Helpers.getArrayLength(cache);
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Long timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if (java.util.Objects.equals(timestamp, null))

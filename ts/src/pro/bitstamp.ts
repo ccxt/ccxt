@@ -185,11 +185,11 @@ export default class bitstamp extends bitstampRest {
         } else if (nonce >= deltaNonce) {
             return;
         }
-        this.handleDelta (storedOrderBook, delta);
+        this.handleBookDelta (storedOrderBook, delta);
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

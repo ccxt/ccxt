@@ -197,11 +197,11 @@ class bitstamp extends \ccxt\async\bitstamp {
         } elseif ($nonce >= $deltaNonce) {
             return;
         }
-        $this->handle_delta($storedOrderBook, $delta);
+        $this->handle_book_delta($storedOrderBook, $delta);
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->safe_timestamp($delta, 'timestamp');
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);

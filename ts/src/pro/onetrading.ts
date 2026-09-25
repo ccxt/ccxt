@@ -396,7 +396,7 @@ export default class onetrading extends onetradingRest {
             orderbook.reset (snapshot);
         } else if (type === 'ORDER_BOOK_UPDATE') {
             const changes = this.safeList (message, 'changes', []);
-            this.handleDeltas (orderbook, changes);
+            this.handleBookDeltas (orderbook, changes);
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() did not recognize message type ' + type);
         }
@@ -407,7 +407,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (orderbook, channel);
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
@@ -424,7 +424,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    override handleDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: any, deltas: any) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],
@@ -432,7 +432,7 @@ export default class onetrading extends onetradingRest {
         //    ]
         //
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
+            this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 

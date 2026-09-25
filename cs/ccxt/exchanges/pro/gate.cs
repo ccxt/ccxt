@@ -678,7 +678,7 @@ public partial class gate : ccxt.gate
             {
                 return;
             }
-            this.handleDelta(orderbook, result);
+            this.handleBookDelta(orderbook, result);
         }
         client.resolve(orderbook, messageHash);
     }
@@ -787,7 +787,7 @@ public partial class gate : ccxt.gate
             return;
         } else if (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))
         {
-            this.handleDelta(storedOrderBook, delta);
+            this.handleBookDelta(storedOrderBook, delta);
         } else
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -841,7 +841,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeInteger(delta, "t");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

@@ -1903,7 +1903,7 @@ public partial class kucoin : ccxt.kucoin
                 return;
             }
         }
-        this.handleDelta(this.getOrderBook(this.orderbooks, symbol), data);
+        this.handleBookDelta(this.getOrderBook(this.orderbooks, symbol), data);
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
@@ -1969,7 +1969,7 @@ public partial class kucoin : ccxt.kucoin
                 return;
             }
         }
-        this.handleDelta(this.getOrderBook(this.orderbooks, symbol), data);
+        this.handleBookDelta(this.getOrderBook(this.orderbooks, symbol), data);
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
@@ -2003,7 +2003,7 @@ public partial class kucoin : ccxt.kucoin
         return getArrayLength(cache);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if ((timestamp == null))

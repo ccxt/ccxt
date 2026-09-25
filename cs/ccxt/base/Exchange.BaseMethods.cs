@@ -586,17 +586,30 @@ public partial class BaseExchange
         }
     }
 
-    public virtual void handleDeltas(object orderbook, object deltas)
+    public virtual void handleDeltas(object bookside, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, getValue(deltas, i));
+            this.handleDelta(bookside, getValue(deltas, i));
         }
     }
 
     public virtual void handleDelta(object bookside, object delta)
     {
         throw new NotSupported ((this.id + " handleDelta not supported yet")) ;
+    }
+
+    public virtual void handleBookDeltas(object orderbook, object deltas)
+    {
+        for (int i = 0; i < getArrayLength(deltas); i++)
+        {
+            this.handleBookDelta(orderbook, getValue(deltas, i));
+        }
+    }
+
+    public virtual void handleBookDelta(object orderbook, object delta)
+    {
+        throw new NotSupported ((this.id + " handleBookDelta not supported yet")) ;
     }
 
     public virtual void handleDeltasWithKeys(object bookSide, object deltas, object priceKey = null, object amountKey = null, object countOrIdKey = null)

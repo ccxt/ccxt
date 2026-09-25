@@ -925,13 +925,13 @@ public partial class deepcoin : ccxt.deepcoin
         if (((currentTimestamp != null)) && (isGreaterThan(timestamp, currentTimestamp)))
         {
             List<object> response = this.safeList(message, "r", new List<object>() {});
-            this.handleDeltas(orderbook, response);
+            this.handleBookDeltas(orderbook, response);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
     }
 
-    public override void handleDelta(object orderbook, object entry)
+    public override void handleBookDelta(object orderbook, object entry)
     {
         IDictionary<string, object> data = this.safeDict(entry, "d", new Dictionary<string, object>() {});
         object bids = getValue(orderbook, "bids");

@@ -989,13 +989,13 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         if ((!java.util.Objects.equals(currentTimestamp, null)) && ((timestamp != null && (currentTimestamp == null || timestamp > currentTimestamp))))
         {
             List<Object> response = (List<Object>) this.safeList(message, "r", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(orderbook, response);
+            this.handleBookDeltas(orderbook, response);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
     }
 
-    public void handleDelta(Object orderbook, Object entry)
+    public void handleBookDelta(Object orderbook, Object entry)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, "d", new HashMap<String, Object>() {{}});
         Object bids = Helpers.GetValue(orderbook, "bids");

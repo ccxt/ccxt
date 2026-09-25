@@ -156,7 +156,7 @@ class xt(ccxt.async_support.xt):
                 return i
         return len(cache)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         orderbook['nonce'] = self.safe_integer_2(delta, 'i', 'u')
         obAsks = self.safe_list(delta, 'a', [])
         obBids = self.safe_list(delta, 'b', [])

@@ -24,8 +24,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1547: bool = true;
-        while { if !__for_first_1547 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1547 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1548: bool = true;
+        while { if !__for_first_1548 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1548 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
     }
     }
@@ -35,8 +35,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut allMarkets: Value = object_values(&get_value(&exchange, &Value::Str("markets".into())));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1548: bool = true;
-        while { if !__for_first_1548 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1548 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1549: bool = true;
+        while { if !__for_first_1549 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1549 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut market: Value = allMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         if !is_true(&exchange.in_array(get_value(&market, &Value::Str("type".into())), collectedTypes.clone())) {
             append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".into())));
@@ -45,8 +45,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     }
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1549: bool = true;
-        while { if !__for_first_1549 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1549 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketTypes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1550: bool = true;
+        while { if !__for_first_1550 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1550 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketTypes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut mType: Value = marketTypes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         if (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType) != Value::Null) && (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType).as_bool() != Some(false)) {
             let mut skipMarketTypes: Value = Value::Bool((in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".into()))) && (mType.as_str() == Some("option")));

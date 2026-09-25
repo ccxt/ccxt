@@ -420,7 +420,7 @@ class onetrading extends \ccxt\async\onetrading {
             $orderbook->reset($snapshot);
         } elseif ($type === 'ORDER_BOOK_UPDATE') {
             $changes = $this->safe_list($message, 'changes', array());
-            $this->handle_deltas($orderbook, $changes);
+            $this->handle_book_deltas($orderbook, $changes);
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() did not recognize $message $type ' . $type);
         }
@@ -431,7 +431,7 @@ class onetrading extends \ccxt\async\onetrading {
         $client->resolve($orderbook, $channel);
     }
 
-    public function handle_delta(mixed $orderbook, mixed $delta) {
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
@@ -448,7 +448,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
     }
 
-    public function handle_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],
@@ -456,7 +456,7 @@ class onetrading extends \ccxt\async\onetrading {
         //    ]
         //
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($orderbook, $deltas[$i]);
+            $this->handle_book_delta($orderbook, $deltas[$i]);
         }
     }
 

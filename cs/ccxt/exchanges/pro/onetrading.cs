@@ -406,7 +406,7 @@ public partial class onetrading : ccxt.onetrading
         } else if (type == "ORDER_BOOK_UPDATE")
         {
             List<object> changes = this.safeList(message, "changes", new List<object>() {});
-            this.handleDeltas(orderbook, changes);
+            this.handleBookDeltas(orderbook, changes);
         } else
         {
             throw new NotSupported (((this.id + " watchOrderBook() did not recognize message type ") + type)) ;
@@ -418,7 +418,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(orderbook, channel);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         //
         //   [ 'BUY', "0.053595", "0" ]
@@ -439,7 +439,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public override void handleDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(object orderbook, object deltas)
     {
         //
         //    [
@@ -449,7 +449,7 @@ public partial class onetrading : ccxt.onetrading
         //
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, getValue(deltas, i));
+            this.handleBookDelta(orderbook, getValue(deltas, i));
         }
     }
 

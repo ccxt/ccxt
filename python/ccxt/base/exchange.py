@@ -3250,12 +3250,19 @@ class BaseExchange(object):
         if k is not None:
             dict[k] = value
 
-    def handle_deltas(self, orderbook: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
-            self.handle_delta(orderbook, deltas[i])
+            self.handle_delta(bookside, deltas[i])
 
     def handle_delta(self, bookside: object, delta: object):
         raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def handle_book_deltas(self, orderbook: object, deltas: object):
+        for i in range(0, len(deltas)):
+            self.handle_book_delta(orderbook, deltas[i])
+
+    def handle_book_delta(self, orderbook: object, delta: object):
+        raise NotSupported(self.id + ' handleBookDelta not supported yet')
 
     def handle_deltas_with_keys(self, bookSide: object, deltas: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         for i in range(0, len(deltas)):

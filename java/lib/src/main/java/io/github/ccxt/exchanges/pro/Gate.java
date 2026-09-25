@@ -750,7 +750,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 return;
             }
-            this.handleDelta(orderbook, result);
+            this.handleBookDelta(orderbook, result);
         }
         client.resolve(orderbook, messageHash);
     }
@@ -859,7 +859,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             return;
         } else if ((!java.util.Objects.equals(deltaStart, null)) && (((nonce != null && nonce >= (deltaStart - 1L)))))
         {
-            this.handleDelta(storedOrderBook, delta);
+            this.handleBookDelta(storedOrderBook, delta);
         } else
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
@@ -913,7 +913,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Long timestamp = this.safeInteger(delta, "t");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);

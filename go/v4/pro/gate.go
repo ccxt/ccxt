@@ -823,7 +823,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 		if (nonce == nil) || ((deltaStart != nil) && (nonce != nil && *nonce >= *deltaStart)) {
 			return
 		}
-		this.HandleDelta(orderbook, result)
+		this.HandleBookDelta(orderbook, result)
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -922,7 +922,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 	} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 		return
 	} else if (deltaStart != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) {
-		this.HandleDelta(storedOrderBook, delta)
+		this.HandleBookDelta(storedOrderBook, delta)
 	} else {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		ccxt.Remove(this.Orderbooks, symbol)
@@ -968,7 +968,7 @@ func (this *Gate) HandleBidAsks(bookSide any, bidAsks []any) {
 		}
 	}
 }
-func (this *Gate) HandleDelta(orderbook any, delta any) {
+func (this *Gate) HandleBookDelta(orderbook any, delta any) {
 	var timestamp *int64 = this.SafeInteger(delta, "t")
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))

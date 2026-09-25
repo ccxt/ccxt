@@ -2195,7 +2195,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			return
 		}
 	}
-	this.HandleDelta(ccxt.GetValue(this.Orderbooks, symbol), data)
+	this.HandleBookDelta(ccxt.GetValue(this.Orderbooks, symbol), data)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }
 func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
@@ -2253,7 +2253,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 			return
 		}
 	}
-	this.HandleDelta(ccxt.GetValue(this.Orderbooks, symbol), data)
+	this.HandleBookDelta(ccxt.GetValue(this.Orderbooks, symbol), data)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }
 func (this *Kucoin) GetCacheIndex(orderbook any, cache any) any {
@@ -2279,7 +2279,7 @@ func (this *Kucoin) GetCacheIndex(orderbook any, cache any) any {
 	}
 	return ccxt.GetArrayLength(cache)
 }
-func (this *Kucoin) HandleDelta(orderbook any, delta any) {
+func (this *Kucoin) HandleBookDelta(orderbook any, delta any) {
 	var timestamp *int64 = this.SafeIntegerProduct(delta, "M", 0.000001)
 	if timestamp == nil {
 		timestamp = this.SafeInteger2(delta, "time", "timestamp")

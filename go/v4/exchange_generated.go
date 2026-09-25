@@ -510,13 +510,21 @@ func (this *BaseExchange) StoreByKey(dict any, key any, value any) {
 		AddElementToObject(dict, k, value)
 	}
 }
-func (this *BaseExchange) HandleDeltas(orderbook any, deltas any) {
+func (this *BaseExchange) HandleDeltas(bookside any, deltas any) {
 	for i := 0; i < GetArrayLength(deltas); i++ {
-		this.DerivedExchange.HandleDelta(orderbook, GetValue(deltas, i))
+		this.DerivedExchange.HandleDelta(bookside, GetValue(deltas, i))
 	}
 }
 func (this *BaseExchange) HandleDelta(bookside any, delta any) {
 	panic(NotSupported(this.Id + " handleDelta not supported yet"))
+}
+func (this *BaseExchange) HandleBookDeltas(orderbook any, deltas any) {
+	for i := 0; i < GetArrayLength(deltas); i++ {
+		this.HandleBookDelta(orderbook, GetValue(deltas, i))
+	}
+}
+func (this *BaseExchange) HandleBookDelta(orderbook any, delta any) {
+	panic(NotSupported(this.Id + " handleBookDelta not supported yet"))
 }
 func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas any, optionalArgs ...any) {
 	priceKey := GetArg(optionalArgs, 0, 0)
@@ -5422,8 +5430,8 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code string, opti
 		panic(NotSupported(this.Id + " fetchTransactionFee() is not supported yet"))
 	}
 
-	var retRes677215 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
-	ch <- BoxAbsent(retRes677215)
+	var retRes678215 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
+	ch <- BoxAbsent(retRes678215)
 	return nil
 }
 func (this *BaseExchange) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
@@ -11094,8 +11102,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	var retRes1021215 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
-	ch <- BoxAbsent(retRes1021215)
+	var retRes1022215 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
+	ch <- BoxAbsent(retRes1022215)
 	return nil
 }
 func (this *Exchange) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
