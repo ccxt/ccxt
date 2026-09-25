@@ -384,6 +384,9 @@ export default class revolutx extends Exchange {
             const market = this.safeDict (markets, key, {});
             const base = this.safeString (market, 'base');
             const quote = this.safeString (market, 'quote');
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const marketId = base + '-' + quote;
             const marketData = this.extend (market, { 'id': marketId });
             result.push (this.parseMarket (marketData));
