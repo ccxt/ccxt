@@ -3897,13 +3897,13 @@ public partial class kucoin : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
-        object windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
-        object limitResolved = ((since != null)) ? windowLimit : limit;
+        Int64? windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
+        Int64? limitResolved = ((since != null)) ? windowLimit : limit;
         object sinceResolved = since;
         if (((since == null)) && ((limit != null)))
         {
@@ -3912,7 +3912,7 @@ public partial class kucoin : Exchange
         if ((since != null))
         {
             request["startAt"] = this.parseToInt((Math.Floor(Double.Parse((((double?)since / denominator)).ToString()))));
-            endAt = this.sum(since, multiply(windowLimit, duration));
+            endAt = this.sum(since, (windowLimit * duration));
         } else if ((limit != null))
         {
             request["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide((subtract(endAt, (limit * duration))), denominator)).ToString()))));
@@ -4001,13 +4001,13 @@ public partial class kucoin : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         object endAt = this.milliseconds(); // required param
         int denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
-        object windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
-        object limitResolved = ((since != null)) ? windowLimit : limit;
+        Int64? windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
+        Int64? limitResolved = ((since != null)) ? windowLimit : limit;
         object sinceResolved = since;
         if (((since == null)) && ((limit != null)))
         {
@@ -4016,7 +4016,7 @@ public partial class kucoin : Exchange
         if ((since != null))
         {
             request["startAt"] = this.parseToInt((Math.Floor(Double.Parse((((double?)since / denominator)).ToString()))));
-            endAt = this.sum(since, multiply(windowLimit, duration));
+            endAt = this.sum(since, (windowLimit * duration));
         } else if ((limit != null))
         {
             request["startAt"] = this.parseToInt((Math.Floor(Double.Parse((divide((subtract(endAt, (limit * duration))), denominator)).ToString()))));
@@ -4081,12 +4081,12 @@ public partial class kucoin : Exchange
         {
             request["granularity"] = timeframeVar;
         }
-        Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         object endAt = this.milliseconds(); // required param
         // For each query, the system would return at most 200 pieces of data.
         // To obtain more data, please page the data by time.
-        object windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
-        object limitResolved = ((since != null)) ? windowLimit : limit;
+        Int64? windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
+        Int64? limitResolved = ((since != null)) ? windowLimit : limit;
         object sinceResolved = since;
         if (((since == null)) && ((limit != null)))
         {
@@ -4095,7 +4095,7 @@ public partial class kucoin : Exchange
         if ((since != null))
         {
             request["from"] = since;
-            endAt = this.sum(since, multiply(windowLimit, duration));
+            endAt = this.sum(since, (windowLimit * duration));
         } else if ((limit != null))
         {
             request["from"] = sinceResolved;

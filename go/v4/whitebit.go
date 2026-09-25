@@ -3755,7 +3755,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code string, optional
 		"ticker": currency["id"],
 	}
 	var response map[string]any = nil
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		var provider *string = this.SafeString(params, "provider")
 		if provider == nil {
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a provider when the ticker is fiat"))
@@ -4098,7 +4098,7 @@ func (this *Whitebit) withdrawBody(ch chan any, code string, amount any, address
 	if tag != nil {
 		request["memo"] = tag
 	}
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		var provider any = this.SafeValue(params, "provider")
 		if IsEqual(provider, nil) {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a provider when the ticker is fiat"))
@@ -5388,7 +5388,7 @@ func (this *Whitebit) ParsePosition(position any, optionalArgs ...any) any {
 		"takeProfitPrice":             this.SafeNumber(tpsl, "takeProfit"),
 	})
 }
-func (this *Whitebit) IsFiat(currency string) any {
+func (this *Whitebit) IsFiat(currency string) bool {
 	var fiatCurrencies any = this.SafeList(this.Options, "fiatCurrencies", []any{})
 	return this.InArray(currency, fiatCurrencies)
 }
@@ -5494,7 +5494,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var version any = this.SafeValue(api, 0)
-	var accessibility any = this.SafeValue(api, 1)
+	var accessibility *string = this.SafeString(api, 1)
 	var publicHeaders map[string]any = func() map[string]any {
 		if headers == nil {
 			return map[string]any{}
@@ -5508,14 +5508,14 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + pathWithParams
-	if IsEqual(accessibility, "public") {
+	if accessibility != nil && *accessibility == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	}
 	var privateBody any = nil
 	var privateHeaders map[string]any = map[string]any{}
-	if IsEqual(accessibility, "private") {
+	if accessibility != nil && *accessibility == "private" {
 		this.CheckRequiredCredentials()
 		// whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
 		var nonce string = ToString(this.IncrementingNonce())
@@ -5536,7 +5536,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 			"X-TXC-SIGNATURE": signature,
 		}
 	}
-	var isPrivate bool = (IsEqual(accessibility, "private"))
+	var isPrivate bool = (accessibility != nil && *accessibility == "private")
 	var requestBody any = body
 	if isPrivate {
 		requestBody = privateBody

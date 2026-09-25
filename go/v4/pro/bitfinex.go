@@ -1234,7 +1234,7 @@ func (this *Bitfinex) HandleSystemStatus(client any, message map[string]any) any
 	//
 	return message
 }
-func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]any) bool {
 	//
 	// {
 	//     "event": "unsubscribed",

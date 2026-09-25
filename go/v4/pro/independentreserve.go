@@ -256,7 +256,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 	if event != nil && *event == "OrderBookSnapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -268,15 +268,15 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	} else {
 		var asks []any = ccxt.SafeListTypedDefault(orderBook, "Offers", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(orderBook, "Bids", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot == true) {
-		var storedAsks any = ccxt.GetValue(orderbook, "asks")
-		var storedBids any = ccxt.GetValue(orderbook, "bids")
+		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
+		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
 		var asksLength int = ccxt.GetArrayLength(storedAsks)
 		var bidsLength int = ccxt.GetArrayLength(storedBids)
 		var payload any = ""

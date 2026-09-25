@@ -225,7 +225,7 @@ func (this *Binance) RequestId(url any) int64 {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	return newValue
 }
-func (this *Binance) IsSpotUrl(client any) any {
+func (this *Binance) IsSpotUrl(client any) bool {
 	return (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "/stream") > -1) || (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "demo-stream") > -1)
 }
 func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...any) any {
@@ -1278,9 +1278,9 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 	// market, and picking the first match drops the message under the wrong
 	// symbol and stalls the orderbook future (delivery/option ids are
 	// unique, so the swap hint resolves those correctly too)
-	var isSpot any = this.IsSpotUrl(client)
+	var isSpot bool = this.IsSpotUrl(client)
 	var marketType string = "swap"
-	if isSpot == true {
+	if isSpot {
 		marketType = "spot"
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -1297,7 +1297,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 		//
 		return
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if nonce == nil {
 		// 2. Buffer the events you receive from the stream.
@@ -1339,7 +1339,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 					// 4. Drop any event where u is <= lastUpdateId in the snapshot
 					if u != nil && (nonce == nil || *u > *nonce) {
 						var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
-						var conditional any = nil
+						var conditional bool
 						if timestamp == nil {
 							// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
 							conditional = (ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), nonce)) && (ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), nonce))
@@ -1911,9 +1911,9 @@ func (this *Binance) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "s")
 	// resolve the market from the transport url — an ambiguous id like
 	// BTCUSDT maps to both the spot and the linear swap market
-	var isSpot any = this.IsSpotUrl(client)
+	var isSpot bool = this.IsSpotUrl(client)
 	var marketType string = "contract"
-	if isSpot == true {
+	if isSpot {
 		marketType = "spot"
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -2348,9 +2348,9 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	var parsed []any = []any{this.SafeInteger(kline, "t"), this.SafeFloat(kline, "o"), this.SafeFloat(kline, "h"), this.SafeFloat(kline, "l"), this.SafeFloat(kline, "c"), this.SafeFloat(kline, "v")}
 	// resolve the market from the transport url — an ambiguous id like
 	// BTCUSDT maps to both the spot and the linear swap market
-	var isSpot any = this.IsSpotUrl(client)
+	var isSpot bool = this.IsSpotUrl(client)
 	var marketType string = "contract"
-	if isSpot == true {
+	if isSpot {
 		marketType = "spot"
 	}
 	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
@@ -3412,9 +3412,9 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			}
 			return nil
 		}()
-		var isSpot any = this.IsSpotUrl(client)
+		var isSpot bool = this.IsSpotUrl(client)
 		var tickerFallbackType string = "contract"
-		if isSpot == true {
+		if isSpot {
 			tickerFallbackType = "spot"
 		}
 		var tickerMarketType any = func() any {

@@ -1073,7 +1073,7 @@ public partial class cex : ccxt.cex
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + symbolValue);
-        object depth = ((limit == null)) ? 0 : limit;
+        Int64? depth = ((limit == null)) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "order-book-subscribe" },
             { "data", new Dictionary<string, object>() {

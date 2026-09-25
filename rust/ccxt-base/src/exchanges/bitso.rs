@@ -2294,7 +2294,10 @@ impl BitsoCore {
             }
         }
         }
-        let mut withdrawalFees: Value = self.safe_value_k(payload, "withdrawal_fees", &[Value::from(vec![])]);
+        let mut withdrawalFees: Value = self.safe_dict_k(payload, "withdrawal_fees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut currencyIds: Value = object_keys(&withdrawalFees);
         {
                         let mut i: Value = Value::Int(0);
@@ -2442,7 +2445,10 @@ impl BitsoCore {
             m
         });
         let mut depositResponse: Value = self.safe_list_k(response.clone(), "deposit_fees", &[Value::from(vec![])]);
-        let mut withdrawalResponse: Value = self.safe_value_k(response, "withdrawal_fees", &[Value::from(vec![])]);
+        let mut withdrawalResponse: Value = self.safe_dict_k(response, "withdrawal_fees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_402: bool = true;
@@ -2485,7 +2491,7 @@ impl BitsoCore {
             let mut currencyId: Value = withdrawalKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || (in_op(&codes, &code))) {
-                let mut withdrawFee: Value = self.parse_number(get_value(&withdrawalResponse, &currencyId), &[]);
+                let mut withdrawFee: Value = self.parse_number(withdrawalResponse.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]);
                 let mut resultValue: Value = self.safe_dict(result.clone(), code.clone(), &[]);
                 if (resultValue == Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({

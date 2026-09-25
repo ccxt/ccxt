@@ -1611,7 +1611,7 @@ public partial class coinbase : Exchange
                 continue;
             }
             string type = "crypto";
-            if (inOp(dataById, baseId))
+            if ((dataById != null && baseId is string inOpKey0 && dataById.ContainsKey(inOpKey0)))
             {
                 type = "fiat";
             }
@@ -4203,7 +4203,7 @@ public partial class coinbase : Exchange
         {
             request["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         request["limit"] = limitResolved;
         if ((since != null))
         {

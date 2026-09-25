@@ -1005,7 +1005,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        object limitResolved = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((limit == null)) ? 1000 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", limitResolved },
         };

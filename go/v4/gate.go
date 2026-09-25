@@ -4622,13 +4622,13 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var data any = response
 	if InOp(data, "balances") {
 		var flatBalances []any = []any{}
-		var balances any = this.SafeValue(data, "balances", []any{})
+		var balances map[string]any = SafeMapTyped(data, "balances")
 		// inject currency and create an artificial balance object
 		// so it can follow the existent flow
 		var keys []string = ObjectKeys(balances)
 		for i := 0; i < len(keys); i++ {
 			var currencyId string = GetValue(keys, i).(string)
-			var content any = GetValue(balances, currencyId)
+			var content any = balances[currencyId]
 			AddElementToObject(content, "currency", currencyId)
 			flatBalances = append(flatBalances, content)
 		}
@@ -6076,7 +6076,7 @@ func (this *Gate) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6404,7 +6404,7 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan any, symbol string, c
 	ch <- BoxAbsent(retRes491515)
 	return nil
 }
-func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -6486,7 +6486,7 @@ func (this *Gate) editOrderBody(ch chan any, id string, symbol any, typeVar any,
 
 	PanicOnError((<-this.LoadUnifiedStatusAsync()))
 	var market map[string]any = this.Market(symbol)
-	var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	var extendedRequest map[string]any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var response any = nil
 	if market["spot"] == true {
 

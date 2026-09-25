@@ -969,8 +969,8 @@ public partial class hyperliquid : PredictionExchange
         if ((since == null))
         {
             int tf = this.parseTimeframe(timeframeVar);
-            object candleCount = ((limit != null)) ? limit : 100;
-            object startOffset = multiply(multiply(tf, candleCount), -1000);
+            Int64? candleCount = ((limit != null)) ? limit : 100;
+            Int64? startOffset = ((tf * candleCount) * -1000);
             startTime = this.sum(until, startOffset);
             if ((startTime == null))
             {

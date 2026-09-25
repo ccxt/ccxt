@@ -1153,7 +1153,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 	}, marketResolved)
 }
-func (this *Woo) CheckRequiredUid(optionalArgs ...any) any {
+func (this *Woo) CheckRequiredUid(optionalArgs ...any) bool {
 	var error bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = error
 	if (ccxt.IsEqual(this.Uid, nil)) || (this.Uid == "") {

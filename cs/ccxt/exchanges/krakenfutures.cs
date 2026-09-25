@@ -2195,7 +2195,7 @@ public partial class krakenfutures : Exchange
             { "filled", typeof(OrderNotFound) },
             { "notFound", typeof(OrderNotFound) },
         };
-        if ((inOp(errors, status)) && !this.inArray(status, omit))
+        if (((status is string inOpKey0 && errors.ContainsKey(inOpKey0))) && !this.inArray(status, omit))
         {
             throwDynamicException(getValue(errors, status), ((((this.id + ": ") + (method)) + " failed due to ") + (status)));
         }
@@ -3991,10 +3991,10 @@ public partial class krakenfutures : Exchange
             { "multiCollateral", "flex" },
             { "multiCollateralMargin", "flex" },
         };
-        if (inOp(accountByType, account))
+        if ((account is string inOpKey1 && accountByType.ContainsKey(inOpKey1)))
         {
             return getValue(accountByType, account);
-        } else if (((this.markets != null)) && (inOp(this.markets, account)))
+        } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey2 && this.markets.ContainsKey(inOpKey2))))
         {
             Dictionary<string, object> market = this.market(account);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));

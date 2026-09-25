@@ -212,8 +212,8 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		}
 		return *method
 	}()
-	var isUsdcSettled any = nil
-	var isSpot any = nil
+	var isUsdcSettled bool
+	var isSpot bool
 	var typeVar *string = nil
 	var market map[string]any = nil
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1672,7 +1672,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, marketResolved)
 }
-func (this *Bybit) GetPrivateType(url any) any {
+func (this *Bybit) GetPrivateType(url any) string {
 	if ccxt.GetIndexOf(url, "spot") >= 0 {
 		return "spot"
 	} else if ccxt.GetIndexOf(url, "v5/private") >= 0 {

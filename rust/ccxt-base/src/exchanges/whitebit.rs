@@ -5732,7 +5732,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut version: Value = self.safe_value(api.clone(), Value::Int(0), &[]);
-        let mut accessibility: Value = self.safe_value(api, Value::Int(1), &[]);
+        let mut accessibility: Value = self.safe_string(api, Value::Int(1), &[]);
         let mut publicHeaders: Value = (if (headers == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

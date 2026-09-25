@@ -7767,7 +7767,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol string, typeVar string, 
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
 	if IsEqual(uta, true) {
-		var request any = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, paramsUTA)
+		var request map[string]any = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, paramsUTA)
 		if isStopLossOrTakeProfitTrigger {
 
 			response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradePlaceStrategyOrder(request)).Raw))
@@ -7776,7 +7776,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol string, typeVar string, 
 			response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradePlaceOrder(request)).Raw))
 		}
 	} else {
-		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsUTA)
+		var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsUTA)
 		if market["spot"] == true {
 			if isTriggerOrder {
 
@@ -7820,7 +7820,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol string, typeVar string, 
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7964,7 +7964,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	paramsProductType = this.Omit(paramsProductType, []any{"stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"})
 	return this.Extend(request, paramsProductType)
 }
-func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -8284,7 +8284,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 				}
 			}
 		}
-		var orderRequest any = this.CreateUtaOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateUtaOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var market map[string]any = this.Market(symbol)
@@ -10752,15 +10752,15 @@ func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var balanceString *string = this.SafeString(item, "balance")
 	var after *float64 = Float64PtrTyped(this.ParseNumber(balanceString))
 	var feeCostString *string = this.SafeString2(item, "fees", "fee")
-	var feeCost any = nil
+	var feeCost *float64 = nil
 	if feeCostString != nil {
-		feeCost = this.ParseNumber(Precise.StringAbs(feeCostString)) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+		feeCost = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(feeCostString))) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
 	}
 	var amountRaw *string = this.SafeString2(item, "size", "amount", "")
 	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
-	var before any = nil
+	var before *float64 = nil
 	if (balanceString != nil) && (amountRaw == nil || *amountRaw != "") {
-		before = this.ParseNumber(Precise.StringSub(balanceString, amountRaw)) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+		before = Float64PtrTyped(this.ParseNumber(Precise.StringSub(balanceString, amountRaw))) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
 	}
 	var direction string = "in"
 	if func() int {

@@ -1507,7 +1507,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":  fee,
 	})
 }
-func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

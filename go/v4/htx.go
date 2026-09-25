@@ -2781,7 +2781,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		var costPrecision any = nil
 		var maker any = nil
 		var taker any = nil
-		var active any = nil
+		var active bool
 		if spot {
 			pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "price-precision")))
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount-precision")))
@@ -6609,7 +6609,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	ch <- this.Extend(request, paramsOmitted)
 	return nil
 }
-func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6894,7 +6894,7 @@ func (this *Htx) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		response = (<-this.SpotPrivatePostV1OrderOrdersPlace(spotRequest))
 		PanicOnError(response)
 	} else {
-		var contractRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
+		var contractRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 		if market["linear"] == true {
 			if isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder {
 
@@ -9900,11 +9900,11 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentage *string = nil
 	var maintenanceMargin *string = nil
 	var marginRatio *string = nil
-	var maintenanceMarginPercentageResult any = nil
+	var maintenanceMarginPercentageResult *float64 = nil
 	if maintenanceMarginLinear == nil {
 		maintenanceMarginPercentage = Precise.StringDiv(adjustmentFactor, leverage)
 		maintenanceMargin = Precise.StringMul(maintenanceMarginPercentage, notional)
-		maintenanceMarginPercentageResult = this.ParseNumber(maintenanceMarginPercentage)
+		maintenanceMarginPercentageResult = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentage))
 	} else {
 		maintenanceMargin = maintenanceMarginLinear
 	}

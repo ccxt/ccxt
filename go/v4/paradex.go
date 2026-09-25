@@ -1884,14 +1884,14 @@ func (this *Paradex) HashMessage(message any) any {
 	var hashed any = this.Hash(message, keccak, "hex")
 	return Add("0x", hashed)
 }
-func (this *Paradex) SignHash(hash any, privateKey string) any {
+func (this *Paradex) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Paradex) SignMessage(message any, privateKey any) any {
+func (this *Paradex) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *Paradex) GetSystemConfigAsync() <-chan any {
@@ -2007,7 +2007,7 @@ func (this *Paradex) retrieveAccountBody(ch chan any) any {
 		"action": "STARK Key",
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	var account any = this.RetrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"))
 	this.Options.Store("paradexAccount", account)
 
@@ -2249,7 +2249,7 @@ func (this *Paradex) ParseOrderType(typeVar *string) *string {
 func (this *Paradex) ScaleNumber(num any) any {
 	return Precise.StringMul(num, "100000000")
 }
-func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

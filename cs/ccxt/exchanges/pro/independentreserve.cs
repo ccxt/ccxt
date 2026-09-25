@@ -155,7 +155,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         string? limitString = this.numberToString(limitResolved);
         string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((wsUrl == null))

@@ -503,7 +503,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object newLiquidations = (this.watchMultiple(url, messageHashes, this.extend(request, paramsValue), subscriptionHashes, subscribe)).join();
+            List<Object> newLiquidations = (List<Object>) (this.watchMultiple(url, messageHashes, this.extend(request, paramsValue), subscriptionHashes, subscribe)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -732,7 +732,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object listenKey = Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get(type)), "listenKey");
             Object url = this.getPrivateWsUrl(type, (String) (listenKey));
             List<String> message = null;
-            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, message, new ArrayList<Object>(Arrays.asList(type)), null)).join();
+            List<Object> newLiquidations = (List<Object>) (this.watchMultiple((String) (url), messageHashes, message, new ArrayList<Object>(Arrays.asList(type)), null)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -4171,7 +4171,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handlePositionsWs");
             }};
-            Object result = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            List<Object> result = (List<Object>) (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -5118,7 +5118,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
             }};
-            Object orders = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            List<Object> orders = (List<Object>) (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -5206,7 +5206,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
             }};
-            Object orders = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            List<Object> orders = (List<Object>) (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6002,7 +6002,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.watch(url, messageHash, null, type, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, null, type, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -6328,7 +6328,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleTradesWs");
             }};
-            Object trades = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -6389,7 +6389,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleTradesWs");
             }};
-            Object trades = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

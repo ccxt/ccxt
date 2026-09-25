@@ -1040,7 +1040,7 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        object limitResolved = ((limit == null)) ? 500 : limit; // default is 50
+        Int64? limitResolved = ((limit == null)) ? 500 : limit; // default is 50
         request["limit"] = limitResolved;
         Dictionary<string, object> response = await this.publicGetV3Trades(this.extend(request, parameters));
         //
@@ -1396,10 +1396,10 @@ public partial class apex : Exchange
         {
             IDictionary<string, object> marketsMap = ((IDictionary<string, object>)this.markets);
             IDictionary<string, object> marketsById = this.markets_by_id;
-            if (((marketsMap != null)) && (inOp(marketsMap, marketId)))
+            if (((marketsMap != null)) && ((marketsMap != null && marketId is string inOpKey0 && marketsMap.ContainsKey(inOpKey0))))
             {
                 marketResolved = getValue(marketsMap, marketId);
-            } else if (((marketsById != null)) && (inOp(marketsById, marketId)))
+            } else if (((marketsById != null)) && ((marketsById != null && marketId is string inOpKey1 && marketsById.ContainsKey(inOpKey1))))
             {
                 marketResolved = getValue(marketsById, marketId);
             } else

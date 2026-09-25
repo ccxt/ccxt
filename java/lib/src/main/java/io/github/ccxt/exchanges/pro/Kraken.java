@@ -901,7 +901,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.watchMultiHelper("trade", "trade", Helpers.toStringListArg(symbols), (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultiHelper("trade", "trade", Helpers.toStringListArg(symbols), (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -960,10 +960,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     throw new NotSupported((this.id + " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
                 }
             }
-            Object orderbook = (this.watchMultiHelper("orderbook", "book", Helpers.toStringListArg(symbols), Helpers.newMap(
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", Helpers.toStringListArg(symbols), Helpers.newMap(
                 "limit", limit
             ), Helpers.toMapArg(this.extend(requiredParams, parameters)))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

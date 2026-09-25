@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
         {
             object market = getValue(marketValues, i);
             object symbol = getValue(market, "symbol");
-            if (!(inOp(ids, symbol)))
+            if (!((symbol is string inOpKey0 && ids.ContainsKey(inOpKey0))))
             {
                 ids[(string)symbol] = getValue(market, "id");
             } else

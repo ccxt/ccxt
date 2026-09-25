@@ -121,8 +121,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 endPart = ((market.get("id") + ":") + this.numberToString(limit));
             }
-            Object orderbook = (this.watchPublic("order-books", messageHash, (String) (endPart))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, (String) (endPart))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -154,14 +154,14 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object orderbook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
             orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount", 2);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         if (!java.util.Objects.equals(eventVar, null))
         {
             String messageHash = ((eventVar + ":") + symbol);
@@ -192,7 +192,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("TRADE" + ":") + symbolValue);
-            Object trades = (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

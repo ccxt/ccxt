@@ -223,6 +223,14 @@ public class ArrayCache extends ArrayList<Object> {
         return cap;
     }
 
+    /** {@link #getLimitOf(Object, Object, Object)} for a typed list-stream local and typed arguments. */
+    public static Long getLimitOf(java.util.List<Object> cache, String symbol, Long limit) {
+        if (cache instanceof ArrayCache arrayCache) {
+            return arrayCache.getLimit(symbol, limit);
+        }
+        return limit;
+    }
+
     /** Performs the reset that a previous {@link #getLimit} only flagged (Cache.ts:93-102). */
     protected void applyDeferredResets() {
         if (this.clearAllUpdates) {

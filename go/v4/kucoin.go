@@ -3264,7 +3264,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Kucoin) IsFuturesMethod(methodName any, params any) any {
+func (this *Kucoin) IsFuturesMethod(methodName any, params any) bool {
 	//
 	// Helper
 	// @methodName (string): The name of the method
@@ -4986,7 +4986,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan any, symbol string, typeVar stri
 	var marginMode *string = this.SafeString(marginResult, 0)
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
 	// don't omit anything before calling createOrderRequest
-	var orderRequest any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, paramsSync)
+	var orderRequest map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, paramsSync)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder == true {
 		if isMarginOrder {
@@ -5043,7 +5043,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan any, symbol string, typeVar stri
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5199,7 +5199,7 @@ func (this *Kucoin) createContractOrderBody(ch chan any, symbol string, typeVar 
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "test"))
 	var hasTpOrSlOrder bool = (!IsEqual(this.SafeValue(paramsOmitted, "stopLoss"), nil)) || (!IsEqual(this.SafeValue(paramsOmitted, "takeProfit"), nil))
-	var orderRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted)
+	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder == true {
 
@@ -5226,7 +5226,7 @@ func (this *Kucoin) createContractOrderBody(ch chan any, symbol string, typeVar 
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5446,7 +5446,7 @@ func (this *Kucoin) createUtaOrderBody(ch chan any, symbol string, typeVar strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivatePostAccountModeOrderPlace(request)).Raw))
 	//
@@ -5465,7 +5465,7 @@ func (this *Kucoin) createUtaOrderBody(ch chan any, symbol string, typeVar strin
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5854,7 +5854,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateSpotOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateSpotOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	if IsEqual(symbol, nil) {
@@ -5952,7 +5952,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 

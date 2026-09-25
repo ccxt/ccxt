@@ -1306,7 +1306,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 func (this *Bitstamp) ConstructCurrencyObject(id any, code any, name any, precision any, minCost any, originalPayload any) any {
 	var currencyType string = "crypto"
 	var description any = this.Describe()
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		currencyType = "fiat"
 	}
 	var tickSize *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.NumberToString(precision))))
@@ -3606,7 +3606,7 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	})
 	return nil
 }
-func (this *Bitstamp) GetCurrencyName(code string) any {
+func (this *Bitstamp) GetCurrencyName(code string) string {
 	/**
 	 * @ignore
 	 * @method
@@ -3615,7 +3615,7 @@ func (this *Bitstamp) GetCurrencyName(code string) any {
 	 */
 	return strings.ToLower(code)
 }
-func (this *Bitstamp) IsFiat(code any) any {
+func (this *Bitstamp) IsFiat(code any) bool {
 	return (IsEqual(code, "USD")) || (IsEqual(code, "EUR")) || (IsEqual(code, "GBP"))
 }
 
@@ -3638,14 +3638,14 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan any, code string, optional
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		panic(NotSupported(this.Id + " fiat fetchDepositAddress() for " + code + " is not supported!"))
 	}
-	var name any = this.GetCurrencyName(code)
+	var name string = this.GetCurrencyName(code)
 	// the per-currency implicit methods (privatePostBtcAddress etc.) all route
 	// through request(), called here directly to avoid dynamic dispatch
 
-	response := (<-this.RequestAsync(Add(name, "_address/"), "private", "POST", params))
+	response := (<-this.RequestAsync(name+"_address/", "private", "POST", params))
 	PanicOnError(response)
 	var address *string = this.SafeString(response, "address")
 	var tag *string = this.SafeString2(response, "memo_id", "destination_tag")
@@ -3701,8 +3701,8 @@ func (this *Bitstamp) withdrawBody(ch chan any, code string, amount any, address
 	}
 	var currency map[string]any = nil
 	var response any = nil
-	if !EvalTruthy(this.IsFiat(code)) {
-		var name any = this.GetCurrencyName(code)
+	if !this.IsFiat(code) {
+		var name string = this.GetCurrencyName(code)
 		if code == "XRP" {
 			if tagWithdrawTag != nil {
 				request["destination_tag"] = tagWithdrawTag
@@ -3716,7 +3716,7 @@ func (this *Bitstamp) withdrawBody(ch chan any, code string, amount any, address
 		// the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
 		// route through request(), called here directly to avoid dynamic dispatch
 
-		response = (<-this.RequestAsync(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, paramsWithdrawTag)))
+		response = (<-this.RequestAsync(name+"_withdrawal/", "private", "POST", this.Extend(request, paramsWithdrawTag)))
 		PanicOnError(response)
 	} else {
 		currency = this.Currency(code)

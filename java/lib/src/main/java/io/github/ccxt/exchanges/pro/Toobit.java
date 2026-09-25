@@ -1261,7 +1261,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.watch(url, messageHash, null, messageHash, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;

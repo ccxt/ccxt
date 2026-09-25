@@ -3991,8 +3991,8 @@ public class Myriad extends MyriadApi
 
             // the order book channel streams deltas only, so seed the live book from the REST snapshot
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
-            Object orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
+            orderbook.reset(snapshot);
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
         });
@@ -4020,14 +4020,14 @@ public class Myriad extends MyriadApi
             {
                 continue;
             }
-            Object orderbook = ((Map<?, ?>)this.orderbooks).get(sym);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(sym);
             Object price = this.fromWei(this.safeString(change, "price"));
             Object amount = this.fromWei(this.safeString(change, "amount"));
             String sideStr = this.safeString(change, "side");
-            Object bookSide = (((java.util.Objects.equals(sideStr, "bid")))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
-            Helpers.callDynamically(bookSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount))});
-            Helpers.addElementToObject(orderbook, "timestamp", ts);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(ts));
+            io.github.ccxt.ws.OrderBookSide bookSide = (io.github.ccxt.ws.OrderBookSide) ((((java.util.Objects.equals(sideStr, "bid")))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks")));
+            bookSide.storeArray(new ArrayList<Object>(Arrays.asList(price, amount)));
+            orderbook.put("timestamp", ts);
+            orderbook.put("datetime", this.iso8601(ts));
             updated.put((String)sym, true);
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
@@ -4062,7 +4062,7 @@ public class Myriad extends MyriadApi
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String channel = ((("trades:" + networkId) + ":") + marketId);
             String messageHash = ("trades::" + sym);
-            Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -4096,7 +4096,7 @@ public class Myriad extends MyriadApi
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String channel = ((("trades:" + networkId) + ":") + marketId);
             String messageHash = "myTrades";
-            Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -4164,8 +4164,8 @@ public class Myriad extends MyriadApi
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
         }
-        Object stored = Helpers.GetValue(this.trades, sym);
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, sym);
+        stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         String myWallet = this.walletAddressOrUndefined();
@@ -4221,10 +4221,10 @@ public class Myriad extends MyriadApi
                     Long myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
                     this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)myTradesLimit).intValue());
                 }
-                Object myStored = this.myTrades;
+                io.github.ccxt.ws.ArrayCache myStored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
                 for (var k = 0; (myLegsLength != null && k < myLegsLength); k++)
                 {
-                    Helpers.callDynamically(myStored, "append", new Object[]{(myLegs == null || k < 0 || k >= myLegs.size() ? null : myLegs.get(k))});
+                    myStored.append((myLegs == null || k < 0 || k >= myLegs.size() ? null : myLegs.get(k)));
                 }
                 client.resolve(myStored, "myTrades");
             }
@@ -4423,7 +4423,7 @@ public class Myriad extends MyriadApi
             }
             String channel = ((("orders:" + networkId) + ":") + trader);
             String messageHash = "orders";
-            Object orders = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
@@ -4471,8 +4471,8 @@ public class Myriad extends MyriadApi
             "fee", null,
             "trades", null
         ), (Object) null);
-        Object stored = this.orders;
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
+        stored.append(parsed);
         client.resolve(stored, "orders");
         if (!java.util.Objects.equals(sym, null))
         {
@@ -4521,7 +4521,7 @@ public class Myriad extends MyriadApi
                 }} );
                 put( "id", requestId );
             }};
-            Object positions = (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
+            List<Object> positions = (List<Object>) (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
             if (this.newUpdates)
             {
                 return positions;

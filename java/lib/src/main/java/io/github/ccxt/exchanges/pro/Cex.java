@@ -210,7 +210,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + market.get("base")) + "-") + market.get("quote")))) );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object trades = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -646,7 +646,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "oid", market.get("symbol") );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, subscriptionHash, request)).join();
+            List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(market.get("symbol")), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

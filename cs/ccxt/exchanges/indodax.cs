@@ -796,14 +796,14 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object limitResolved = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((limit == null)) ? 1000 : limit;
         if ((since != null))
         {
             request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
         } else
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["from"] = subtract(subtract(now, multiply(limitResolved, duration)), 1);
+            request["from"] = subtract(subtract(now, (limitResolved * duration)), 1);
         }
         List<object> response = await this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted));
         //

@@ -1031,7 +1031,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
-	var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var shouldReturn bool = false
 	if nonce == nil {
@@ -2518,7 +2518,7 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 		}
 	}
 }
-func (this *Mexc) HandleProtobufMessage(client any, message any) any {
+func (this *Mexc) HandleProtobufMessage(client any, message any) bool {
 	// protobuf message decoded
 	//  {
 	//    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

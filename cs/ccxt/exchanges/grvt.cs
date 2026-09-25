@@ -1246,8 +1246,8 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
         };
-        object limitResolved = ((limit == null)) ? 100 : limit;
-        if (isLessThanOrEqual(limitResolved, 500))
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
+        if ((limitResolved == null || limitResolved <= 500))
         {
             request["depth"] = this.findNearestCeiling(new List<object>() {10, 50, 100, 500}, limitResolved);
         }

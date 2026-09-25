@@ -610,10 +610,10 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
 	if (last != nil) && (priceChange != nil) {
 		open = Precise.StringSub(last, priceChange)
 	}
-	var percentage any = nil
+	var percentage *float64 = nil
 	if (open != nil) && (priceChange != nil) {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
-		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
+		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

@@ -5489,7 +5489,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol string, typeVar string, s
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6199,7 +6199,7 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	ch <- this.ParseOrders(data)
 	return nil
 }
-func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
+func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6267,7 +6267,7 @@ func (this *Bybit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var requestExtended any = this.CancelOrderRequest(id, symbol, params)
+	var requestExtended map[string]any = this.CancelOrderRequest(id, symbol, params)
 
 	response := (<-this.PrivatePostV5OrderCancel(requestExtended))
 	PanicOnError(response)
@@ -9031,7 +9031,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 			typeVarparamsTypeVariable := this.GetBybitType("setPositionMode", market, params)
 			var typeVar *string = SafeStringPtr(GetValue(typeVarparamsTypeVariable, 0))
 			paramsType := GetValue(typeVarparamsTypeVariable, 1)
-			var tradeMode any = nil
+			var tradeMode int
 			if marginMode == "cross" {
 				tradeMode = 0
 			} else if marginMode == "isolated" {
@@ -9166,7 +9166,7 @@ func (this *Bybit) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var mode any = nil
+	var mode int
 	if EvalTruthy(hedged) {
 		mode = 3
 	} else {

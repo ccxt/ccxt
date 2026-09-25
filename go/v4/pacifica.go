@@ -4344,7 +4344,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name string, optionalArg
 	var subSigPayload map[string]any = map[string]any{
 		"account": originAddress,
 	}
-	var subaccountSignature any = this.SignMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey)
+	var subaccountSignature string = this.SignMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey)
 	var mainSignatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,
 		"expiry_window": expiryWindow,
@@ -4353,7 +4353,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name string, optionalArg
 	var mainSigPayload map[string]any = map[string]any{
 		"signature": subaccountSignature,
 	}
-	var main_signature any = this.SignMessage(mainSignatureHeader, mainSigPayload, this.PrivateKey)
+	var main_signature string = this.SignMessage(mainSignatureHeader, mainSigPayload, this.PrivateKey)
 	finalHeaders["main_account"] = originAddress
 	finalHeaders["subaccount"] = subAccountAddress
 	finalHeaders["sub_signature"] = subaccountSignature
@@ -4532,7 +4532,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	var errorCode *string = this.SafeString(response, "code")
 	var errorId *string = this.SafeString(response, "error_id") // undocumented, present on live errors and more specific than code
 	var message *string = this.SafeString(response, "error")
-	var error any = nil
+	var error bool
 	if (errorCode == nil) || (errorCode != nil && *errorCode == "200") {
 		error = false
 	} else {
@@ -4635,7 +4635,7 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		return value
 	}
 }
-func (this *Pacifica) PrepareMessage(header any, payload any) any {
+func (this *Pacifica) PrepareMessage(header any, payload any) string {
 	if IsEqual(GetValue(header, "type"), nil) || IsEqual(GetValue(header, "timestamp"), nil) || IsEqual(GetValue(header, "expiry_window"), nil) {
 		panic(ArgumentsRequired(this.Id + " prepareMessage() requires type, timestamp, expiry_window in header"))
 	}
@@ -4645,8 +4645,8 @@ func (this *Pacifica) PrepareMessage(header any, payload any) any {
 	var sorted any = this.SortJsonKeys(data)
 	return this.Json(sorted)
 }
-func (this *Pacifica) SignMessage(header any, payload any, privateKey any) any {
-	var message any = this.PrepareMessage(header, payload)
+func (this *Pacifica) SignMessage(header any, payload any, privateKey any) string {
+	var message string = this.PrepareMessage(header, payload)
 	var messageBytes string = this.Encode(message)
 	var secretBytes []byte = this.Base58ToBinary(privateKey)
 	var seed any = this.ArraySlice(secretBytes, 0, 32)
@@ -4680,7 +4680,7 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 		"expiry_window": expiryWindow,
 		"type":          operationType,
 	}
-	var signature any = this.SignMessage(signatureHeader, sigPayload, this.PrivateKey)
+	var signature string = this.SignMessage(signatureHeader, sigPayload, this.PrivateKey)
 	var finalHeaders map[string]any = map[string]any{}
 	agentAddress, paramsAgentAddress := this.HandleOptionStringAndParams(paramsExpiryWindow, "postActionRequest", "agentAddress")
 	var originAddress *string = SafeStringPtr(GetValue(this.HandleOriginAndSingleAddress("postActionRequest", paramsAgentAddress), 0))

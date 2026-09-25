@@ -735,9 +735,9 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		var ob ccxt.OrderBookInterface = this.OrderBook()
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var bids ccxt.IOrderBookSide = orderbook.GetBids()
+	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(rawOrderBookChanges, i)
 		var price *float64 = this.SafeNumber(entry, "price")

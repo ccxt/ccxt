@@ -2728,8 +2728,8 @@ export function ccxtGoFamilyCallType (goTranspiler, initializer, printedValue) {
         return undefined;
     }
     const name = callee.name?.text;
-    if ((typeof name !== 'string') || !CCXT_GO_PARSE_METHOD.test (name)) {
-        return undefined; // D-02: the internal parse* family is the one with native returns
+    if (typeof name !== 'string') {
+        return undefined;
     }
     let value = (printedValue ?? '').trim ();
     while (value.startsWith ('(') && goTranspiler.isWholePrintedCall (value, 0)) {
@@ -3067,6 +3067,10 @@ function ccxtGoAnnotatedReturnTypes (goTranspiler, node) {
     if ((key === 'Str') || (key === 'Dict') || (key === 'Market') || (key === 'List') || (key === 'Bool')) {
         return CCXT_GO_ANNOTATED_RETURN_NATIVE[key];
     }
+    const general = ccxtGoGeneralAnnotatedReturnTypes (node, type, key);
+    if (general !== undefined) {
+        return general;
+    }
     // `number` is a builtin: no alias to read, so the annotation text and the
     // checker's own Number flag have to agree
     if ((key === 'number') && (type !== undefined) && ((type.flags & ts.TypeFlags.Number) !== 0)) {
@@ -3106,6 +3110,12 @@ function ccxtGoProveReturnPaths (goTranspiler, node, allowed) {
     let valueType;
     let sawAbsent = false;
     for (const statement of returns) {
+        // try/catch prints as a `func (ret_ any)` closure: its returns stay any/nil
+        for (let up = statement.parent; (up !== undefined) && (up !== node.body); up = up.parent) {
+            if (up.kind === ts.SyntaxKind.TryStatement) {
+                return undefined;
+            }
+        }
         const expression = statement.expression;
         if (expression === undefined) {
             return undefined; // bare `return;` prints a bare `return`, not a typed value
@@ -3136,12 +3146,170 @@ function ccxtGoProveReturnPaths (goTranspiler, node, allowed) {
     return valueType;
 }
 
+// Non-parse* venue methods: the builtin `string` / `boolean` and the `Int` alias,
+// only on methods whose name no related ts/src file redeclares (an override with
+// another printed signature would not compile against the embedded Go struct).
+const CCXT_GO_GENERAL_ANNOTATED_RETURN_NATIVE = {
+    'string': [ 'string' ],
+    'boolean': [ 'bool' ],
+    'Int': [ '*int64' ],
+};
+const CCXT_GO_TS_SRC_IMPORT_CACHE = new Map ();
+
+function ccxtGoGeneralAnnotatedReturnTypes (node, type, key) {
+    const name = node.name?.text;
+    if ((typeof name !== 'string') || CCXT_GO_PARSE_METHOD.test (name)) {
+        return undefined; // the parse* family keeps its own mapping
+    }
+    if ((key === 'Int') && (node.type?.getText () === 'Int')) {
+        return CCXT_GO_GENERAL_ANNOTATED_RETURN_NATIVE['Int'];
+    }
+    if ((key === 'string') && (type !== undefined) && ((type.flags & ts.TypeFlags.String) !== 0)) {
+        return CCXT_GO_GENERAL_ANNOTATED_RETURN_NATIVE['string'];
+    }
+    if ((key === 'boolean') && (type !== undefined) && ((type.flags & ts.TypeFlags.Boolean) !== 0)) {
+        return CCXT_GO_GENERAL_ANNOTATED_RETURN_NATIVE['boolean'];
+    }
+    return undefined;
+}
+
+// the ts/src tree of this root: each file's text and the files it imports (resolved)
+function ccxtGoTsSrcImportGraph (fileName) {
+    const resolved = path.resolve (fileName);
+    const marker = '/ts/src/';
+    const at = resolved.lastIndexOf (marker);
+    if (at < 0) {
+        return undefined;
+    }
+    const root = resolved.substring (0, at + marker.length - 1);
+    if (CCXT_GO_TS_SRC_IMPORT_CACHE.has (root)) {
+        return CCXT_GO_TS_SRC_IMPORT_CACHE.get (root);
+    }
+    const texts = new Map ();
+    const imports = new Map ();
+    const walk = (dir) => {
+        let entries;
+        try {
+            entries = fs.readdirSync (dir, { withFileTypes: true });
+        } catch (e) {
+            return;
+        }
+        for (const entry of entries) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if ((entry.name !== 'node_modules') && (entry.name !== 'static_dependencies')) {
+                    walk (full);
+                }
+                continue;
+            }
+            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+                continue;
+            }
+            let text;
+            try {
+                text = fs.readFileSync (full, 'utf8');
+            } catch (e) {
+                continue;
+            }
+            texts.set (full, text);
+            const targets = [];
+            const importRe = /^import\s[^;]*?from\s+'(\.[^']*)'/gm;
+            let match;
+            while ((match = importRe.exec (text)) !== null) {
+                targets.push (path.resolve (dir, match[1].replace (/\.js$/, '.ts')));
+            }
+            imports.set (full, targets);
+        }
+    };
+    walk (root);
+    const graph = { texts, imports };
+    CCXT_GO_TS_SRC_IMPORT_CACHE.set (root, graph);
+    return graph;
+}
+
+// true when no other ts/src file that (transitively) imports the declaring file
+// declares a method of the same name; unreadable trees fail closed
+function ccxtGoGeneralAnnotatedMethodIsClosed (node, name) {
+    const fileName = node.getSourceFile?. ()?.fileName;
+    if (typeof fileName !== 'string') {
+        return false;
+    }
+    const graph = ccxtGoTsSrcImportGraph (fileName);
+    if (graph === undefined) {
+        return false;
+    }
+    const own = path.resolve (fileName);
+    if (!graph.texts.has (own)) {
+        return false;
+    }
+    const declares = new RegExp ('^\\s+(?:(?:override|async|public|protected|private|static)\\s+)*' + name + '\\s*\\(', 'm');
+    const related = new Map ();
+    const relates = (file, depth) => {
+        if (related.has (file)) {
+            return related.get (file);
+        }
+        related.set (file, false);
+        let result = false;
+        for (const target of graph.imports.get (file) ?? []) {
+            if ((target === own) || ((depth < 16) && relates (target, depth + 1))) {
+                result = true;
+                break;
+            }
+        }
+        related.set (file, result);
+        return result;
+    };
+    for (const [ file, text ] of graph.texts) {
+        if ((file !== own) && declares.test (text) && relates (file, 0)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// a nil pointer/map/slice boxed into an `any` caller is not nil: outside parse*,
+// pointers are never taken; a container only when every path is a literal, extend, or such a method
+function ccxtGoGeneralReturnKeepsAbsence (goTranspiler, node, goType) {
+    if (goType.charAt (0) === '*') {
+        return false;
+    }
+    if ((goType !== 'map[string]any') && (goType !== '[]any')) {
+        return true;
+    }
+    return collectReturnStatements (node.body).every ((statement) => ccxtGoContainerNeverNil (goTranspiler, statement.expression));
+}
+
+function ccxtGoContainerNeverNil (goTranspiler, expression) {
+    while ((expression !== undefined) && (expression.kind === ts.SyntaxKind.ParenthesizedExpression)) {
+        expression = expression.expression;
+    }
+    if ((expression === undefined) || ts.isObjectLiteralExpression (expression) || ts.isArrayLiteralExpression (expression)) {
+        return expression !== undefined;
+    }
+    if (!ts.isCallExpression (expression) || !ts.isPropertyAccessExpression (expression.expression)
+        || (expression.expression.expression.kind !== ts.SyntaxKind.ThisKeyword)) {
+        return false;
+    }
+    const callee = expression.expression.name.text;
+    if ((callee === 'extend') || (callee === 'deepExtend')) {
+        return true; // ExtendMap / DeepExtend always build a fresh map
+    }
+    let declaration;
+    try {
+        declaration = goTranspiler.getChecker ().getResolvedSignature (expression)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    return (declaration?.kind === ts.SyntaxKind.MethodDeclaration) && !CCXT_GO_PARSE_METHOD.test (callee)
+        && (ccxtGoAnnotatedMethodReturnType (goTranspiler, declaration) !== undefined);
+}
+
 function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
     if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
         return undefined;
     }
     const name = node.name?.text;
-    if ((typeof name !== 'string') || !CCXT_GO_PARSE_METHOD.test (name)) {
+    if ((typeof name !== 'string') || (!CCXT_GO_PARSE_METHOD.test (name) && !ccxtGoGeneralAnnotatedMethodIsClosed (node, name))) {
         return undefined;
     }
     if (node.body?.kind !== ts.SyntaxKind.Block) {
@@ -3171,6 +3339,9 @@ function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
     let result;
     try {
         result = ccxtGoProveReturnPaths (goTranspiler, node, allowed);
+        if ((result !== undefined) && !CCXT_GO_PARSE_METHOD.test (name) && !ccxtGoGeneralReturnKeepsAbsence (goTranspiler, node, result)) {
+            result = undefined;
+        }
     } finally {
         CCXT_GO_RETURN_TYPE_IN_PROGRESS.delete (node);
     }
@@ -6586,6 +6757,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         return goType;
     };
     installCcxtGoNilDeclaredStringJoins (goTranspiler);
+    installCcxtGoNilDeclaredValueJoins (goTranspiler);
     installCcxtGoTernaryCast (goTranspiler);
     installCcxtGoNilDeclaredJoin (goTranspiler);
     if (typeof goTranspiler.printVariableDeclarationList === 'function'
@@ -6597,6 +6769,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         installCcxtGoClosureDefaultValue (goTranspiler);
         installCcxtGoTernaryLiftJoin (goTranspiler);
         installCcxtGoTernaryMapJoin (goTranspiler);
+        installCcxtGoNilDeclaredParseNumberJoins (goTranspiler);
     }
     // the emitted signature of the same helpers: `any` → `*string` for the methods
     // the predicate above accepts, so the coercion and the local typing can never
@@ -9017,6 +9190,193 @@ function installCcxtGoTernaryCast (goTranspiler) {
 }
 
 export default installCcxtGoLocalTypes;
+
+// ------------------------- nil-declared value joins (bool / numeric literal) -------------------------
+// The string join's definite-assignment proof for other value types: every write is a bool, or a
+// numeric literal of one Go kind (`int` / `float64`, the box the `any` already held), so no read sees nil.
+export class GoNilDeclaredValueAssignmentScan extends GoNilDeclaredAssignmentScan {
+
+    valueTypeOf (rhs) {
+        let node = rhs;
+        while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            node = node.expression;
+        }
+        if ((node?.kind === ts.SyntaxKind.NumericLiteral)
+            || ((node?.kind === ts.SyntaxKind.PrefixUnaryExpression) && (node.operator === ts.SyntaxKind.MinusToken)
+                && (node.operand?.kind === ts.SyntaxKind.NumericLiteral))) {
+            const literal = (node.kind === ts.SyntaxKind.NumericLiteral) ? node : node.operand;
+            if (/^[0-9]+$/.test (literal.text)) {
+                return 'int';
+            }
+            return /^[0-9]+\.[0-9]+$/.test (literal.text) ? 'float64' : undefined;
+        }
+        const goType = this.goTranspiler.goTypeOfInitializer (rhs, this.goTranspiler.printNode (rhs, 0));
+        return (goType === 'bool') ? 'bool' : undefined;
+    }
+
+    // `x == true` / `x === 1` against a literal of the joined kind compiles on the value type
+    classifyIdentifier (node, assigned) {
+        const parent = node.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && COMPARISON_TOKENS.includes (parent.operatorToken.kind)
+                && (this.joinType !== undefined) && !this.inNestedFunction (node)) {
+            const other = (parent.left === node) ? parent.right : parent.left;
+            const otherType = ((other.kind === ts.SyntaxKind.TrueKeyword) || (other.kind === ts.SyntaxKind.FalseKeyword)) ? 'bool' : this.valueTypeOf (other);
+            if (otherType === this.joinType) {
+                if (!assigned) {
+                    this.rejected = true;
+                }
+                return assigned;
+            }
+        }
+        return super.classifyIdentifier (node, assigned);
+    }
+
+    isStringWrite (rhs) {
+        const goType = this.valueTypeOf (rhs);
+        if ((goType === undefined) || ((this.joinType !== undefined) && (this.joinType !== goType))) {
+            return false;
+        }
+        this.joinType = goType;
+        return true;
+    }
+}
+
+export function installCcxtGoNilDeclaredValueJoins (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoNilDeclaredValueJoinsInstalled
+            || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    const nilDeclaration = /^([\t ]*)var (\w+) any = nil$/;
+    goTranspiler.printVariableDeclarationList = (node, indentation) => {
+        const printed = upstream (node, indentation);
+        const parsed = (typeof printed === 'string') ? printed.match (nilDeclaration) : null;
+        if ((parsed === null) || (node?.parent?.kind !== ts.SyntaxKind.VariableStatement) || (node.declarations?.length !== 1)) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        if (!ts.isIdentifier (declaration?.name) || !isNilDeclaredInitializer (declaration.initializer)
+                || (NIL_DECLARED_GUARD_NAMES.indexOf (declaration.name.text) >= 0)) {
+            return printed;
+        }
+        const scan = new GoNilDeclaredValueAssignmentScan (goTranspiler, declaration, declaration.name.text);
+        if (!scan.run () || (scan.joinType === undefined)
+                || goTranspiler.goTypeNameIsShadowed?.(goTranspiler.goEnclosingFunction (declaration), scan.joinType)) {
+            return printed;
+        }
+        return parsed[1] + 'var ' + parsed[2] + ' ' + scan.joinType;
+    };
+    goTranspiler.__ccxtGoNilDeclaredValueJoinsInstalled = true;
+}
+
+// ------------------------- nil-declared ParseNumber pointer joins -------------------------
+// `let x: Num = undefined; ... x = this.parseNumber (s)`: one-argument parseNumber answers a float64 or
+// nil, which `*float64` carries unchanged (Float64PtrTyped at each such write). Reads admitted: nil
+// tests and values of a structure literal handed to a `this.safe*` builder that is not a market row.
+const CCXT_GO_PARSE_NUMBER_JOIN_ROW_BUILDERS_REJECTED = [ 'safeMarketStructure', 'safeCurrencyStructure' ];
+
+function ccxtGoIsOneArgParseNumber (goTranspiler, node) {
+    return (node?.kind === ts.SyntaxKind.CallExpression) && (node.arguments.length === 1)
+        && (ccxtGoWholePrintedCallee (goTranspiler, goTranspiler.printNode (node, 0)) === 'this.ParseNumber');
+}
+
+function ccxtGoParseNumberJoinReadIsSafe (goTranspiler, n) {
+    const parent = n.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && COMPARISON_TOKENS.includes (parent.operatorToken.kind)) {
+        return isUndefinedLiteral ((parent.left === n) ? parent.right : parent.left);
+    }
+    if (!((parent?.kind === ts.SyntaxKind.PropertyAssignment) && (parent.initializer === n))
+            && (parent?.kind !== ts.SyntaxKind.ShorthandPropertyAssignment)) {
+        return false;
+    }
+    let top = parent.parent;
+    while ((top?.parent?.kind === ts.SyntaxKind.PropertyAssignment) && (top.parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression)) {
+        top = top.parent.parent;
+    }
+    const call = top?.parent;
+    const callee = call?.expression;
+    return (top?.kind === ts.SyntaxKind.ObjectLiteralExpression) && (call?.kind === ts.SyntaxKind.CallExpression) && call.arguments.includes (top)
+        && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && /^safe[A-Z]\w*$/.test (callee.name.text) && !CCXT_GO_PARSE_NUMBER_JOIN_ROW_BUILDERS_REJECTED.includes (callee.name.text);
+}
+
+// true when every write is a 1-arg parseNumber (at least one) or an already *float64 value
+export function ccxtGoNilDeclaredParseNumberJoin (goTranspiler, declaration) {
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ts.isIdentifier (declaration.name)
+            || !isNilDeclaredInitializer (declaration.initializer) || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+            || (NIL_DECLARED_GUARD_NAMES.indexOf (declaration.name.text) >= 0)) {
+        return false;
+    }
+    goTranspiler.ccxtGoParseNumberJoins ??= new WeakMap ();
+    const cache = goTranspiler.ccxtGoParseNumberJoins;
+    if (cache.has (declaration)) {
+        return cache.get (declaration);
+    }
+    cache.set (declaration, false);
+    const scope = goTranspiler.goEnclosingFunction?.(declaration);
+    const name = declaration.name.text;
+    let parseWrites = 0;
+    let ok = (scope !== undefined) && !goTranspiler.goTypeNameIsShadowed?.(scope, '*float64');
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if ((n !== declaration) && ((n.kind === ts.SyntaxKind.VariableDeclaration) || (n.kind === ts.SyntaxKind.Parameter))
+                && bindingMentionsName (n.name, name)) {
+            ok = false;
+            return;
+        }
+        if (ts.isIdentifier (n) && (n.text === name) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                if (ccxtGoIsOneArgParseNumber (goTranspiler, parent.right)) {
+                    parseWrites += 1;
+                } else if (goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0)) !== '*float64') {
+                    ok = false;
+                }
+            } else if (isDestructuringTarget (n) || !ccxtGoParseNumberJoinReadIsSafe (goTranspiler, n)) {
+                ok = false;
+            }
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    scope?.forEachChild (visit);
+    const joined = ok && (parseWrites > 0);
+    cache.set (declaration, joined);
+    return joined;
+}
+
+function ccxtGoParseNumberJoinDeclarationOf (goTranspiler, node) {
+    const declaration = ccxtGoParamDeclarationOf (goTranspiler, node);
+    return ccxtGoNilDeclaredParseNumberJoin (goTranspiler, declaration) ? declaration : undefined;
+}
+
+export function installCcxtGoNilDeclaredParseNumberJoins (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoNilDeclaredParseNumberJoinsInstalled
+            || (typeof goTranspiler.printVariableDeclarationList !== 'function') || (typeof goTranspiler.printBinaryExpression !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    const nilDeclaration = /^([\t ]*)var (\w+) any = nil$/;
+    goTranspiler.printVariableDeclarationList = (node, indentation) => {
+        const printed = upstream (node, indentation);
+        const parsed = (typeof printed === 'string') ? printed.match (nilDeclaration) : null;
+        if ((parsed === null) || (node.declarations?.length !== 1) || !ccxtGoNilDeclaredParseNumberJoin (goTranspiler, node.declarations[0])) {
+            return printed;
+        }
+        return parsed[1] + 'var ' + parsed[2] + ' *float64 = nil';
+    };
+    const binary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (node.left)
+                && ccxtGoIsOneArgParseNumber (this, node.right) && (ccxtGoParseNumberJoinDeclarationOf (this, node.left) !== undefined)) {
+            return this.printNode (node.left, 0) + ' = Float64PtrTyped(' + this.printNode (node.right, identation).trim () + ')';
+        }
+        return binary.call (this, node, identation);
+    };
+    goTranspiler.__ccxtGoNilDeclaredParseNumberJoinsInstalled = true;
+}
 
 // ------------------------- G14: ternary literal pointer joins with value arms -------------------------
 // `c ? "lit" : this.safeString (..)` / `c ? undefined : this.parseNumber (s)`: every arm is a producer of

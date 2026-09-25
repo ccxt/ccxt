@@ -994,7 +994,7 @@ public partial class bybit : ccxt.bybit
         object paramsValue = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         int defaultLimit = ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)) ? 100 : 50;
-        object limitResolved = ((limit == null)) ? defaultLimit : limit;
+        Int64? limitResolved = ((limit == null)) ? defaultLimit : limit;
         if ((limit != null))
         {
             Dictionary<string, object> limits = new Dictionary<string, object>() {
@@ -1014,7 +1014,7 @@ public partial class bybit : ccxt.bybit
         {
             string? symbol = ((string)symbolsNormalized[i]);
             string? marketId = this.marketId(symbol);
-            string topic = ((("orderbook." + limitResolved.ToString()) + ".") + marketId);
+            string topic = ((("orderbook." + ((object)limitResolved).ToString()) + ".") + marketId);
             topics.Add(topic);
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
@@ -2667,7 +2667,7 @@ public partial class bybit : ccxt.bybit
             for (int i = 0; i < topicsLength; i++)
             {
                 object topic = getValue(topics, i);
-                if (!(inOp(subscribedTopics, topic)))
+                if (!((topic is string inOpKey1 && subscribedTopics.ContainsKey(inOpKey1))))
                 {
                     newTopics.Add(topic);
                 }

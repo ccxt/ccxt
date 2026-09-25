@@ -1535,11 +1535,11 @@ public partial class extended : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Int64? until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(paramsPaginate, "endTime", until);
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"endTime", "until"});
-        object sinceResolved = ((since == null)) ? subtract(endTime, (multiply(multiply(multiply(limitResolved, 60), 60), 1000))) : since;
+        object sinceResolved = ((since == null)) ? subtract(endTime, ((((limitResolved * 60) * 60) * 1000))) : since;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "startTime", sinceResolved },
@@ -1629,11 +1629,11 @@ public partial class extended : Exchange
         {
             throw new BadRequest ((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
         }
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(parameters, "endTime", until);
         object paramsOmitted = this.omit(parameters, new List<object>() {"endTime", "until"});
-        object sinceResolved = ((since == null)) ? subtract(endTime, (multiply(multiply(limitResolved, this.parseTimeframe(timeframeVar)), 1000))) : since;
+        object sinceResolved = ((since == null)) ? subtract(endTime, (((limitResolved * this.parseTimeframe(timeframeVar)) * 1000))) : since;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },

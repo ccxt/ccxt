@@ -192,7 +192,7 @@ func (this *Hyperliquid) OutcomeAssetId(encoding any) any {
  * @param {int} encoding outcome side encoding
  * @returns {string} the coin name
  */
-func (this *Hyperliquid) OutcomeCoin(encoding any) any {
+func (this *Hyperliquid) OutcomeCoin(encoding any) string {
 	return "#" + ccxt.ToString(encoding)
 }
 
@@ -204,7 +204,7 @@ func (this *Hyperliquid) OutcomeCoin(encoding any) any {
  * @param {int} encoding outcome side encoding
  * @returns {string} the token name
  */
-func (this *Hyperliquid) OutcomeToken(encoding any) any {
+func (this *Hyperliquid) OutcomeToken(encoding any) string {
 	return "+" + ccxt.ToString(encoding)
 }
 
@@ -1300,18 +1300,18 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	var totalStr *string = this.SafeString(position, "total")
 	var total *float64 = ccxt.Float64PtrTyped(this.ParseNumber(totalStr))
 	var entryNtlStr *string = this.SafeString(position, "entryNtl")
-	var entryPrice any = nil
+	var entryPrice *float64 = nil
 	if (entryNtlStr != nil) && (totalStr != nil) && !ccxt.Precise.StringEq(totalStr, "0") {
-		entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr))
+		entryPrice = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr)))
 	}
 	var markPxStr *string = this.SafeString(position, "markPx")
-	var notional any = nil      // current position value = size * mark price
-	var unrealizedPnl any = nil // value - entry notional
+	var notional *float64 = nil      // current position value = size * mark price
+	var unrealizedPnl *float64 = nil // value - entry notional
 	if (markPxStr != nil) && (totalStr != nil) {
 		var notionalStr *string = ccxt.Precise.StringMul(totalStr, markPxStr)
-		notional = this.ParseNumber(notionalStr)
+		notional = ccxt.Float64PtrTyped(this.ParseNumber(notionalStr))
 		if entryNtlStr != nil {
-			unrealizedPnl = this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr))
+			unrealizedPnl = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr)))
 		}
 	}
 	return this.SafePredictionPosition(map[string]any{
@@ -2333,9 +2333,9 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 			"currency": feeCurrency,
 		}
 	}
-	var cost any = nil
+	var cost *float64 = nil
 	if (price != nil) && (amount != nil) {
-		cost = this.ParseNumber(ccxt.Precise.StringMul(price, amount))
+		cost = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringMul(price, amount)))
 	}
 	var crossed bool = (ccxt.IsEqual(this.SafeBool(trade, "crossed"), true))
 	var takerOrMaker string = "maker"
@@ -2631,7 +2631,7 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
@@ -2648,7 +2648,7 @@ func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
 func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
 }
-func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
+func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) map[string]any {
 	var isTestnet bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = isTestnet
 	var source string = "a"
@@ -2679,7 +2679,7 @@ func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any
 	this.CheckRequiredCredentials()
 	var hash any = this.ActionHash(action, vaultAddress, nonce)
 	var isTestnet *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var phantomAgent any = this.ConstructPhantomAgent(hash, isTestnet)
+	var phantomAgent map[string]any = this.ConstructPhantomAgent(hash, isTestnet)
 	var zeroAddress *string = this.SafeString(this.Options, "zeroAddress")
 	var domain map[string]any = map[string]any{
 		"chainId":           1337,

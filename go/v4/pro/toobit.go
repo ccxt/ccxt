@@ -772,12 +772,12 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderBook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})
 		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderBook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderBook, "bids"), bids)
+		this.HandleDeltas(orderBook.GetAsks(), asks)
+		this.HandleDeltas(orderBook.GetBids(), bids)
 		ccxt.AddElementToObject(orderBook, "timestamp", timestamp)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderBook)
 		client.(ccxt.ClientInterface).Resolve(orderBook, messageHash)
@@ -827,7 +827,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel string
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -1597,7 +1597,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 func (this *Toobit) GetUserStreamUrl() any {
 	return ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/api/v1/ws/"), this.SafeString(ccxt.GetValue(this.Options, "ws"), "listenKey"))
 }
-func (this *Toobit) HandleErrorMessage(client any, message any) any {
+func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//
 	//    {
 	//        "code": '-100010',

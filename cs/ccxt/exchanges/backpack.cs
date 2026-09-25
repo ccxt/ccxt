@@ -1165,8 +1165,8 @@ public partial class backpack : Exchange
         {
             int duration = this.parseTimeframe(timeframeVar);
             Int64? endTime = (!(until == null) && !(until == null) && !(until == 0)) ? this.parseToInt(((double?)until / 1000)) : this.seconds();
-            object windowLimit = ((limit == null)) ? defaultLimit : limit;
-            object startTime = subtract(endTime, (multiply(windowLimit, duration)));
+            Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
+            object startTime = subtract(endTime, ((windowLimit * duration)));
             request["startTime"] = startTime;
         } else
         {
