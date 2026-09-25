@@ -227,8 +227,7 @@ public partial class bybit : ccxt.bybit
                 url = getValue(getValue(url, accessibility), "spot");
             } else if ((type == "swap") || (type == "future"))
             {
-                List<object> subTypeAndParams = this.handleSubTypeAndParams(methodValue, market, parameters, "linear");
-                string? subType = ((string)(subTypeAndParams != null && 0 < subTypeAndParams.Count ? subTypeAndParams[0] : null));
+                string? subType = ((string)getValue(this.handleSubTypeAndParams(methodValue, market, parameters, "linear"), 0));
                 url = getValue(getValue(url, accessibility), subType);
             } else
             {

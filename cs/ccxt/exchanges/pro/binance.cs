@@ -3559,8 +3559,7 @@ public partial class binance : ccxt.binance
         IList<object> isPortfolioMarginparamsPortfolioMarginVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = (bool?)isPortfolioMarginparamsPortfolioMarginVariable[0];
         var paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable[1];
-        List<object> subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, paramsPortfolioMargin);
-        string? subType = ((string)(subTypeInfo != null && 0 < subTypeInfo.Count ? subTypeInfo[0] : null));
+        string? subType = ((string)getValue(this.handleSubTypeAndParams("keepAliveListenKey", null, paramsPortfolioMargin), 0));
         if (type != "option" && type != "stock")
         {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
@@ -4243,8 +4242,7 @@ public partial class binance : ccxt.binance
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(method, market, parameters);
         type = (string)typeparamsMarketTypeVariable[0];
         paramsMarketType = typeparamsMarketTypeVariable[1];
-        List<object> subTypeAndParams = this.handleSubTypeAndParams(method, market, paramsMarketType);
-        string? subType = ((string)(subTypeAndParams != null && 0 < subTypeAndParams.Count ? subTypeAndParams[0] : null));
+        string? subType = ((string)getValue(this.handleSubTypeAndParams(method, market, paramsMarketType), 0));
         if (this.isLinear(type, subType))
         {
             type = "future";
