@@ -2989,7 +2989,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object createOrderSettlementData(Object isBuy, Object amountString, Object priceString, Map<String, Object> parameters)
+    public Object createOrderSettlementData(Boolean isBuy, Object amountString, Object priceString, Map<String, Object> parameters)
     {
         String totalFee = this.safeString(parameters, "totalFee");
         Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration");
@@ -3001,11 +3001,11 @@ public class Extended extends ExtendedApi
         Long syntheticResolution = this.safeInteger(parameters, "syntheticResolution");
         Long collateralResolution = this.safeInteger(parameters, "collateralResolution");
         String quoteAmount = Precise.stringMul(amountString, priceString);
-        Object baseRoundUp = isBuy;
-        Object quoteRoundUp = isBuy;
+        Boolean baseRoundUp = isBuy;
+        Boolean quoteRoundUp = isBuy;
         Object baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
         Object collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
-        if (Helpers.isTrue(isBuy))
+        if (Boolean.TRUE.equals(isBuy))
         {
             collateralAmount = ((String)Precise.stringNeg(collateralAmount));
         } else

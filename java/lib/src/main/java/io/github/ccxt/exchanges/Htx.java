@@ -11499,7 +11499,7 @@ public class Htx extends HtxApi
      * @param {string} [params.marginMode] "cross" (default) or "isolated"
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -11509,7 +11509,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String posMode = "single_side";
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 posMode = "dual_side";
             }

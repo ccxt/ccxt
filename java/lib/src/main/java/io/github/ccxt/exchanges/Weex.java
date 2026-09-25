@@ -5057,7 +5057,7 @@ public class Weex extends WeexApi
      * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5079,7 +5079,7 @@ public class Weex extends WeexApi
                 throw new ArgumentsRequired((this.id + " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
             }
             String separatedType = "COMBINED";
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 separatedType = "SEPARATED";
             }
@@ -5247,7 +5247,7 @@ public class Weex extends WeexApi
         return marketId;
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);

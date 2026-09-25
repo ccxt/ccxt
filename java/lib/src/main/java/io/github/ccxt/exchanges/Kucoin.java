@@ -2848,7 +2848,7 @@ public class Kucoin extends KucoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object uta = false;
+            Boolean uta = false;
             if (this.checkRequiredCredentials(false))
             {
                 uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
@@ -4327,14 +4327,14 @@ public class Kucoin extends KucoinApi
             paramsRequest = accountTypeparamsRequestVariable.second();
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             accountType = this.safeString(accountsByType, accountType, accountType);
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchDepositAddress", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
             if (java.util.Objects.equals(accountType, "contract"))
             {
                 return (this.fetchContractDepositAddress(code, paramsRequest)).join();
-            } else if (Helpers.isTrue(uta) || (java.util.Objects.equals(accountType, "uta")) || (java.util.Objects.equals(accountType, "unified")))
+            } else if (Boolean.TRUE.equals(uta) || (java.util.Objects.equals(accountType, "uta")) || (java.util.Objects.equals(accountType, "unified")))
             {
                 return (super.fetchDepositAddress(code, this.extend(paramsRequest, new HashMap<String, Object>() {{
                     put( "uta", true );
@@ -4475,13 +4475,13 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
             }};
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDepositAddressesByNetwork", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
             Map<String, Object> response = null;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 String networkCode = null;
                 List<Object> networkCodeparamsRequestVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsRequest));
@@ -6547,7 +6547,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersByStatus", "uta", uta);
             uta = utaparamsRequestVariable.first();
@@ -6578,7 +6578,7 @@ public class Kucoin extends KucoinApi
                 Map<String, Object> market = this.market(symbol);
                 marketType = market.get("type");
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.omit(paramsRequest, "uta");
                 paramsRequest = this.extend(paramsRequest, Helpers.newMap(
@@ -7128,17 +7128,17 @@ public class Kucoin extends KucoinApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument")) ;
             }
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
             Map<String, Object> paramsOmitted = paramsRequest;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsOmitted = this.omit(paramsRequest, "uta");
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 return (this.fetchUtaOrder((String) (id), symbol, paramsOmitted)).join();
             }
@@ -7509,7 +7509,7 @@ public class Kucoin extends KucoinApi
     {
         String tradeType = this.safeString(order, "tradeType");
         List<String> utaTradeTypes = new ArrayList<String>(Arrays.asList("SPOT", "CROSS", "ISOLATED", "FUTURES")); // tradeType specific for uta endpoint
-        Object isUtaOrder = this.inArray(tradeType, utaTradeTypes);
+        Boolean isUtaOrder = this.inArray(tradeType, utaTradeTypes);
         if (((Map<?, ?>)order).containsKey("sizeUnit"))
         {
             isUtaOrder = true;
@@ -8060,11 +8060,11 @@ public class Kucoin extends KucoinApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsRequestVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
             marketType = marketTypeparamsRequestVariable.first();
             paramsRequest = marketTypeparamsRequestVariable.second();
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchMyTrades", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsRequest, Helpers.newMap(
                     "marketType", marketType
@@ -10705,7 +10705,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "uta", uta);
             uta = utaparamsRequestVariable.first();
@@ -10715,7 +10715,7 @@ public class Kucoin extends KucoinApi
             hf = (Boolean) ((List<Object>) hfparamsRequestVariable).get(0);
             paramsRequest = (Map<String, Object>) ((List<Object>) hfparamsRequestVariable).get(1);
             Object requestedType = null;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 requestedType = "UNIFIED";
             }
@@ -10726,13 +10726,13 @@ public class Kucoin extends KucoinApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("fetchLedger", paramsRequest, (String) null);
             marginMode = marginModeparamsRequestVariable.first();
             paramsRequest = marginModeparamsRequestVariable.second();
-            if (Helpers.isTrue(uta) && (java.util.Objects.equals(requestedType, "margin")))
+            if (Boolean.TRUE.equals(uta) && (java.util.Objects.equals(requestedType, "margin")))
             {
                 marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
                 requestedType = marginMode;
             }
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", (Object) null);
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 accountsByType = (Map<String, Object>) this.safeDict(this.options, "utaAccountsByType", (Object) null);
             }
@@ -10745,7 +10745,7 @@ public class Kucoin extends KucoinApi
             } else if (java.util.Objects.equals(type, "contract"))
             {
                 maxLimit = 50L;
-            } else if (Helpers.isTrue(uta))
+            } else if (Boolean.TRUE.equals(uta))
             {
                 if ((java.util.Objects.equals(type, "UNIFIED")) || (java.util.Objects.equals(type, "SPOT")))
                 {
@@ -10792,7 +10792,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             Map<String, Object> response = null;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 request.put("accountType", type);
                 response = (this.utaPrivateGetAccountLedger(this.extend(request, paramsRequest))).join();
@@ -11728,12 +11728,12 @@ public class Kucoin extends KucoinApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("setLeverage", paramsRequest, (String) null);
             marginMode = marginModeparamsRequestVariable.first();
             paramsRequest = marginModeparamsRequestVariable.second();
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "setLeverage", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 if (java.util.Objects.equals(marginMode, "isolated"))
                 {
@@ -12199,7 +12199,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "uta", uta);
             uta = utaparamsRequestVariable.first();
@@ -12210,7 +12210,7 @@ public class Kucoin extends KucoinApi
             {
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
-            } else if (!Helpers.isTrue(uta))
+            } else if (!Boolean.TRUE.equals(uta))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
             }
@@ -12219,7 +12219,7 @@ public class Kucoin extends KucoinApi
                 request.put("startAt", since);
             }
             List<Object> dataList = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -12492,7 +12492,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositionsHistory", "uta", uta);
             uta = utaparamsRequestVariable.first();
@@ -12509,7 +12509,7 @@ public class Kucoin extends KucoinApi
                     request.put("symbol", market.get("id"));
                 }
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
@@ -12829,7 +12829,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
+            Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelOrders", "uta", uta);
             uta = utaparamsRequestVariable.first();
@@ -12844,7 +12844,7 @@ public class Kucoin extends KucoinApi
                 {
                     uta = true; // spot market orders can only be cancelled via the uta endpoint
                 }
-            } else if (Helpers.isTrue(uta))
+            } else if (Boolean.TRUE.equals(uta))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument for uta endpoint")) ;
             }
@@ -12867,7 +12867,7 @@ public class Kucoin extends KucoinApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     ((List<Object>)ordersRequests).add(Helpers.newMap(
                         "orderId", orderId,
@@ -12881,7 +12881,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 String accountMode = "unified";
                 io.github.ccxt.base.Pair<String, Map<String, Object>> accountModeparamsRequestVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRequest), "cancelOrders", "accountMode", accountMode);
@@ -13248,7 +13248,7 @@ public class Kucoin extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -13258,7 +13258,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String posMode = "0";
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 posMode = "1";
             }

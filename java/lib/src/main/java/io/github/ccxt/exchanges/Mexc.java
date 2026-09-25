@@ -6631,13 +6631,13 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "positionMode", ((Helpers.isTrue(hedged))) ? 1 : 2 );
+                put( "positionMode", ((Boolean.TRUE.equals(hedged))) ? 1 : 2 );
             }};
             Map<String, Object> response = (this.contractPrivatePostPositionChangePositionMode(this.extend(request, parameters))).join();
             //

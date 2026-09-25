@@ -3036,7 +3036,7 @@ public class Dydx extends DydxApi
         return null;
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         // rewrite testnet parameters

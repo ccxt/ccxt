@@ -5275,7 +5275,7 @@ public class Phemex extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5293,7 +5293,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 request.put("targetPosMode", "Hedged");
             } else

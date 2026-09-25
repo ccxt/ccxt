@@ -4004,7 +4004,7 @@ public class Btse extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4021,7 +4021,7 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String positionMode = "ONE_WAY";
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 positionMode = "HEDGE";
             }

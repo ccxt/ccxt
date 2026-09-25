@@ -99,19 +99,19 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    public CompletableFuture<String> getListenKey(Object isContract)
+    public CompletableFuture<String> getListenKey(Boolean isContract)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
             String tradeType = "spot";
-            if (Helpers.isTrue(isContract))
+            if (Boolean.TRUE.equals(isContract))
             {
                 tradeType = "contract";
             }
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType);
-            if (!Helpers.isTrue(isContract))
+            if (!Boolean.TRUE.equals(isContract))
             {
                 url = (url + "/private");
             }
@@ -136,7 +136,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 try
                 {
                     String listenKey = null;
-                    if (Helpers.isTrue(isContract))
+                    if (Boolean.TRUE.equals(isContract))
                     {
                         Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
                         //
@@ -253,7 +253,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Object isContract = (!java.util.Objects.equals(type, "spot"));
+            Boolean isContract = (!java.util.Objects.equals(type, "spot"));
             String id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", ((Boolean.TRUE.equals(isContract))) ? "SUBSCRIBE" : "subscribe" );
@@ -326,7 +326,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Object isContract = (!java.util.Objects.equals(type, "spot"));
+            Boolean isContract = (!java.util.Objects.equals(type, "spot"));
             String id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> unsubscribe = new HashMap<String, Object>() {{
                 put( "method", ((Boolean.TRUE.equals(isContract))) ? "UNSUBSCRIBE" : "unsubscribe" );

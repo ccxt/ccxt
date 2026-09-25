@@ -2757,7 +2757,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // This may be incorrectly marked as "open" if only execution report is given,
         // but will be fixed below
         String status = this.parseOrderStatus(statusId);
-        Object isClosed = this.inArray(status, new ArrayList<Object>(Arrays.asList("canceled", "rejected", "closed")));
+        Boolean isClosed = this.inArray(status, new ArrayList<Object>(Arrays.asList("canceled", "rejected", "closed")));
         String marketId = this.safeString2(details, "symbol", "tradeable");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");

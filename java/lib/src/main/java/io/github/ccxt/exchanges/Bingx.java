@@ -7107,7 +7107,7 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7126,7 +7126,7 @@ public class Bingx extends BingxApi
                 throw new NotSupported((this.id + " setPositionMode() is not supported for inverse swap markets")) ;
             }
             String dualSidePosition = null;
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 dualSidePosition = "true";
             } else
@@ -7604,7 +7604,7 @@ public class Bingx extends BingxApi
         return this.milliseconds();
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
