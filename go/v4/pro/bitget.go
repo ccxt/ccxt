@@ -802,7 +802,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
-	var isUta any = nil
+	var isUta bool
 	if interval == nil {
 		isUta = false
 		interval = ccxt.SafeStringPtr(strings.Replace(*channel, "candle", "", 1))
@@ -3461,7 +3461,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
-	var isUta any = nil
+	var isUta bool
 	if interval == nil {
 		isUta = false
 		interval = ccxt.SafeStringPtr(strings.Replace(*channel, "candle", "", 1))

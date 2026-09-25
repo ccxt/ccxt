@@ -369,7 +369,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			continue
 		}
 		var numericId *float64 = this.SafeNumber(market, "id")
-		var active any = nil
+		var active bool
 		var marketState *string = this.SafeString(market, "status")
 		if marketState != nil && *marketState == "open" {
 			active = true

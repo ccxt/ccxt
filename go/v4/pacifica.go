@@ -4536,7 +4536,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	var errorCode *string = this.SafeString(response, "code")
 	var errorId *string = this.SafeString(response, "error_id") // undocumented, present on live errors and more specific than code
 	var message *string = this.SafeString(response, "error")
-	var error any = nil
+	var error bool
 	if (errorCode == nil) || (errorCode != nil && *errorCode == "200") {
 		error = false
 	} else {

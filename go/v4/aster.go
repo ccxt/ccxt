@@ -1357,11 +1357,11 @@ func (this *Aster) ParseMarket(market any) any {
 		return nil
 	}
 	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
-	var spot any = nil
+	var spot bool
 	var symbol any = nil
 	var settle any = nil
 	var settleId any = nil
-	var swap any = nil
+	var swap bool
 	var linear any = nil
 	var inverse any = nil
 	var contractSize *float64 = nil
