@@ -825,7 +825,7 @@ public partial class zaif : Exchange
         }
         if ((limit != null))
         {
-            request["count"] = mathMin(limit, 1000);
+            request["count"] = Math.Min(limit.Value, 1000);
         }
         Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});

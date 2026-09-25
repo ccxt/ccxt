@@ -1529,7 +1529,7 @@ public partial class paradex : Exchange
         };
         if ((limit != null))
         {
-            request["page_size"] = mathMin(limit, 1000);
+            request["page_size"] = Math.Min(limit.Value, 1000);
         }
         if ((since != null))
         {
@@ -3869,7 +3869,7 @@ public partial class paradex : Exchange
         };
         if ((limit != null))
         {
-            request["page_size"] = mathMin(limit, 5000);
+            request["page_size"] = Math.Min(limit.Value, 5000);
         } else
         {
             request["page_size"] = 100;
@@ -3959,7 +3959,7 @@ public partial class paradex : Exchange
         };
         if ((limit != null))
         {
-            request["page_size"] = mathMin(limit, 5000); // api maximum 5000
+            request["page_size"] = Math.Min(limit.Value, 5000); // api maximum 5000
         } else
         {
             request["page_size"] = 1000; // max is 5000

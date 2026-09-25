@@ -2020,7 +2020,7 @@ public partial class deribit : Exchange
         }
         if ((limit != null))
         {
-            request["count"] = mathMin(limit, 1000); // default 10
+            request["count"] = Math.Min(limit.Value, 1000); // default 10
         }
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
         object paramsOmitted = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;

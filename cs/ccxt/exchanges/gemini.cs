@@ -1547,7 +1547,7 @@ public partial class gemini : Exchange
         };
         if ((limit != null))
         {
-            request["limit_trades"] = mathMin(limit, 500);
+            request["limit_trades"] = Math.Min(limit.Value, 500);
         }
         if ((since != null))
         {

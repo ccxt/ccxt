@@ -2942,7 +2942,7 @@ public partial class whitebit : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         List<object> response = await this.v4PrivatePostOrders(this.extend(request, parameters));
         //
@@ -2996,7 +2996,7 @@ public partial class whitebit : Exchange
         object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100); // default 50 max 100
+            request["limit"] = Math.Min(limit.Value, 100); // default 50 max 100
         }
         Dictionary<string, object> response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
         //
@@ -3204,7 +3204,7 @@ public partial class whitebit : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         Dictionary<string, object> response = await this.v4PrivatePostTradeAccountOrder(this.extend(request, parameters));
         //
@@ -3885,7 +3885,7 @@ public partial class whitebit : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         Dictionary<string, object> response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
         //

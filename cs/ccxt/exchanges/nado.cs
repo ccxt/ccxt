@@ -1033,7 +1033,7 @@ public partial class nado : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 500);
+            request["limit"] = Math.Min(limit.Value, 500);
         }
         IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
@@ -1202,7 +1202,7 @@ public partial class nado : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)ordersRequestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)ordersRequestUntil)["limit"] = mathMin(limit, 500);
+            ((IDictionary<string,object>)ordersRequestUntil)["limit"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", ordersRequestUntil },
@@ -1323,7 +1323,7 @@ public partial class nado : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)matchesRequestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)matchesRequestUntil)["limit"] = mathMin(limit, 500);
+            ((IDictionary<string,object>)matchesRequestUntil)["limit"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "matches", matchesRequestUntil },
@@ -2282,7 +2282,7 @@ public partial class nado : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 500);
+            request["limit"] = Math.Min(limit.Value, 500);
         }
         List<object> response = await this.archiveV2PublicGetTrades(this.extend(request, parameters));
         //
@@ -2332,7 +2332,7 @@ public partial class nado : Exchange
         };
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request["candlesticks"])["limit"] = mathMin(limit, 500);
+            ((IDictionary<string,object>)request["candlesticks"])["limit"] = Math.Min(limit.Value, 500);
         }
         if ((until != null))
         {

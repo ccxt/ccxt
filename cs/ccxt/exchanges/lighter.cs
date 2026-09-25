@@ -1633,7 +1633,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         Dictionary<string, object> response = await this.publicGetOrderBookOrders(this.extend(request, parameters));
         //
@@ -2566,7 +2566,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         Dictionary<string, object> response = await this.privateGetAccountInactiveOrders(this.extend(request, paramsApiKeyIndex));
         //
@@ -3331,7 +3331,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams2(paramsApiKeyIndex, "fetchMyTrades", "until", "from");
         Int64? until = (Int64?)untilparamsUntilVariable[0];

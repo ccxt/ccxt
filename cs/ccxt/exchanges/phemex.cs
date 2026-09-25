@@ -4545,7 +4545,7 @@ public partial class phemex : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(200, limit);
+            request["limit"] = Math.Min(200, limit.Value);
         }
         Dictionary<string, object> response = await this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters));
         //

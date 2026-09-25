@@ -1284,7 +1284,7 @@ public partial class lbank : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, 600);
+            request["size"] = Math.Min(limit.Value, 600);
         } else
         {
             request["size"] = 600; // max

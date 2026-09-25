@@ -3980,7 +3980,7 @@ public partial class htx : Exchange
         {
             if ((limit != null))
             {
-                request["size"] = mathMin(limit, 2000); // when using limit: from & to are ignored
+                request["size"] = Math.Min(limit.Value, 2000); // when using limit: from & to are ignored
             }
             if ((priceType == null))
             {
@@ -4080,7 +4080,7 @@ public partial class htx : Exchange
             {
                 if ((limit != null))
                 {
-                    request["size"] = mathMin(limit, 2000); // max 2000
+                    request["size"] = Math.Min(limit.Value, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, paramsHistorical));
             } else
@@ -4096,7 +4096,7 @@ public partial class htx : Exchange
                 }
                 if ((limit != null))
                 {
-                    request["size"] = mathMin(1000, limit); // max 1000, otherwise default returns 150
+                    request["size"] = Math.Min(1000, limit.Value); // max 1000, otherwise default returns 150
                 }
                 response = await this.spotPublicGetMarketHistoryCandles(this.extend(request, paramsHistorical));
             }
@@ -8564,7 +8564,7 @@ public partial class htx : Exchange
         {
             if ((limit != null))
             {
-                request["limit"] = mathMin(limit, 100); // max 100
+                request["limit"] = Math.Min(limit.Value, 100); // max 100
             }
             if ((since != null))
             {

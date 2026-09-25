@@ -1838,7 +1838,7 @@ public partial class bitfinex : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 10000); // default 120, max 10000
+            request["limit"] = Math.Min(limit.Value, 10000); // default 120, max 10000
         }
         request["sort"] = sort;
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);

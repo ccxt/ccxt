@@ -1427,7 +1427,7 @@ public partial class limitless : PredictionExchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         Dictionary<string, object> response = await this.limitlessPublicGetMarketsSlugEvents(this.extend(request, parameters));
         //

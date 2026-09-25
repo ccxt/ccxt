@@ -1401,7 +1401,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         if ((since != null))
         {
@@ -2052,7 +2052,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = mathMin(limit, 1000);
+            ((IDictionary<string,object>)requestUntil)["limit"] = Math.Min(limit.Value, 1000);
         }
         string? price = this.safeString(paramsUntil, "price");
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, "price");

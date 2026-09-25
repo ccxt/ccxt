@@ -6030,10 +6030,10 @@ public partial class bitget : Exchange
         {
             if ((uta == true))
             {
-                request["limit"] = mathMin(limit, 100);
+                request["limit"] = Math.Min(limit.Value, 100);
             } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
             {
-                request["limit"] = mathMin(limit, 1000);
+                request["limit"] = Math.Min(limit.Value, 1000);
             } else
             {
                 request["limit"] = limit;

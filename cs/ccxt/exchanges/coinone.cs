@@ -1000,7 +1000,7 @@ public partial class coinone : Exchange
         };
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, 200);
+            request["size"] = Math.Min(limit.Value, 200);
         }
         Dictionary<string, object> response = await this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, parameters));
         //

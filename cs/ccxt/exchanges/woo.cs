@@ -2276,7 +2276,7 @@ public partial class woo : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, 500);
+            request["size"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> response = null;
         if ((trigger == true))
@@ -2813,7 +2813,7 @@ public partial class woo : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         if ((since != null))
         {
@@ -4065,7 +4065,7 @@ public partial class woo : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, 500);
+            request["size"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> response = await this.v3PrivateGetFuturesFundingFeeHistory(this.extend(request, paramsOmitted));
         //

@@ -4483,7 +4483,7 @@ public partial class coinbase : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];

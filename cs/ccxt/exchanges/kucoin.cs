@@ -7994,7 +7994,7 @@ public partial class kucoin : Exchange
         }
         if ((limit != null))
         {
-            request["pageSize"] = mathMin(1000, limit);
+            request["pageSize"] = Math.Min(1000, limit.Value);
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endAt", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];

@@ -1284,7 +1284,7 @@ public partial class bitrue : Exchange
             };
             if ((limit != null))
             {
-                request["limit"] = mathMin(limit, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+                request["limit"] = Math.Min(limit.Value, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
@@ -1300,7 +1300,7 @@ public partial class bitrue : Exchange
             };
             if ((limit != null))
             {
-                request["limit"] = mathMin(limit, 1000); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+                request["limit"] = Math.Min(limit.Value, 1000); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
             response = await this.spotV1PublicGetDepth(this.extend(request, parameters));
         } else

@@ -744,7 +744,7 @@ public partial class cex : Exchange
         }
         if ((limit != null))
         {
-            request["pageSize"] = mathMin(limit, 10000); // has a bug, still returns more trades
+            request["pageSize"] = Math.Min(limit.Value, 10000); // has a bug, still returns more trades
         }
         Dictionary<string, object> response = await this.publicPostGetTradeHistory(this.extend(request, paramsUntil));
         //
