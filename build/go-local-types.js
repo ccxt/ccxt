@@ -4816,6 +4816,8 @@ export const CCXT_GO_GETARG_SAFE_CONSUMERS = {
     // slot (IsEqual(values, nil), InArray, GetArg forward) read a nil slice/map box as absent
     'isEmpty': {'0': 'deref'}, 'isArray': {'0': 'deref'}, 'filterByArray': {'2': 'deref'},
     'filterByArrayTickers': {'2': 'deref'}, 'filterByArrayPositions': {'2': 'deref'},
+    // tag slot: IsDictionary/IsEqual deref it; a present value is handed back as the tuple's element 0
+    'handleWithdrawTagAndParams': {'0': 'deref'},
     'FindNearestCeiling': {'1': 'deref'}, 'ParseToInt': {'0': 'deref'}, 'ParseToNumeric': {'0': 'deref'},
     'ParseBorrowRateHistory': {'1': 'deref', '2': 'deref', '3': 'deref'},
 };
