@@ -963,7 +963,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
-func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
+func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 	//
 	// {
 	//     "channel": "prices",

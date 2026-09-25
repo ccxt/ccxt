@@ -2454,7 +2454,7 @@ func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 		"datetime":     this.Iso8601(timestamp),
 	})
 }
-func (this *Gate) HandleErrorMessage(client any, message any) any {
+func (this *Gate) HandleErrorMessage(client any, message any) bool {
 	//
 	//    {
 	//        "time": 1647274664,

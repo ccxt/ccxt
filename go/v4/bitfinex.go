@@ -805,7 +805,7 @@ func (this *Bitfinex) Describe() any {
 		},
 	})
 }
-func (this *Bitfinex) IsFiat(code any) any {
+func (this *Bitfinex) IsFiat(code any) bool {
 	return (InOp(GetValue(this.Options, "fiat"), code))
 }
 func (this *Bitfinex) GetCurrencyName(code any) any {
@@ -2217,7 +2217,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

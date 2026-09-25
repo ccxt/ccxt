@@ -2285,7 +2285,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

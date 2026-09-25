@@ -603,7 +603,7 @@ func (this *P2b) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(endpoint, client, message)
 	}
 }
-func (this *P2b) HandleErrorMessage(client any, message any) any {
+func (this *P2b) HandleErrorMessage(client any, message any) bool {
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
 		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(error)))

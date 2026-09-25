@@ -2511,7 +2511,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			}()
 		}
 		if ccxt.IsEqual(symbolResolved, nil) {
-			var suffix any = this.GetOrdersMessageHashSuffix(topic)
+			var suffix string = this.GetOrdersMessageHashSuffix(topic)
 			messageHash = ccxt.Add(messageHash, suffix)
 		}
 		var request map[string]any = map[string]any{
@@ -2529,7 +2529,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
 	return nil
 }
-func (this *Kucoin) GetOrdersMessageHashSuffix(topic any) any {
+func (this *Kucoin) GetOrdersMessageHashSuffix(topic any) string {
 	var suffix string = "-spot"
 	if ccxt.IsEqual(topic, "/spotMarket/advancedOrders") {
 		suffix += "-trigger"
@@ -2828,8 +2828,8 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	cachedOrders.(ccxt.Appender).Append(parsed)
 	var messageHash string = "orders"
 	var topic *string = this.SafeString(message, "topic")
-	var suffix any = this.GetOrdersMessageHashSuffix(topic)
-	var typeSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash, suffix))
+	var suffix string = this.GetOrdersMessageHashSuffix(topic)
+	var typeSpecificMessageHash string = messageHash + suffix
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, typeSpecificMessageHash)
 	var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, symbolSpecificMessageHash)
@@ -2980,7 +2980,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			"privateChannel": true,
 		}
 		if ccxt.IsEqual(symbolResolved, nil) {
-			var suffix any = this.GetMyTradesMessageHashSuffix(topic)
+			var suffix string = this.GetMyTradesMessageHashSuffix(topic)
 			messageHash = ccxt.Add(messageHash, suffix)
 		}
 
@@ -2995,7 +2995,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)
 	return nil
 }
-func (this *Kucoin) GetMyTradesMessageHashSuffix(topic any) any {
+func (this *Kucoin) GetMyTradesMessageHashSuffix(topic any) string {
 	var suffix string = "-spot"
 	if ccxt.GetIndexOf(topic, "contractMarket") >= 0 {
 		suffix = "-contract"
@@ -3041,8 +3041,8 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	myTrades.(ccxt.Appender).Append(parsed)
 	var messageHash string = "myTrades"
 	var topic *string = this.SafeString(message, "topic")
-	var suffix any = this.GetMyTradesMessageHashSuffix(topic)
-	var typeSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash, suffix))
+	var suffix string = this.GetMyTradesMessageHashSuffix(topic)
+	var typeSpecificMessageHash string = messageHash + suffix
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, typeSpecificMessageHash)
 	var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", parsed["symbol"]))
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolSpecificMessageHash)
@@ -4200,7 +4200,7 @@ func (this *Kucoin) Ping(client any) any {
 func (this *Kucoin) HandlePong(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
-func (this *Kucoin) HandleErrorMessage(client any, message any) any {
+func (this *Kucoin) HandleErrorMessage(client any, message any) bool {
 	//
 	//    {
 	//        "id": "1",

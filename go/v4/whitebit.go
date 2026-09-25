@@ -3755,7 +3755,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code string, optional
 		"ticker": currency["id"],
 	}
 	var response map[string]any = nil
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		var provider *string = this.SafeString(params, "provider")
 		if provider == nil {
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a provider when the ticker is fiat"))
@@ -4098,7 +4098,7 @@ func (this *Whitebit) withdrawBody(ch chan any, code string, amount any, address
 	if tag != nil {
 		request["memo"] = tag
 	}
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		var provider any = this.SafeValue(params, "provider")
 		if IsEqual(provider, nil) {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a provider when the ticker is fiat"))
@@ -5388,7 +5388,7 @@ func (this *Whitebit) ParsePosition(position any, optionalArgs ...any) any {
 		"takeProfitPrice":             this.SafeNumber(tpsl, "takeProfit"),
 	})
 }
-func (this *Whitebit) IsFiat(currency string) any {
+func (this *Whitebit) IsFiat(currency string) bool {
 	var fiatCurrencies any = this.SafeList(this.Options, "fiatCurrencies", []any{})
 	return this.InArray(currency, fiatCurrencies)
 }

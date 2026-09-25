@@ -1052,7 +1052,7 @@ func (this *Extended) FindSubscription(client any, name string) any {
 	}
 	return nil
 }
-func (this *Extended) HandleErrorMessage(client any, message any) any {
+func (this *Extended) HandleErrorMessage(client any, message any) bool {
 	//
 	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
 	//

@@ -1770,7 +1770,7 @@ func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any 
 		"datetime":    this.Iso8601(ts),
 	}
 }
-func (this *Grvt) GetSubAccountId(params any) any {
+func (this *Grvt) GetSubAccountId(params any) string {
 	var subAccountId any = GetValue(this.HandleOptionAndParams(params, "getSubAccountId", "accountId"), 0)
 	if IsEqual(subAccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page"))
@@ -2674,7 +2674,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol string, typeVar string, si
 	}
 	var paramsOmitted3 map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	var isMarketOrder bool = (typeVar == "market")
-	var subAccountId any = this.GetSubAccountId(paramsOmitted3)
+	var subAccountId string = this.GetSubAccountId(paramsOmitted3)
 	var isReduceOnly *bool = this.SafeBool(paramsOmitted3, "reduceOnly", false)
 	var orderRequest map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
@@ -3493,7 +3493,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var request map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
@@ -3711,7 +3711,7 @@ func (this *Grvt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var request map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
@@ -4049,7 +4049,7 @@ func (this *Grvt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var subAccoubntId any = this.GetSubAccountId(params)
+	var subAccoubntId string = this.GetSubAccountId(params)
 	var request map[string]any = map[string]any{
 		"sub_account_id": subAccoubntId,
 	}

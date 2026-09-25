@@ -2858,7 +2858,7 @@ func (this *Coinex) createMarketBuyOrderWithCostBody(ch chan any, symbol string,
 	ch <- BoxAbsent(retRes221115)
 	return nil
 }
-func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

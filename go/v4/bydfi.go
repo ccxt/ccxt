@@ -913,7 +913,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var paramsSinceUntil any = this.HandleSinceAndUntil("fetchMyTrades", since, paramsContractType)
+	var paramsSinceUntil map[string]any = this.HandleSinceAndUntil("fetchMyTrades", since, paramsContractType)
 	if limit != nil {
 		request["limit"] = limit
 	}
@@ -1499,7 +1499,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol string, typeVar string, s
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var wallet string = "W001"
 	var walletOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "wallet", wallet)), 0))
 	orderRequest = this.Extend(orderRequest, map[string]any{
@@ -1542,7 +1542,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol string, typeVar string, s
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1767,10 +1767,10 @@ func (this *Bydfi) editOrderBody(ch chan any, id string, symbol any, typeVar any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
+	var request map[string]any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
 	var wallet string = "W001"
 	var walletOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "editOrder", "wallet", wallet)), 0))
-	AddElementToObject(request, "wallet", walletOption)
+	request["wallet"] = walletOption
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeEditOrder(request)).Raw))
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
@@ -1816,7 +1816,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var wallet string = "W001"
@@ -1832,7 +1832,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	ch <- this.ParseOrders(data)
 	return nil
 }
-func (this *Bydfi) CreateEditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bydfi) CreateEditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -2151,7 +2151,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var paramsSinceUntil any = this.HandleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType)
+	var paramsSinceUntil map[string]any = this.HandleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType)
 	if limit != nil {
 		request["limit"] = limit
 	}
@@ -2207,7 +2207,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) any {
+func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) map[string]any {
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2771,7 +2771,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol string, optional
 		"symbol":       market["id"],
 		"contractType": contractTypeOption,
 	}
-	var paramsSinceAndUntil any = this.HandleSinceAndUntil("fetchPositionsHistory", since, paramsContractType)
+	var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil("fetchPositionsHistory", since, paramsContractType)
 	if limit != nil {
 		request["limit"] = limit
 	}
@@ -2825,7 +2825,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"contractType": contractTypeOption,
 	}
-	var paramsSinceAndUntil any = this.HandleSinceAndUntil("fetchPositionsHistory", since, paramsContractType)
+	var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil("fetchPositionsHistory", since, paramsContractType)
 	if limit != nil {
 		request["limit"] = limit
 	}

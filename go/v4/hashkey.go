@@ -3025,7 +3025,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan any, symbol string, typeVar str
 	if (!isMarketBuy) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
-	var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = map[string]any{}
 	var test *bool = this.SafeBool(params, "test")
 	if test != nil && *test == true {
@@ -3065,7 +3065,7 @@ func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", market["type"]), " type of markets")))
 	}
 }
-func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3129,7 +3129,7 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	}
 	return this.Extend(request, paramsClientOrderId)
 }
-func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -3240,7 +3240,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan any, symbol string, typeVar str
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))).Raw))
 
@@ -5070,7 +5070,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + path
-	var query any = nil
+	var query string
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
@@ -5133,7 +5133,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Hashkey) CustomUrlencode(optionalArgs ...any) any {
+func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result string = this.Urlencode(params)

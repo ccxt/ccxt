@@ -192,7 +192,7 @@ func (this *Hyperliquid) OutcomeAssetId(encoding any) any {
  * @param {int} encoding outcome side encoding
  * @returns {string} the coin name
  */
-func (this *Hyperliquid) OutcomeCoin(encoding any) any {
+func (this *Hyperliquid) OutcomeCoin(encoding any) string {
 	return "#" + ccxt.ToString(encoding)
 }
 
@@ -204,7 +204,7 @@ func (this *Hyperliquid) OutcomeCoin(encoding any) any {
  * @param {int} encoding outcome side encoding
  * @returns {string} the token name
  */
-func (this *Hyperliquid) OutcomeToken(encoding any) any {
+func (this *Hyperliquid) OutcomeToken(encoding any) string {
 	return "+" + ccxt.ToString(encoding)
 }
 
@@ -2631,7 +2631,7 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
@@ -2648,7 +2648,7 @@ func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
 func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
 }
-func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
+func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) map[string]any {
 	var isTestnet bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = isTestnet
 	var source string = "a"
@@ -2679,7 +2679,7 @@ func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any
 	this.CheckRequiredCredentials()
 	var hash any = this.ActionHash(action, vaultAddress, nonce)
 	var isTestnet *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var phantomAgent any = this.ConstructPhantomAgent(hash, isTestnet)
+	var phantomAgent map[string]any = this.ConstructPhantomAgent(hash, isTestnet)
 	var zeroAddress *string = this.SafeString(this.Options, "zeroAddress")
 	var domain map[string]any = map[string]any{
 		"chainId":           1337,
