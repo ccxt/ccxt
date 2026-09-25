@@ -356,7 +356,8 @@ export default class binance extends Exchange {
         }
         const allQueriesLength = allQueries.length;
         const paramsOmitted: Dict = this.omit (params, [ 'query', 'queries' ]);
-        let paramsSorted: Dict = paramsOmitted;
+        // keys dropped before the client-side pass; a server-side sort also drops its own keys
+        const postOmitKeys: string[] = [ 'tags', 'l1Category', 'l2Category' ];
         const userLimit = this.safeInteger (paramsOmitted, 'limit');
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
@@ -396,7 +397,8 @@ export default class binance extends Exchange {
                 }
                 if (sortBy !== undefined) {
                     listingRequest['sortBy'] = sortBy;
-                    paramsSorted = this.omit (paramsOmitted, [ 'sort', 'sortBy' ]);
+                    postOmitKeys.push ('sort');
+                    postOmitKeys.push ('sortBy');
                 }
             }
             const listed = await this.fetchRawTopics (fetchCap, this.extend (listingRequest, rest));
@@ -422,7 +424,7 @@ export default class binance extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        const postParams = this.omit (paramsSorted, [ 'tags', 'l1Category', 'l2Category' ]);
+        const postParams = this.omit (paramsOmitted, postOmitKeys);
         return this.applyEventFetchParams (result, postParams, []);
     }
 

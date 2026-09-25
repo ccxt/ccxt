@@ -333,7 +333,9 @@ export default class predictfun extends Exchange {
         }
         const queries = this.parseSearchQueries (params);
         const queriesLength = queries.length;
-        let paramsValue: fetchEventsParams = this.omit (params, [ 'query', 'queries' ]);
+        const paramsValue: fetchEventsParams = this.omit (params, [ 'query', 'queries' ]);
+        // keys dropped before the client-side pass; the categories listing also drops its limit
+        const postOmitKeys: string[] = [ 'tags' ];
         const userLimit = this.safeInteger (paramsValue, 'limit');
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
@@ -362,8 +364,9 @@ export default class predictfun extends Exchange {
                 const tagsString = tags.join (',');
                 request['tagIds'] = tagsString;
             }
-            paramsValue = this.omit (paramsValue, [ 'limit', 'tags' ]);
-            const extendedRequest = this.extend (request, paramsValue);
+            postOmitKeys.push ('limit');
+            const paramsCategories = this.omit (paramsValue, [ 'limit', 'tags' ]);
+            const extendedRequest = this.extend (request, paramsCategories);
             let rawTopicsResponse = await this.predictfunGetV1Categories (extendedRequest);
             //
             //     {
@@ -568,7 +571,7 @@ export default class predictfun extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let postParams = this.omit (paramsValue, [ 'tags' ]);
+        let postParams = this.omit (paramsValue, postOmitKeys);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         const rawStatus = this.safeString (paramsValue, 'status');

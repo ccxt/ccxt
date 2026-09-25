@@ -900,14 +900,14 @@ export default class bithumb extends bithumbRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'watchOrders', 'generation', 2);
+        const generation = this.handleOptionIntegerAndParams (params, 'watchOrders', 'generation', 2)[0];
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchOrders() is only supported for the generation 2 API');
         }
         await this.authenticate ();
         const url = this.urls['api']['ws']['privateGen2'];
         let messageHash = 'myOrder';
-        const codes = this.safeList (paramsGeneration, 'codes', []);
+        const codes = this.safeList (params, 'codes', []);
         const request = this.buildGen2SubscriptionRequest (messageHash, { 'type': messageHash, 'codes': codes });
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {

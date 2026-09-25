@@ -2903,16 +2903,16 @@ export default class aster extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        const tifAndParams = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
+        const [ tifOption, paramsTifOption ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
         const tifIsMissing = timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined);
+        const omitKeys: string[] = [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ];
+        let requestParams: NullableDict = undefined;
         if (tifIsMissing) {
-            request['timeInForce'] = tifAndParams[0];
+            request['timeInForce'] = tifOption;
+            requestParams = this.omit (paramsTifOption, omitKeys);
+        } else {
+            requestParams = this.omit (params, omitKeys);
         }
-        let paramsTif: Dict = params;
-        if (tifIsMissing) {
-            paramsTif = tifAndParams[1];
-        }
-        const requestParams = this.omit (paramsTif, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if ((this.safeBool (this.options, 'builderFee') === true) && (market['swap'] === true)) {
             request['builder'] = this.safeString (this.options, 'builder');
             request['feeRate'] = this.safeString (this.options, 'builderRate');

@@ -7114,15 +7114,14 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'side': upperCaseSide,
         };
-        let isPortfolioMargin: Bool = undefined;
-        let paramsPapi = undefined;
-        [ isPortfolioMargin, paramsPapi ] = this.handleOptionBoolAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
-        let marginMode: Str = undefined;
-        [ marginMode, paramsPapi ] = this.handleMarginModeAndParams ('createOrder', paramsPapi);
+        const [ isPortfolioMargin, paramsPortfolioMargin ] = this.handleOptionBoolAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        const [ marginMode, paramsPapi ] = this.handleMarginModeAndParams ('createOrder', paramsPortfolioMargin);
+        // keys dropped from the request params, extended below as the order shape is resolved
+        const omitKeys: string[] = [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ];
         const reduceOnly = this.safeBool (paramsPapi, 'reduceOnly', false);
         if (reduceOnly === true) {
             if (marketType === 'margin' || ((market['contract'] !== true) && (marginMode !== undefined))) {
-                paramsPapi = this.omit (paramsPapi, 'reduceOnly');
+                omitKeys.push ('reduceOnly');
                 request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
@@ -7153,7 +7152,7 @@ export default class binance extends Exchange {
             } else {
                 if ((uppercaseType !== 'STOP_LOSS') && (uppercaseType !== 'TAKE_PROFIT') && (uppercaseType !== 'STOP_LOSS_LIMIT') && (uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
                     const stopLossOrTakeProfit = this.safeString (paramsPapi, 'stopLossOrTakeProfit');
-                    paramsPapi = this.omit (paramsPapi, 'stopLossOrTakeProfit');
+                    omitKeys.push ('stopLossOrTakeProfit');
                     if ((stopLossOrTakeProfit !== 'stopLoss') && (stopLossOrTakeProfit !== 'takeProfit')) {
                         throw new InvalidOrder (this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
                     }
@@ -7441,20 +7440,19 @@ export default class binance extends Exchange {
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         if (this.safeString (paramsPapi, 'timeInForce') === 'PO') {
-            paramsPapi = this.omit (paramsPapi, 'timeInForce');
+            omitKeys.push ('timeInForce');
         }
         const hedged = this.safeBool (paramsPapi, 'hedged', false);
         if ((market['spot'] !== true) && (market['option'] !== true) && (hedged === true)) {
             let positionSide: string = side;
             if (reduceOnly === true) {
-                paramsPapi = this.omit (paramsPapi, 'reduceOnly');
+                omitKeys.push ('reduceOnly');
                 positionSide = (side === 'buy') ? 'sell' : 'buy';
             }
             request['positionSide'] = (positionSide === 'buy') ? 'LONG' : 'SHORT';
         }
         // unified stp
-        let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, paramsPapi ] = this.handleOptionStringAndParams (paramsPapi, 'createOrder', 'selfTradePrevention');
+        const [ selfTradePrevention, paramsStp ] = this.handleOptionStringAndParams (paramsPapi, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             const warnOnStpForInverse = this.handleOption ('createOrder', 'warnOnSTPForInverse');
             if ((market['inverse'] === true) && (warnOnStpForInverse === true)) {
@@ -7469,7 +7467,7 @@ export default class binance extends Exchange {
                 request['icebergQty'] = this.amountToPrecision (symbol, icebergAmount);
             }
         }
-        const requestParams = this.omit (paramsPapi, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ]);
+        const requestParams = this.omit (paramsStp, omitKeys);
         return this.extend (request, requestParams);
     }
 
