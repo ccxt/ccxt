@@ -3684,7 +3684,7 @@ func (this *Bitstamp) withdrawBody(ch chan any, code string, amount any, address
 	defer ReturnPanicError(ch)
 	// For fiat withdrawals please provide all required additional parameters in the 'params'
 	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

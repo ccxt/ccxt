@@ -2200,7 +2200,7 @@ func (this *PredictionExchange) FilterByOutcomeSinceLimit(array any, optionalArg
 	return this.FilterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail)
 }
 func (this *PredictionExchange) FilterByOutcomesSinceLimit(array any, optionalArgs ...any) any {
-	outcomes := GetArg(optionalArgs, 0, nil)
+	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
