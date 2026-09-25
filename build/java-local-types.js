@@ -11856,6 +11856,9 @@ function javaOmitMapCall (printer, node, depth = 0) {
 // async snapshot copy may print Object, so every write in the body must be a Map producer too) or
 // a local another section typed Map
 function javaOmitSourceIsMap (printer, source, depth) {
+    if (javaBaseMapField (printer, source)) {
+        return true;
+    }
     if (source === undefined || !ts.isIdentifier (source) || depth > 3) {
         return false;
     }
@@ -12770,5 +12773,71 @@ export function patchJavaDeclaredMapReceiverCasts (transpiler) {
         const head = `${JAVA_MAP_RECEIVER_CAST}${receiver.text}).get(`;
         return printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)
             ? `${receiver.text}.get(` + printed.slice (head.length) : printed;
+    };
+}
+
+// ===== 32. element reads on a base field declared Map<String, Object> =====
+// Field types come from the hand-written header of BaseExchange.java; a field redeclared in a
+// subclass header or resolving outside ts/src/base keeps its cast.
+const JAVA_BASE_HEADER_FILES = [ 'BaseExchange.java', 'Exchange.java', 'PredictionExchange.java' ]
+    .map ((f) => path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', f));
+let javaBaseMapFieldNames;
+
+function javaBaseMapFields () {
+    if (javaBaseMapFieldNames !== undefined) {
+        return javaBaseMapFieldNames;
+    }
+    const declared = new Map ();
+    for (const file of JAVA_BASE_HEADER_FILES) {
+        let text;
+        try {
+            text = fs.readFileSync (file, 'utf8');
+        } catch (e) {
+            javaBaseMapFieldNames = new Set ();
+            return javaBaseMapFieldNames;
+        }
+        const header = text.split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0];
+        const field = /^ {4}(?:public |protected |private )?(?:volatile |static |final |transient )*([\w.<>, ?]+?) (\w+)\s*[=;]/gm;
+        for (const m of header.matchAll (field)) {
+            if (/^(?:return|throw|new|else)$/.test (m[1])) {
+                continue;
+            }
+            declared.set (m[2], declared.has (m[2]) ? undefined : m[1].replace (/^java\.util\./, ''));
+        }
+    }
+    javaBaseMapFieldNames = new Set ([ ...declared ].filter (([ , t ]) => t === 'Map<String, Object>').map (([ n ]) => n));
+    return javaBaseMapFieldNames;
+}
+
+function javaBaseMapField (printer, node) {
+    const name = thisPropName (node);
+    if (name === undefined || !javaBaseMapFields ().has (name)) {
+        return false;
+    }
+    try {
+        const symbol = printer.getChecker ().getSymbolAtLocation (node.name);
+        const declarations = (symbol?.declarations ?? []).map ((d) => d.resolve ());
+        return declarations.length > 0 && declarations.every ((d) => d !== undefined
+            && BASE_SOURCE_FILE.test (d.getSourceFile ().fileName) && ts.isPropertyDeclaration (d));
+    } catch (e) {
+        return false;
+    }
+}
+
+export function patchJavaBaseMapFieldReceiverCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCheckerTypedElementAccessRead !== 'function' || printer._javaBaseMapFieldCastsPatched) {
+        return;
+    }
+    printer._javaBaseMapFieldCastsPatched = true;
+    const upstreamRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+    printer.printCheckerTypedElementAccessRead = function (node) {
+        const printed = upstreamRead (node);
+        const receiver = unwrapParens (node?.expression);
+        if (printed === undefined || !javaBaseMapField (printer, receiver)) {
+            return printed;
+        }
+        const head = `${JAVA_MAP_RECEIVER_CAST}this.${receiver.name.text}).get(`;
+        return printed.startsWith (head) ? `this.${receiver.name.text}.get(` + printed.slice (head.length) : printed;
     };
 }
