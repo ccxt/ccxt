@@ -7860,7 +7860,7 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        if ((java.util.Objects.equals(price, null)) && !(((Map<?, ?>)parameters).containsKey("priceMatch")))
+        if ((java.util.Objects.equals(price, null)) && !(parameters.containsKey("priceMatch")))
         {
             throw new ArgumentsRequired((this.id + " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
@@ -9706,7 +9706,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "sell", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -12575,7 +12575,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             // has support for the 'network' parameter
             Map<String, Object> response = (this.sapiGetCapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
@@ -12945,7 +12945,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             request.put("amount", this.currencyToPrecision((String) (currency.get("code")), amount, networkCode));
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, paramsNetworkCode))).join();
@@ -16221,18 +16221,18 @@ public class Binance extends BinanceApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((config.containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return Helpers.GetValue(config, "noCoin");
-        } else if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+            return config.get("noCoin");
+        } else if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((Helpers.inOp(config, "noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+            return config.get("noSymbol");
+        } else if ((config.containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return Helpers.GetValue(config, "noPoolId");
-        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return config.get("noPoolId");
+        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             // safeValue keeps runtime identical to the prior bare index (no empty-array default)
@@ -16249,7 +16249,7 @@ public class Binance extends BinanceApi
         return this.safeNumber(config, "cost", 1);
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {

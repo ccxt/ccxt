@@ -3137,18 +3137,18 @@ public class Tokocrypto extends TokocryptoApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((config.containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return Helpers.GetValue(config, "noCoin");
-        } else if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+            return config.get("noCoin");
+        } else if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((Helpers.inOp(config, "noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+            return config.get("noSymbol");
+        } else if ((config.containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return Helpers.GetValue(config, "noPoolId");
-        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return config.get("noPoolId");
+        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

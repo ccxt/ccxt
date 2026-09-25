@@ -1856,7 +1856,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketType any = fallbackType
 	if market != nil {
-		marketType = ccxt.GetValue(market, "type")
+		marketType = ccxt.DerefScalar(this.SafeString(market, "type"))
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, marketType)
 	var side *string = this.SafeStringLower(trade, "S")

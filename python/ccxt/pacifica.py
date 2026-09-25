@@ -3323,7 +3323,7 @@ class pacifica(Exchange, ImplicitAPI):
             headersValue['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

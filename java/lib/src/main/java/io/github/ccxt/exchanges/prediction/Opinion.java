@@ -390,8 +390,8 @@ public class Opinion extends OpinionApi
             if (Boolean.TRUE.equals(hasResult))
             {
                 winner = (java.util.Objects.equals(tokenId, resultTokenId));
-                settleFraction = ((Helpers.isTrue(winner))) ? 1 : 0;
-                if (Helpers.isTrue(winner))
+                settleFraction = ((Boolean.TRUE.equals(winner))) ? 1 : 0;
+                if (Boolean.TRUE.equals(winner))
                 {
                     resolvedOutcome = outcomeHandle;
                 }

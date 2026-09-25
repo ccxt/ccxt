@@ -3713,7 +3713,7 @@ public class Poloniex extends PoloniexApi
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace(((String)networkId), code, "");
-                        String networkCode = this.networkIdToCode(Helpers.toStringArg(networkId), Helpers.toStringArg(currency.get("code")));
+                        String networkCode = this.networkIdToCode(Helpers.toStringArg(networkId), this.safeString(currency, "code"));
                         Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(response, networkId, (Object) null);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee", (Object) null);
@@ -4275,7 +4275,7 @@ public class Poloniex extends PoloniexApi
                 "type", ((String)type).toUpperCase()
             );
             // todo: hedged handling, tricky
-            if (!(((Map<?, ?>)parameters).containsKey("posMode")))
+            if (!(parameters.containsKey("posMode")))
             {
                 request.put("posMode", "BOTH");
             }

@@ -1004,13 +1004,13 @@ public partial class alpaca : Exchange
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         bool? paginate = false;
         object query = null;
-        IList<object> paginatequeryVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginatequeryVariable[0];
-        query = paginatequeryVariable[1];
+        (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = paginatequeryVariable.Item1;
+        query = paginatequeryVariable.Item2;
         object paginationCalls = 10;
-        IList<object> paginationCallsqueryVariable = (IList<object>)this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
-        paginationCalls = paginationCallsqueryVariable[0];
-        query = paginationCallsqueryVariable[1];
+        (Int64?, object) paginationCallsqueryVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
+        paginationCalls = paginationCallsqueryVariable.Item1;
+        query = paginationCallsqueryVariable.Item2;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -1421,9 +1421,9 @@ public partial class alpaca : Exchange
             request["qty"] = this.amountToPrecision(symbol, amount);
         }
         object paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
-        IList<object> defaultTIFparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
-        string? defaultTIF = (string)defaultTIFparamsTimeInForceVariable[0];
-        var paramsTimeInForce = defaultTIFparamsTimeInForceVariable[1];
+        (string?, object) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
+        string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
+        object paramsTimeInForce = defaultTIFparamsTimeInForceVariable.Item2;
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
         object paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
@@ -1729,9 +1729,9 @@ public partial class alpaca : Exchange
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
-        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
-        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
+        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
+        string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
+        object paramsTimeInForce = timeInForceparamsTimeInForceVariable.Item2;
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings

@@ -766,7 +766,7 @@ impl BlockchaincomCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market, "symbol", &[]);
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut message: Value = Value::Map({

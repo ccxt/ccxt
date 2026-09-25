@@ -2768,7 +2768,7 @@ impl HashkeyCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chainType".into(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chainType".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])])); }
         }
         let __ws_arg_13 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_13]).await;

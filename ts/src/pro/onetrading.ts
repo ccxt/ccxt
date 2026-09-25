@@ -287,7 +287,7 @@ export default class onetrading extends onetradingRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + symbolResolved;
         }
         await this.authenticate (params);
@@ -456,7 +456,7 @@ export default class onetrading extends onetradingRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + symbolResolved;
         }
         await this.authenticate (params);

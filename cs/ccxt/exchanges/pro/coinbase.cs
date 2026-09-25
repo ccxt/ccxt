@@ -988,9 +988,9 @@ public partial class coinbase : ccxt.coinbase
         });
     }
 
-    public virtual void handleOrderBookHelper(object orderbook, object updates)
+    public virtual void handleOrderBookHelper(object orderbook, IList<object> updates)
     {
-        for (int i = 0; i < getArrayLength(updates); i++)
+        for (int i = 0; i < (updates?.Count ?? 0); i++)
         {
             IDictionary<string, object> trade = this.safeDict(updates, i);
             string? sideId = this.safeString(trade, "side");

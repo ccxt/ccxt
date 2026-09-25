@@ -647,7 +647,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
             List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, request)).join();
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(orders, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -973,7 +973,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            remaining = this.currencyFromPrecision(((Map<String, Object>)market).get("base"), remainsPrecision);
+            remaining = this.currencyFromPrecision(market.get("base"), remainsPrecision);
         }
         String amount = this.safeString(order, "amount");
         if (!Boolean.TRUE.equals(isTransaction))
@@ -982,7 +982,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            this.currencyFromPrecision(((Map<String, Object>)market).get("base"), amount);
+            this.currencyFromPrecision(market.get("base"), amount);
         }
         String baseId = this.safeString(order, "symbol");
         String quoteId = this.safeString(order, "symbol2");

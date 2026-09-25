@@ -1059,7 +1059,7 @@ impl GeminiCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]) } else { Value::Null });
         let mut messageHash: Value = Value::Str("orders".into());
         let mut orders: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();

@@ -1144,7 +1144,7 @@ impl WoofiproCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]) } else { Value::Null });
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
@@ -1200,7 +1200,7 @@ impl WoofiproCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]) } else { Value::Null });
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }

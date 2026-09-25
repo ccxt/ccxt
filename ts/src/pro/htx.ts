@@ -886,7 +886,7 @@ export default class htx extends htxRest {
             subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
             subType = this.safeString (params, 'subType', subType);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         let paramsRequest: Dict = (symbol !== undefined) ? params : this.omit (params, [ 'type', 'subType' ]);
         const linear = (subType === 'linear');
         const swap = (type === 'swap');

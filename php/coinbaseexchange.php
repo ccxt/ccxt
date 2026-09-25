@@ -2229,7 +2229,7 @@ class coinbaseexchange extends Exchange {
         return null;
     }
 
-    public function request(string $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
+    public function request(string $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) !== 'string') {
             if (is_array($response) && array_key_exists('message' ?? '', $response)) {

@@ -1030,7 +1030,7 @@ public class Btcbox extends BtcboxApi
         throw new ExchangeError(feedback) ;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {

@@ -2753,7 +2753,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(Helpers.newMap(
                 "currency", currency.get("id"),
-                "net_type", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))
+                "net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
             ), paramsNetworkCode))).join();
             //
             //    {

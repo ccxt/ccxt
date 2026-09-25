@@ -387,7 +387,7 @@ class gate(ccxt.async_support.gate):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             if market['swap'] is not True:
                 raise NotSupported(self.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets')
         request, requestParams = self.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)

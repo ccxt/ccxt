@@ -488,9 +488,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             await this.loadMarkets();
         }
-        IList<object> verboseparamsVerboseVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
-        bool? verbose = (bool?)verboseparamsVerboseVariable[0];
-        IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable[1]);
+        (bool?, object) verboseparamsVerboseVariable = this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
+        bool? verbose = verboseparamsVerboseVariable.Item1;
+        IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable.Item2);
         string? name = "open_orders";
         string messageHash = "orders";
         if ((verbose == true))
@@ -574,9 +574,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string name = "balances";
         string messageHash = name;
-        IList<object> accountparamsAccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchBalance", "account");
-        string? account = (string)accountparamsAccountVariable[0];
-        IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountparamsAccountVariable[1]);
+        (string?, object) accountparamsAccountVariable = this.handleOptionStringAndParams(parameters, "watchBalance", "account");
+        string? account = accountparamsAccountVariable.Item1;
+        IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountparamsAccountVariable.Item2);
         if ((account != null))
         {
             if (!(account == "futures") && !(account == "flex_futures"))
@@ -935,7 +935,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
-                for (int i = 0; i < getArrayLength(orders); i++)
+                for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
                     object currentOrder = getValue(orders, i);
                     if (isEqual(getValue(currentOrder, "id"), (message != null && message.ContainsKey("order_id") ? message["order_id"] : null)))

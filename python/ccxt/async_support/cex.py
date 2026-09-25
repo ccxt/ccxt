@@ -1683,7 +1683,7 @@ class cex(Exchange, ImplicitAPI):
         request = {
             'accountId': accountId,
             'currency': currency['id'],  # documentation is wrong about this param
-            'blockchain': self.network_code_to_id(networkCode, currency['code']),
+            'blockchain': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }
         response = await self.privatePostGetDepositAddress(self.extend(request, paramsNetworkCode))
         #
@@ -1708,7 +1708,7 @@ class cex(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain'), currencyResolved['code']),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain'), self.safe_string(currencyResolved, 'code')),
             'address': address,
             'tag': None,
         }

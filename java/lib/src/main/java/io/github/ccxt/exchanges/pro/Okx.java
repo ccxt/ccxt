@@ -2410,12 +2410,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 "access", accessType
             )))).join();
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             String type = typeOption;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 type = this.safeString(market, "type");
             }
             if (java.util.Objects.equals(type, "future"))
@@ -2451,7 +2451,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

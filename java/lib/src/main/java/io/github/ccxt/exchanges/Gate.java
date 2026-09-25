@@ -2783,16 +2783,16 @@ public class Gate extends GateApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(market, null))
         {
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+            if (java.util.Objects.equals(market.get("contract"), true))
             {
-                request.put("contract", ((Map<String, Object>)market).get("id"));
-                if (!java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
+                request.put("contract", market.get("id"));
+                if (!java.util.Objects.equals(market.get("option"), true))
                 {
-                    request.put("settle", ((Map<String, Object>)market).get("settleId"));
+                    request.put("settle", market.get("settleId"));
                 }
             } else
             {
-                request.put("currency_pair", ((Map<String, Object>)market).get("id"));
+                request.put("currency_pair", market.get("id"));
             }
         } else
         {
@@ -2836,7 +2836,7 @@ public class Gate extends GateApi
                 throw new ArgumentsRequired((this.id + " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
             request.put("account", marginMode);
-            request.put("currency_pair", ((Map<String, Object>)market).get("id")); // Should always be set for non-trigger
+            request.put("currency_pair", market.get("id")); // Should always be set for non-trigger
         }
         return new ArrayList<Object>(Arrays.asList(request, query));
     }
@@ -2864,10 +2864,10 @@ public class Gate extends GateApi
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(trigger, false)))
             {
                 // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             } else
             {
-                request.put("currency_pair", ((Map<String, Object>)market).get("id"));
+                request.put("currency_pair", market.get("id"));
             }
         }
         return new ArrayList<Object>(Arrays.asList(request, query));
@@ -3884,7 +3884,7 @@ public class Gate extends GateApi
             //         'with_id': true, // return order book ID
             //     };
             //
-            var requestqueryVariable = this.prepareRequest(market, Helpers.toStringArg(market.get("type")), parameters);
+            var requestqueryVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -4783,7 +4783,7 @@ public class Gate extends GateApi
                 ));
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -6951,14 +6951,14 @@ public class Gate extends GateApi
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, (Object) null)).get(0);
             List<Object> useHistoricalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
             Boolean useHistorical = (Boolean) ((List<Object>) useHistoricalparamsHistoricalVariable).get(0);
             Map<String, Object> paramsHistorical = (Map<String, Object>) ((List<Object>) useHistoricalparamsHistoricalVariable).get(1);
             if (!Boolean.TRUE.equals(useHistorical) && ((java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(type, "swap"))))
             {
-                return (this.fetchOrdersByStatus("finished", Helpers.toStringArg(symbolResolved), since, limit, paramsHistorical)).join();
+                return (this.fetchOrdersByStatus("finished", symbolResolved, since, limit, paramsHistorical)).join();
             }
             var requestparamsRequestVariable = this.prepareRequest(market, type, Helpers.toMapArg(this.omit(paramsHistorical, "type")));
             var request = ((List<Object>) requestparamsRequestVariable).get(0);
@@ -7047,11 +7047,11 @@ public class Gate extends GateApi
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
             String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, (Object) null)).get(0);
             // don't omit here, omits done in prepareOrdersByStatusRequest
-            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), Helpers.toStringArg(symbolResolved), since, limit, parameters);
+            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), symbolResolved, since, limit, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Boolean spot = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
@@ -7257,7 +7257,7 @@ public class Gate extends GateApi
                 result = spotResult;
             }
             List<Object> orders = this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, false);
         });
 
     }
@@ -8028,7 +8028,7 @@ public class Gate extends GateApi
             {
                 throw new BadRequest((this.id + " fetchPosition() supports contract markets only")) ;
             }
-            var requestparamsValueVariable = this.prepareRequest(market, Helpers.toStringArg(market.get("type")), parameters);
+            var requestparamsValueVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
             Map<String, Object> extendedRequest = this.extend(request, paramsValue);
@@ -9298,7 +9298,7 @@ public class Gate extends GateApi
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
@@ -9374,7 +9374,7 @@ public class Gate extends GateApi
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         });
 
     }
@@ -10186,7 +10186,7 @@ public class Gate extends GateApi
             "askPrice", this.parseNumber(this.safeNumber(greeks, "ask1_price", (Object) null)),
             "markPrice", this.parseNumber(this.safeNumber(greeks, "mark_price", (Object) null)),
             "lastPrice", this.parseNumber(this.safeNumber(greeks, "last_price", (Object) null)),
-            "underlyingPrice", this.parseNumber(Helpers.GetValue(((Map<String, Object>)market).get("info"), "underlying_price")),
+            "underlyingPrice", this.parseNumber(Helpers.GetValue(market.get("info"), "underlying_price")),
             "info", greeks
         );
     }

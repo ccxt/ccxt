@@ -527,7 +527,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var message map[string]any = map[string]any{

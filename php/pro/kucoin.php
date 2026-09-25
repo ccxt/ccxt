@@ -2085,7 +2085,7 @@ class kucoin extends \ccxt\async\kucoin {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $messageHash = 'orders';
         if ($symbolResolved !== null) {
             $messageHash = $messageHash . ':' . $symbolResolved;
@@ -2516,7 +2516,7 @@ class kucoin extends \ccxt\async\kucoin {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         if ($market !== null) {
             $messageHash = $messageHash . ':' . $market['symbol'];
         }

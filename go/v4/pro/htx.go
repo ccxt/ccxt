@@ -1089,9 +1089,9 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		subType = ccxt.DerefScalar(this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
 		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()

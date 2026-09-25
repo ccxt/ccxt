@@ -612,7 +612,7 @@ public partial class htx : ccxt.htx
         {
             ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
             IDictionary<string, object> data = this.safeDict(message, "data");
-            object messages = (orderbook as ccxt.pro.OrderBook).cache;
+            IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
             IDictionary<string, object> firstMessage = this.safeDict(messages, 0, new Dictionary<string, object>() {});
             Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
             IDictionary<string, object> tick = this.safeDict(firstMessage, "tick");
@@ -656,9 +656,9 @@ public partial class htx : ccxt.htx
             {
                 (orderbook as IOrderBook).reset(snapshot);
                 // unroll the accumulated deltas
-                for (int i = 0; i < getArrayLength(messages); i++)
+                for (int i = 0; i < (messages?.Count ?? 0); i++)
                 {
-                    this.handleOrderBookMessage(client, getValue(messages, i));
+                    this.handleOrderBookMessage(client, (messages != null && i < messages.Count ? messages[i] : null));
                 }
                 (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
                 if ((symbol != null))
@@ -730,11 +730,11 @@ public partial class htx : ccxt.htx
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -981,7 +981,7 @@ public partial class htx : ccxt.htx
             subType = this.safeString2(this.options, "subType", "defaultSubType", "linear");
             subType = this.safeString(parameters, "subType", subType);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
+        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         object paramsRequest = ((symbol != null)) ? parameters : this.omit(parameters, new List<object>() {"type", "subType"});
         bool linear = (subType == "linear");
         bool swap = (type == "swap");
@@ -1791,15 +1791,15 @@ public partial class htx : ccxt.htx
             string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
             IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
             type = ((marketType == "spot")) ? "future" : marketType;
-            IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType);
-            subType = (string)subTypeparamsSubTypeVariable[0];
-            paramsSubType = subTypeparamsSubTypeVariable[1];
+            (string?, object) subTypeparamsSubTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType);
+            subType = subTypeparamsSubTypeVariable.Item1;
+            paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         object paramsPositions = ((market != null)) ? parameters : paramsSubType;
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
-        var marginMode = marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
+        object marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         object paramsRequest = paramsMarginMode;
         bool linear = (subType == "linear");
         bool swap = (type == "swap");

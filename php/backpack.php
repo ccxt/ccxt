@@ -1196,7 +1196,7 @@ class backpack extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1542,7 +1542,7 @@ class backpack extends Exchange {
             $request['clientId'] = $tag; // memo or tag
         }
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
@@ -1703,7 +1703,7 @@ class backpack extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+            'blockchain' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
         $response = $this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $paramsNetworkCode));
         return $this->parse_deposit_address($response, $currency);

@@ -1166,7 +1166,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
             }
-            if (((Map<?, ?>)parameters).containsKey("nonce"))
+            if (parameters.containsKey("nonce"))
             {
                 return this.safeInteger(parameters, "nonce");
             }

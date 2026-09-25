@@ -2480,7 +2480,7 @@ impl WoofiproCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {

@@ -833,7 +833,7 @@ impl GateCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets".into()))));
             }

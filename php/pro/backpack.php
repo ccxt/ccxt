@@ -1062,7 +1062,7 @@ class backpack extends \ccxt\async\backpack {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $topic = 'account.orderUpdate';
         $messageHash = 'orders';
         if ($market !== null) {

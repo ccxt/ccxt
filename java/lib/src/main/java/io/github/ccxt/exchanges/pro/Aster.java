@@ -138,7 +138,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTicker");
+            parameters.put("callerMethodName", "watchTicker");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -171,7 +171,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchTicker");
+            parameters.put("callerMethodName", "unWatchTicker");
             return (this.unWatchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
         });
 
@@ -314,7 +314,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchMarkPrice");
+            parameters.put("callerMethodName", "watchMarkPrice");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -342,7 +342,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchMarkPrice");
+            parameters.put("callerMethodName", "unWatchMarkPrice");
             return (this.unWatchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
         });
 
@@ -715,7 +715,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Object bidAskSymbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            bidAskSymbol = ((Map<String, Object>)market).get("symbol");
+            bidAskSymbol = market.get("symbol");
         }
         return this.safeTicker(Helpers.newMap(
             "symbol", bidAskSymbol,
@@ -747,7 +747,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTrades");
+            parameters.put("callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -769,7 +769,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchTrades");
+            parameters.put("callerMethodName", "unWatchTrades");
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -1051,15 +1051,15 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
         }
         String marketId = this.safeString(trade, "s");
-        Object defaultType = null;
+        String defaultType = null;
         if (java.util.Objects.equals(market, null))
         {
             defaultType = this.safeString(this.options, "defaultType", "spot");
         } else
         {
-            defaultType = ((Map<String, Object>)market).get("type");
+            defaultType = this.safeString(market, "type");
         }
-        String symbol = this.safeSymbol(marketId, market, (String) null, Helpers.toStringArg(defaultType));
+        String symbol = this.safeSymbol(marketId, market, (String) null, defaultType);
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
@@ -1118,7 +1118,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOrderBook");
+            parameters.put("callerMethodName", "watchOrderBook");
             return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
@@ -1142,7 +1142,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchOrderBook");
+            parameters.put("callerMethodName", "unWatchOrderBook");
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -1335,7 +1335,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1363,7 +1363,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchOHLCV");
+            parameters.put("callerMethodName", "unWatchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
         });
 
@@ -2139,11 +2139,11 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             String messageHash = "orders";
             List<String> type = null;
@@ -2168,7 +2168,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2196,11 +2196,11 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             String messageHash = "myTrades";
             List<String> type = null;
@@ -2225,7 +2225,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

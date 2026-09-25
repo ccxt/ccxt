@@ -676,7 +676,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object bidAskSymbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            bidAskSymbol = ((Map<String, Object>)market).get("symbol");
+            bidAskSymbol = market.get("symbol");
         }
         return this.safeTicker(Helpers.newMap(
             "symbol", bidAskSymbol,

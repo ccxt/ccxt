@@ -4102,7 +4102,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Okx) ParseBalanceByType(typeVar any, response any) any {
@@ -7260,7 +7260,7 @@ func (this *Okx) withdrawBody(ch chan any, code string, amount any, address any,
 		currencies := (<-this.FetchCurrenciesAsync())
 		PanicOnError(currencies)
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
-		var networkCodeResolved *string = this.NetworkIdToCode(network, currency["code"])
+		var networkCodeResolved *string = this.NetworkIdToCode(network, this.SafeString(currency, "code"))
 		var targetNetwork any = func() any {
 			if networkCodeResolved == nil {
 				return map[string]any{}
@@ -8927,9 +8927,9 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market != nil {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
@@ -10641,7 +10641,7 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Okx) ParseSettlement(settlement any, market map[string]any) map[string]any {

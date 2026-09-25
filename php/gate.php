@@ -2868,7 +2868,7 @@ class gate extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        list($request, $query) = $this->prepare_request($market, $market['type'], $params);
+        list($request, $query) = $this->prepare_request($market, $this->safe_string($market, 'type'), $params);
         if ($limit !== null) {
             // gateeu returns an empty book for a spot limit above 100
             $maxLimit = ($market['spot'] === true) ? $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
@@ -3626,7 +3626,7 @@ class gate extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -5506,7 +5506,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $type = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsPaginate)[0];
         list($useHistorical, $paramsHistorical) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchClosedOrders', 'historical', false);
         if (!$useHistorical && (($since === null && $until === null) || ($type !== 'swap'))) {
@@ -5570,7 +5570,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $type = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params)[0];
         // don't omit here, omits done in prepareOrdersByStatusRequest
@@ -6411,7 +6411,7 @@ class gate extends Exchange {
         if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchPosition() supports contract markets only');
         }
-        list($request, $paramsValue) = $this->prepare_request($market, $market['type'], $params);
+        list($request, $paramsValue) = $this->prepare_request($market, $this->safe_string($market, 'type'), $params);
         $extendedRequest = $this->extend($request, $paramsValue);
         $response = null;
         if ($market['swap'] === true) {
@@ -7499,7 +7499,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
         $isOption = $type === 'option';
         $isFuture = $type === 'future';

@@ -2880,7 +2880,7 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code string, optionalArg
 
 	response := (<-this.PrivateGetDepositsCoinAddress(this.Extend(map[string]any{
 		"currency": currency["id"],
-		"net_type": this.NetworkCodeToId(networkCode, currency["code"]),
+		"net_type": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}, paramsNetworkCode)))
 	PanicOnError(response)
 

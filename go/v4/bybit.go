@@ -4415,7 +4415,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	if market != nil {
-		marketType = GetValue(market, "type")
+		marketType = DerefScalar(this.SafeString(market, "type"))
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -5203,16 +5203,16 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var isContract bool = (InOp(order, "tpslMode"))
-	var marketType any = nil
+	var marketType *string = nil
 	if market != nil {
-		marketType = GetValue(market, "type")
+		marketType = this.SafeString(market, "type")
 	} else {
-		marketType = func() string {
+		marketType = SafeStringPtr(func() string {
 			if isContract {
 				return "contract"
 			}
 			return "spot"
-		}()
+		}())
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -10191,7 +10191,7 @@ func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(fee, "symbol")
 	var defaultType any = "contract"
 	if market != nil {
-		defaultType = GetValue(market, "type")
+		defaultType = DerefScalar(this.SafeString(market, "type"))
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	return map[string]any{
@@ -11228,7 +11228,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 		if market["spot"] == true {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
-		symbol = market["symbol"]
+		symbol = DerefScalar(this.SafeString(market, "symbol"))
 	}
 
 	data := (<-this.GetLeverageTiersPaginatedAsync(symbol, this.Extend(map[string]any{

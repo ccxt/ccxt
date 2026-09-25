@@ -5427,7 +5427,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(currency["code"], nil, params))))
+	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))))
 	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
 	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
 

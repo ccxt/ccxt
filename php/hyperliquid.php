@@ -5051,7 +5051,7 @@ class hyperliquid extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];

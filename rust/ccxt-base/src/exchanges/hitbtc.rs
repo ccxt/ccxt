@@ -3983,7 +3983,7 @@ impl HitbtcCore {
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        let mut symbolResolved: Value = (if (market == Value::Null) { symbol } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbolResolved: Value = (if (market == Value::Null) { symbol } else { self.safe_string_k(market, "symbol", &[]) });
         return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
 
     Value::Null

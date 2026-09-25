@@ -4285,7 +4285,7 @@ public class Pacifica extends PacificaApi
         );
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         String cost = this.safeString(config, "cost", "1");
         Double costNumber = this.parseNumber(cost);

@@ -827,7 +827,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = Helpers.add(messageHash, (":" + symbolResolved));
@@ -843,7 +843,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -883,7 +883,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = (messageHash + (":" + symbolResolved));
@@ -899,7 +899,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

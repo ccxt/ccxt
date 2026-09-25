@@ -14222,7 +14222,7 @@ impl BinanceCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])])); }
         }
         // has support for the 'network' parameter
         let __ws_arg_143 = self.extend(request, &[paramsNetworkCode]);
@@ -14568,7 +14568,7 @@ impl BinanceCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(networkCode.clone(), &[self.safe_string_k(currency.clone(), "code", &[])])); }
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), self.currency_to_precision(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), amount, &[networkCode])); }
         let __ws_arg_144 = self.extend(request, &[paramsNetworkCode]);
@@ -17700,16 +17700,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (in_op(&config, &Value::Str("noCoin".into()))) && !(in_op(&params, &Value::Str("coin".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noCoin")).cloned().unwrap_or(Value::Null);
-        }  else if (in_op(&config, &Value::Str("noSymbol".into()))) && !(in_op(&params, &Value::Str("symbol".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if (in_op(&config, &Value::Str("noPoolId".into()))) && !(in_op(&params, &Value::Str("poolId".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noPoolId")).cloned().unwrap_or(Value::Null);
-        }  else if (in_op(&config, &Value::Str("byLimit".into()))) && (in_op(&params, &Value::Str("limit".into()))) {
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("noCoin")) && !(in_op(&params, &Value::Str("coin".into()))) {
+            return config.get("noCoin").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("noSymbol")) && !(in_op(&params, &Value::Str("symbol".into()))) {
+            return config.get("noSymbol").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("noPoolId")) && !(in_op(&params, &Value::Str("poolId".into()))) {
+            return config.get("noPoolId").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("byLimit")) && (in_op(&params, &Value::Str("limit".into()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             // safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            let mut byLimit: Value = self.safe_value_k(config.clone(), "byLimit", &[]);
+            let mut byLimit: Value = (match config.get("byLimit") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_290: bool = true;
@@ -17721,7 +17723,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Int(1) }, _ => Value::Int(1) });
 
     Value::Null
 }

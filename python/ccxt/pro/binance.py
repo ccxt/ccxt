@@ -1432,7 +1432,7 @@ class binance(ccxt.async_support.binance):
             fallbackType = 'contract'
         marketType = fallbackType
         if market is not None:
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         symbol = self.safe_symbol(marketId, market, None, marketType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None

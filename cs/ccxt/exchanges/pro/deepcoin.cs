@@ -794,9 +794,9 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbol = this.safeString(market, "symbol");
         string? aggregation = null;
         object paramsAggregation = null;
-        IList<object> aggregationparamsAggregationVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "aggregation");
-        aggregation = (string)aggregationparamsAggregationVariable[0];
-        paramsAggregation = aggregationparamsAggregationVariable[1];
+        (string?, object) aggregationparamsAggregationVariable = this.handleOptionStringAndParams(parameters, methodName, "aggregation");
+        aggregation = aggregationparamsAggregationVariable.Item1;
+        paramsAggregation = aggregationparamsAggregationVariable.Item2;
         if ((aggregation == null))
         {
             IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
@@ -892,10 +892,10 @@ public partial class deepcoin : ccxt.deepcoin
         Int64? timestamp = this.safeInteger(message, "mt", 0);
         Dictionary<string, object> snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         (orderbook as IOrderBook).reset(snapshot);
-        object cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (int j = 0; j < getArrayLength(cachedMessages); j++)
+        IList<object> cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
+        for (int j = 0; j < (cachedMessages?.Count ?? 0); j++)
         {
-            object cachedMessage = getValue(cachedMessages, j);
+            object cachedMessage = (cachedMessages != null && j < cachedMessages.Count ? cachedMessages[j] : null);
             this.handleOrderBookMessage(client, cachedMessage, orderbook);
         }
         (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};

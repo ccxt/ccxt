@@ -1955,7 +1955,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		marketId = ccxt.DerefScalar(this.SafeString(market, "id"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
@@ -1963,10 +1963,10 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var productType *string = this.SafeString(paramsUta, "productType")
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, paramsUta)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear")
-	if ((typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")) && (symbolResolved == nil) {
+	if ((typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")) && (ccxt.IsEqual(symbolResolved, nil)) {
 		marketId = "default"
 	}
-	if (productType == nil) && (typeVar == nil || *typeVar != "spot") && (symbolResolved == nil) {
+	if (productType == nil) && (typeVar == nil || *typeVar != "spot") && (ccxt.IsEqual(symbolResolved, nil)) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), subType)
 	} else if productType != nil && *productType == "USDT-FUTURES" {
 		messageHash = ccxt.Add(messageHash, ":linear")
@@ -1983,7 +1983,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		instType = ccxt.GetValue(instTypeparamsInstTypeVariable, 0)
 		paramsInstType = ccxt.GetValue(instTypeparamsInstTypeVariable, 1)
 	}
-	if (typeVar != nil && *typeVar == "spot") && (symbolResolved != nil) {
+	if (typeVar != nil && *typeVar == "spot") && (!ccxt.IsEqual(symbolResolved, nil)) {
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), symbolResolved)
 	}
 	if ccxt.IsEqual(isTrigger, true) {
@@ -2519,7 +2519,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)

@@ -808,7 +808,7 @@ class aster(ccxt.async_support.aster):
         if market is None:
             defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         else:
-            defaultType = market['type']
+            defaultType = self.safe_string(market, 'type')
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
@@ -1613,7 +1613,7 @@ class aster(ccxt.async_support.aster):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'orders'
         type = None
         typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params, type)
@@ -1651,7 +1651,7 @@ class aster(ccxt.async_support.aster):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'myTrades'
         type = None
         typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params, type)

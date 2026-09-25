@@ -1148,9 +1148,9 @@ public partial class backpack : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = this.parseToInt(((double?)until / 1000)); // convert milliseconds to seconds
@@ -1378,7 +1378,7 @@ public partial class backpack : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -1683,9 +1683,9 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit; // default 100, max 1000
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -1727,9 +1727,9 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["to"] = until;
@@ -1768,10 +1768,10 @@ public partial class backpack : Exchange
         {
             request["clientId"] = tag; // memo or tag
         }
-        IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable[1]);
-        string? networkId = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
+        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodequeryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable.Item2);
+        string? networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         if ((networkId == null))
         {
             throw new BadRequest ((this.id + " withdraw() requires a network parameter")) ;
@@ -1933,16 +1933,16 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "blockchain", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
+            { "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")) },
         };
         Dictionary<string, object> response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode));
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
@@ -2137,9 +2137,9 @@ public partial class backpack : Exchange
             }
             bracketKeys.Add("stopLoss");
         }
-        IList<object> selfTradePreventionparamsSelfTradePreventionVariable = (IList<object>)this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention");
-        string? selfTradePrevention = (string)selfTradePreventionparamsSelfTradePreventionVariable[0];
-        var paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable[1];
+        (string?, object) selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention");
+        string? selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.Item1;
+        object paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.Item2;
         if ((selfTradePrevention != null))
         {
             if ((selfTradePrevention == "EXPIRE_MAKER"))

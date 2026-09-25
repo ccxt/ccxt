@@ -731,11 +731,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> market = null;
             String messageHash = "orders";
             Long productId = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
                 productId = this.parseToInt(market.get("id"));
             }
@@ -754,7 +754,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -826,11 +826,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> market = null;
             String messageHash = "myTrades";
             Long productId = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
                 productId = this.parseToInt(market.get("id"));
             }
@@ -849,7 +849,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1462,7 +1462,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            stream.put("product_id", this.parseToInt(((Map<String, Object>)market).get("id")));
+            stream.put("product_id", this.parseToInt(market.get("id")));
         }
         return new HashMap<String, Object>() {{
             put( "method", method );

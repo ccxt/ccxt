@@ -814,7 +814,7 @@ func (this *Lighter) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"channel": ccxt.Add("trade/", market["id"]),
 	}
-	var messageHash string = this.GetMessageHash("trade", market["symbol"])
+	var messageHash string = this.GetMessageHash("trade", this.SafeString(market, "symbol"))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))))
 
@@ -849,7 +849,7 @@ func (this *Lighter) unWatchTradesBody(ch chan any, symbol string, optionalArgs 
 	var request map[string]any = map[string]any{
 		"channel": ccxt.Add("trade/", market["id"]),
 	}
-	var subMessageHash string = this.GetMessageHash("trade", market["symbol"])
+	var subMessageHash string = this.GetMessageHash("trade", this.SafeString(market, "symbol"))
 	var messageHash string = "unsubscribe:" + subMessageHash
 
 	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, params))))
@@ -1076,7 +1076,7 @@ func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = this.GetMessageHash("myTrades", symbolResolved)
 	}
 	var request map[string]any = map[string]any{
@@ -1465,7 +1465,7 @@ func (this *Lighter) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		messageHash = this.GetMessageHash("orders", market["symbol"])
+		messageHash = this.GetMessageHash("orders", this.SafeString(market, "symbol"))
 		request["channel"] = ccxt.Add(ccxt.Add(ccxt.Add("account_orders/", market["id"]), "/"), this.NumberToString(accountIndex))
 	} else {
 		messageHash = this.GetMessageHash("orders")
@@ -1514,7 +1514,7 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		subMessageHash = this.GetMessageHash("orders", market["symbol"])
+		subMessageHash = this.GetMessageHash("orders", this.SafeString(market, "symbol"))
 		request["channel"] = ccxt.Add(ccxt.Add(ccxt.Add("account_orders/", market["id"]), "/"), this.NumberToString(accountIndex))
 	} else {
 		subMessageHash = this.GetMessageHash("orders")

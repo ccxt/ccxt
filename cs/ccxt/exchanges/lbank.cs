@@ -1888,9 +1888,9 @@ public partial class lbank : Exchange
                 request["type"] = ((side + "_") + "market");
                 string? quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequestVariable[0];
-                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber(paramsRequest, "cost");
                 paramsRequest = this.omit(paramsRequest, "cost");
                 if ((cost != null))
@@ -3227,7 +3227,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToDict(this.parsePublicDepositWithdrawFees(data, codes));
     }
 
-    public virtual Dictionary<string, object> parsePublicDepositWithdrawFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parsePublicDepositWithdrawFees(IList<object> response, object codes = null)
     {
         //
         //    [
@@ -3246,9 +3246,9 @@ public partial class lbank : Exchange
         //    ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object fee = getValue(response, i);
+            object fee = (response != null && i < response.Count ? response[i] : null);
             bool? canWithdraw = this.safeBool(fee, "canWithDraw");
             if ((canWithdraw == true))
             {

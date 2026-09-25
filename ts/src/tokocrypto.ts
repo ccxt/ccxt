@@ -2763,7 +2763,7 @@ export default class tokocrypto extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {

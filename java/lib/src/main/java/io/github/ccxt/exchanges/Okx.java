@@ -4001,7 +4001,7 @@ public class Okx extends OkxApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -7080,7 +7080,7 @@ public class Okx extends OkxApi
             {
                 Object currencies = (this.fetchCurrencies(new HashMap<String, Object>() {{}})).join();
                 this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-                String networkCodeResolved = this.networkIdToCode(network, Helpers.toStringArg(currency.get("code")));
+                String networkCodeResolved = this.networkIdToCode(network, this.safeString(currency, "code"));
                 Map<String, Object> targetNetwork = (Map<String, Object>) ((((java.util.Objects.equals(networkCodeResolved, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(currency.get("networks"), networkCodeResolved, new HashMap<String, Object>() {{}}));
                 fee = this.safeString(targetNetwork, "fee");
                 if (java.util.Objects.equals(fee, null))
@@ -8666,7 +8666,7 @@ public class Okx extends OkxApi
                     }
                 }
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
@@ -8731,7 +8731,7 @@ public class Okx extends OkxApi
                 ));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -10227,7 +10227,7 @@ public class Okx extends OkxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object settlements = this.parseSettlements(data, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
 
     }
@@ -11531,7 +11531,7 @@ public class Okx extends OkxApi
         Object symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return Helpers.newMap(
             "info", info,

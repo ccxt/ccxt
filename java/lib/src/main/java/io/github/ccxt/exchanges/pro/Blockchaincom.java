@@ -512,11 +512,11 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -531,7 +531,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

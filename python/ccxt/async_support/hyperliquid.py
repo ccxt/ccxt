@@ -4680,7 +4680,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             requestBody = self.json(params)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

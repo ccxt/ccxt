@@ -3905,7 +3905,7 @@ func (this *Coinex) createDepositAddressBody(ch chan any, code string, optionalA
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
 	var request map[string]any = map[string]any{
 		"ccy":   currency["id"],
-		"chain": this.NetworkCodeToId(network, currency["code"]),
+		"chain": this.NetworkCodeToId(network, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsRenewalDepositAddress(this.Extend(request, paramsOmitted))).Raw))
@@ -3959,7 +3959,7 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a \"network\" parameter"))
 	}
-	request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
+	request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // required for on-chain, not required for inter-user transfer
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
 	//
@@ -5095,7 +5095,7 @@ func (this *Coinex) withdrawBody(ch chan any, code string, amount any, address a
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
+		request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // required for on-chain, not required for inter-user transfer
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
@@ -5241,7 +5241,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {

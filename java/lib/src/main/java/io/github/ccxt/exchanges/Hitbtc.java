@@ -3497,8 +3497,8 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            Object symbolResolved = (((java.util.Objects.equals(market, null)))) ? symbol : market.get("symbol");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            String symbolResolved = (((java.util.Objects.equals(market, null)))) ? symbol : this.safeString(market, "symbol");
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }

@@ -3551,7 +3551,7 @@ public class Coinbase extends CoinbaseApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -5066,7 +5066,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(Helpers.toStringArg(currency.get("code")), (Long) null, parameters)).join();
+            var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(this.safeString(currency, "code"), (Long) null, parameters)).join();
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
             Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, paramsValue))).join();

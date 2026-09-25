@@ -2439,9 +2439,9 @@ public partial class limitless : PredictionExchange
         if (isMarket && ((side == "buy")))
         {
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparamsValueVariable = (IList<object>)this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsValueVariable[0];
-            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable[1];
+            (bool?, object) createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.Item1;
+            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.Item2;
             double? cost = this.safeNumber(paramsValue, "cost");
             paramsValue = this.omit(paramsValue, "cost");
             if ((createMarketBuyOrderRequiresPrice == true))

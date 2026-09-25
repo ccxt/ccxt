@@ -4535,7 +4535,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Paradex) Sign(path string, optionalArgs ...any) any {

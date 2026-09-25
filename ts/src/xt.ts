@@ -2018,7 +2018,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        let marketType: Str = (market !== undefined) ? market['type'] : undefined;
+        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
         const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2351,7 +2351,7 @@ export default class xt extends Exchange {
         //    }
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        let marketType: Str = (market !== undefined) ? market['type'] : undefined;
+        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -4833,7 +4833,7 @@ export default class xt extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**

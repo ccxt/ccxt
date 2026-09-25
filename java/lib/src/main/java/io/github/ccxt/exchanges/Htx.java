@@ -2714,12 +2714,12 @@ public class Htx extends HtxApi
                         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                         baseId = this.safeStringLower(market, "symbol");
                         quoteId = this.safeStringLower(parts, 1);
-                        settleId = ((Helpers.isTrue(inverse))) ? baseId : quoteId;
+                        settleId = ((Boolean.TRUE.equals(inverse))) ? baseId : quoteId;
                     } else if (Boolean.TRUE.equals(future))
                     {
                         marketType = "future";
                         baseId = this.safeStringLower(market, "symbol");
-                        if (Helpers.isTrue(inverse))
+                        if (Boolean.TRUE.equals(inverse))
                         {
                             quoteId = "USD";
                             settleId = baseId;
@@ -3183,7 +3183,7 @@ public class Htx extends HtxApi
             {
                 market = this.market(first);
             }
-            Boolean isSubTypeRequested = (((Map<?, ?>)parameters).containsKey("subType")) || (((Map<?, ?>)parameters).containsKey("business_type"));
+            Boolean isSubTypeRequested = (parameters.containsKey("subType")) || (parameters.containsKey("business_type"));
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
@@ -4016,7 +4016,7 @@ public class Htx extends HtxApi
                 }
             }
             result = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(result, Helpers.toStringArg(market.get("symbol")), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
+            return this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -6350,7 +6350,7 @@ public class Htx extends HtxApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -6383,8 +6383,8 @@ public class Htx extends HtxApi
             {
                 throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingPercent", trailingPercent);
-            ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+            parameters.put("trailingPercent", trailingPercent);
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
         }).thenApply(Order::new);
 
@@ -8902,7 +8902,7 @@ public class Htx extends HtxApi
                 }
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }

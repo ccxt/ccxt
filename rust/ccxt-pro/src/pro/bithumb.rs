@@ -1336,7 +1336,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market, "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
         }
         let mut orders: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;

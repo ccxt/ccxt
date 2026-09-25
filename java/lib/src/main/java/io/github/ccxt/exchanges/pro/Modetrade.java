@@ -845,12 +845,12 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
-                messageHash = (messageHash + (":" + symbolResolved));
+                symbolResolved = this.safeString(market, "symbol");
+                messageHash = Helpers.add(messageHash, (":" + symbolResolved));
             }
             Map<String, Object> request = Helpers.newMap(
                 "event", "subscribe",
@@ -863,7 +863,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -898,11 +898,11 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "stop");
             String messageHash = "myTrades";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = Helpers.newMap(
@@ -916,7 +916,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

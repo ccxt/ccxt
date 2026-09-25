@@ -4123,7 +4123,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 

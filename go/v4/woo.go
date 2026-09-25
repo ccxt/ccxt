@@ -3452,7 +3452,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	var request map[string]any = map[string]any{
 		"token":   currency["id"],
-		"network": this.NetworkCodeToId(networkCode, currency["code"]),
+		"network": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, paramsNetworkCode))).Raw))
@@ -4140,7 +4140,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
 	request["token"] = currency["id"]
-	request["network"] = this.NetworkCodeToId(network, currency["code"])
+	request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, paramsOmitted))).Raw))
 	//

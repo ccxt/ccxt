@@ -4669,7 +4669,7 @@ class mexc extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
@@ -5794,7 +5794,7 @@ class mexc extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-        $network = $this->network_code_to_id($network, $currency['code']);
+        $network = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
         $this->check_address($address);
         $request = array(
             'coin' => $currency['id'],
@@ -6150,9 +6150,8 @@ class mexc extends Exchange {
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
-        $marginMode = null;
-        $paramsMarginMode = null;
-        list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        list($marginModeValue, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        $marginMode = $marginModeValue;
         if (($defaultType === 'margin') || ($isMargin === true)) {
             $marginMode = 'isolated';
         }

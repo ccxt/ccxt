@@ -1531,7 +1531,7 @@ impl BackpackCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol });
         let mut topic: Value = Value::Str("account.orderUpdate".into());
         let mut messageHash: Value = Value::Str("orders".into());
         if (market != Value::Null) {

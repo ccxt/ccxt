@@ -1138,7 +1138,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String low = null;
         String open = null;
         String volume = null;
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         if ((ticker instanceof List))
         {
             last = this.safeString(ticker, 4);
@@ -2719,7 +2719,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return null;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {

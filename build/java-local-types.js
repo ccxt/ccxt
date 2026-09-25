@@ -11090,7 +11090,7 @@ function joinListElementType (printer, node) {
     }
 }
 
-// ===== 16. default-valued `Strings` parameters answer their printed List<String> =====
+// ===== 16. default-valued `Strings` / `Dict` parameters answer their printed List<String> / Map =====
 // A split core prints `symbols: Strings = undefined` as `List<String> symbols` (the async
 // body copy too; writes go through toStringListArg), so its counter reads join as String.
 export function installJavaStringListParamTypes (transpiler) {
@@ -11113,7 +11113,7 @@ export function installJavaStringListParamTypes (transpiler) {
         } catch (e) {
             return undefined;
         }
-        return type === 'java.util.List<String>' ? type : undefined;
+        return type === 'java.util.List<String>' || type === 'java.util.Map<String, Object>' ? type : undefined;
     };
     printer._javaStringListParamTypesPatched = true;
 }
@@ -11990,6 +11990,7 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         return;
     }
     printer._javaNullScalarPatched = true;
+    const retyped = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
@@ -12010,8 +12011,14 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         } catch (e) {
             return printed;
         }
-        return type === undefined ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+        if (type === undefined) {
+            return printed;
+        }
+        retyped.set (declaration, type);
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
     };
+    // this section retypes after the declared-local observer: publish so core-argument conversions see it
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
 
 // ===== 25. omit of a Map =====

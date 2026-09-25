@@ -2821,7 +2821,7 @@ public class Bithumb extends BithumbApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("state", "done");
+            parameters.put("state", "done");
             List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
             return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2848,7 +2848,7 @@ public class Bithumb extends BithumbApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("state", "cancel");
+            parameters.put("state", "cancel");
             List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
             return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

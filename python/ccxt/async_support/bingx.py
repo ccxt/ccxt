@@ -5963,7 +5963,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         network = self.safe_string_upper(paramsWalletType, 'network')
         if network is not None:
-            request['network'] = self.network_code_to_id(network, currency['code'])
+            request['network'] = self.network_code_to_id(network, self.safe_string(currency, 'code'))
         if tagWithdrawTag is not None:
             request['addressTag'] = tagWithdrawTag
         paramsOmitted = self.omit(paramsWalletType, ['walletType', 'network'])

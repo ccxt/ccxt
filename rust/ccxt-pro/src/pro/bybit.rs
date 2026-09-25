@@ -1893,7 +1893,7 @@ impl BybitCore {
             marketType = Value::Str("contract".into());
         }
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, marketType]);

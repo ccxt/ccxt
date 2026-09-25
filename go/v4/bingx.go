@@ -6936,7 +6936,7 @@ func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address an
 	}
 	var network *string = this.SafeStringUpper(paramsWalletType, "network")
 	if network != nil {
-		request["network"] = this.NetworkCodeToId(network, currency["code"])
+		request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 	}
 	if tagWithdrawTag != nil {
 		request["addressTag"] = tagWithdrawTag

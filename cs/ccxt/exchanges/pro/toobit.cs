@@ -616,9 +616,9 @@ public partial class toobit : ccxt.toobit
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
-        string? channel = (string)channelparamsChannelVariable[0];
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
+        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
+        string? channel = channelparamsChannelVariable.Item1;
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)

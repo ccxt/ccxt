@@ -2190,9 +2190,9 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -2708,9 +2708,9 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             return await this.CreateSpotOrder(market, type, side, amount, price, marginMode, query);
@@ -3066,9 +3066,9 @@ public partial class mexc : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? marginMode = null;
-            IList<object> marginModeparamsLoopVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsLoop);
-            marginMode = (string)marginModeparamsLoopVariable[0];
-            paramsLoop = marginModeparamsLoopVariable[1];
+            (string?, object) marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", paramsLoop);
+            marginMode = marginModeparamsLoopVariable.Item1;
+            paramsLoop = marginModeparamsLoopVariable.Item2;
             Dictionary<string, object> orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.Add(orderRequest);
         }
@@ -3138,9 +3138,9 @@ public partial class mexc : Exchange
                 request["orderId"] = id;
             }
             object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, "clientOrderId") : parameters;
-            IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", paramsOmitted);
-            string? marginMode = (string)marginModequeryVariable[0];
-            IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+            (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", paramsOmitted);
+            string? marginMode = marginModequeryVariable.Item1;
+            IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
             if ((marginMode != null))
             {
                 if (!(marginMode == "isolated"))
@@ -3233,9 +3233,9 @@ public partial class mexc : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument for spot market")) ;
             }
-            IList<object> marginModequeryInnerVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", paramsOmitted);
-            string? marginMode = (string)marginModequeryInnerVariable[0];
-            IDictionary<string, object> queryInner = ((IDictionary<string, object>)marginModequeryInnerVariable[1]);
+            (string?, object) marginModequeryInnerVariable = this.handleMarginModeAndParams("fetchOrders", paramsOmitted);
+            string? marginMode = marginModequeryInnerVariable.Item1;
+            IDictionary<string, object> queryInner = ((IDictionary<string, object>)marginModequeryInnerVariable.Item2);
             if ((since != null))
             {
                 request["startTime"] = since;
@@ -3525,9 +3525,9 @@ public partial class mexc : Exchange
             {
                 request["symbol"] = this.safeString(market, "id");
             }
-            IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
-            string? marginMode = (string)marginModequeryVariable[0];
-            IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+            (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
+            string? marginMode = marginModequeryVariable.Item1;
+            IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
             List<object> response = null;
             if ((marginMode != null))
             {
@@ -3694,9 +3694,9 @@ public partial class mexc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
         object data = null;
         if ((marketType == "spot"))
         {
@@ -5125,7 +5125,7 @@ public partial class mexc : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -6021,9 +6021,9 @@ public partial class mexc : Exchange
         {
             currency = this.currency(code);
         }
-        IList<object> fromAccountTypeparamsFromAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchTransfers", "fromAccountType");
-        string? fromAccountType = (string)fromAccountTypeparamsFromAccountTypeVariable[0];
-        IDictionary<string, object> paramsFromAccountType = ((IDictionary<string, object>)fromAccountTypeparamsFromAccountTypeVariable[1]);
+        (string?, object) fromAccountTypeparamsFromAccountTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchTransfers", "fromAccountType");
+        string? fromAccountType = fromAccountTypeparamsFromAccountTypeVariable.Item1;
+        IDictionary<string, object> paramsFromAccountType = ((IDictionary<string, object>)fromAccountTypeparamsFromAccountTypeVariable.Item2);
         Dictionary<string, object> accountTypes = new Dictionary<string, object>() {
             { "spot", "SPOT" },
             { "swap", "FUTURES" },
@@ -6038,9 +6038,9 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
-        IList<object> toAccountTypeparamsToAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsFromAccountType, "fetchTransfers", "toAccountType");
-        string? toAccountType = (string)toAccountTypeparamsToAccountTypeVariable[0];
-        IDictionary<string, object> paramsToAccountType = ((IDictionary<string, object>)toAccountTypeparamsToAccountTypeVariable[1]);
+        (string?, object) toAccountTypeparamsToAccountTypeVariable = this.handleOptionStringAndParams(paramsFromAccountType, "fetchTransfers", "toAccountType");
+        string? toAccountType = toAccountTypeparamsToAccountTypeVariable.Item1;
+        IDictionary<string, object> paramsToAccountType = ((IDictionary<string, object>)toAccountTypeparamsToAccountTypeVariable.Item2);
         if ((toAccountType != null))
         {
             request["toAccountType"] = this.safeString(accountTypes, toAccountType, toAccountType);
@@ -6317,7 +6317,7 @@ public partial class mexc : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network, (currency.ContainsKey("code") ? currency["code"] : null));
+        network = this.networkCodeToId(network, this.safeString(currency, "code"));
         this.checkAddress(address);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -6441,12 +6441,12 @@ public partial class mexc : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response, codes));
     }
 
-    public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, object codes = null)
     {
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = getValue(response, i);
+            object entry = (response != null && i < response.Count ? response[i] : null);
             string? currencyId = this.safeString(entry, "coin");
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? code = this.safeString(currency, "code");
@@ -6687,7 +6687,7 @@ public partial class mexc : Exchange
         };
     }
 
-    public override List<object> handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
+    public override (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
         * @ignore
@@ -6700,16 +6700,15 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        object marginMode = null;
-        object paramsMarginMode = null;
-        var marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        marginMode = ((IList<object>)marginModeparamsMarginModeVariable)[0];
-        paramsMarginMode = ((IList<object>)marginModeparamsMarginModeVariable)[1];
+        (string?, object) marginModeValueparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        string? marginModeValue = marginModeValueparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeValueparamsMarginModeVariable.Item2);
+        string? marginMode = marginModeValue;
         if ((defaultType == "margin") || ((isMargin == true)))
         {
             marginMode = "isolated";
         }
-        return new List<object>() {marginMode, paramsMarginMode};
+        return (marginMode, paramsMarginMode);
     }
 
     /**

@@ -1119,9 +1119,9 @@ public partial class deribit : Exchange
         List<object> instrumentsResponses = new List<object>() {};
         List<object> result = new List<object>() {};
         Dictionary<string, object> parsedMarkets = new Dictionary<string, object>() {};
-        IList<object> fetchAllMarketsparamsFetchAllMarketsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
-        bool? fetchAllMarkets = (bool?)fetchAllMarketsparamsFetchAllMarketsVariable[0];
-        IDictionary<string, object> paramsFetchAllMarkets = ((IDictionary<string, object>)fetchAllMarketsparamsFetchAllMarketsVariable[1]);
+        (bool?, object) fetchAllMarketsparamsFetchAllMarketsVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
+        bool? fetchAllMarkets = fetchAllMarketsparamsFetchAllMarketsVariable.Item1;
+        IDictionary<string, object> paramsFetchAllMarkets = ((IDictionary<string, object>)fetchAllMarketsparamsFetchAllMarketsVariable.Item2);
         if ((fetchAllMarkets == true))
         {
             Dictionary<string, object> instrumentsResponse = await this.publicGetGetInstruments(paramsFetchAllMarkets);
@@ -1831,9 +1831,9 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 5000));
@@ -3799,9 +3799,9 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         int maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         string eachItemDuration = "1h";
         if ((paginate == true))
@@ -3936,9 +3936,9 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", null));

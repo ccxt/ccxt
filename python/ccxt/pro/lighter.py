@@ -576,7 +576,7 @@ class lighter(ccxt.async_support.lighter):
         request = {
             'channel': 'trade/' + market['id'],
         }
-        messageHash = self.get_message_hash('trade', market['symbol'])
+        messageHash = self.get_message_hash('trade', self.safe_string(market, 'symbol'))
         trades = await self.subscribe_public(messageHash, self.extend(request, params))
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
@@ -596,7 +596,7 @@ class lighter(ccxt.async_support.lighter):
         request = {
             'channel': 'trade/' + market['id'],
         }
-        subMessageHash = self.get_message_hash('trade', market['symbol'])
+        subMessageHash = self.get_message_hash('trade', self.safe_string(market, 'symbol'))
         messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
@@ -769,7 +769,7 @@ class lighter(ccxt.async_support.lighter):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash = self.get_message_hash('myTrades', symbolResolved)
         request = {
             'channel': 'account_all_trades/' + self.number_to_string(accountIndex),
@@ -1063,7 +1063,7 @@ class lighter(ccxt.async_support.lighter):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = self.get_message_hash('orders', market['symbol'])
+            messageHash = self.get_message_hash('orders', self.safe_string(market, 'symbol'))
             request['channel'] = 'account_orders/' + market['id'] + '/' + self.number_to_string(accountIndex)
         else:
             messageHash = self.get_message_hash('orders')
@@ -1091,7 +1091,7 @@ class lighter(ccxt.async_support.lighter):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
-            subMessageHash = self.get_message_hash('orders', market['symbol'])
+            subMessageHash = self.get_message_hash('orders', self.safe_string(market, 'symbol'))
             request['channel'] = 'account_orders/' + market['id'] + '/' + self.number_to_string(accountIndex)
         else:
             subMessageHash = self.get_message_hash('orders')

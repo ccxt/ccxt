@@ -1418,7 +1418,7 @@ class woofipro extends Exchange {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {

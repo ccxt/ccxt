@@ -5141,7 +5141,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         'with_id': true, // return order book ID
         //     }
         //
-        let mut requestqueryVariable = self.prepare_request(&[market.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), params]);
+        let mut requestqueryVariable = self.prepare_request(&[market.clone(), self.safe_string_k(market.clone(), "type", &[]), params]);
         let mut request: Value = requestqueryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = requestqueryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (limit != Value::Null) {
@@ -6042,7 +6042,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }
@@ -7966,7 +7966,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol });
         let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone(), paramsPaginate.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut useHistoricalparamsHistoricalVariable = self.handle_option_bool_and_params(paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("historical".into()), &[Value::Bool(false)]);
         let mut useHistorical: Value = useHistoricalparamsHistoricalVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -8065,7 +8065,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol });
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), &[market.clone(), params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         // don't omit here, omits done in prepareOrdersByStatusRequest
@@ -8868,7 +8868,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() supports contract markets only".into()))));
         }
-        let mut requestparamsValueVariable = self.prepare_request(&[market.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), params]);
+        let mut requestparamsValueVariable = self.prepare_request(&[market.clone(), self.safe_string_k(market.clone(), "type", &[]), params]);
         let mut request: Value = requestparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut extendedRequest: Value = self.extend(request, &[paramsValue]);
@@ -10025,7 +10025,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol });
         let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchMySettlementHistory".into()), &[market.clone(), params]);
         let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);

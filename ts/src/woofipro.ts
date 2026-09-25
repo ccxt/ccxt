@@ -1364,7 +1364,7 @@ export default class woofipro extends Exchange {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {

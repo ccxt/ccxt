@@ -12519,7 +12519,7 @@ func (this *Binance) fetchDepositAddressBody(ch chan any, code string, optionalA
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["network"] = this.NetworkCodeToId(networkCode, currency["code"])
+		request["network"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 	// has support for the 'network' parameter
 
@@ -12903,7 +12903,7 @@ func (this *Binance) withdrawBody(ch chan any, code string, amount any, address 
 	networkCode := GetValue(networkCodeparamsNetworkCodeVariable, 0)
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if !IsEqual(networkCode, nil) {
-		request["network"] = this.NetworkCodeToId(networkCode, currency["code"])
+		request["network"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 	request["amount"] = this.CurrencyToPrecision(currency["code"], amount, networkCode)
 

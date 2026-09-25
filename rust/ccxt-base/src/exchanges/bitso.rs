@@ -2633,7 +2633,7 @@ impl BitsoCore {
         let mut networkId: Value = self.safe_string2(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+        let mut networkCode: Value = self.network_id_to_code(&[networkId, self.safe_string_k(currencyResolved.clone(), "code", &[])]);
         let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

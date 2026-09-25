@@ -4024,7 +4024,7 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	result = this.SortBy(result, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(result, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(result, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Htx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -8990,7 +8990,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Htx) ParseFundingRate(contract any, optionalArgs ...any) any {

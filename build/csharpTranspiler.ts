@@ -9,6 +9,7 @@ import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
+import { csharpTupleReturns } from './csharp-local-types.js'
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
@@ -57,7 +58,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     // (~50 MB of redundant I/O per full build)
-    overwriteFile (path, content);
+    overwriteFile (path, path.endsWith ('.cs') ? csharpTupleReturns (content, path) : content);
 }
 
 // this is necessary because for some reason
@@ -204,7 +205,9 @@ function csharpArgumentCount (args: string): number {
 // branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
 const CSHARP_DECLARED_COUNT_TYPES = [ 'List<', 'IList<', 'Collection<', 'Dictionary<', 'IDictionary<',
     'ConcurrentDictionary<', 'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<', 'HashSet<',
-    'ConcurrentQueue<' ];
+    'ConcurrentQueue<',
+    // ws caches and book sides (cs/ccxt/ws): SlimConcurrentList<object>, the helper's IList<object> branch
+    'ccxt.pro.ArrayCache', 'ccxt.pro.IOrderBookSide', 'ccxt.pro.IAsks', 'ccxt.pro.IBids' ];
 // declared C# types whose `Length` is getArrayLength's own byte[] / string branch
 const CSHARP_DECLARED_LENGTH_TYPES = [ 'byte[]', 'string', 'string?' ];
 // declared C# dictionary types whose `ContainsKey` is InOp's IDictionary<string, object> branch
@@ -432,6 +435,11 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const close = csharpHelperCallEnd (masked, open);
         if (close === undefined) continue;
         const name = masked.substring (open + 1, close).trim ();
+        // the `IList<object> cache` property of a ws order book (cs/ccxt/ws/OrderBook.cs)
+        if (CSHARP_ORDERBOOK_CACHE_RE.test (name)) {
+            edits.push ({ start: match.index, end: close + 1, text: `(${name}?.Count ?? 0)` });
+            continue;
+        }
         if (!/^[A-Za-z_]\w*$/.test (name)) continue;
         const receiver = takeType (name);
         if (receiver === undefined) continue;
@@ -615,6 +623,37 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
         }
     }
     return undefined;
+}
+
+// `(book as ccxt.pro.OrderBook).cache`: the book's `IList<object> cache` property
+const CSHARP_ORDERBOOK_CACHE_RE = /^\([A-Za-z_]\w* as ccxt\.pro\.OrderBook\)\.cache$/;
+
+// `object x = (book as ccxt.pro.OrderBook).cache;` never reassigned in its method holds the
+// property's `IList<object>`: declare it so, so its length / element reads print natively
+export function retypeOrderBookCacheLocals (content: string): string {
+    const decl = /^([ ]*)object ([A-Za-z_]\w*) = (\([A-Za-z_]\w* as ccxt\.pro\.OrderBook\)\.cache);[ ]*$/;
+    if (!content.includes (' as ccxt.pro.OrderBook).cache;')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const m = decl.exec (lines[i]);
+        if (m === null) continue;
+        // the enclosing member: class members sit at 4 spaces with an access modifier
+        const member = /^[ ]{4}(?:public|private|protected|internal)\b/;
+        let start = i;
+        while ((start > 0) && !member.test (masked[start])) start--;
+        let end = i + 1;
+        while ((end < lines.length) && !member.test (masked[end])) end++;
+        const name = m[2];
+        const write = new RegExp ('(?<![\\w.])' + name + '[ ]*(=[^=>]|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(ref|out)[ ]+' + name + '\\b|[A-Za-z_>\\]?][ ]+' + name + '[ ]*[=;]');
+        if (masked.some ((l, k) => (k > start) && (k < end) && (k !== i) && write.test (l))) continue;
+        lines[i] = `${m[1]}IList<object> ${name} = ${m[3]};`;
+        changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
 }
 
 // a line that may carry a call one of the rewrites above takes
@@ -7674,7 +7713,7 @@ class NewTranspiler {
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
             const file = fileHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))))) + "\n");
-            fs.writeFileSync (csharpExchangeBase, file);
+            fs.writeFileSync (csharpExchangeBase, csharpTupleReturns (file, csharpExchangeBase));
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
                 const tradingHeader = this.getCsharpImports(undefined).concat([
@@ -7682,7 +7721,7 @@ class NewTranspiler {
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
                 const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))))) + "\n}\n");
-                fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
+                fs.writeFileSync (BASE_TRADING_METHODS_FILE, csharpTupleReturns (tradingFile, BASE_TRADING_METHODS_FILE));
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
         }
@@ -7730,7 +7769,7 @@ class NewTranspiler {
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
             const file = fileHeader + fields + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))))) + "\n");
-            fs.writeFileSync (predictionBase, file);
+            fs.writeFileSync (predictionBase, csharpTupleReturns (file, predictionBase));
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
@@ -8084,7 +8123,7 @@ class NewTranspiler {
         content = this.retypeIdentifierCopies (content);
         content = this.dropIdentityStringCasts (content);
         // the copies retyped above are declarations the native helper pass could not see yet
-        content = nativeDeclaredHelperCalls (content);
+        content = nativeDeclaredHelperCalls (retypeOrderBookCacheLocals (content));
         if (ws || this.isPrediction) {
             content = nativeWsCacheCalls (content);
         }
@@ -8298,7 +8337,7 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
+        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', csharpTupleReturns (file[1], file[0]))));
     }
 
     async transpileBaseTestsToCSharp (force = true) {

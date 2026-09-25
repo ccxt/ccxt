@@ -586,11 +586,11 @@ public partial class BaseExchange
         }
     }
 
-    public virtual void handleDeltas(object bookside, object deltas)
+    public virtual void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -3839,12 +3839,12 @@ public partial class BaseExchange
         return ((string?)((object)(preferredChain)));
     }
 
-    public virtual List<object> handleNetworkCodeAndParams(object parameters)
+    public virtual (string?, object) handleNetworkCodeAndParams(object parameters)
     {
         string? networkCodeInParams = this.safeString2(parameters, "networkCode", "network");
         object paramsOmitted = ((networkCodeInParams != null)) ? this.omit(parameters, new List<object>() {"networkCode", "network"}) : parameters;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
-        return new List<object>() {networkCodeInParams, paramsOmitted};
+        return (networkCodeInParams, paramsOmitted);
     }
 
     public virtual object defaultNetworkCode(object currencyCode)
@@ -4335,9 +4335,9 @@ public partial class BaseExchange
     public virtual List<object> handleRequestNetwork(object parameters, object request, object exchangeSpecificKey, object currencyCode = null, object isRequired = null)
     {
         isRequired ??= false;
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
             ((IDictionary<string,object>)request)[(string)exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
@@ -4473,13 +4473,13 @@ public partial class BaseExchange
         int retries = 0;
         // implicit endpoints may pass a list body as params: keep it an untyped box
         object requestParams = parameters;
-        IList<object> retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable = (IList<object>)this.handleOptionIntegerAndParams(requestParams, path, "maxRetriesOnFailure", retries);
-        Int64? retriesMaxRetriesOnFailure = (Int64?)retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable[0];
-        var paramsMaxRetriesOnFailure = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable[1];
+        (Int64?, object) retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable = this.handleOptionIntegerAndParams(requestParams, path, "maxRetriesOnFailure", retries);
+        Int64? retriesMaxRetriesOnFailure = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.Item1;
+        object paramsMaxRetriesOnFailure = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.Item2;
         int retryDelay = 0;
-        IList<object> retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay);
-        Int64? retryDelayMaxRetriesOnFailureDelay = (Int64?)retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[0];
-        var paramsMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[1];
+        (Int64?, object) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable = this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay);
+        Int64? retryDelayMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.Item1;
+        object paramsMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.Item2;
         bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
         for (int i = 0; isLessThan(i, (retriesMaxRetriesOnFailure + 1)); i++)
         {
@@ -5053,65 +5053,65 @@ public partial class BaseExchange
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual List<object> handleOptionStringAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
+    public virtual (string?, object) handleOptionStringAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
     {
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
-        return new List<object> {this.checkOptionString(methodName, optionName, value), newParams};
+        return (this.checkOptionString(methodName, optionName, value), newParams);
     }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual List<object> handleOptionStringAndParams2(object parameters, string? methodName, string? optionName1, string optionName2, string? defaultValue = null)
+    public virtual (string?, object) handleOptionStringAndParams2(object parameters, string? methodName, string? optionName1, string optionName2, string? defaultValue = null)
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
-        return new List<object> {this.checkOptionString(methodName, optionName1, value), newParams};
+        return (this.checkOptionString(methodName, optionName1, value), newParams);
     }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual List<object> handleOptionBoolAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
+    public virtual (bool?, object) handleOptionBoolAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
     {
         // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
-        return new List<object> {this.checkOptionBool(methodName, optionName, value), newParams};
+        return (this.checkOptionBool(methodName, optionName, value), newParams);
     }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual List<object> handleOptionBoolAndParams2(object parameters, object methodName, string optionName1, string optionName2, object defaultValue = null)
+    public virtual (bool?, object) handleOptionBoolAndParams2(object parameters, object methodName, string optionName1, string optionName2, object defaultValue = null)
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
-        return new List<object> {this.checkOptionBool(methodName, optionName1, value), newParams};
+        return (this.checkOptionBool(methodName, optionName1, value), newParams);
     }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual List<object> handleOptionIntegerAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
+    public virtual (Int64?, object) handleOptionIntegerAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
     {
         // handleOptionAndParams read as an integer; the statically typed ports throw on another type
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
-        return new List<object> {this.checkOptionInteger(methodName, optionName, value), newParams};
+        return (this.checkOptionInteger(methodName, optionName, value), newParams);
     }
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual List<object> handleOptionIntegerAndParams2(object parameters, object methodName, string optionName1, string optionName2, object defaultValue = null)
+    public virtual (Int64?, object) handleOptionIntegerAndParams2(object parameters, object methodName, string optionName1, string optionName2, object defaultValue = null)
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
-        return new List<object> {this.checkOptionInteger(methodName, optionName1, value), newParams};
+        return (this.checkOptionInteger(methodName, optionName1, value), newParams);
     }
 
     public virtual object handleOption(object methodName, string optionName, object defaultValue = null)
@@ -5209,7 +5209,7 @@ public partial class BaseExchange
         return new List<object>() {subType, parameters};
     }
 
-    public virtual List<object> handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
+    public virtual (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
         * @ignore
@@ -6927,9 +6927,9 @@ public partial class BaseExchange
     public virtual List<object> handleMaxEntriesPerRequestAndParams(object method, object maxEntriesPerRequest = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxEntriesPerRequest");
-        Int64? newMaxEntriesPerRequest = (Int64?)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
+        (Int64?, object) newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(parameters, method, "maxEntriesPerRequest");
+        Int64? newMaxEntriesPerRequest = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item1;
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item2);
         object maxEntriesPerRequestOption = (!(newMaxEntriesPerRequest == null)) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
         object maxEntriesPerRequestResolved = ((maxEntriesPerRequestOption == null)) ? 1000 : maxEntriesPerRequestOption; // default to 1000
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
@@ -6940,13 +6940,13 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         removeRepeated ??= true;
         int maxCalls = 10;
-        IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
-        Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
+        (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
+        Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
         int maxRetries = 3;
-        IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
-        Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
+        (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
+        Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
         IList<object> paginationDirectionparamsPaginationDirectionVariable = (IList<object>)this.handleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward");
         var paginationDirection = paginationDirectionparamsPaginationDirectionVariable[0];
         IDictionary<string, object> paramsPaginationDirection = ((IDictionary<string, object>)paginationDirectionparamsPaginationDirectionVariable[1]);
@@ -7065,9 +7065,9 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         int maxRetries = 3;
-        IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
-        Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
+        (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
+        Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
         object errors = 0;
         while (isLessThanOrEqual(errors, maxRetriesOption))
         {
@@ -7100,9 +7100,9 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
-        IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
-        Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
+        (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
+        Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
@@ -7176,13 +7176,13 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
-        IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
-        Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
+        (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
+        Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
         int maxRetries = 3;
-        IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
-        Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
+        (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
+        Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
@@ -7294,13 +7294,13 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
-        IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
-        Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
+        (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
+        Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
         int maxRetries = 3;
-        IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
-        Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
+        (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
+        Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);

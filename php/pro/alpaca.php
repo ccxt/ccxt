@@ -438,7 +438,7 @@ class alpaca extends \ccxt\async\alpaca {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash = 'orders:' . $symbolResolved;
         }
         $request = array(

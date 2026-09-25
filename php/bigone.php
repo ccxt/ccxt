@@ -2382,7 +2382,7 @@ class bigone extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['gateway_name'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['gateway_name'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         // requires write permission on the wallet
         $response = $this->privatePostWithdrawals($this->extend($request, $paramsNetworkCode));

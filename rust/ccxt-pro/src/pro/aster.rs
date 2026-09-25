@@ -1380,7 +1380,7 @@ impl AsterCore {
         if (market == Value::Null) {
             defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
         }  else {
-            defaultType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            defaultType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Null, defaultType]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
@@ -2493,7 +2493,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut messageHash: Value = Value::Str("orders".into());
         let mut type_var: Value = Value::Null;
@@ -2548,7 +2548,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut messageHash: Value = Value::Str("myTrades".into());
         let mut type_var: Value = Value::Null;

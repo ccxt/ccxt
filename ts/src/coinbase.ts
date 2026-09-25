@@ -4351,7 +4351,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const [ request, paramsValue ] = await this.prepareAccountRequestWithCurrencyCode (currency['code'], undefined, params);
+        const [ request, paramsValue ] = await this.prepareAccountRequestWithCurrencyCode (this.safeString (currency, 'code'), undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, paramsValue));
         //
         //    {
