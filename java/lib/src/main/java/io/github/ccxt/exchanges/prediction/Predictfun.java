@@ -2283,7 +2283,7 @@ public class Predictfun extends PredictfunApi
             }
             // every param the method consumes itself has to come out, otherwise it survives into the
             // extend below and is posted as a top level key next to 'data'
-            Object paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
             // the JWT authorises the order, the api key only authorises the request
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "data", data );

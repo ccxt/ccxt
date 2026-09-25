@@ -294,8 +294,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var channelOption = ((List<Object>) channelOptionparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelOptionparamsChannelVariable).get(1);
             Object url = this.getUrlByMarket(market);
-            Object paramsOmitted = this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsOmitted), (Object) null);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);

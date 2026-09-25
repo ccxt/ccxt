@@ -3739,7 +3739,7 @@ public class Bingx extends BingxApi
         String timeInForce = this.safeStringUpper(paramsMarketType, "timeInForce");
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "PostOnly"), paramsMarketType);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         if ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PostOnly")))
         {
             request.put("timeInForce", "PostOnly");
@@ -4780,10 +4780,10 @@ public class Bingx extends BingxApi
                 }
                 List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted2, (Object) null);
                 String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-                Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-                List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
+                var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+                List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-                Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+                var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     response = (this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType))).join();
@@ -5147,10 +5147,10 @@ public class Bingx extends BingxApi
                 );
                 List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, (Object) null);
                 String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-                Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-                List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType, (Object) null);
+                var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+                List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-                Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+                var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     response = (this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType))).join();
@@ -5317,14 +5317,14 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
                 response = (this.spotV1PrivateGetTradeOpenOrders(this.extend(request, paramsSubType))).join();
             } else
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsSubType, "twap", false);
-                Object paramsOmitted = this.omit(paramsSubType, "twap");
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "twap");
                 if (java.util.Objects.equals(isTwapOrder, true))
                 {
                     response = (this.swapV1PrivateGetTwapOpenOrders(this.extend(request, paramsOmitted))).join();
@@ -5587,7 +5587,7 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> standardparamsStandardVariable = (List<Object>) this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
             Boolean standard = (Boolean) ((List<Object>) standardparamsStandardVariable).get(0);
-            var paramsStandard = ((List<Object>) standardparamsStandardVariable).get(1);
+            Map<String, Object> paramsStandard = (Map<String, Object>) ((List<Object>) standardparamsStandardVariable).get(1);
             if (Boolean.TRUE.equals(standard))
             {
                 response = (this.contractV1PrivateGetAllOrders(this.extend(request, paramsStandard))).join();
@@ -5601,14 +5601,14 @@ public class Bingx extends BingxApi
             } else
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsStandard, "twap", false);
-                Object paramsOmitted = this.omit(paramsStandard, "twap");
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsStandard, "twap");
                 if (java.util.Objects.equals(isTwapOrder, true))
                 {
                     request.put("pageIndex", 1);
                     request.put("pageSize", (((java.util.Objects.equals(limit, null)))) ? 100 : limit);
                     request.put("startTime", (((java.util.Objects.equals(since, null)))) ? 1 : since);
                     Long until = this.safeInteger(paramsOmitted, "until", this.milliseconds());
-                    Object paramsUntil = this.omit(paramsOmitted, "until");
+                    Map<String, Object> paramsUntil = (Map<String, Object>) this.omit(paramsOmitted, "until");
                     request.put("endTime", until);
                     response = (this.swapV1PrivateGetTwapHistoryOrders(this.extend(request, paramsUntil))).join();
                 } else if (java.util.Objects.equals(subType, "inverse"))
@@ -5765,7 +5765,7 @@ public class Bingx extends BingxApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
             }
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("fromAccount", "toAccount")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("fromAccount", "toAccount")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -6526,7 +6526,7 @@ public class Bingx extends BingxApi
             Object paramsTrades = null;
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 paramsTrades = paramsSubType;
@@ -6554,7 +6554,7 @@ public class Bingx extends BingxApi
                     request.put("startTs", (now - ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
                 }
                 Long until = this.safeInteger(paramsSubType, "until");
-                Object paramsUntil = this.omit(paramsSubType, "until");
+                Map<String, Object> paramsUntil = (Map<String, Object>) this.omit(paramsSubType, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
                     String endTimeReq = "endTs";
@@ -6703,7 +6703,7 @@ public class Bingx extends BingxApi
             Integer defaultWalletType = 15; // spot
             List<Object> walletTypeOptionparamsWalletTypeVariable = (List<Object>) this.handleOptionAndParams2(paramsWithdrawTag, "withdraw", "type", "walletType", defaultWalletType);
             var walletTypeOption = ((List<Object>) walletTypeOptionparamsWalletTypeVariable).get(0);
-            var paramsWalletType = ((List<Object>) walletTypeOptionparamsWalletTypeVariable).get(1);
+            Map<String, Object> paramsWalletType = (Map<String, Object>) ((List<Object>) walletTypeOptionparamsWalletTypeVariable).get(1);
             Map<String, Object> walletTypes = new HashMap<String, Object>() {{
                 put( "funding", 1 );
                 put( "fund", 1 );
@@ -6727,7 +6727,7 @@ public class Bingx extends BingxApi
             {
                 request.put("addressTag", tagWithdrawTag);
             }
-            Object paramsOmitted = this.omit(paramsWalletType, new ArrayList<Object>(Arrays.asList("walletType", "network")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWalletType, new ArrayList<Object>(Arrays.asList("walletType", "network")));
             Map<String, Object> response = (this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             //    {

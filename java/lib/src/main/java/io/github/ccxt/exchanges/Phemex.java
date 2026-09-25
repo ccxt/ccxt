@@ -2021,8 +2021,8 @@ public class Phemex extends PhemexApi
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Object query = this.omit(paramsSubType, "type");
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> query = (Map<String, Object>) this.omit(paramsSubType, "type");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
@@ -2550,7 +2550,7 @@ public class Phemex extends PhemexApi
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             String code = this.safeString(paramsMarketType, "code");
-            Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("code")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("code")));
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "swap")))
@@ -5964,7 +5964,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> currency = this.currency((String) (code));
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Object networkId = null;
             if (!java.util.Objects.equals(networkCode, null))
             {

@@ -2617,7 +2617,7 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((this.id + " createOrder() is only available for cross margin")) ;
             }
-            Object orderParams = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
+            Map<String, Object> orderParams = (Map<String, Object>) this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Boolean useCollateralEndpoint = !java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "swap");
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStopOrder))
@@ -3029,7 +3029,7 @@ public class Whitebit extends WhitebitApi
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
                 String defaultAccount = this.safeString(options, "account");
                 String account = this.safeString2(paramsMarketType, "account", "type", defaultAccount);
-                Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("account", "type")));
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("account", "type")));
                 if (java.util.Objects.equals(account, "main") || java.util.Objects.equals(account, "funding"))
                 {
                     response = (this.v4PrivatePostMainAccountBalance(paramsOmitted)).join();

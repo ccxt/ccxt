@@ -1577,13 +1577,13 @@ public class Bullish extends BullishApi
 
             List<Object> maxRetriesparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", 3L);
             Long maxRetries = (Long) ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(0);
-            var paramsMaxRetries = ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(1);
+            Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(1);
             if ((!java.util.Objects.equals(method, "fetchOHLCV")) && (!java.util.Objects.equals(method, "fetchFundingRateHistory")) && (!java.util.Objects.equals(method, "fetchTrades")))
             {
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
             Object errors = 0;
-            Object paramsOmitted = this.omit(paramsMaxRetries, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxRetries, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
             while (Helpers.isLessThanOrEqual(errors, maxRetries))
@@ -1592,13 +1592,13 @@ public class Bullish extends BullishApi
                 {
                     if (java.util.Objects.equals(method, "fetchOHLCV"))
                     {
-                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, paramsOmitted)).join();
                     } else if (java.util.Objects.equals(method, "fetchFundingRateHistory"))
                     {
-                        return (this.fetchFundingRateHistory(symbol, since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                        return (this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted)).join();
                     } else
                     {
-                        return (this.fetchTrades(((String)symbol), since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                        return (this.fetchTrades(((String)symbol), since, limit, paramsOmitted)).join();
                     }
                 } catch(Exception e)
                 {
@@ -1827,10 +1827,10 @@ public class Bullish extends BullishApi
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
             String method = "privateGetV2HistoryOrders";
-            Object paramsMethod = null;
+            Map<String, Object> paramsMethod = null;
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", method);
             method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
+            paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "privateGetV2Orders"))
             {
@@ -2157,7 +2157,7 @@ public class Bullish extends BullishApi
             }
             List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
             String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
-            var paramsTimeInForce = ((List<Object>) timeInForceparamsTimeInForceVariable).get(1); // is mandatory
+            Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceparamsTimeInForceVariable).get(1); // is mandatory
             ((Map<String, Object>)paramsTimeInForce).put("timeInForce", ((String)timeInForce).toUpperCase());
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
@@ -2699,10 +2699,10 @@ public class Bullish extends BullishApi
         return BaseExchange.supplyAsync(() -> {
 
             String tradingAccountId = null;
-            Object paramsTradingAccountId = null;
+            Map<String, Object> paramsTradingAccountId = null;
             List<Object> tradingAccountIdparamsTradingAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId", (String) null);
             tradingAccountId = (String) ((List<Object>) tradingAccountIdparamsTradingAccountIdVariable).get(0);
-            paramsTradingAccountId = ((List<Object>) tradingAccountIdparamsTradingAccountIdVariable).get(1);
+            paramsTradingAccountId = (Map<String, Object>) ((List<Object>) tradingAccountIdparamsTradingAccountIdVariable).get(1);
             if (java.util.Objects.equals(tradingAccountId, null))
             {
                 List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();

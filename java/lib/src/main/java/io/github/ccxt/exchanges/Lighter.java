@@ -1026,7 +1026,7 @@ public class Lighter extends LighterApi
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
         Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOrderExpiry);
-        Object paramsOmitted = this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
         if (Boolean.TRUE.equals(isMarketOrder))
@@ -1071,7 +1071,7 @@ public class Lighter extends LighterApi
         String triggerPriceStr = "0"; // default is 0
         Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId);
-        Object paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
+        Map<String, Object> paramsRequest = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
         if (Boolean.TRUE.equals(isConditional))
         {
             amountStr = this.numberToString(amount);
@@ -3013,8 +3013,8 @@ public class Lighter extends LighterApi
             Integer fromRouteType = (((java.util.Objects.equals(fromAccount, "perp")))) ? 0 : 1; // 0: perp, 1: spot
             Integer toRouteType = (((java.util.Objects.equals(toAccount, "perp")))) ? 0 : 1;
             String memo = this.safeString(paramsToAccountIndex, "memo", "0x000000000000000000000000000000");
-            Object paramsOmitted = this.omit(paramsToAccountIndex, new ArrayList<Object>(Arrays.asList("memo")));
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsOmitted))).join();
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsToAccountIndex, new ArrayList<Object>(Arrays.asList("memo")));
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsOmitted)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "to_account_index", toAccountIndex );
                 put( "asset_index", Lighter.this.parseToInt(currency.get("id")) );

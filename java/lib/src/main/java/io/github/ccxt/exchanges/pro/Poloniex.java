@@ -302,7 +302,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String quoteAmount = null;
                 List<Object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(0);
-                var paramsRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
+                Map<String, Object> paramsRequiresPrice = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
                 Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
                 paramsOmitted = this.omit(paramsRequiresPrice, "cost");
                 if (!java.util.Objects.equals(cost, null))

@@ -1142,7 +1142,7 @@ public class Cex extends CexApi
             Map<String, Object> paramsAccount = (Map<String, Object>) ((List<Object>) accountNameparamsAccountVariable).get(1); // default is empty string
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleParamString(paramsAccount, "method", "privatePostGetMyWalletBalance");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
+            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
             Map<String, Object> accountBalance = null;
             if (java.util.Objects.equals(method, "privatePostGetMyAccountStatusV3"))
             {

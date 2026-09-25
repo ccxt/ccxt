@@ -924,7 +924,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Map<String, Object> market = null;
             List<Object> callerMethodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             String callerMethodName = (String) ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(1);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Object limits = this.safeList(options, "limits", new ArrayList<Object>(Arrays.asList()));
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "defaultLimit", 50) : limit;
@@ -939,7 +939,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 throw new NotSupported(((this.id + " watchOrderBookForSymbols() aggregation must be one of ") + String.join(", ", (List<String>)aggregations))) ;
             }
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "aggregation");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "aggregation");
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
             if (!Boolean.TRUE.equals(symbolsDefined))
             {
@@ -952,7 +952,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 messageHashes.add(("orderbook:" + market.get("symbol")));
                 watchOrderBookSubscriptions.put((String)symbol, new ArrayList<Object>(Arrays.asList(market.get("id"), limitResolved, aggregation, true)));
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);

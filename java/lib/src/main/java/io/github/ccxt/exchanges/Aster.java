@@ -1578,12 +1578,12 @@ public class Aster extends AsterApi
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             ((Map<String, Object>)requestUntil).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             String price = this.safeString(paramsUntil, "price");
             Boolean isMark = (java.util.Objects.equals(price, "mark"));
             Boolean isIndex = (java.util.Objects.equals(price, "index"));
-            Object paramsOmitted = this.omit(paramsUntil, "price");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "price");
             List<Object> response = null;
             if (Boolean.TRUE.equals(isMark))
             {

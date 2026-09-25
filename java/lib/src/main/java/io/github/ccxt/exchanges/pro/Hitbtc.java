@@ -1262,14 +1262,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Object name = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "spot", "spot_balance_subscribe" );
                 put( "swap", "futures_balance_subscribe" );
                 put( "future", "futures_balance_subscribe" );
             }}));
             String mode = this.safeString(paramsMarketType, "mode", "batches");
-            Object paramsOmitted = this.omit(paramsMarketType, "mode");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "mode");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "mode", mode );
             }};

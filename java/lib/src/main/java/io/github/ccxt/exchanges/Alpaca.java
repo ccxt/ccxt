@@ -2015,7 +2015,7 @@ public class Alpaca extends AlpacaApi
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
             List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
