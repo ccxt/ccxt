@@ -6440,7 +6440,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType)
 	var request map[string]any = map[string]any{}
-	if (!IsEqual(symbolsNormalized, nil)) && (this.IsLinear(typeVar, subType) || this.IsInverse(typeVar, subType)) {
+	if ((symbolsNormalized != nil)) && (this.IsLinear(typeVar, subType) || this.IsInverse(typeVar, subType)) {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			request["symbol"] = this.MarketId(GetValue(symbolsNormalized, 0))
@@ -6460,7 +6460,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.DapiPublicGetTickerBookTicker(this.Extend(request, paramsSubType))).Raw
 		PanicOnError(response)
 	} else if typeVar != nil && *typeVar == "spot" {
-		if !IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized != nil {
 			request["symbols"] = this.Json(this.MarketIds(symbolsNormalized))
 		}
 
@@ -6639,7 +6639,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		} else {
 			var request map[string]any = map[string]any{}
-			if !IsEqual(symbolsNormalized, nil) {
+			if symbolsNormalized != nil {
 				request["symbols"] = this.Json(this.MarketIds(symbolsNormalized))
 			}
 
@@ -14470,7 +14470,7 @@ func (this *Binance) fetchOptionPositionsBody(ch chan any, optionalArgs ...any) 
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbol any = nil
 		if true {
 			var symbolsLength int = len(symbolsNormalized)
@@ -17826,7 +17826,7 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
@@ -18013,7 +18013,7 @@ func (this *Binance) fetchMarginModesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMarginMode", market, params)
@@ -18794,7 +18794,7 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
 	var typeVar string = "swap"

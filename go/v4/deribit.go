@@ -1864,7 +1864,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var code *string = this.SafeString2(params, "code", "currency")
 	var typeVar *string = nil
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"code"}))
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			if (code != nil) && !IsEqual(code, market["base"]) {

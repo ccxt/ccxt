@@ -1545,7 +1545,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 		return defaultTIF
 	}()
-	var paramsOmitted any = this.Omit(paramsTimeInForce, []any{"timeInForce", "triggerPrice"})
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsTimeInForce, []any{"timeInForce", "triggerPrice"}))
 	request["client_order_id"] = this.GenerateClientOrderId(paramsOmitted)
 
 	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2Orders(this.Extend(request, this.Omit(paramsOmitted, []any{"clientOrderId"})))).Raw))

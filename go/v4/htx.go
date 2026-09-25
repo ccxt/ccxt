@@ -9141,7 +9141,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var defaultSubType string = "linear"
 	subTypeOption, paramsSubType := this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	var subType *string = subTypeOption
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		var market map[string]any = this.Market(firstSymbol)
 		var isLinear *bool = SafeBoolPtr(market["linear"])
@@ -9977,7 +9977,7 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbolsNormalized, 0)
@@ -10546,7 +10546,7 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbolsNormalized, 0)
@@ -11750,7 +11750,7 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbolsNormalized, 0)

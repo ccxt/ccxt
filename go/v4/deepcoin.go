@@ -522,7 +522,7 @@ func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...
 	_ = market
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 2, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = defaultValue
 	var instType *string = this.SafeString(params, "instType")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "instType"))
@@ -3275,7 +3275,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var marketType string = "swap"
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(firstSymbol)
 	}
@@ -3475,7 +3475,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true, true)
 	var subType string = "linear"
 	var firstMarket map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		firstMarket = this.Market(firstSymbol)
 	}

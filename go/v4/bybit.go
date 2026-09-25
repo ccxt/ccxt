@@ -4062,7 +4062,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
@@ -10877,7 +10877,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		"baseCoin": baseCoin,
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))

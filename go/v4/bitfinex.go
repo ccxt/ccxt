@@ -1745,7 +1745,7 @@ func (this *Bitfinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var ids any = this.MarketIds(symbolsNormalized)
 		request["symbols"] = Join(ids, ",")
 	} else {
@@ -4518,7 +4518,7 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = []any{"ALL"}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		marketIds = this.MarketIds(symbolsNormalized)
 	}
 	var request map[string]any = map[string]any{

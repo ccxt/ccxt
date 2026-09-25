@@ -1439,7 +1439,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var taker *string = this.SafeString(data, "takerFeeRate")
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 
 		ch <- result
 		return nil
@@ -2950,7 +2950,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true)
 	var paramsRequest any = params
-	if IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized == nil {
 		marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
 		if marketType == nil || *marketType != "swap" {
 			panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
@@ -5141,7 +5141,7 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
@@ -5709,7 +5709,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
