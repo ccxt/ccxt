@@ -1065,16 +1065,16 @@ public partial class backpack : ccxt.backpack
         this.handleBidAsks(storedAsks, asks);
     }
 
-    public virtual void handleBidAsks(object bookSide, object bidAsks)
+    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
     {
-        for (int i = 0; i < getArrayLength(bidAsks); i++)
+        for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
+            List<object> bidAsk = this.parseOrderBookBidAsk((bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
 
-    public override object getCacheIndex(object orderbook, object cache)
+    public override object getCacheIndex(object orderbook, IList<object> cache)
     {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
@@ -1083,7 +1083,7 @@ public partial class backpack : ccxt.backpack
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
         if ((nonce == null))
         {
-            return getArrayLength(cache);
+            return cache?.Count ?? 0;
         }
         if ((firstDeltaStart == null))
         {
@@ -1093,21 +1093,21 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        for (int i = 0; i < getArrayLength(cache); i++)
+        for (int i = 0; i < (cache?.Count ?? 0); i++)
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
             if (((deltaStart == null)) || ((deltaEnd == null)))
             {
-                return getArrayLength(cache);
+                return cache?.Count ?? 0;
             }
             if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
             {
                 return i;
             }
         }
-        return getArrayLength(cache);
+        return cache?.Count ?? 0;
     }
 
     /**

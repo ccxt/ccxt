@@ -1135,14 +1135,14 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        int ordersLength = getArrayLength(orders);
+        int ordersLength = orders?.Count ?? 0;
         List<object> orderOutcomes = new List<object>() {};
         for (int i = 0; i < ordersLength; i++)
         {
-            string? __oc = this.safeString(getValue(orders, i), "outcome");
+            string? __oc = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "outcome");
             if ((__oc != null))
             {
                 orderOutcomes.Add(__oc);

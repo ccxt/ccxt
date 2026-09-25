@@ -2434,14 +2434,14 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
         // requested outcomes first (one gamma request for all uncached token ids)
         List<object> orderOutcomes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> o = this.safeDict(orders, i);
             string? __oc = this.safeString(o, "outcome");
@@ -2454,7 +2454,7 @@ public partial class polymarket : PredictionExchange
         List<object> bodies = new List<object>() {};
         List<object> outcomes = new List<object>() {};
         List<object> requests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> o = this.safeDict(orders, i);
             IDictionary<string, object> orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
