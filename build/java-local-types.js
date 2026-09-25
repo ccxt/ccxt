@@ -9478,7 +9478,6 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'fetchIndexOHLCV': [0],
     'fetchIsolatedBorrowRate': [0],
     'fetchL2OrderBook': [0],
-    'fetchL3OrderBook': [0],
     'fetchLedgerEntry': [0],
     'fetchLeverage': [0],
     'fetchLiquidations': [0],
