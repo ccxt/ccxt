@@ -582,7 +582,7 @@ public partial class bittrade : ccxt.bittrade
                 return DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
             }
             // clean up
-            if (inOp(client.subscriptions, id))
+            if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
@@ -694,7 +694,7 @@ public partial class bittrade : ccxt.bittrade
                     string? messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if (inOp(client.subscriptions, id))
+                    if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(id);
                     }

@@ -751,7 +751,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? symbol = this.safeSymbol(marketId);
         string? datetime = this.safeString(message, "time");
         object channel = this.safeString(message, "channel");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);

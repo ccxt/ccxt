@@ -1646,7 +1646,7 @@ public partial class polymarket : PredictionExchange
         // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(this.timeframes, timeframeVar)))
+        if (!((this.timeframes != null && this.timeframes.ContainsKey(timeframeVar))))
         {
             List<object> supportedKeys = new List<object>(this.timeframes.Keys);
             throw new BadRequest (((((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar)) + ", supported timeframes are ") + String.Join(", ", supportedKeys.ToArray()))) ;
@@ -3710,7 +3710,7 @@ public partial class polymarket : PredictionExchange
         {
             return;
         }
-        if (!(inOp(this.orderbooks, outcome)))
+        if (!((this.orderbooks != null && outcome != null && this.orderbooks.ContainsKey(outcome))))
         {
             ccxt.pro.OrderBook seededBook = this.orderBook(new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
@@ -3755,7 +3755,7 @@ public partial class polymarket : PredictionExchange
             IDictionary<string, object> change = this.safeDict(changes, i);
             string? tokenId = this.safeString(change, "asset_id");
             string? outcome = this.tokenIdToSymbol(tokenId);
-            if (((outcome == null)) || !(inOp(this.orderbooks, outcome)))
+            if (((outcome == null)) || !((this.orderbooks != null && outcome != null && this.orderbooks.ContainsKey(outcome))))
             {
                 continue;
             }

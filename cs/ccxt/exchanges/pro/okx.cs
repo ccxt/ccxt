@@ -1735,7 +1735,7 @@ public partial class okx : ccxt.okx
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
                 orderbook["symbol"] = symbol;
                 this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
-                if (!(inOp(client.subscriptions, messageHash)))
+                if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     break;
                 }
@@ -1743,14 +1743,14 @@ public partial class okx : ccxt.okx
             }
         } else if (action == "update")
         {
-            if (inOp(this.orderbooks, symbol))
+            if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
             {
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < (data?.Count ?? 0); i++)
                 {
                     object update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
-                    if (!(inOp(client.subscriptions, messageHash)))
+                    if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                     {
                         // a nonce gap rejected the future and always cleared the subscription entry, while the book
                         // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
@@ -1764,9 +1764,9 @@ public partial class okx : ccxt.okx
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in ((WebSocketClient)client).subscriptions)
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
             {
-                if (!(inOp(this.orderbooks, symbol)))
+                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }

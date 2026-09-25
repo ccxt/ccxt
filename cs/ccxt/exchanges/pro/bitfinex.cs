@@ -771,7 +771,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? prec = this.safeString(subscription, "prec", "P0");
         bool isRaw = (prec == "R0");
         // if it is an initial snapshot
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(subscription, "len");
             if (isRaw)
@@ -1177,7 +1177,7 @@ public partial class bitfinex : ccxt.bitfinex
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }

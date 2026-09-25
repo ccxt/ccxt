@@ -1887,7 +1887,7 @@ public partial class nado : ccxt.nado
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             return;
         }

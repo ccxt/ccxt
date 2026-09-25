@@ -360,7 +360,7 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -891,7 +891,7 @@ public partial class apex : ccxt.apex
             return;
         }
         string messageHash = "fetchPositionsSnapshot";
-        if (!(inOp(client.futures, messageHash)))
+        if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
         {
             client.future(messageHash);
             this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
@@ -1272,7 +1272,7 @@ public partial class apex : ccxt.apex
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }

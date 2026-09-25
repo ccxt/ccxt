@@ -456,13 +456,13 @@ public partial class gemini : ccxt.gemini
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         } else if (isInitial)
         {
             // handle https://github.com/ccxt/ccxt/issues/29210
-            if (inOp(this.orderbooks, symbol))
+            if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             }
@@ -654,7 +654,7 @@ public partial class gemini : ccxt.gemini
         Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ccxt.pro.OrderBook ob = this.orderBook();
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -1060,7 +1060,7 @@ public partial class gemini : ccxt.gemini
         {
             return;
         }
-        if (((this.clients != null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey(url))))
         {
             return;
         }

@@ -634,7 +634,7 @@ public partial class bydfi : ccxt.bydfi
         string? marketId = this.safeString(message, "s");
         string? symbol = this.safeSymbol(marketId);
         Int64? timestamp = this.safeInteger(message, "E");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1032,7 +1032,7 @@ public partial class bydfi : ccxt.bydfi
         if ((fetchBalanceSnapshot == true))
         {
             string messageHash = "fetchBalanceSnapshot";
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash});
@@ -1096,7 +1096,7 @@ public partial class bydfi : ccxt.bydfi
         //     }
         //
         string messageHash = "balance";
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
             IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
             List<object> balances = this.safeList(data, "B", new List<object>() {});

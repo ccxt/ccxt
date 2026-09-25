@@ -2562,7 +2562,7 @@ public partial class sxbet : PredictionExchange
                 {
                     this.options["wsConnected"] = false;
                 }
-                if (((subscription != null)) && (inOp(client.subscriptions, subscription)))
+                if (((subscription != null)) && ((client.subscriptions != null && subscription != null && client.subscriptions.ContainsKey(subscription))))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(subscription);
                 }

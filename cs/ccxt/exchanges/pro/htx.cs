@@ -636,7 +636,7 @@ public partial class htx : ccxt.htx
                 if (isLessThan(numAttempts, maxAttempts))
                 {
                     // safety guard
-                    if (inOp(client.subscriptions, messageHash))
+                    if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
                     {
                         numAttempts = this.sum(numAttempts, 1);
                         object delayTime = 1000;
@@ -904,7 +904,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             string? size = this.safeString(parts, 3);
             if ((size == null))
@@ -2428,7 +2428,7 @@ public partial class htx : ccxt.htx
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
             }
             // clean up
-            if (inOp(client.subscriptions, id))
+            if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
             {
                 if ((id != null))
                 {
@@ -2741,7 +2741,7 @@ public partial class htx : ccxt.htx
                     string? messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if (inOp(client.subscriptions, id))
+                    if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
                     {
                         if ((id != null))
                         {
@@ -2752,7 +2752,7 @@ public partial class htx : ccxt.htx
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if (((messageHash != null)) && (inOp(client.subscriptions, messageHash)))
+                    if (((messageHash != null)) && ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                     }
@@ -2774,7 +2774,7 @@ public partial class htx : ccxt.htx
                 {
                     client.reject(e, "auth");
                     string method = "auth";
-                    if (inOp(client.subscriptions, method))
+                    if ((client.subscriptions != null && client.subscriptions.ContainsKey(method)))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(method);
                     }

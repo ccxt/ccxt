@@ -677,7 +677,7 @@ public partial class toobit : ccxt.toobit
         {
             IDictionary<string, object> entry = this.safeDict(data, i);
             string messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 Int64? limit = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
@@ -741,7 +741,7 @@ public partial class toobit : ccxt.toobit
             string? marketId = this.safeString(entry, "s");
             string? symbol = this.safeSymbol(marketId);
             string messageHash = ((("orderBook::" + symbol) + "::") + (channel));
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 Int64? limit = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
@@ -814,7 +814,7 @@ public partial class toobit : ccxt.toobit
             type = "spot";
         }
         string messageHash = (type + ":fetchBalanceSnapshot");
-        if (!(inOp(client.futures, messageHash)))
+        if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
         {
             client.future(messageHash);
             this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, marketType});
@@ -1359,7 +1359,7 @@ public partial class toobit : ccxt.toobit
             // client.resolve () / ((WebSocketClient)client).reject () settle and remove the entry under the same lock in every port
             string messageHash = "authenticate";
             var client = this.client("authenticationFlights");
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket

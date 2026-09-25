@@ -892,7 +892,7 @@ public partial class bitvavo : ccxt.bitvavo
         // in that case the buffered delta message identifies the market
         string? marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
         string? snapshotSymbol = this.safeSymbol(marketId, null, "-");
-        if (!(inOp(this.orderbooks, snapshotSymbol)))
+        if (!((this.orderbooks != null && snapshotSymbol != null && this.orderbooks.ContainsKey(snapshotSymbol))))
         {
             // this snapshot fetch was scheduled before an unsubscribe removed the
             // order book - skip it so the getBook request is not sent for a dead market
@@ -961,7 +961,7 @@ public partial class bitvavo : ccxt.bitvavo
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
         string snapshotHash = ("getBook@" + marketId);
-        if (inOp(client.subscriptions, snapshotHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(snapshotHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(snapshotHash);
         }
@@ -986,7 +986,7 @@ public partial class bitvavo : ccxt.bitvavo
             string? marketId = this.safeString(marketIds, i);
             string? symbol = this.safeSymbol(marketId, null, "-");
             string messageHash = ((name + "@") + marketId);
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 object subscription = this.safeValue(client.subscriptions, messageHash);
                 object method = this.safeValue(subscription, "method");
@@ -1040,7 +1040,7 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (!(inOp(client.subscriptions, key)))
+            if (!((client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key))))
             {
                 continue;
             }
@@ -2016,7 +2016,7 @@ public partial class bitvavo : ccxt.bitvavo
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }

@@ -187,7 +187,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1692,7 +1692,7 @@ public partial class lighter : ccxt.lighter
         string? subMessageHash = this.getMessageHash("orderbook", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.orderbooks, symbol))
+        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -1720,7 +1720,7 @@ public partial class lighter : ccxt.lighter
                     if (subscribedChannel == "market_stats/all")
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
-                        if (inOp(client.futures, subscriptionHash))
+                        if ((client.futures != null && subscriptionHash != null && client.futures.ContainsKey(subscriptionHash)))
                         {
                             var error = new UnsubscribeError(((this.id + " ") + subscriptionHash));
                             client.reject(error, subscriptionHash);
@@ -1729,7 +1729,7 @@ public partial class lighter : ccxt.lighter
                 }
             }
             string allMessageHash = ("unsubscribe:" + this.getMessageHash("ticker"));
-            if (inOp(client.subscriptions, allMessageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(allMessageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(allMessageHash);
             }

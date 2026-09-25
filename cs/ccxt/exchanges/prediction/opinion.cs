@@ -931,7 +931,7 @@ public partial class opinion : PredictionExchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1d";
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(this.timeframes, timeframeVar)))
+        if (!((this.timeframes != null && this.timeframes.ContainsKey(timeframeVar))))
         {
             List<object> supportedKeys = new List<object>(this.timeframes.Keys);
             throw new BadRequest (((((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar)) + ", supported timeframes are ") + String.Join(", ", supportedKeys.ToArray()))) ;

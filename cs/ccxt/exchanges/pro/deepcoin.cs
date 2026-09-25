@@ -193,7 +193,7 @@ public partial class deepcoin : ccxt.deepcoin
         // settled through client.resolve / ((WebSocketClient)client).reject so the registry is only mutated inside the client (one lock in go)
         string messageHash = "authenticate";
         var client = this.client("authenticationFlights");
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
@@ -834,7 +834,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? marketId = this.safeString(data, "I");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "/");
         string? symbol = this.safeSymbol(marketId, market);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1023,7 +1023,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbol = this.safeSymbol(marketId, market);
         string messageHash = "myTrades";
         string symbolMessageHash = ((messageHash + "::") + symbol);
-        if ((inOp(client.futures, messageHash)) || (inOp(client.futures, symbolMessageHash)))
+        if (((client.futures != null && client.futures.ContainsKey(messageHash))) || ((client.futures != null && client.futures.ContainsKey(symbolMessageHash))))
         {
             if ((this.myTrades == null))
             {
@@ -1111,7 +1111,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbol = this.safeSymbol(marketId, market);
         string messageHash = "orders";
         string symbolMessageHash = ((messageHash + "::") + symbol);
-        if ((inOp(client.futures, messageHash)) || (inOp(client.futures, symbolMessageHash)))
+        if (((client.futures != null && client.futures.ContainsKey(messageHash))) || ((client.futures != null && client.futures.ContainsKey(symbolMessageHash))))
         {
             if ((this.orders == null))
             {
@@ -1267,7 +1267,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbol = this.safeSymbol(marketId, market);
         string messageHash = "positions";
         string symbolMessageHash = ((messageHash + "::") + symbol);
-        if ((inOp(client.futures, messageHash)) || (inOp(client.futures, symbolMessageHash)))
+        if (((client.futures != null && client.futures.ContainsKey(messageHash))) || ((client.futures != null && client.futures.ContainsKey(symbolMessageHash))))
         {
             if ((this.positions == null))
             {

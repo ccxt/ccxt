@@ -60,7 +60,7 @@ public partial class BaseExchange
 
     public object precisionMode { get; set; } = DECIMAL_PLACES;
 
-    public object currencies_by_id { get; set; } = null;
+    public IDictionary<string, object> currencies_by_id { get; set; } = null;
 
     public object accounts { get; set; } = new dict();
 
@@ -76,7 +76,7 @@ public partial class BaseExchange
     public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
-    public object markets { get; set; } = null;
+    public IDictionary<string, object> markets { get; set; } = null;
     public object currencies { get; set; } = new dict();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();

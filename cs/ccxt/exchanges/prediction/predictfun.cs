@@ -3288,7 +3288,7 @@ public partial class predictfun : PredictionExchange
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         string? subscribeHash = this.safeString(subscription, "subscribeHash");
-        if (((subscribeHash != null)) && (inOp(client.subscriptions, subscribeHash)))
+        if (((subscribeHash != null)) && ((client.subscriptions != null && subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }
@@ -3338,7 +3338,7 @@ public partial class predictfun : PredictionExchange
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         string? subscribeHash = this.safeString(subscription, "subscribeHash");
-        if (((subscribeHash != null)) && (inOp(client.subscriptions, subscribeHash)))
+        if (((subscribeHash != null)) && ((client.subscriptions != null && subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }

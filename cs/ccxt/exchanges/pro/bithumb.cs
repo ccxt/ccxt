@@ -499,7 +499,7 @@ public partial class bithumb : ccxt.bithumb
                 return;
             }
             Int64? legacyTimestamp = this.parseToInt(((timestampStr == null) ? null : timestampStr.Substring(0, Math.Min(13, timestampStr.Length))));
-            if (!(inOp(this.orderbooks, legacySymbol)))
+            if (!((this.orderbooks != null && legacySymbol != null && this.orderbooks.ContainsKey(legacySymbol))))
             {
                 ccxt.pro.OrderBook ob = this.orderBook();
                 ob["symbol"] = legacySymbol;
@@ -522,7 +522,7 @@ public partial class bithumb : ccxt.bithumb
         string? streamType = this.safeString(message, "stream_type");
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? obLimit = this.safeInteger(options, "limit", 1000);
-        if (!(inOp(this.orderbooks, symbol)) || (streamType == "SNAPSHOT"))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))) || (streamType == "SNAPSHOT"))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, obLimit);
         }

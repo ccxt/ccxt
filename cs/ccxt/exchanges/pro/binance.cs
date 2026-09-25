@@ -1193,7 +1193,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + symbol);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -1286,11 +1286,11 @@ public partial class binance : ccxt.binance
                 }
             } catch(Exception e)
             {
-                if (inOp(this.orderbooks, symbol))
+                if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -3224,7 +3224,7 @@ public partial class binance : ccxt.binance
         // the subscriptions flag is raised before the subscribe request is confirmed,
         // so a concurrent caller would otherwise return onto an unauthenticated stream
         string messageHash = ("authenticate:signature:" + (marketTypeVar));
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
             // another caller is already subscribing, wait for it instead of subscribing again
             await client.future(messageHash);
@@ -3312,7 +3312,7 @@ public partial class binance : ccxt.binance
             // waits for the leader rather than minting a second listenToken
             var client = this.client(url);
             string messageHash = (("authenticate:" + (marketTypeVar)) + ":listenToken");
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // another caller is already fetching, wait for it instead of fetching again
                 await client.future(messageHash);
@@ -3477,7 +3477,7 @@ public partial class binance : ccxt.binance
             // and remove the entry under the same lock in every port
             string messageHash = ("authenticate:" + type);
             var client = this.client("authenticationFlights");
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket

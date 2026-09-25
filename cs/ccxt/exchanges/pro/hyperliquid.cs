@@ -344,7 +344,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
         Int64? timestamp = this.safeInteger(entry, "time");
         Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(snapshot);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -1726,7 +1726,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ("orderbook:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.orderbooks, symbol))
+        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -1805,7 +1805,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((user != null))
         {
             string subscribeHash = ("subscribe:orderUpdates::" + user);
-            if (inOp(client.subscriptions, subscribeHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
             }
@@ -1827,7 +1827,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((user != null))
         {
             string subscribeHash = ("subscribe:userFills::" + user);
-            if (inOp(client.subscriptions, subscribeHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
             }

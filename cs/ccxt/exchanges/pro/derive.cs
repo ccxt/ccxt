@@ -130,7 +130,7 @@ public partial class derive : ccxt.derive
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? topic = this.safeString(parameters, "channel");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             object subscription = ((topic == null)) ? null : getValue(client.subscriptions, topic);
@@ -371,7 +371,7 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (inOp(this.orderbooks, symbol))
+        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -390,7 +390,7 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (inOp(this.orderbooks, symbol))
+        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
         {
             this.trades.Remove(symbol);
         }
@@ -786,7 +786,7 @@ public partial class derive : ccxt.derive
             {
                 string messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -878,7 +878,7 @@ public partial class derive : ccxt.derive
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
             }

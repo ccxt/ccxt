@@ -1719,7 +1719,7 @@ public partial class bingx : ccxt.bingx
             // entry under the same lock in every port
             string messageHash = "authenticate";
             var client = this.client("authenticationFlights");
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket

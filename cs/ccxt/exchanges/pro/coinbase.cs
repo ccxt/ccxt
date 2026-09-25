@@ -1052,7 +1052,7 @@ public partial class coinbase : ccxt.coinbase
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
             // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(inOp(this.orderbooks, symbol)) && isEqual(this.getOrderBook(this.orderbooks, symbol), null))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))) && isEqual(this.getOrderBook(this.orderbooks, symbol), null))
             {
                 continue;
             }

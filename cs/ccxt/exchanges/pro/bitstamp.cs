@@ -1112,7 +1112,7 @@ public partial class bitstamp : ccxt.bitstamp
             // goes through the client's own accessors in the ported languages
             string messageHash = "authenticateFlight";
             var client = this.client("authenticationFlights");
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in this.options

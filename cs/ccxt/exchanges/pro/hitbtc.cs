@@ -292,7 +292,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object item = getValue(data, marketId);
             string messageHash = ("orderbooks::" + symbol);
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");
@@ -1553,7 +1553,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
@@ -1592,7 +1592,7 @@ public partial class hitbtc : ccxt.hitbtc
                 {
                     string messageHash = "authenticated";
                     client.reject(e, messageHash);
-                    if (inOp(client.subscriptions, messageHash))
+                    if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                     }

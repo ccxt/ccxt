@@ -968,7 +968,7 @@ public partial class bitrue : ccxt.bitrue
             // lock rather than through an unsynchronized map write
             string messageHash = "authenticateFlight";
             var client = this.client("authenticationFlights");
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options

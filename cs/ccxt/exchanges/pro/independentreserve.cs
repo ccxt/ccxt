@@ -218,7 +218,7 @@ public partial class independentreserve : ccxt.independentreserve
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {});
         }

@@ -53,7 +53,7 @@ public partial class upbit : ccxt.upbit
         });
         var client = this.client(url);
         string subscriptionsKey = "upbitPublicSubscriptions";
-        if (!(inOp(client.subscriptions, subscriptionsKey)))
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionsKey))))
         {
             ((IDictionary<string,object>)client.subscriptions)[subscriptionsKey] = this.createSafeDictionary(true);
         }
@@ -425,7 +425,7 @@ public partial class upbit : ccxt.upbit
         var client = this.client(url);
         // Track private channel subscriptions to support multiple concurrent watches
         string subscriptionsKey = "upbitPrivateSubscriptions";
-        if (!(inOp(client.subscriptions, subscriptionsKey)))
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionsKey))))
         {
             ((IDictionary<string,object>)client.subscriptions)[subscriptionsKey] = this.createSafeDictionary(true);
         }

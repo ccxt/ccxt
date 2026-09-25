@@ -92,7 +92,7 @@ public partial class xt : ccxt.xt
             // concurrent callers each minted their own token, last write won, and the losers
             // carried an orphaned token into name + '@' + listenKey so their streams went dead
             string messageHash = ("authenticate:" + tradeType);
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
@@ -862,7 +862,7 @@ public partial class xt : ccxt.xt
         if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
@@ -1350,7 +1350,7 @@ public partial class xt : ccxt.xt
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
             string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");
@@ -1836,7 +1836,7 @@ public partial class xt : ccxt.xt
         string? msg = this.safeString(message, "msg");
         if ((msg == "invalid_listen_key") || (msg == "token expire"))
         {
-            if (inOp(client.subscriptions, "token"))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey("token")))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove("token");
             }

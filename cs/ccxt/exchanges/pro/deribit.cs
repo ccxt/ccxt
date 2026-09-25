@@ -712,7 +712,7 @@ public partial class deribit : ccxt.deribit
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }

@@ -1576,7 +1576,7 @@ public partial class coinex : ccxt.coinex
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
