@@ -364,6 +364,10 @@ func SafeStringPtr(v any) *string {
 	return ccxt.SafeStringPtr(v)
 }
 
+func TupleSlice(value *string, params map[string]any) []any {
+	return ccxt.TupleSlice(value, params)
+}
+
 func SafeBoolPtr(v any) *bool {
 	return ccxt.SafeBoolPtr(v)
 }

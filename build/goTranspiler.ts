@@ -4526,6 +4526,9 @@ ${constStatements.join('\n')}
             // redeclaration — same shape as the loadOrderBook drop above. The classifier in
             // build/go-local-types.js types locals from the hand-written signature.
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+SafeNumber(?:2|N|OmitZero)?\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+            // handleMarketTypeAndParams / handleSubTypeAndParams are hand-written in
+            // exchange_market_type.go with a (*string, map[string]any) result pair
+            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+Handle(?:MarketType|SubType)AndParams\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
@@ -5669,7 +5672,10 @@ ${caseStatements.join('\n')}
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
         // F04: the `[]any` retag spells the single space before `{` too
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleOptionStringAndParams|HandleOptionStringAndParams2|HandleOptionBoolAndParams|HandleOptionBoolAndParams2|HandleOptionIntegerAndParams|HandleOptionIntegerAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleSubTypeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleOptionStringAndParams|HandleOptionStringAndParams2|HandleOptionBoolAndParams|HandleOptionBoolAndParams2|HandleOptionIntegerAndParams|HandleOptionIntegerAndParams2|HandleParamString|HandleParamString2|HandleUntilOption|HandleMarginModeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
+            // hand-written base (exchange_market_type.go) returns the pair as two results; the
+            // Okx/Deepcoin overrides only `return super...` so they carry the same results
+            .replace (/func\s+\(this \*(\w+)\)\s+(HandleMarketTypeAndParams|HandleSubTypeAndParams)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (*string, map[string]any) {');
     }
 
     // ------------------------------------------------------------------
