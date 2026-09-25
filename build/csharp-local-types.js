@@ -15904,7 +15904,7 @@ function csharpCorpus () {
     if (csharpCorpusCache !== undefined) {
         return csharpCorpusCache;
     }
-    const table = { 'occurrences': new Map (), 'imports': new Map () };
+    const table = { 'occurrences': new Map (), 'imports': new Map (), 'declarations': new Map (), 'parents': new Map () };
     csharpCorpusCache = table;
     try {
         const root = process.cwd ();
@@ -15932,6 +15932,12 @@ function csharpCorpus () {
                     }
                     files.set (rel, (files.get (rel) ?? 0) + 1);
                 }
+                const declRe = /^\s+(?:(?:public|protected|private|override|async|static)\s+)*([A-Za-z_$][\w$]*)\s*\(/gm;
+                while ((match = declRe.exec (text)) !== null) {
+                    const owners = table.declarations.get (match[1]) ?? new Set ();
+                    owners.add (rel);
+                    table.declarations.set (match[1], owners);
+                }
                 const imports = new Set ();
                 const importRe = /from\s*['"]([^'"]+)['"]/g;
                 while ((match = importRe.exec (text)) !== null) {
@@ -15940,6 +15946,22 @@ function csharpCorpus () {
                     imports.add (base.replace (/\.js$/, '').replace (/\.ts$/, ''));
                 }
                 table.imports.set (rel, imports);
+                // each class's `extends X` resolved through its import to the declaring file
+                const bindings = new Map ();
+                const bindRe = /import\s+(?:\{([^}]*)\}|([A-Za-z_$][\w$]*))\s+from\s*['"](\.[^'"]+)['"]/g;
+                while ((match = bindRe.exec (text)) !== null) {
+                    const target = path.relative (root, path.resolve (path.dirname (full), match[3].replace (/\.js$/, '.ts')));
+                    const names = (match[2] !== undefined) ? [ match[2] ] : match[1].split (',').map ((part) => part.trim ().split (/\s+as\s+/).pop ());
+                    for (const local of names) {
+                        bindings.set (local, target);
+                    }
+                }
+                const parents = new Set ();
+                const extendsRe = /class\s+[A-Za-z_$][\w$]*\s+extends\s+([A-Za-z_$][\w$]*)/g;
+                while ((match = extendsRe.exec (text)) !== null) {
+                    parents.add (bindings.get (match[1]) ?? rel); // unbound: a class of the same file
+                }
+                table.parents.set (rel, parents);
             }
         };
         walk (path.join (root, 'ts/src'));
@@ -16078,10 +16100,37 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
             }
         }
     }
+    // a same-named method in the base tier or a related module (base or subclass) keeps `object`
+    const declared = corpus.declarations.get (name);
+    // the whole class chain counts: an ancestor or a descendant file declaring the name overrides it
+    const ancestors = (start) => {
+        const seen = new Set ();
+        const queue = [ start ];
+        while (queue.length > 0) {
+            for (const parent of corpus.parents.get (queue.pop ()) ?? []) {
+                if (!seen.has (parent)) {
+                    seen.add (parent);
+                    queue.push (parent);
+                }
+            }
+        }
+        return seen;
+    };
+    const declaringChain = ancestors (declaringRel);
+    const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
+        || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
+        || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
+    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type)
+        && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
+        return false;
+    }
     let resolved = 0;
     for (const site of csharpFileCallSitesByName (csharp, declaringFile, name)) {
-        if (site.declarations.indexOf (parameter) < 0) {
-            continue;
+        if (site.declarations.indexOf (owner) < 0) {
+            continue; // a site binding another class's method
+        }
+        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type) {
+            return false; // a called method's non-Dict parameters are not this rule's
         }
         resolved++;
         const argument = site.call.arguments[position];
@@ -16128,7 +16177,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword)
+        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict'))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
