@@ -180,7 +180,7 @@ public partial class hollaex : ccxt.hollaex
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
@@ -472,9 +472,9 @@ public partial class hollaex : ccxt.hollaex
         object data = this.safeValue(message, "data");
         List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
         Int64? timestamp = this.safeTimestamp(message, "time");
-        ((IDictionary<string,object>)this.balance)["info"] = data;
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+        this.balance["info"] = data;
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -482,16 +482,16 @@ public partial class hollaex : ccxt.hollaex
             string? currencyId = this.safeString(parts, 0);
             string? code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            if (((code != null)) && (inOp(this.balance, code)))
+            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
             {
-                account = getValue(this.balance, code);
+                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
             }
             string? second = this.safeString(parts, 1);
             string freeOrTotal = (second == "available") ? "free" : "total";
             ((IDictionary<string,object>)account)[freeOrTotal] = this.safeString(data, key);
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         this.balance = this.safeBalance(this.balance);

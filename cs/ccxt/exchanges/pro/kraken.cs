@@ -631,7 +631,7 @@ public partial class kraken : ccxt.kraken
             { "quoteVolume", quoteVolume },
             { "info", ticker },
         });
-        ((IDictionary<string,object>)this.tickers)[symbol] = result;
+        this.tickers[symbol] = result;
         client.resolve(result, messageHash);
     }
 
@@ -663,7 +663,7 @@ public partial class kraken : ccxt.kraken
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[symbol] = stored;
+            this.trades[symbol] = stored;
         }
         Dictionary<string, object> market = this.market(symbol);
         IList<object> parsed = this.parseTrades(data, market);
@@ -702,20 +702,20 @@ public partial class kraken : ccxt.kraken
         IDictionary<string, object> first = this.safeDict(data, 0);
         string? marketId = this.safeString(first, "symbol");
         string? symbol = this.safeSymbol(marketId);
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
         Int64? interval = this.safeInteger(first, "interval");
         string timeframe = this.findTimeframe(interval);
         string? messageHash = this.getMessageHash("ohlcv", null, symbol);
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         int ohlcvsLength = (data?.Count ?? 0);
         for (int i = 0; i < ohlcvsLength; i++)
@@ -1731,9 +1731,9 @@ public partial class kraken : ccxt.kraken
         Dictionary<string, object> balance = this.safeBalance(result);
         IDictionary<string, object> oldBalance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
         Dictionary<string, object> newBalance = this.deepExtend(oldBalance, balance);
-        ((IDictionary<string,object>)this.balance)[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance(newBalance);
         string? channel = this.safeString(message, "channel");
-        client.resolve(getValue(this.balance, type), channel);
+        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }
 
     public virtual string? getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)

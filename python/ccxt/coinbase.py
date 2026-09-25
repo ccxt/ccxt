@@ -580,8 +580,6 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_accounts_v2(self, params: dict = {}) -> list[Account]:
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchAccounts', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, paramsPaginate, 'next_starting_after', 'starting_after', None, 100)
@@ -648,8 +646,6 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_accounts_v3(self, params: dict = {}) -> list[Account]:
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchAccounts', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, paramsPaginate, 'cursor', 'cursor', None, 250)
@@ -2513,8 +2509,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, paramsPaginate, 'next_starting_after', 'starting_after', None, 100)
@@ -3489,8 +3483,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 1000)
@@ -3645,8 +3637,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 100)
@@ -3668,8 +3658,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchClosedOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 1000)
@@ -3849,8 +3837,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 250)

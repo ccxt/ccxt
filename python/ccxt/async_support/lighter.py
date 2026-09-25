@@ -2375,8 +2375,6 @@ class lighter(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, paramsPaginate, 'cursor', 'cursor', None, 50)
@@ -2474,8 +2472,6 @@ class lighter(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, paramsPaginate, 'cursor', 'cursor', None, 50)
@@ -2533,8 +2529,6 @@ class lighter(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, paramsPaginate, 'cursor', 'cursor', None, 50)
@@ -2700,8 +2694,6 @@ class lighter(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', None, 50)
@@ -3095,9 +3087,15 @@ class lighter(Exchange, ImplicitAPI):
     def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = None
         if api == 'root':
-            url = self.implode_hostname(self.urls['api']['public'])
+            baseApiUrl = self.safe_string(self.urls['api'], 'public')
+            if baseApiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = self.implode_hostname(baseApiUrl)
         else:
-            url = self.implode_hostname(self.urls['api'][api]) + '/api/' + self.version + '/' + path
+            baseApiUrl2 = self.safe_string(self.urls['api'], api)
+            if baseApiUrl2 is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = self.implode_hostname(baseApiUrl2) + '/api/' + self.version + '/' + path
         authHeaders = None
         if api == 'private':
             authHeaders = {

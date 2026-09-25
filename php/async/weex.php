@@ -1658,16 +1658,12 @@ class weex extends Exchange {
             Async\await($this->load_markets());
         }
         $maxHistoricalLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             $paramsExtended = $this->extend($paramsPaginate, array( 'historical' => true ));
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsExtended, $maxHistoricalLimit));
         }
         $until = $this->safe_integer($paramsPaginate, 'until');
-        $historical = false;
-        $paramsHistorical = array();
         list($historical, $paramsHistorical) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchOHLCV', 'historical', false);
         $timeframeOption = $this->safe_dict($this->options, 'timeframes', array());
         $contractTimeframes = $this->safe_dict($timeframeOption, 'contract', array());
@@ -4619,7 +4615,11 @@ class weex extends Exchange {
                 'User-Agent' => 'ccxt',
             );
         }
-        $baseUrl = $this->urls['api'][$api];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $endpoint;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }

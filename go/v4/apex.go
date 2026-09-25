@@ -2548,7 +2548,11 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)) + "/" + path
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url string = this.ImplodeHostname(baseApiUrl) + "/" + path
 	var headersValue map[string]any = map[string]any{
 		"User-Agent":   "apex-CCXT",
 		"Accept":       "application/json",

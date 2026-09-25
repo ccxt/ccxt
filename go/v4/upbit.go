@@ -3047,7 +3047,11 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url string = this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url string = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	})
 	url += "/" + this.Version + "/" + this.ImplodeParams(path, params)

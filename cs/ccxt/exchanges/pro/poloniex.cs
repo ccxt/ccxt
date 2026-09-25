@@ -701,7 +701,7 @@ public partial class poloniex : ccxt.poloniex
         string? timeframe = this.findTimeframe(channel, timeframes);
         string? messageHash = ((string)add(add(channel, "::"), symbol));
         List<object> parsed = this.parseWsOHLCV(data, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = ((timeframe == null)) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if ((symbol != null))
         {
@@ -711,7 +711,7 @@ public partial class poloniex : ccxt.poloniex
                 stored = new ArrayCacheByTimestamp(limit);
                 if ((symbol != null) && (timeframe != null))
                 {
-                    ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
                 }
             }
             callDynamically(stored, "append", new object[] {parsed});
@@ -757,7 +757,7 @@ public partial class poloniex : ccxt.poloniex
                     tradesArray = new ArrayCache(tradesLimit);
                     if ((symbol != null))
                     {
-                        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                        this.trades[(string)symbol] = tradesArray;
                     }
                 }
                 callDynamically(tradesArray, "append", new object[] {trade});
@@ -1154,7 +1154,7 @@ public partial class poloniex : ccxt.poloniex
                 string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                    this.tickers[(string)symbol] = ticker;
                 }
                 if ((symbol != null))
                 {

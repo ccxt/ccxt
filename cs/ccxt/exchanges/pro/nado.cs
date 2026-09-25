@@ -1516,7 +1516,7 @@ public partial class nado : ccxt.nado
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
+            this.trades[(string)symbol] = trades;
         }
         Dictionary<string, object> trade = this.parseWsTrade(message, market);
         trades.append(trade);
@@ -1562,16 +1562,16 @@ public partial class nado : ccxt.nado
         {
             return;
         }
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message, market);
         stored.append(parsed);
@@ -1798,8 +1798,8 @@ public partial class nado : ccxt.nado
         {
             return;
         }
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.bidsasks[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         tickers[(string)symbol] = ticker;
         client.resolve(ticker, ("bidask:" + symbol));
@@ -1856,8 +1856,8 @@ public partial class nado : ccxt.nado
         {
             string? symbol = ((string)symbols[i]);
             object ticker = getValue(tickers, symbol);
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.bidsasks[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             client.resolve(ticker, ("bidask:" + symbol));
             client.resolve(ticker, ("ticker:" + symbol));
         }
@@ -2031,7 +2031,7 @@ public partial class nado : ccxt.nado
             string symbol = ((string)messageHash).Replace("trade:", (string)"");
             if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
             {
-                ((IDictionary<string,object>)this.trades).Remove(symbol);
+                this.trades.Remove(symbol);
             }
         } else if ((((string)messageHash).IndexOf("orderbook:", StringComparison.Ordinal) == 0))
         {
@@ -2054,28 +2054,28 @@ public partial class nado : ccxt.nado
             string symbol = ((string)messageHash).Replace("ticker:", (string)"");
             if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
             {
-                ((IDictionary<string,object>)this.tickers).Remove(symbol);
+                this.tickers.Remove(symbol);
             }
         } else if (isEqual(messageHash, "ticker"))
         {
-            List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+            List<object> symbols = new List<object>(this.tickers.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
-                ((IDictionary<string,object>)this.tickers).Remove((string)symbols[i]);
+                this.tickers.Remove((string)symbols[i]);
             }
         } else if ((((string)messageHash).IndexOf("bidask:", StringComparison.Ordinal) == 0))
         {
             string symbol = ((string)messageHash).Replace("bidask:", (string)"");
             if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
             {
-                ((IDictionary<string,object>)this.bidsasks).Remove(symbol);
+                this.bidsasks.Remove(symbol);
             }
         } else if (isEqual(messageHash, "bidask"))
         {
-            List<object> symbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+            List<object> symbols = new List<object>(this.bidsasks.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
-                ((IDictionary<string,object>)this.bidsasks).Remove((string)symbols[i]);
+                this.bidsasks.Remove((string)symbols[i]);
             }
         } else if ((((string)messageHash).IndexOf("orders", StringComparison.Ordinal) == 0))
         {

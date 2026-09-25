@@ -273,7 +273,7 @@ public partial class extended : ccxt.extended
             this.balance = new Dictionary<string, object>() {};
         }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)this.balance)["info"] = data;
+        this.balance["info"] = data;
         IDictionary<string, object> balance = this.safeDict(data, "balance");
         if ((balance != null))
         {
@@ -284,7 +284,7 @@ public partial class extended : ccxt.extended
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(balance, "availableForWithdrawal");
                 account["total"] = this.safeString(balance, "balance");
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         List<object> spotBalances = this.safeList(data, "spotBalances", new List<object>() {});
@@ -298,12 +298,12 @@ public partial class extended : ccxt.extended
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(spotBalance, "availableToWithdraw");
                 account["total"] = this.safeString(spotBalance, "balance");
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(message, "ts");
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }
@@ -629,7 +629,7 @@ public partial class extended : ccxt.extended
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseWsFundingRate(data, null, message);
         string? symbol = this.safeString(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        this.fundingRates[(string)symbol] = fundingRate;
         string messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
     }
@@ -720,7 +720,7 @@ public partial class extended : ccxt.extended
             { "markPrice", this.safeString(data, "p") },
             { "info", message },
         }, market);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         string messageHash = ("markPrice:" + symbol);
         client.resolve(ticker, messageHash);
     }
@@ -800,7 +800,7 @@ public partial class extended : ccxt.extended
             Int64? defaultLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
@@ -915,14 +915,14 @@ public partial class extended : ccxt.extended
             cacheKey = add(add(timeframe, ":"), candleType);
         }
         string? messageHash = this.safeString(subscription, "messageHash");
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), cacheKey));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), cacheKey));
         if ((stored == null))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)cacheKey)] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)((string)cacheKey)] = stored;
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");

@@ -1217,7 +1217,10 @@ class bitbns(Exchange, ImplicitAPI):
             'X-BITBNS-APIKEY': self.apiKey,
         }
         requestHeaders = apiKeyHeaders if (api != 'www') else headers
-        baseUrl = self.implode_hostname(self.urls['api'][api])
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = self.implode_hostname(baseApiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())

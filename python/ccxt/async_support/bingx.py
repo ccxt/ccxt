@@ -1814,8 +1814,6 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['inverse'] is True:
             raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for inverse swap markets')
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
@@ -1885,8 +1883,6 @@ class bingx(Exchange, ImplicitAPI):
         isInverse = (market['inverse'] is True) if (market is not None) else (subType == 'inverse')
         if isInverse:
             raise NotSupported(self.id + ' fetchFundingHistory() is not supported for inverse swap markets')
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(paramsSubType, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingHistory', symbol, since, limit, '24h', paramsPaginate)

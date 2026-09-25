@@ -107,7 +107,7 @@ public partial class alpaca : ccxt.alpaca
         string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
         }
         client.resolve(ticker, messageHash);
     }
@@ -213,7 +213,7 @@ public partial class alpaca : ccxt.alpaca
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = stored;
+            this.ohlcvs[(string)symbol] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message);
         stored.append(parsed);
@@ -372,7 +372,7 @@ public partial class alpaca : ccxt.alpaca
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseTrade(message);
         stored.append(parsed);

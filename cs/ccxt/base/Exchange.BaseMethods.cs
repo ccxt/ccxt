@@ -7906,7 +7906,7 @@ public partial class BaseExchange
                 {
                     if (inOp(this.trades, symbol))
                     {
-                        ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+                        this.trades.Remove((string)symbol);
                     }
                 } else if (topic == "orderbook")
                 {
@@ -7918,13 +7918,13 @@ public partial class BaseExchange
                 {
                     if (inOp(this.tickers, symbol))
                     {
-                        ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+                        this.tickers.Remove((string)symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
                     if (inOp(this.bidsasks, symbol))
                     {
-                        ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
+                        this.bidsasks.Remove((string)symbol);
                     }
                 }
             }
@@ -7951,24 +7951,24 @@ public partial class BaseExchange
                 }
             } else if ((topic == "ticker" || topic == "markPrice") && ((this.tickers != null)))
             {
-                List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+                List<object> tickerSymbols = new List<object>(this.tickers.Keys);
                 for (int i = 0; i < tickerSymbols.Count; i++)
                 {
                     string? tickerSymbol = ((string)tickerSymbols[i]);
-                    if (inOp(this.tickers, tickerSymbol))
+                    if ((this.tickers != null && tickerSymbol != null && this.tickers.ContainsKey(tickerSymbol)))
                     {
-                        ((IDictionary<string,object>)this.tickers).Remove(tickerSymbol);
+                        this.tickers.Remove(tickerSymbol);
                     }
                 }
             } else if (topic == "bidsasks" && ((this.bidsasks != null)))
             {
-                List<object> bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+                List<object> bidsaskSymbols = new List<object>(this.bidsasks.Keys);
                 for (int i = 0; i < bidsaskSymbols.Count; i++)
                 {
                     string? bidsaskSymbol = ((string)bidsaskSymbols[i]);
-                    if (inOp(this.bidsasks, bidsaskSymbol))
+                    if ((this.bidsasks != null && bidsaskSymbol != null && this.bidsasks.ContainsKey(bidsaskSymbol)))
                     {
-                        ((IDictionary<string,object>)this.bidsasks).Remove(bidsaskSymbol);
+                        this.bidsasks.Remove(bidsaskSymbol);
                     }
                 }
             }

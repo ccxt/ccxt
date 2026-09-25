@@ -213,7 +213,11 @@ class revolutx extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($queryKeys);
-        $baseUrl = $this->urls['api'][$api];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $implodedPath;
         $queryString = '';
         if ($api === 'private') {

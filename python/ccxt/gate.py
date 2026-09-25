@@ -1989,8 +1989,6 @@ class gate(Exchange, ImplicitAPI):
                 marginMode = 'normal'
             if marginMode == 'cross_margin':
                 raise BadRequest(self.id + ' getMarginMode() does not support trigger orders for cross margin')
-        isUnifiedAccount = False
-        paramsUnifiedAccount = {}
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(paramsOmitted, 'getMarginMode', 'unifiedAccount', False)
         if isUnifiedAccount:
             marginMode = 'unified'
@@ -3096,8 +3094,6 @@ class gate(Exchange, ImplicitAPI):
         self.load_unified_status()
         symbol = self.safe_string(params, 'symbol')
         paramsOmitted = self.omit(params, 'symbol')
-        isUnifiedAccount = False
-        paramsUnifiedAccount = {}
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(paramsOmitted, 'fetchBalance', 'unifiedAccount', False)
         type, query = self.handle_market_type_and_params('fetchBalance', None, paramsUnifiedAccount)
         request, requestParams = self.prepare_request(None, type, query)
@@ -3375,8 +3371,6 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)
@@ -3451,8 +3445,6 @@ class gate(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
@@ -3552,8 +3544,6 @@ class gate(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPaginate)
@@ -3711,8 +3701,6 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_unified_status()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
@@ -3997,8 +3985,6 @@ class gate(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, paramsPaginate)
@@ -4033,8 +4019,6 @@ class gate(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, paramsPaginate)
@@ -4661,8 +4645,6 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marketType, paramsMarketType = self.handle_market_type_and_params('editOrder', market, params)
         account = self.convert_type_to_account(marketType)
-        isUnifiedAccount = False
-        paramsUnifiedAccount = {}
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(paramsMarketType, 'editOrder', 'unifiedAccount', False)
         if isUnifiedAccount:
             account = 'unified'
@@ -5215,8 +5197,6 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_unified_status()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             # see https://github.com/ccxt/ccxt/issues/22825
@@ -6502,8 +6482,6 @@ class gate(Exchange, ImplicitAPI):
             'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
-        isUnifiedAccount = False
-        paramsUnifiedAccount = {}
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'repayCrossMargin', 'unifiedAccount', False)
         response: NullableDict
         if isUnifiedAccount:
@@ -6597,8 +6575,6 @@ class gate(Exchange, ImplicitAPI):
             'currency': currency['id'].upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
-        isUnifiedAccount = False
-        paramsUnifiedAccount = {}
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'borrowCrossMargin', 'unifiedAccount', False)
         response: dict
         if isUnifiedAccount:
@@ -6695,8 +6671,6 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_unified_status()
-        isUnifiedAccount = False
-        paramsUnifiedAccount = {}
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'fetchBorrowInterest', 'unifiedAccount', False)
         request = {}
         requestUntil, paramsUntil = self.handle_until_option('to', request, paramsUnifiedAccount)
@@ -7243,8 +7217,6 @@ class gate(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsPaginate)

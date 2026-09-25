@@ -2343,7 +2343,12 @@ public class Zebpay extends ZebpayApi
         {
             marketType = "swap";
         }
-        Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), marketType);
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), marketType);
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = baseApiUrl;
         String tail = ("/api/" + this.implodeParams(path, paramsOmitted));
         url = (url + tail);
         String timestamp = String.valueOf(this.milliseconds());

@@ -844,7 +844,7 @@ public partial class xt : ccxt.xt
             fundingRate["timestamp"] = timestamp;
             fundingRate["datetime"] = this.iso8601(timestamp);
             string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
-            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+            this.fundingRates[(string)symbol] = fundingRate;
             object eventVar = this.safeString(message, "event");
             string? messageHash = ((string)add(eventVar, "::contract"));
             client.resolve(fundingRate, messageHash);
@@ -1021,7 +1021,7 @@ public partial class xt : ccxt.xt
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
             }
             object eventVar = this.safeString(message, "event");
             string messageHashTail = "contract";
@@ -1120,7 +1120,7 @@ public partial class xt : ccxt.xt
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
             }
             newTickers.Add(ticker);
         }
@@ -1196,13 +1196,13 @@ public partial class xt : ccxt.xt
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             IList<object> parsed = this.parseOHLCV(data, market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(parsed);
             object eventVar = this.safeString(message, "event");
@@ -1263,7 +1263,7 @@ public partial class xt : ccxt.xt
             {
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                this.trades[(string)symbol] = tradesArray;
             }
             tradesArray.append(trade);
             string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
@@ -1658,7 +1658,7 @@ public partial class xt : ccxt.xt
         account["total"] = this.safeString2(data, "b", "walletBalance");
         if ((code != null))
         {
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            this.balance[(string)code] = account;
         }
         this.balance = this.safeBalance(this.balance);
         string tradeType = "spot";

@@ -317,15 +317,15 @@ public partial class p2b : ccxt.p2b
         string? symbol = this.safeString(market, "symbol");
         string? messageHash = ((string)add(add(channel, "::"), symbol));
         IList<object> parsed = this.parseOHLCV(data, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        this.ohlcvs[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((symbol != null))
         {
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(parsed);
             client.resolve(stored, messageHash);
@@ -364,7 +364,7 @@ public partial class p2b : ccxt.p2b
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+            this.trades[(string)symbol] = tradesArray;
         }
         for (int i = 0; i < (((IList<object>)(trades))?.Count ?? 0); i++)
         {
@@ -432,7 +432,7 @@ public partial class p2b : ccxt.p2b
             ticker = this.parseTicker(tickerData, market);
         }
         string? symbol = ((string)GetValue(ticker, "symbol"));
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         string? messageHash = ((string)add(add(messageHashStart, "::"), symbol));
         client.resolve(ticker, messageHash);
         return message;

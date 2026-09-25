@@ -2418,7 +2418,11 @@ class upbit extends Exchange {
     }
 
     public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->implode_params($this->urls['api'][$api], array(
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_params($baseApiUrl, array(
             'hostname' => $this->hostname,
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);

@@ -190,7 +190,7 @@ public partial class bitvavo : ccxt.bitvavo
             string? messageHash = ((string)add(add(eventVar, "@"), marketId));
             Dictionary<string, object> ticker = this.parseTicker(data, market);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             result.Add(ticker);
             client.resolve(ticker, messageHash);
         }
@@ -229,7 +229,7 @@ public partial class bitvavo : ccxt.bitvavo
             object data = tickers[i];
             Dictionary<string, object> ticker = this.parseWsBidAsk(data);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((eventVar + ":") + symbol);
             client.resolve(ticker, messageHash);
@@ -308,7 +308,7 @@ public partial class bitvavo : ccxt.bitvavo
             tradesArray = new ArrayCache(limit);
         }
         tradesArray.append(trade);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+        this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
 
@@ -501,13 +501,13 @@ public partial class bitvavo : ccxt.bitvavo
         string? timeframe = this.findTimeframe(interval);
         string messageHash = ((((name + "@") + marketId) + "_") + interval);
         List<object> candles = this.safeList(message, "candle", new List<object>() {});
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        this.ohlcvs[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         for (int i = 0; i < candles.Count; i++)
         {

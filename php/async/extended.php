@@ -1035,8 +1035,6 @@ class extended extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100));
@@ -1110,8 +1108,6 @@ class extended extends Exchange {
          * @return {FundingHistory[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100));
@@ -1383,8 +1379,6 @@ class extended extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000));
@@ -1703,8 +1697,6 @@ class extended extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
          */
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50));
@@ -1801,8 +1793,6 @@ class extended extends Exchange {
          * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransactions', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchTransactions', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50));
@@ -1984,8 +1974,6 @@ class extended extends Exchange {
          * @return {TransferEntry[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50));
@@ -2503,8 +2491,6 @@ class extended extends Exchange {
         if (gettype($symbols) === 'string') {
             $symbolsList = array( $symbols );
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchPositionsHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchPositionsHistory', $symbolsList, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000));
@@ -3389,8 +3375,6 @@ class extended extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         Async\await($this->load_markets());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100));
@@ -3775,7 +3759,11 @@ class extended extends Exchange {
         $endpoint = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryPost = ($path === 'user/deadmanswitch');
-        $url = $this->implode_hostname($this->urls['api']['rest']);
+        $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($baseApiUrl);
         if ($accessibility === 'private') {
             // this.checkRequiredCredentials ();
             if ($this->apiKey === null) {

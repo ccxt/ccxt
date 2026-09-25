@@ -191,7 +191,7 @@ public partial class gemini : ccxt.gemini
             stored = new ArrayCache(tradesLimit);
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
         }
         stored.append(trade);
@@ -249,7 +249,7 @@ public partial class gemini : ccxt.gemini
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
             for (int i = 0; i < trades.Count; i++)
             {
@@ -279,7 +279,7 @@ public partial class gemini : ccxt.gemini
                 if ((stored == null))
                 {
                     stored = new ArrayCache(tradesLimit);
-                    ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                    this.trades[(string)symbol] = stored;
                 }
                 stored.append(trade);
                 storesForSymbols[(string)symbol] = stored;
@@ -380,7 +380,7 @@ public partial class gemini : ccxt.gemini
         IDictionary<string, object> ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
         if ((ohlcvsBySymbol == null))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
@@ -389,7 +389,7 @@ public partial class gemini : ccxt.gemini
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
         int changesLength = changes.Count;
@@ -548,12 +548,12 @@ public partial class gemini : ccxt.gemini
         object marketId = getValue(getValue(rawBidAskChanges, 0), "symbol");
         Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(inOp(this.bidsasks, symbol)))
+        if (!((this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)getValue(this.bidsasks, symbol))["symbol"] = symbol;
+            this.bidsasks[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)(this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null))["symbol"] = symbol;
         }
-        object currentBidAsk = getValue(this.bidsasks, symbol);
+        object currentBidAsk = (this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null);
         string messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
         for (int i = 0; i < getArrayLength(rawBidAskChanges); i++)
@@ -582,7 +582,7 @@ public partial class gemini : ccxt.gemini
         ((IDictionary<string,object>)currentBidAsk)["info"] = rawBidAskChanges;
         Dictionary<string, object> bidsAsksDict = new Dictionary<string, object>() {};
         bidsAsksDict[(string)symbol] = currentBidAsk;
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = currentBidAsk;
+        this.bidsasks[(string)symbol] = currentBidAsk;
         client.resolve(bidsAsksDict, messageHash);
     }
 

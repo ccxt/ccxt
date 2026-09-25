@@ -1199,16 +1199,14 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 100
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchTrades", since, paramsPaginate)
 
-		var retRes98319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, paramsPagination, maxLimit))))
-		ch <- BoxAbsent(retRes98319)
+		var retRes98119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, paramsPagination, maxLimit))))
+		ch <- BoxAbsent(retRes98119)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1290,16 +1288,14 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw))
 	} else {
-		var paginate bool = false
-		var paramsPaginate map[string]any = map[string]any{}
 		var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-		paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-		paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+		var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+		var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 		if paginate {
 			var paramsPagination any = this.HandlePaginationParams("fetchMyTrades", since, paramsPaginate)
 
-			var retRes104823 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPagination, 100))))
-			ch <- BoxAbsent(retRes104823)
+			var retRes104423 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPagination, 100))))
+			ch <- BoxAbsent(retRes104423)
 			return nil
 		}
 		var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsPaginate)
@@ -1375,8 +1371,8 @@ func (this *Bullish) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 		}, params)
 	}
 
-	var retRes110115 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, paramsExtended))))
-	ch <- BoxAbsent(retRes110115)
+	var retRes109715 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, paramsExtended))))
+	ch <- BoxAbsent(retRes109715)
 	return nil
 }
 func (this *Bullish) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1667,20 +1663,20 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
 				// try block:
 				if IsEqual(method, "fetchOHLCV") {
 
-					var retRes133127 []any = ListTyped(PanicOnError((<-this.FetchOHLCVAsync(symbol, timeframe, since, limit, paramsOmitted))))
-					ch <- BoxAbsent(retRes133127)
+					var retRes132727 []any = ListTyped(PanicOnError((<-this.FetchOHLCVAsync(symbol, timeframe, since, limit, paramsOmitted))))
+					ch <- BoxAbsent(retRes132727)
 					chSent = true
 					return nil
 				} else if IsEqual(method, "fetchFundingRateHistory") {
 
-					var retRes133327 []any = ListTyped(PanicOnError((<-this.FetchFundingRateHistoryAsync(symbol, since, limit, paramsOmitted))))
-					ch <- BoxAbsent(retRes133327)
+					var retRes132927 []any = ListTyped(PanicOnError((<-this.FetchFundingRateHistoryAsync(symbol, since, limit, paramsOmitted))))
+					ch <- BoxAbsent(retRes132927)
 					chSent = true
 					return nil
 				} else {
 
-					var retRes133527 []any = ListTyped(PanicOnError((<-this.FetchTradesAsync(symbol, since, limit, paramsOmitted))))
-					ch <- BoxAbsent(retRes133527)
+					var retRes133127 []any = ListTyped(PanicOnError((<-this.FetchTradesAsync(symbol, since, limit, paramsOmitted))))
+					ch <- BoxAbsent(retRes133127)
 					chSent = true
 					return nil
 				}
@@ -1733,15 +1729,13 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = this.Market(symbol)
 	var maxLimit int = 100
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes137419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes137419)
+		var retRes136819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes136819)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1829,16 +1823,14 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 100
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchFundingRateHistory", since, paramsPaginate)
 
-		var retRes145119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit))))
-		ch <- BoxAbsent(retRes145119)
+		var retRes144319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit))))
+		ch <- BoxAbsent(retRes144319)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1932,8 +1924,8 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if paginate != nil && *paginate == true {
 		var paramsPagination any = this.HandlePaginationParams("fetchOrders", since, params)
 
-		var retRes151819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPagination, 100))))
-		ch <- BoxAbsent(retRes151819)
+		var retRes151019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPagination, 100))))
+		ch <- BoxAbsent(retRes151019)
 		return nil
 	}
 	var market map[string]any = nil
@@ -2100,8 +2092,8 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "OPEN",
 	}
 
-	var retRes164715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes164715)
+	var retRes163915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes163915)
 	return nil
 }
 
@@ -2138,8 +2130,8 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 		"method": "privateGetV2Orders",
 	}
 
-	var retRes166715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes166715)
+	var retRes165915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes165915)
 	return nil
 }
 
@@ -2176,8 +2168,8 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"method": "privateGetV2Orders",
 	}
 
-	var retRes168715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes168715)
+	var retRes167915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes167915)
 	return nil
 }
 
@@ -2214,8 +2206,8 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 		"method": "privateGetV2HistoryOrders",
 	}
 
-	var retRes170715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes170715)
+	var retRes169915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes169915)
 	return nil
 }
 
@@ -3402,16 +3394,14 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var maxLimit int = 100
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchTransfers", since, paramsPaginate)
 
-		var retRes266919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPagination, maxLimit))))
-		ch <- BoxAbsent(retRes266919)
+		var retRes265919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPagination, maxLimit))))
+		ch <- BoxAbsent(retRes265919)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3425,7 +3415,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	// since and until are mandatory for this endpoint, set until to now if both are undefined
 	var untilMissing bool = (since == nil) && (until == nil)
-	var paramsUntil map[string]any = paramsPaginate
+	var paramsUntil any = paramsPaginate
 	if untilMissing {
 		paramsUntil = this.Extend(paramsPaginate, map[string]any{
 			"until": this.Milliseconds(),

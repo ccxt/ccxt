@@ -1004,8 +1004,6 @@ class bullish extends Exchange {
             Async\await($this->load_markets());
         }
         $maxLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             $paramsPagination = $this->handle_pagination_params('fetchTrades', $since, $paramsPaginate);
@@ -1072,8 +1070,6 @@ class bullish extends Exchange {
         if ($clientOrderId !== null) {
             $response = Async\await($this->privateGetV1TradesClientOrderIdClientOrderId($this->extend($request, $params)));
         } else {
-            $paginate = false;
-            $paramsPaginate = array();
             list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
             if ($paginate) {
                 $paramsPagination = $this->handle_pagination_params('fetchMyTrades', $since, $paramsPaginate);
@@ -1415,8 +1411,6 @@ class bullish extends Exchange {
         }
         $market = $this->market($symbol);
         $maxLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
@@ -1495,8 +1489,6 @@ class bullish extends Exchange {
             Async\await($this->load_markets());
         }
         $maxLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             $paramsPagination = $this->handle_pagination_params('fetchFundingRateHistory', $since, $paramsPaginate);
@@ -2785,8 +2777,6 @@ class bullish extends Exchange {
         Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
         $tradingAccountId = Async\await($this->load_account($params));
         $maxLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             $paramsPagination = $this->handle_pagination_params('fetchTransfers', $since, $paramsPaginate);

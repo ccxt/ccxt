@@ -1807,7 +1807,7 @@ public partial class binance : ccxt.binance
             tradesArray = new ArrayCache(limit);
         }
         tradesArray.append(trade);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+        this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
 
@@ -2165,7 +2165,7 @@ public partial class binance : ccxt.binance
         }
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe));
         if ((stored == null))
         {
@@ -2173,7 +2173,7 @@ public partial class binance : ccxt.binance
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (unifiedTimeframe != null))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -3141,13 +3141,13 @@ public partial class binance : ccxt.binance
             {
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+                    this.bidsasks[(string)symbol] = parsedTicker;
                 }
             } else
             {
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
+                    this.tickers[(string)symbol] = parsedTicker;
                 }
             }
             object messageHash = add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol);
@@ -3717,7 +3717,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
+            this.balance[(string)type] = new Dictionary<string, object>() {};
         }
     }
 
@@ -3731,7 +3731,7 @@ public partial class binance : ccxt.binance
             parameters["portfolioMargin"] = true;
         }
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
+        this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -4130,7 +4130,7 @@ public partial class binance : ccxt.binance
         string? messageHash = ((string)add(accountType, ":balance"));
         if (isEqual(getValue(this.balance, accountType), null))
         {
-            ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
+            this.balance[(string)accountType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
         string? eventVar = this.safeString(message, "e");
@@ -4183,7 +4183,7 @@ public partial class binance : ccxt.binance
         Int64? timestamp = this.safeInteger(balanceMessage, "E");
         ((IDictionary<string,object>)getValue(this.balance, accountType))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, accountType))["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)[(string)accountType] = this.safeBalance(getValue(this.balance, accountType));
+        this.balance[(string)accountType] = this.safeBalance(getValue(this.balance, accountType));
         client.resolve(getValue(this.balance, accountType), messageHash);
     }
 
@@ -5494,7 +5494,7 @@ public partial class binance : ccxt.binance
                 { "previousClose", this.safeString(rate, "pc") },
                 { "info", rate },
             });
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+            this.tickers[(string)symbol] = parsed;
             tickers[(string)symbol] = parsed;
             client.resolve(parsed, ("stock:price:" + symbol));
         }
@@ -5520,7 +5520,7 @@ public partial class binance : ccxt.binance
             { "askVolume", this.safeString(message, "as") },
             { "info", message },
         });
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsed;
+        this.bidsasks[(string)symbol] = parsed;
         client.resolve(parsed, ("stock:quote:" + symbol));
     }
 
@@ -6376,11 +6376,11 @@ public partial class binance : ccxt.binance
         //
         // --- balance ---
         string accountType = "option";
-        if (isEqual(getValue(this.balance, accountType), null))
+        if (isEqual((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), null))
         {
-            ((IDictionary<string,object>)this.balance)[accountType] = new Dictionary<string, object>() {};
+            this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         List<object> B = this.safeList(message, "B", new List<object>() {});
         for (int i = 0; i < B.Count; i++)
         {
@@ -6391,14 +6391,14 @@ public partial class binance : ccxt.binance
             {
                 Dictionary<string, object> account = this.account();
                 account["total"] = this.safeString(entry, "b");
-                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(message, "E");
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)[accountType] = this.safeBalance(getValue(this.balance, accountType));
-        client.resolve(getValue(this.balance, accountType), (accountType + ":balance"));
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), (accountType + ":balance"));
         // --- positions ---
         if ((this.positions == null))
         {

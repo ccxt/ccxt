@@ -4594,7 +4594,11 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var host string = this.ImplodeHostname(GetValue(GetValue(this.Urls, urlKey), api))
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, urlKey), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var host string = this.ImplodeHostname(baseApiUrl)
 	var url string = host + "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var paramsLen int = len(ObjectKeys(paramsOmitted))

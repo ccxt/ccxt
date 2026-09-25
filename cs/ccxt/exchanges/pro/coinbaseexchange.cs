@@ -504,7 +504,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 tradesArray = new ArrayCache(tradesLimit);
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                    this.trades[(string)symbol] = tradesArray;
                 }
             }
             tradesArray.append(trade);
@@ -918,7 +918,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
             }
             string messageHash = ("ticker:" + symbol);
             string idMessageHash = ("ticker:" + marketId);

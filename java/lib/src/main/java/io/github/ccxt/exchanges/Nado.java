@@ -3583,7 +3583,12 @@ public class Nado extends NadoApi
         {
             endpoint = api;
         }
-        String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), endpoint);
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), endpoint);
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = baseApiUrl;
         if (!java.util.Objects.equals(path, ""))
         {
             url = (url + ("/" + this.implodeParams(path, parameters)));

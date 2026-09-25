@@ -2909,11 +2909,9 @@ public class Gate extends GateApi
                 throw new BadRequest((this.id + " getMarginMode() does not support trigger orders for cross margin")) ;
             }
         }
-        Boolean isUnifiedAccount = false;
-        Object paramsUnifiedAccount = new HashMap<String, Object>() {{}};
         List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "getMarginMode", "unifiedAccount", false);
-        isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
-        paramsUnifiedAccount = ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
+        Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
+        Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
         if (Boolean.TRUE.equals(isUnifiedAccount))
         {
             marginMode = "unified";
@@ -4292,11 +4290,9 @@ public class Gate extends GateApi
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             String symbol = this.safeString(parameters, "symbol");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "symbol");
-            Boolean isUnifiedAccount = false;
-            Object paramsUnifiedAccount = new HashMap<String, Object>() {{}};
             List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "fetchBalance", "unifiedAccount", false);
-            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
-            paramsUnifiedAccount = ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
+            Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
+            Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsUnifiedAccount), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
@@ -4614,11 +4610,9 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1000L)).join();
@@ -4740,11 +4734,9 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
@@ -4857,11 +4849,9 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
@@ -5056,11 +5046,9 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
@@ -5395,11 +5383,9 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
@@ -5452,11 +5438,9 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
@@ -6273,11 +6257,9 @@ public class Gate extends GateApi
         String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
         Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
         Object account = this.convertTypeToAccount(marketType);
-        Boolean isUnifiedAccount = false;
-        Object paramsUnifiedAccount = new HashMap<String, Object>() {{}};
         List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false);
-        isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
-        paramsUnifiedAccount = ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
+        Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
+        Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
         if (Boolean.TRUE.equals(isUnifiedAccount))
         {
             account = "unified";
@@ -6955,11 +6937,9 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 // see https://github.com/ccxt/ccxt/issues/22825
@@ -8590,11 +8570,9 @@ public class Gate extends GateApi
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
-            Boolean isUnifiedAccount = false;
-            Object paramsUnifiedAccount = new HashMap<String, Object>() {{}};
             List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "repayCrossMargin", "unifiedAccount", false);
-            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
-            paramsUnifiedAccount = ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
+            Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
+            Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
@@ -8692,11 +8670,9 @@ public class Gate extends GateApi
                 put( "currency", ((String)((Map<String, Object>)currency).get("id")).toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
-            Boolean isUnifiedAccount = false;
-            Object paramsUnifiedAccount = new HashMap<String, Object>() {{}};
             List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "borrowCrossMargin", "unifiedAccount", false);
-            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
-            paramsUnifiedAccount = ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
+            Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
+            Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
@@ -8794,11 +8770,9 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-            Boolean isUnifiedAccount = false;
-            Object paramsUnifiedAccount = new HashMap<String, Object>() {{}};
             List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "unifiedAccount", false);
-            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
-            paramsUnifiedAccount = ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
+            Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
+            Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (paramsUnifiedAccount), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
@@ -9523,11 +9497,9 @@ public class Gate extends GateApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();

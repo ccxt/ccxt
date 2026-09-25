@@ -480,7 +480,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         int dataLength = data.Count;
@@ -688,7 +688,7 @@ public partial class cryptocom : ccxt.cryptocom
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+                this.tickers[(string)symbol] = parsed;
             }
             client.resolve(parsed, messageHash);
         }
@@ -795,7 +795,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+            this.bidsasks[(string)symbol] = parsedTicker;
         }
         string messageHash = ("bidask." + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -900,7 +900,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(message, "interval");
         string? timeframe = this.findTimeframe(interval);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
@@ -908,7 +908,7 @@ public partial class cryptocom : ccxt.cryptocom
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
         List<object> data = ((List<object>)this.safeValue(message, "data"));
@@ -1233,7 +1233,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? messageHash = this.safeString(message, "subscription");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         List<object> positionBalances = this.safeList((data != null && 0 < data.Count ? data[0] : null), "position_balances", new List<object>() {});
-        ((IDictionary<string,object>)this.balance)["info"] = data;
+        this.balance["info"] = data;
         for (int i = 0; i < positionBalances.Count; i++)
         {
             IDictionary<string, object> balance = this.safeDict(positionBalances, i);
@@ -1244,7 +1244,7 @@ public partial class cryptocom : ccxt.cryptocom
             account["used"] = this.safeString(balance, "reserved_qty");
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
             this.balance = this.safeBalance(this.balance);
         }

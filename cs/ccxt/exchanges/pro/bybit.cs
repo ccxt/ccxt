@@ -668,9 +668,9 @@ public partial class bybit : ccxt.bybit
         Int64? timestamp = this.safeInteger(message, "ts");
         parsed["timestamp"] = timestamp;
         parsed["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        this.tickers[(string)symbol] = parsed;
         string messageHash = ("ticker:" + symbol);
-        client.resolve(getValue(this.tickers, symbol), messageHash);
+        client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
     /**
@@ -907,14 +907,14 @@ public partial class bybit : ccxt.bybit
         IDictionary<string, object> ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
         if ((ohlcvsByTimeframe == null))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
         if (isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         for (int i = 0; i < getArrayLength(data); i++)
         {
             List<object> parsed = this.parseWsOHLCV(getValue(data, i), market);
@@ -1160,7 +1160,7 @@ public partial class bybit : ccxt.bybit
             Dictionary<string, object> bidask = this.parseWsBidAsk(this.getOrderBook(this.orderbooks, symbol), market);
             Dictionary<string, object> newBidsAsks = new Dictionary<string, object>() {};
             newBidsAsks[(string)symbol] = bidask;
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = bidask;
+            this.bidsasks[(string)symbol] = bidask;
             client.resolve(newBidsAsks, ("bidask:" + symbol));
         }
     }
@@ -1332,7 +1332,7 @@ public partial class bybit : ccxt.bybit
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         for (int j = 0; j < getArrayLength(trades); j++)
         {
@@ -2542,21 +2542,21 @@ public partial class bybit : ccxt.bybit
         {
             if ((this.safeDict(this.balance, account) == null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)account] = new Dictionary<string, object>() {};
+                this.balance[(string)account] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)getValue(this.balance, account))["info"] = info;
+            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["info"] = info;
             Int64? timestamp = this.safeInteger(message, "ts");
-            ((IDictionary<string,object>)getValue(this.balance, account))["timestamp"] = timestamp;
-            ((IDictionary<string,object>)getValue(this.balance, account))["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)this.balance)[(string)account] = this.safeBalance(getValue(this.balance, account));
+            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["timestamp"] = timestamp;
+            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["datetime"] = this.iso8601(timestamp);
+            this.balance[(string)account] = this.safeBalance((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null));
             messageHash = ("balances:" + account);
-            client.resolve(getValue(this.balance, account), messageHash);
+            client.resolve((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null), messageHash);
         } else
         {
-            ((IDictionary<string,object>)this.balance)["info"] = info;
+            this.balance["info"] = info;
             Int64? timestamp = this.safeInteger(message, "ts");
-            ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+            this.balance["timestamp"] = timestamp;
+            this.balance["datetime"] = this.iso8601(timestamp);
             this.balance = this.safeBalance(this.balance);
             messageHash = "balances";
             client.resolve(this.balance, messageHash);
@@ -2615,7 +2615,7 @@ public partial class bybit : ccxt.bybit
         {
             if ((this.safeDict(this.balance, accountType) == null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
+                this.balance[(string)accountType] = new Dictionary<string, object>() {};
             }
             if (((accountType != null)) && ((code != null)))
             {
@@ -2625,7 +2625,7 @@ public partial class bybit : ccxt.bybit
         {
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
     }

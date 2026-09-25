@@ -844,18 +844,22 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), "rest")
-	var url any = Add(Add(Add(Add(baseUrl, "/"), this.Version), "/"), this.ImplodeParams(path, params))
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = baseApiUrl
+	var url string = *baseUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		// paymium requires an increasing nonce
 		var nonce string = ToString(this.IncrementingNonce())
-		var auth any = Add(nonce, url)
+		var auth any = nonce + url
 		var signedHeaders map[string]any = map[string]any{
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
@@ -874,7 +878,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 			if hasQuery {
 				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
-				url = Add(url, "?"+queryString)
+				url += "?" + queryString
 			}
 		}
 		signedHeaders["Api-Signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)

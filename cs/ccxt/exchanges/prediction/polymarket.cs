@@ -3820,7 +3820,7 @@ public partial class polymarket : PredictionExchange
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)outcome] = stored;
+            this.trades[(string)outcome] = stored;
         }
         stored.append(trade);
         client.resolve(stored, ("trades::" + outcome));

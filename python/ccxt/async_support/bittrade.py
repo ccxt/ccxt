@@ -1981,7 +1981,10 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        url = self.implode_params(self.urls['api'][api], {
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_params(baseApiUrl, {
             'hostname': self.hostname,
         }) + url
         headersResult = requestHeaders if (requestHeaders is not None) else headers

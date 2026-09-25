@@ -500,7 +500,7 @@ public partial class woo : ccxt.woo
         ((IDictionary<string,object>)data)["date"] = timestamp;
         Dictionary<string, object> ticker = this.parseWsTicker(data, market);
         ticker["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         client.resolve(ticker, topic);
         return message;
     }
@@ -600,7 +600,7 @@ public partial class woo : ccxt.woo
             Dictionary<string, object> ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
-            ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+            this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
             result.Add(ticker);
         }
         client.resolve(result, topic);
@@ -696,7 +696,7 @@ public partial class woo : ccxt.woo
             string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+                this.bidsasks[(string)symbol] = parsedTicker;
             }
             if ((symbol != null))
             {
@@ -824,7 +824,7 @@ public partial class woo : ccxt.woo
         string? interval = this.safeString(data, "type");
         string? timeframe = this.findTimeframe(interval);
         List<object> parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
@@ -832,7 +832,7 @@ public partial class woo : ccxt.woo
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -927,7 +927,7 @@ public partial class woo : ccxt.woo
             tradesArray = new ArrayCache(limit);
         }
         tradesArray.append(trade);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+        this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, topic);
     }
 
@@ -1651,18 +1651,18 @@ public partial class woo : ccxt.woo
         object balances = this.safeValue(data, "balances");
         List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
         Int64? ts = this.safeInteger(message, "ts");
-        ((IDictionary<string,object>)this.balance)["info"] = data;
-        ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
+        this.balance["info"] = data;
+        this.balance["timestamp"] = ts;
+        this.balance["datetime"] = this.iso8601(ts);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
-            if (((code != null)) && (inOp(this.balance, code)))
+            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
             {
-                account = getValue(this.balance, code);
+                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
             }
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");
@@ -1671,7 +1671,7 @@ public partial class woo : ccxt.woo
             ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -1722,7 +1722,7 @@ public partial class woo : ccxt.woo
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+            this.fundingRates[(string)symbol] = fundingRate;
         }
         string? messageHash = this.safeString(message, "topic");
         client.resolve(fundingRate, messageHash);

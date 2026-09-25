@@ -1087,20 +1087,24 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), "rest")
-	var url any = Add(baseUrl, "/")
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = baseApiUrl
+	var url string = *baseUrl + "/"
 	if IsEqual(api, "public") {
-		url = Add(url, "api/"+this.Version+"/"+this.ImplodeParams(path, params))
+		url += "api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else if IsEqual(api, "fapi") {
-		url = Add(url, "fapi/"+this.Version+"/"+this.ImplodeParams(path, params))
+		url += "fapi/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else {
 		this.CheckRequiredCredentials()
 		if IsEqual(api, "ecapi") {
-			url = Add(url, "ecapi")
+			url += "ecapi"
 		} else if IsEqual(api, "tlapi") {
-			url = Add(url, "tlapi")
+			url += "tlapi"
 		} else {
-			url = Add(url, "tapi")
+			url += "tapi"
 		}
 		var nonce any = this.CustomNonce()
 		var bodyEncoded string = this.Urlencode(this.Extend(map[string]any{

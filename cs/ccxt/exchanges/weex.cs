@@ -1806,12 +1806,10 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         int maxHistoricalLimit = 100;
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             Dictionary<string, object> paramsExtended = this.extend(paramsPaginate, new Dictionary<string, object>() {
                 { "historical", true },
@@ -1819,11 +1817,9 @@ public partial class weex : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsExtended, maxHistoricalLimit));
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        bool? historical = false;
-        object paramsHistorical = new Dictionary<string, object>() {};
         IList<object> historicalparamsHistoricalVariable = (IList<object>)this.handleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false);
-        historical = (bool?)historicalparamsHistoricalVariable[0];
-        paramsHistorical = historicalparamsHistoricalVariable[1];
+        bool? historical = (bool?)historicalparamsHistoricalVariable[0];
+        var paramsHistorical = historicalparamsHistoricalVariable[1];
         IDictionary<string, object> timeframeOption = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> contractTimeframes = this.safeDict(timeframeOption, "contract", new Dictionary<string, object>() {});
         Dictionary<string, object> market = this.market(symbol);
@@ -1836,7 +1832,7 @@ public partial class weex : Exchange
         List<object> response = null;
         // hardcap threshold
         object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
-        if ((historical == true))
+        if (isTrue(historical))
         {
             if ((priceType != null))
             {
@@ -5059,8 +5055,13 @@ public partial class weex : Exchange
                 { "User-Agent", "ccxt" },
             };
         }
-        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
-        object url = add(add(baseUrl, "/"), endpoint);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object baseUrl = baseApiUrl;
+        string? url = ((string)add(add(baseUrl, "/"), endpoint));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

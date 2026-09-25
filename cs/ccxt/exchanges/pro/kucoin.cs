@@ -699,7 +699,7 @@ public partial class kucoin : ccxt.kucoin
             IDictionary<string, object> rawTicker = this.safeDict(data, "data", data);
             IDictionary<string, object> ticker = ((IDictionary<string, object>)this.parseSpotOrUtaTicker(rawTicker, market));
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             string messageHash = ("ticker:" + symbol);
             client.resolve(ticker, messageHash);
             // watchTickers
@@ -739,7 +739,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         Dictionary<string, object> ticker = this.parseTicker(data, market);
-        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         client.resolve(ticker, messageHash);
     }
@@ -782,7 +782,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> ticker = this.parseWsUtaTicker(data, market);
-        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         string messageHash = ("uta:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         client.resolve(ticker, messageHash);
     }
@@ -923,7 +923,7 @@ public partial class kucoin : ccxt.kucoin
         //
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(message);
         string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        this.bidsasks[(string)symbol] = parsedTicker;
         string messageHash = ("bidask@" + symbol);
         client.resolve(parsedTicker, messageHash);
     }
@@ -1152,13 +1152,13 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         bool isContractMarket = (topic.IndexOf("contractMarket", StringComparison.Ordinal) >= 0);
         int baseVolumeIndex = 5;
@@ -1199,13 +1199,13 @@ public partial class kucoin : ccxt.kucoin
         string? interval = this.safeString(data, "i");
         string? timeframe = this.findTimeframe(interval);
         string messageHash = ((("uta:candles:" + symbol) + ":") + timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         List<object> parsed = new List<object> {this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         stored.append(parsed);
@@ -1429,9 +1429,9 @@ public partial class kucoin : ccxt.kucoin
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -1463,9 +1463,9 @@ public partial class kucoin : ccxt.kucoin
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -2124,7 +2124,7 @@ public partial class kucoin : ccxt.kucoin
                     object symbol = symbols[i];
                     if (inOp(this.fundingRates, symbol))
                     {
-                        ((IDictionary<string,object>)this.fundingRates).Remove((string)symbol);
+                        this.fundingRates.Remove((string)symbol);
                     }
                 }
             } else
@@ -2995,7 +2995,7 @@ public partial class kucoin : ccxt.kucoin
             }
         } else
         {
-            ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
+            this.balance[(string)type] = new Dictionary<string, object>() {};
         }
     }
 
@@ -3007,7 +3007,7 @@ public partial class kucoin : ccxt.kucoin
             { "uta", uta },
         };
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
+        this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -3102,14 +3102,14 @@ public partial class kucoin : ccxt.kucoin
         }
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType");
         string uniformType = this.safeString(accountsByType, requestAccountType, "trade");
-        if (!(inOp(this.balance, uniformType)))
+        if (!((this.balance != null && this.balance.ContainsKey(uniformType))))
         {
-            ((IDictionary<string,object>)this.balance)[uniformType] = new Dictionary<string, object>() {};
+            this.balance[uniformType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, uniformType))["info"] = data;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["info"] = data;
         Int64? timestamp = this.safeInteger2(data, "time", "timestamp");
-        ((IDictionary<string,object>)getValue(this.balance, uniformType))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, uniformType))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["datetime"] = this.iso8601(timestamp);
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
         string? used = this.safeString2(data, "hold", "holdBalance");
@@ -3123,11 +3123,11 @@ public partial class kucoin : ccxt.kucoin
         account["total"] = this.safeString(data, "total");
         if (((uniformType != null)) && ((code != null)))
         {
-            ((IDictionary<string,object>)getValue(this.balance, uniformType))[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))[(string)code] = account;
         }
-        ((IDictionary<string,object>)this.balance)[uniformType] = this.safeBalance(getValue(this.balance, uniformType));
+        this.balance[uniformType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null));
         string messageHash = (uniformType + ":balance");
-        client.resolve(getValue(this.balance, uniformType), messageHash);
+        client.resolve((this.balance != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null), messageHash);
     }
 
     public virtual void handleUtaBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -3151,25 +3151,25 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(data, "c");
         string? code = this.safeCurrencyCode(currencyId);
-        if (!(inOp(this.balance, type)))
+        if (!((this.balance != null && this.balance.ContainsKey(type))))
         {
-            ((IDictionary<string,object>)this.balance)[type] = new Dictionary<string, object>() {};
+            this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
         Int64? timestamp = this.safeIntegerProduct(data, "U", 0.000001);
-        ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
         Dictionary<string, object> account = this.account();
         account["free"] = this.safeString(data, "a");
         account["used"] = this.safeString(data, "h");
         account["total"] = this.safeString(data, "b");
         if ((code != null))
         {
-            ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
         }
-        ((IDictionary<string,object>)this.balance)[type] = this.safeBalance(getValue(this.balance, type));
+        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
         string messageHash = (type + ":balance");
-        client.resolve(getValue(this.balance, type), messageHash);
+        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }
 
     /**
@@ -3672,7 +3672,7 @@ public partial class kucoin : ccxt.kucoin
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+            this.fundingRates[(string)symbol] = fundingRate;
         }
         string messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);

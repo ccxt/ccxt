@@ -198,7 +198,7 @@ public partial class mexc : ccxt.mexc
         {
             return;
         }
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         string messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
     }
@@ -343,7 +343,7 @@ public partial class mexc : ccxt.mexc
             string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
             }
             result.Add(ticker);
             string messageHash = ("ticker:" + symbol);
@@ -490,7 +490,7 @@ public partial class mexc : ccxt.mexc
         {
             return;
         }
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        this.bidsasks[(string)symbol] = parsedTicker;
         string messageHash = ("bidask:" + symbol);
         client.resolve(parsedTicker, messageHash);
     }
@@ -723,7 +723,7 @@ public partial class mexc : ccxt.mexc
         }
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
         IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = symbolOhlcvs;
+        this.ohlcvs[(string)symbol] = symbolOhlcvs;
         object stored = this.safeValue(symbolOhlcvs, timeframe);
         if ((stored == null))
         {
@@ -1136,7 +1136,7 @@ public partial class mexc : ccxt.mexc
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         IDictionary<string, object> d = this.safeDictN(message, new List<object>() {"d", "publicAggreDeals"});
         List<object> trades = this.safeList2(d, "deals", "dealsList", new List<object>() {d});
@@ -1756,13 +1756,13 @@ public partial class mexc : ccxt.mexc
         IDictionary<string, object> data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
         Int64? futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
         Int64? timestamp = this.safeInteger2(data, "time", futuresTimestamp);
-        if (!(inOp(this.balance, type)))
+        if (!((this.balance != null && this.balance.ContainsKey(type))))
         {
-            ((IDictionary<string,object>)this.balance)[type] = new Dictionary<string, object>() {};
+            this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
-        ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
         string? currencyId = this.safeString2(data, "currency", "vcoinName");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
@@ -1770,10 +1770,10 @@ public partial class mexc : ccxt.mexc
         account["used"] = this.safeString2(data, "frozenBalance", "frozenAmount");
         if ((code != null))
         {
-            ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
         }
-        ((IDictionary<string,object>)this.balance)[type] = this.safeBalance(getValue(this.balance, type));
-        client.resolve(getValue(this.balance, type), messageHash);
+        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }
 
     /**
@@ -1850,7 +1850,7 @@ public partial class mexc : ccxt.mexc
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+            this.fundingRates[(string)symbol] = fundingRate;
         }
         string messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
@@ -2132,21 +2132,21 @@ public partial class mexc : ccxt.mexc
                 if (((string)symbol).IndexOf("unsubscribe", StringComparison.Ordinal) >= 0)
                 {
                     // unWatchTickers
-                    List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+                    List<object> symbols = new List<object>(this.tickers.Keys);
                     for (int j = 0; j < symbols.Count; j++)
                     {
-                        ((IDictionary<string,object>)this.tickers).Remove((string)symbols[j]);
+                        this.tickers.Remove((string)symbols[j]);
                     }
                 } else if (inOp(this.tickers, symbol))
                 {
-                    ((IDictionary<string,object>)this.tickers).Remove(symbol);
+                    this.tickers.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
                 if (inOp(this.bidsasks, symbol))
                 {
-                    ((IDictionary<string,object>)this.bidsasks).Remove(symbol);
+                    this.bidsasks.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "candles") >= 0)
             {
@@ -2159,7 +2159,7 @@ public partial class mexc : ccxt.mexc
                 }
                 if (((symbol != null)) && (inOp(this.ohlcvs, symbol)))
                 {
-                    ((IDictionary<string,object>)this.ohlcvs).Remove((string)symbol);
+                    this.ohlcvs.Remove((string)symbol);
                 }
             } else if (getIndexOf(messageHash, "orderbook") >= 0)
             {
@@ -2173,14 +2173,14 @@ public partial class mexc : ccxt.mexc
                 string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
                 if (inOp(this.trades, symbol))
                 {
-                    ((IDictionary<string,object>)this.trades).Remove(symbol);
+                    this.trades.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "fundingRate") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:fundingRate:", (string)"");
                 if (inOp(this.fundingRates, symbol))
                 {
-                    ((IDictionary<string,object>)this.fundingRates).Remove(symbol);
+                    this.fundingRates.Remove(symbol);
                 }
             }
         }

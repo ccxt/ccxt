@@ -213,9 +213,9 @@ public partial class coinone : ccxt.coinone
         {
             return;
         }
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         string messageHash = ("ticker:" + symbol);
-        client.resolve(getValue(this.tickers, symbol), messageHash);
+        client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
     public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
@@ -344,7 +344,7 @@ public partial class coinone : ccxt.coinone
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         stored.append(trade);
         string messageHash = ("trade:" + symbol);

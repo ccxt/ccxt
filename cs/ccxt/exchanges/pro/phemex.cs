@@ -318,7 +318,7 @@ public partial class phemex : ccxt.phemex
             Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             ticker["timestamp"] = timestamp;
             ticker["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             client.resolve(ticker, messageHash);
         }
     }
@@ -394,7 +394,7 @@ public partial class phemex : ccxt.phemex
         //        }
         //    ]
         //
-        ((IDictionary<string,object>)this.balance)["info"] = message;
+        this.balance["info"] = message;
         for (int i = 0; i < getArrayLength(message); i++)
         {
             IDictionary<string, object> balance = this.safeDict(message, i);
@@ -425,7 +425,7 @@ public partial class phemex : ccxt.phemex
             account["total"] = total;
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
             this.balance = this.safeBalance(this.balance);
         }
@@ -471,7 +471,7 @@ public partial class phemex : ccxt.phemex
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         List<object> trades = this.safeList2(message, "trades", "trades_p", new List<object>() {});
         IList<object> parsed = this.parseTrades(trades, market);
@@ -526,13 +526,13 @@ public partial class phemex : ccxt.phemex
         {
             string messageHash = ((("kline:" + timeframe) + ":") + symbol);
             IList<object> ohlcvs = this.parseOHLCVs(candles, market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
             {

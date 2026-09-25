@@ -3089,7 +3089,11 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	if !(InOp(GetValue(GetValue(this.Urls, "api"), "rest"), api)) {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
-	var url any = GetValue(GetValue(GetValue(this.Urls, "api"), "rest"), api)
+	var baseApiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), "rest"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = baseApiUrl
 	url = Add(url, "/"+path)
 	if IsEqual(api, "wapi") {
 		url = Add(url, ".html")

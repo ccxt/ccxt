@@ -1560,15 +1560,11 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxHistoricalLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             paramsExtended = self.extend(paramsPaginate, {'historical': True})
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit)
         until = self.safe_integer(paramsPaginate, 'until')
-        historical = False
-        paramsHistorical = {}
         historical, paramsHistorical = self.handle_option_bool_and_params(paramsPaginate, 'fetchOHLCV', 'historical', False)
         timeframeOption = self.safe_dict(self.options, 'timeframes', {})
         contractTimeframes = self.safe_dict(timeframeOption, 'contract', {})
@@ -4073,7 +4069,10 @@ class weex(Exchange, ImplicitAPI):
             requestHeaders = {
                 'User-Agent': 'ccxt',
             }
-        baseUrl = self.urls['api'][api]
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
         url = baseUrl + '/' + endpoint
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 

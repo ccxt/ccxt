@@ -766,15 +766,13 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccounts", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes60119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, paramsPaginate, "next_starting_after", "starting_after", nil, 100))))
-		ch <- BoxAbsent(retRes60119)
+		var retRes59919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, paramsPaginate, "next_starting_after", "starting_after", nil, 100))))
+		ch <- BoxAbsent(retRes59919)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -856,15 +854,13 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccounts", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes67319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, paramsPaginate, "cursor", "cursor", nil, 250))))
-		ch <- BoxAbsent(retRes67319)
+		var retRes66919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, paramsPaginate, "cursor", "cursor", nil, 250))))
+		ch <- BoxAbsent(retRes66919)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1292,8 +1288,8 @@ func (this *Coinbase) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		return nil
 	}
 
-	var retRes97615 []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, paramsCurrencyType))))
-	ch <- BoxAbsent(retRes97615)
+	var retRes97215 []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, paramsCurrencyType))))
+	ch <- BoxAbsent(retRes97215)
 	return nil
 }
 
@@ -1337,8 +1333,8 @@ func (this *Coinbase) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var retRes99815 []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, paramsCurrencyType))))
-	ch <- BoxAbsent(retRes99815)
+	var retRes99415 []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, paramsCurrencyType))))
+	ch <- BoxAbsent(retRes99415)
 	return nil
 }
 
@@ -1783,13 +1779,13 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(this.Options, "fetchMarkets", "fetchMarketsV3")
 	if method != nil && *method == "fetchMarketsV3" {
 
-		var retRes139619 []any = ListTyped(PanicOnError((<-this.FetchMarketsV3Async(params))))
-		ch <- BoxAbsent(retRes139619)
+		var retRes139219 []any = ListTyped(PanicOnError((<-this.FetchMarketsV3Async(params))))
+		ch <- BoxAbsent(retRes139219)
 		return nil
 	}
 
-	var retRes139815 []any = ListTyped(PanicOnError((<-this.FetchMarketsV2Async(params))))
-	ch <- BoxAbsent(retRes139815)
+	var retRes139415 []any = ListTyped(PanicOnError((<-this.FetchMarketsV2Async(params))))
+	ch <- BoxAbsent(retRes139415)
 	return nil
 }
 func (this *Coinbase) FetchMarketsV2Async(optionalArgs ...any) <-chan any {
@@ -2670,13 +2666,13 @@ func (this *Coinbase) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(this.Options, "fetchTickers", "fetchTickersV3")
 	if method != nil && *method == "fetchTickersV3" {
 
-		var retRes212919 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersV3Async(symbols, params))))
-		ch <- BoxAbsent(retRes212919)
+		var retRes212519 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersV3Async(symbols, params))))
+		ch <- BoxAbsent(retRes212519)
 		return nil
 	}
 
-	var retRes213115 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersV2Async(symbols, params))))
-	ch <- BoxAbsent(retRes213115)
+	var retRes212715 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersV2Async(symbols, params))))
+	ch <- BoxAbsent(retRes212715)
 	return nil
 }
 func (this *Coinbase) FetchTickersV2Async(optionalArgs ...any) <-chan any {
@@ -2851,13 +2847,13 @@ func (this *Coinbase) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var method *string = this.SafeString(this.Options, "fetchTicker", "fetchTickerV3")
 	if method != nil && *method == "fetchTickerV3" {
 
-		var retRes225519 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV3Async(symbol, params))))
-		ch <- BoxAbsent(retRes225519)
+		var retRes225119 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV3Async(symbol, params))))
+		ch <- BoxAbsent(retRes225119)
 		return nil
 	}
 
-	var retRes225715 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
-	ch <- BoxAbsent(retRes225715)
+	var retRes225315 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
+	ch <- BoxAbsent(retRes225315)
 	return nil
 }
 func (this *Coinbase) FetchTickerV2Async(symbol any, optionalArgs ...any) <-chan any {
@@ -3317,15 +3313,13 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes265019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsPaginate, "next_starting_after", "starting_after", nil, 100))))
-		ch <- BoxAbsent(retRes265019)
+		var retRes264419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsPaginate, "next_starting_after", "starting_after", nil, 100))))
+		ch <- BoxAbsent(retRes264419)
 		return nil
 	}
 	var currency map[string]any = nil
@@ -3804,8 +3798,8 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
 
-	var retRes307815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes307815)
+	var retRes307215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes307215)
 	return nil
 }
 
@@ -3866,8 +3860,8 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar string, s
 		var paramsClose map[string]any = MapTyped(this.Omit(params, "reduceOnly"))
 		paramsClose["amount"] = amount
 
-		var retRes312519 map[string]any = MapTyped(PanicOnError((<-this.ClosePositionAsync(symbol, side, paramsClose))))
-		ch <- BoxAbsent(retRes312519)
+		var retRes311919 map[string]any = MapTyped(PanicOnError((<-this.ClosePositionAsync(symbol, side, paramsClose))))
+		ch <- BoxAbsent(retRes311919)
 		return nil
 	}
 	var paramsMarketBuy any = nil
@@ -4557,15 +4551,13 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes370019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 1000))))
-		ch <- BoxAbsent(retRes370019)
+		var retRes369219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 1000))))
+		ch <- BoxAbsent(retRes369219)
 		return nil
 	}
 	var market map[string]any = nil
@@ -4786,20 +4778,18 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes387219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes387219)
+		var retRes386219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes386219)
 		return nil
 	}
 
-	var retRes387415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("OPEN", symbol, since, limit, paramsPaginate))))
-	ch <- BoxAbsent(retRes387415)
+	var retRes386415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("OPEN", symbol, since, limit, paramsPaginate))))
+	ch <- BoxAbsent(retRes386415)
 	return nil
 }
 
@@ -4836,20 +4826,18 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes389819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 1000))))
-		ch <- BoxAbsent(retRes389819)
+		var retRes388619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 1000))))
+		ch <- BoxAbsent(retRes388619)
 		return nil
 	}
 
-	var retRes390015 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("FILLED", symbol, since, limit, paramsPaginate))))
-	ch <- BoxAbsent(retRes390015)
+	var retRes388815 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("FILLED", symbol, since, limit, paramsPaginate))))
+	ch <- BoxAbsent(retRes388815)
 	return nil
 }
 
@@ -4881,8 +4869,8 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes391515 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("CANCELLED", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes391515)
+	var retRes390315 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("CANCELLED", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes390315)
 	return nil
 }
 
@@ -4934,8 +4922,8 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes394219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limitValue, timeframe, paramsPaginate, maxLimit-1))))
-		ch <- BoxAbsent(retRes394219)
+		var retRes393019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limitValue, timeframe, paramsPaginate, maxLimit-1))))
+		ch <- BoxAbsent(retRes393019)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -5124,15 +5112,13 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes409619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 250))))
-		ch <- BoxAbsent(retRes409619)
+		var retRes408219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 250))))
+		ch <- BoxAbsent(retRes408219)
 		return nil
 	}
 	var market map[string]any = nil

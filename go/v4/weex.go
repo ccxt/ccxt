@@ -1952,26 +1952,22 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxHistoricalLimit int = 100
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		var paramsExtended map[string]any = this.Extend(paramsPaginate, map[string]any{
 			"historical": true,
 		})
 
-		var retRes160719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit))))
-		ch <- BoxAbsent(retRes160719)
+		var retRes160519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit))))
+		ch <- BoxAbsent(retRes160519)
 		return nil
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var historical bool = false
-	var paramsHistorical map[string]any = map[string]any{}
 	var historicalparamsHistoricalVariable []any = this.HandleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false)
-	historical = GetValueBool(historicalparamsHistoricalVariable, 0, false)
-	paramsHistorical = MapTyped(GetValue(historicalparamsHistoricalVariable, 1))
+	var historical bool = GetValueBool(historicalparamsHistoricalVariable, 0, false)
+	var paramsHistorical map[string]any = MapTyped(GetValue(historicalparamsHistoricalVariable, 1))
 	var timeframeOption map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var contractTimeframes map[string]any = SafeMapTyped(timeframeOption, "contract")
 	var market map[string]any = this.Market(symbol)
@@ -2620,8 +2616,8 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes213019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes213019)
+		var retRes212619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes212619)
 		return nil
 	}
 	if since != nil {
@@ -2716,8 +2712,8 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar string, side 
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "contract") == true {
 
-		var retRes220619 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes220619)
+		var retRes220219 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes220219)
 		return nil
 	} else {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -2725,8 +2721,8 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar string, side 
 			panic(NotSupported(this.Id + " createOrder() only supports swap markets in sandbox mode"))
 		}
 
-		var retRes221219 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes221219)
+		var retRes220819 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes220819)
 		return nil
 	}
 }
@@ -3405,8 +3401,8 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(this.Id + " fetchOpenOrders() pagination is not supported for spot markets"))
 		}
 
-		var retRes276319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes276319)
+		var retRes275919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes275919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3682,8 +3678,8 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes296819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes296819)
+		var retRes296419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes296419)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3774,8 +3770,8 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	var maxLimit int = 1000
 	if paginate {
 
-		var retRes303419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes303419)
+		var retRes303019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes303019)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4086,8 +4082,8 @@ func (this *Weex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		"orderId": id,
 	}
 
-	var retRes330815 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes330815)
+	var retRes330415 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes330415)
 	return nil
 }
 
@@ -4140,8 +4136,8 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var maxLimit int = 100
 	if paginate {
 
-		var retRes334119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes334119)
+		var retRes333719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes333719)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4251,8 +4247,8 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var maxLimit int = 100
 	if paginate {
 
-		var retRes342519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes342519)
+		var retRes342119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes342119)
 		return nil
 	}
 	marketTypeparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate))
@@ -4461,8 +4457,8 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes359619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 100))))
-		ch <- BoxAbsent(retRes359619)
+		var retRes359219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 100))))
+		ch <- BoxAbsent(retRes359219)
 		return nil
 	}
 	var market map[string]any = nil
@@ -4644,9 +4640,9 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if sandboxMode != nil && *sandboxMode == true {
 
-		var retRes373319 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{market["symbol"]}, params))))
+		var retRes372919 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{market["symbol"]}, params))))
 		// the demo trading API does not provide a single-position endpoint
-		ch <- BoxAbsent(retRes373319)
+		ch <- BoxAbsent(retRes372919)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -5404,8 +5400,8 @@ func (this *Weex) reduceMarginBody(ch chan any, symbol any, amount any, optional
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes430415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
-	ch <- BoxAbsent(retRes430415)
+	var retRes430015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	ch <- BoxAbsent(retRes430015)
 	return nil
 }
 
@@ -5431,8 +5427,8 @@ func (this *Weex) addMarginBody(ch chan any, symbol any, amount any, optionalArg
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes431915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
-	ch <- BoxAbsent(retRes431915)
+	var retRes431515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	ch <- BoxAbsent(retRes431515)
 	return nil
 }
 
@@ -5532,8 +5528,12 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			"User-Agent": "ccxt",
 		}
 	}
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
-	var url any = Add(Add(baseUrl, "/"), endpoint)
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = baseApiUrl
+	var url string = *baseUrl + "/" + endpoint
 	return map[string]any{
 		"url":     url,
 		"method":  method,

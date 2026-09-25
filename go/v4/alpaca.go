@@ -2894,7 +2894,11 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var url string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), GetValue(api, 0))
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url string = this.ImplodeHostname(baseApiUrl)
 	var headersValue any = map[string]any{}
 	if headers != nil {
 		headersValue = headers

@@ -4252,7 +4252,12 @@ public class Pacifica extends PacificaApi
         {
             urlKey = "test";
         }
-        String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), java.util.Objects.requireNonNullElse(api, "public")));
+        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String host = (String) this.implodeHostname(baseApiUrl);
         String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         Integer paramsLen = ((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size();

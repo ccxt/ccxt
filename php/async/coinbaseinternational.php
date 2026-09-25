@@ -494,8 +494,6 @@ class coinbaseinternational extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 10000));
@@ -578,8 +576,6 @@ class coinbaseinternational extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', $maxEntriesPerRequest);
@@ -2273,8 +2269,6 @@ class coinbaseinternational extends Exchange {
             Async\await($this->load_markets());
         }
         list($portfolio, $paramsPortfolio) = Async\await($this->handle_portfolio_and_params('fetchOpenOrders', $params));
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsPortfolio, 'fetchOpenOrders', 'paginate', false);
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', $maxEntriesPerRequest);
@@ -2362,8 +2356,6 @@ class coinbaseinternational extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $pageKey = 'ccxtPageKey';
         list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);

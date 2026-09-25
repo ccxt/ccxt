@@ -1305,7 +1305,10 @@ class p2b(Exchange, ImplicitAPI):
         }, marketResolved)
 
     def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseUrl = self.urls['api'][api]
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
         url = baseUrl + '/' + self.implode_params(path, params)
         paramsOmitted = self.omit(params, self.extract_params(path))
         if method == 'GET':

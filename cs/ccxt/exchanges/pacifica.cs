@@ -4009,7 +4009,12 @@ public partial class pacifica : Exchange
         {
             urlKey = "test";
         }
-        object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
+        string? baseApiUrl = this.safeString(getValue(this.urls, urlKey), api);
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object host = this.implodeHostname(baseApiUrl);
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         int paramsLen = (new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count;

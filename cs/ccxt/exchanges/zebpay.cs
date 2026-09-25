@@ -2197,7 +2197,12 @@ public partial class zebpay : Exchange
         {
             marketType = "swap";
         }
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), marketType);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), marketType);
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = baseApiUrl;
         string tail = ("/api/" + this.implodeParams(path, paramsOmitted));
         url = add(url, tail);
         string timestamp = this.milliseconds().ToString();

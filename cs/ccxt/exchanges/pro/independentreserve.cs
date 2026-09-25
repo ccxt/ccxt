@@ -96,12 +96,12 @@ public partial class independentreserve : ccxt.independentreserve
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         Dictionary<string, object> trade = this.parseWsTrade(data);
         stored.append(trade);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        this.trades[(string)symbol] = stored;
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)

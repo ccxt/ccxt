@@ -256,8 +256,12 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
 	var queryLength int = len(queryKeys)
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
-	var url any = Add(Add(baseUrl, "/"), implodedPath)
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = baseApiUrl
+	var url string = *baseUrl + "/" + implodedPath
 	var queryString string = ""
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -265,12 +269,12 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 		if method == "GET" {
 			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, "?"+queryString)
+				url += "?" + queryString
 			}
 		} else if method == "DELETE" {
 			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, "?"+queryString)
+				url += "?" + queryString
 			}
 		} else {
 			requestBody = this.Json(query)
@@ -302,7 +306,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 		if method == "GET" {
 			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, "?"+queryString)
+				url += "?" + queryString
 			}
 		} else {
 			requestBody = this.Json(query)
@@ -1623,8 +1627,8 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"order_states": orderStates,
 	})
 
-	var retRes127015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
-	ch <- BoxAbsent(retRes127015)
+	var retRes127415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
+	ch <- BoxAbsent(retRes127415)
 	return nil
 }
 

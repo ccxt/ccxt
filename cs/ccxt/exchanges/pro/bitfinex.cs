@@ -279,13 +279,13 @@ public partial class bitfinex : ccxt.bitfinex
         string? timeframe = this.findTimeframe(interval);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? messageHash = ((string)add(add(add(add(channel, ":"), interval), ":"), marketId));
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         int ohlcvsLength = (ohlcvs?.Count ?? 0);
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
@@ -479,7 +479,7 @@ public partial class bitfinex : ccxt.bitfinex
         if ((stored == null))
         {
             stored = new ArrayCache(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         int messageLength = getArrayLength(message);
         if ((messageLength == 2))
@@ -654,7 +654,7 @@ public partial class bitfinex : ccxt.bitfinex
         Dictionary<string, object> parsed = this.parseWsTicker(ticker, market);
         string channel = "ticker";
         string messageHash = ((channel + ":") + marketId);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        this.tickers[(string)symbol] = parsed;
         client.resolve(parsed, messageHash);
     }
 
@@ -1010,7 +1010,7 @@ public partial class bitfinex : ccxt.bitfinex
                 oldBalance[(string)code] = balance;
             }
             oldBalance["info"] = message;
-            ((IDictionary<string,object>)this.balance)[(string)balanceType] = this.safeBalance(oldBalance);
+            this.balance[(string)balanceType] = this.safeBalance(oldBalance);
             updatedTypes[(string)balanceType] = true;
         }
         List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
@@ -1018,7 +1018,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             string? type = ((string)updatesKeys[i]);
             string messageHash = ("balance:" + type);
-            client.resolve(getValue(this.balance, type), messageHash);
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
         }
     }
 

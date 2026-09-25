@@ -1703,15 +1703,13 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes126719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
-		ch <- BoxAbsent(retRes126719)
+		var retRes126519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
+		ch <- BoxAbsent(retRes126519)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2269,8 +2267,8 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes172219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes172219)
+		var retRes172019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes172019)
 		return nil
 	}
 	if limit != nil {
@@ -2973,15 +2971,13 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes228919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes228919)
+		var retRes228519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes228519)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2991,11 +2987,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes229812 := request["base"]
-		AppendToArray(&retRes229812, GetValue(market, "baseId"))
+		retRes229412 := request["base"]
+		AppendToArray(&retRes229412, GetValue(market, "baseId"))
 		request["quote"] = []any{}
-		retRes230012 := request["quote"]
-		AppendToArray(&retRes230012, GetValue(market, "quoteId"))
+		retRes229612 := request["quote"]
+		AppendToArray(&retRes229612, GetValue(market, "quoteId"))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3081,10 +3077,10 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			if GetValue(market, "contract") != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
-			retRes236916 := request["base"]
-			AppendToArray(&retRes236916, market["baseId"])
-			retRes237016 := request["quote"]
-			AppendToArray(&retRes237016, market["quoteId"])
+			retRes236516 := request["base"]
+			AppendToArray(&retRes236516, market["baseId"])
+			retRes236616 := request["quote"]
+			AppendToArray(&retRes236616, market["quoteId"])
 		}
 	}
 
@@ -3400,15 +3396,13 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes262319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000))))
-		ch <- BoxAbsent(retRes262319)
+		var retRes261719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000))))
+		ch <- BoxAbsent(retRes261719)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3418,11 +3412,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes263212 := request["base"]
-		AppendToArray(&retRes263212, GetValue(market, "baseId"))
+		retRes262612 := request["base"]
+		AppendToArray(&retRes262612, GetValue(market, "baseId"))
 		request["quote"] = []any{}
-		retRes263412 := request["quote"]
-		AppendToArray(&retRes263412, GetValue(market, "quoteId"))
+		retRes262812 := request["quote"]
+		AppendToArray(&retRes262812, GetValue(market, "quoteId"))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3521,11 +3515,11 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes271112 := request["base"]
-		AppendToArray(&retRes271112, GetValue(market, "baseId"))
+		retRes270512 := request["base"]
+		AppendToArray(&retRes270512, GetValue(market, "baseId"))
 		request["quote"] = []any{}
-		retRes271312 := request["quote"]
-		AppendToArray(&retRes271312, GetValue(market, "quoteId"))
+		retRes270712 := request["quote"]
+		AppendToArray(&retRes270712, GetValue(market, "quoteId"))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -4023,11 +4017,11 @@ func (this *Grvt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		request["base"] = []any{}
-		retRes314312 := request["base"]
-		AppendToArray(&retRes314312, market["baseId"])
+		retRes313712 := request["base"]
+		AppendToArray(&retRes313712, market["baseId"])
 		request["quote"] = []any{}
-		retRes314512 := request["quote"]
-		AppendToArray(&retRes314512, market["quoteId"])
+		retRes313912 := request["quote"]
+		AppendToArray(&retRes313912, market["quoteId"])
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))).Raw))

@@ -253,7 +253,7 @@ public partial class htx : ccxt.htx
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
         }
         client.resolve(ticker, ch);
         return message;
@@ -358,7 +358,7 @@ public partial class htx : ccxt.htx
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
+            this.trades[(string)symbol] = tradesCache;
         }
         for (int i = 0; i < data.Count; i++)
         {
@@ -465,7 +465,7 @@ public partial class htx : ccxt.htx
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
@@ -473,7 +473,7 @@ public partial class htx : ccxt.htx
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
         IDictionary<string, object> tick = this.safeDict(message, "tick");
@@ -2238,9 +2238,9 @@ public partial class htx : ccxt.htx
         string? channel = this.safeString(message, "ch");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)["info"] = data;
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
+        this.balance["info"] = data;
         if ((channel != null))
         {
             // spot balance
@@ -2251,7 +2251,7 @@ public partial class htx : ccxt.htx
             account["total"] = this.safeString(data, "balance");
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
             this.balance = this.safeBalance(this.balance);
             client.resolve(this.balance, channel);
@@ -2280,7 +2280,7 @@ public partial class htx : ccxt.htx
                     Dictionary<string, object> account = this.account();
                     account["free"] = this.safeString(detail, "withdraw_available");
                     account["total"] = this.safeString(detail, "equity");
-                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    this.balance[(string)code] = account;
                 }
                 this.balance = this.safeBalance(this.balance);
                 client.resolve(this.balance, "account");
@@ -2334,7 +2334,7 @@ public partial class htx : ccxt.htx
                 unifiedAccount["used"] = marginFrozen;
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)this.balance)[(string)code] = unifiedAccount;
+                    this.balance[(string)code] = unifiedAccount;
                 }
                 this.balance = this.safeBalance(this.balance);
                 client.resolve(this.balance, "accounts_unify");
@@ -2352,7 +2352,7 @@ public partial class htx : ccxt.htx
                         account["free"] = this.safeString2(first, "withdraw_available", "margin_available");
                         account["used"] = this.safeString(first, "margin_frozen");
                         account["total"] = this.safeString(first, "margin_balance");
-                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                        this.balance[(string)code] = account;
                         this.balance = this.safeBalance(this.balance);
                     }
                 } else
@@ -2368,7 +2368,7 @@ public partial class htx : ccxt.htx
                         string? code = this.safeCurrencyCode(currencyId);
                         if ((code != null))
                         {
-                            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                            this.balance[(string)code] = account;
                         }
                         this.balance = this.safeBalance(this.balance);
                     }
@@ -2386,7 +2386,7 @@ public partial class htx : ccxt.htx
                     account["used"] = this.safeString(balance, "margin_frozen");
                     if ((code != null))
                     {
-                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                        this.balance[(string)code] = account;
                     }
                     this.balance = this.safeBalance(this.balance);
                 }

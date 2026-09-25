@@ -154,7 +154,7 @@ public partial class blofin : ccxt.blofin
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 stored = new ArrayCache(limit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
             stored.append(trade);
             string? messageHash = ((string)add(add(channelName, ":"), symbol));
@@ -336,8 +336,8 @@ public partial class blofin : ccxt.blofin
             Dictionary<string, object> ticker = this.parseWsTicker(data[i]);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             string? messageHash = ((string)add(add(channelName, ":"), symbol));
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            client.resolve(getValue(this.tickers, symbol), messageHash);
+            this.tickers[(string)symbol] = ticker;
+            client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
         }
     }
 
@@ -400,7 +400,7 @@ public partial class blofin : ccxt.blofin
             Dictionary<string, object> ticker = this.parseWsBidAsk(data[i]);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             string messageHash = ("bidask:" + symbol);
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            this.bidsasks[(string)symbol] = ticker;
             client.resolve(ticker, messageHash);
         }
     }
@@ -503,13 +503,13 @@ public partial class blofin : ccxt.blofin
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string interval = channelName.Replace("candle", (string)"");
         string? unifiedTimeframe = this.findTimeframe(interval);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
         }
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
@@ -565,13 +565,13 @@ public partial class blofin : ccxt.blofin
         //     }
         //
         string marketType = "swap"; // for now
-        if (!(inOp(this.balance, marketType)))
+        if (!((this.balance != null && this.balance.ContainsKey(marketType))))
         {
-            ((IDictionary<string,object>)this.balance)[marketType] = new Dictionary<string, object>() {};
+            this.balance[marketType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)this.balance)[marketType] = this.parseWsBalance(message);
+        this.balance[marketType] = this.parseWsBalance(message);
         string messageHash = (marketType + ":balance");
-        client.resolve(getValue(this.balance, marketType), messageHash);
+        client.resolve((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
     }
 
     public virtual Dictionary<string, object> parseWsBalance(object message)
@@ -787,7 +787,7 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(first);
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        this.fundingRates[(string)symbol] = fundingRate;
         string messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
     }

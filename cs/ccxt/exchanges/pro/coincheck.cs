@@ -172,7 +172,7 @@ public partial class coincheck : ccxt.coincheck
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         for (int i = 0; i < getArrayLength(message); i++)
         {

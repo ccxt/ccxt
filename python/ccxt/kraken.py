@@ -1189,8 +1189,6 @@ class kraken(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 720)
@@ -3490,7 +3488,10 @@ class kraken(Exchange, ImplicitAPI):
                 headersSigned['Content-Type'] = 'application/json'
             else:
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded'
-            urlSigned = self.urls['api'][api] + url
+            baseApiUrl = self.safe_string(self.urls['api'], api)
+            if baseApiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            urlSigned = baseApiUrl + url
             return {'url': urlSigned, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         else:
             url = '/' + path

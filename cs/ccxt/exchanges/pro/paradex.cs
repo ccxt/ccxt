@@ -166,7 +166,7 @@ public partial class paradex : ccxt.paradex
         if ((stored == null))
         {
             stored = new ArrayCache(this.safeInteger(this.options, "tradesLimit", 1000));
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         stored.append(parsedTrade);
         client.resolve(stored, messageHash);
@@ -480,7 +480,7 @@ public partial class paradex : ccxt.paradex
         object channel = this.safeString(parameters, "channel");
         string? messageHash = ((string)add(add(channel, "."), symbol));
         Dictionary<string, object> ticker = this.parseTicker(data, market);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, channel);
         client.resolve(ticker, messageHash);
         return message;
@@ -595,7 +595,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRateWs(data);
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        this.fundingRates[(string)symbol] = fundingRate;
         object channel = this.safeString(parameters, "channel");
         string? messageHash = ((string)add(add(channel, "."), symbol));
         client.resolve(fundingRate, messageHash);
