@@ -6630,6 +6630,63 @@ function installCcxtGoStringParamNilGuards (goTranspiler) {
     };
 }
 
+// A unified-table int param prints `int64` on the base and every override: the typed wrapper passes an
+// int64 and dynamic callers go through Int64Arg (panics ArgumentsRequired), so it is never nil.
+function ccxtGoIsUnifiedInt64Parameter (goTranspiler, table, param) {
+    const fn = param?.parent;
+    if ((param?.kind !== ts.SyntaxKind.Parameter) || (param.initializer !== undefined) || (param.dotDotDotToken !== undefined)
+        || (param.name?.kind !== ts.SyntaxKind.Identifier) || (fn?.kind !== ts.SyntaxKind.MethodDeclaration)
+        || (fn.body === undefined) || (fn.name?.kind !== ts.SyntaxKind.Identifier)
+        || !Object.prototype.hasOwnProperty.call (table, fn.name.text) || !table[fn.name.text].includes (fn.parameters.indexOf (param))) {
+        return false;
+    }
+    const type = goTranspiler.checkerOrUndefined?.()?.getTypeAtLocation (param);
+    const union = (type !== undefined) && (typeof type.isUnionType === 'function') && type.isUnionType ();
+    const parts = (type === undefined) ? [] : (union ? type.getTypes () : [ type ]);
+    const numeric = parts.some ((t) => (t.flags & ts.TypeFlags.NumberLike) !== 0)
+        && parts.every ((t) => (t.flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.Undefined)) !== 0);
+    // the table types the base and every override together: a body that breaks it fails the build
+    if (!numeric) {
+        throw new Error (`unifiedInt64Params: ${fn.name.text} parameter ${param.name.text} is not a number`);
+    }
+    if (!goTranspiler.goLocalIsSafeToType (fn.body, param, param.name.text, 'int64')) {
+        throw new Error (`unifiedInt64Params: ${fn.name.text} parameter ${param.name.text} is written with another type`);
+    }
+    return true;
+}
+
+function installCcxtGoUnifiedInt64Params (goTranspiler, table) {
+    if ((table === undefined) || (typeof goTranspiler.goNativeParameterType !== 'function') || (typeof goTranspiler.printInlineEquality !== 'function')) {
+        return;
+    }
+    const verdicts = new Map ();
+    const isTabled = (param) => {
+        if (!verdicts.has (param)) {
+            verdicts.set (param, false); // re-entry while proving answers the boxed form
+            verdicts.set (param, ccxtGoIsUnifiedInt64Parameter (goTranspiler, table, param));
+        }
+        return verdicts.get (param);
+    };
+    const upstreamType = goTranspiler.goNativeParameterType;
+    goTranspiler.goNativeParameterType = function (param) {
+        return isTabled (param) ? 'int64' : upstreamType.call (this, param);
+    };
+    const tabledRead = (node) => {
+        if (node?.kind !== ts.SyntaxKind.Identifier) {
+            return false;
+        }
+        const decl = goTranspiler.checkerOrUndefined?.()?.getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+        return (decl?.kind === ts.SyntaxKind.Parameter) && isTabled (decl);
+    };
+    const upstreamEquality = goTranspiler.printInlineEquality;
+    goTranspiler.printInlineEquality = function (left, right, leftText, rightText, isEq) {
+        if ((ccxtGoIsNilLiteral (right) && tabledRead (left)) || (ccxtGoIsNilLiteral (left) && tabledRead (right))) {
+            return isEq ? 'false' : 'true';
+        }
+        return upstreamEquality.call (this, left, right, leftText, rightText, isEq);
+    };
+}
+
 // An overloaded callee (`marketSymbols`) resolves to its first signature, which carries no
 // defaults; the Go body is printed from the implementation, so its defaults decide GetArg binding.
 function installCcxtGoGetArgOverloadDefaults (goTranspiler) {
@@ -6659,7 +6716,7 @@ function installCcxtGoGetArgOverloadDefaults (goTranspiler) {
     goTranspiler.__ccxtGoGetArgOverloadDefaultsInstalled = true;
 }
 
-export function installCcxtGoLocalTypes (goTranspiler) {
+export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = undefined) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
     }
@@ -6676,6 +6733,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoGetArgOverloadDefaults (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
     installCcxtGoStringParamNilGuards (goTranspiler);
+    installCcxtGoUnifiedInt64Params (goTranspiler, unifiedInt64Params);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
         const known = upstream.call (this, initializer, printedValue);

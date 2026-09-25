@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -455,11 +456,41 @@ func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-c
 		}()
 		exchangeType := exchange.(ccxt.ICoreExchange)
 		exchangeType.WarmUpCache()
+		arg = coerceArgs(exchange, methodName2.(string), arg)
 		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
 		PanicOnError(res)
 		ch <- res
 	}()
 	return ch
+}
+
+// coerceArgs converts fixture string args to int64 where the method's parameter is int64
+// and the string is exactly an integer; the library itself rejects strings.
+func coerceArgs(exchange any, methodName string, args []any) []any {
+	name := ccxt.Capitalize(methodName)
+	method := reflect.ValueOf(exchange).MethodByName(name + "Async")
+	if !method.IsValid() {
+		method = reflect.ValueOf(exchange).MethodByName(name)
+	}
+	if !method.IsValid() {
+		return args
+	}
+	methodType := method.Type()
+	fixed := methodType.NumIn()
+	if methodType.IsVariadic() {
+		fixed--
+	}
+	result := append([]any{}, args...)
+	for k := 0; k < fixed && k < len(result); k++ {
+		str, isString := result[k].(string)
+		if !isString || methodType.In(k).Kind() != reflect.Int64 {
+			continue
+		}
+		if i, err := strconv.ParseInt(str, 10, 64); err == nil && strconv.FormatInt(i, 10) == str {
+			result[k] = i
+		}
+	}
+	return result
 }
 
 // callExchangeMethodDynamicallySync function that throws an error

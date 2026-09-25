@@ -67,6 +67,11 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ], 'fetchOrderBook': [ 0 ], 'fetchTicker': [ 0 ],
     'fetchOHLCV': [ 0 ], 'watchOrderBook': [ 0 ], 'watchTicker': [ 0 ], 'fetchTradingFee': [ 0 ], 'fetchFundingRate': [ 0 ],
 };
+// required int params whose public typed wrapper already takes int64: body and Async print `int64`
+const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
+    'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
+};
+
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
     GO_UNIFIED_STRING_PARAMS[method] = [ ...new Set ([ ...(GO_UNIFIED_STRING_PARAMS[method] ?? []), ...indexes ]) ].sort ((x, y) => x - y);
 }
@@ -4094,6 +4099,7 @@ class NewTranspiler {
                 // required OrderType/OrderSide params of the unified order methods print `string` on the
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
+                "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -4211,7 +4217,7 @@ class NewTranspiler {
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
         // build/go-worker.ts installs the same hooks for the Piscina path
-        installCcxtGoLocalTypes (this.transpiler.goTranspiler);
+        installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
     }
 
