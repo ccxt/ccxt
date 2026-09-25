@@ -3563,7 +3563,9 @@ function ccxtGoNilJoinReadSeesAbsent (goTranspiler, node) {
         if ((above?.kind === ts.SyntaxKind.CallExpression) && (above.expression === parent)) {
             return false;                                  // a method call on the local
         }
-        return !((above?.kind === ts.SyntaxKind.BinaryExpression) && (above.left === parent));
+        // an element write needs the map; an element read (a nil map reads absent) does not
+        return !((above?.kind === ts.SyntaxKind.BinaryExpression) && (above.left === parent)
+            && NIL_JOIN_ASSIGNMENT_TOKENS.includes (above.operatorToken.kind));
     }
     case ts.SyntaxKind.PropertyAssignment:
         return parent.initializer === child;
@@ -4757,7 +4759,7 @@ export const CCXT_GO_GETARG_SAFE_CONSUMERS = {
     'ParseTrades': '*', 'ParseOrders': '*', 'ParseOHLCVs': '*', 'ParseTransactions': '*',
     'ParseLedger': '*', 'ParseTransfers': '*', 'ParseIncomes': '*', 'ParseConversions': '*',
     'ParseLiquidations': '*', 'ParseFundingRateHistories': '*', 'ParsePredictionTrades': '*',
-    'ParsePredictionOrders': '*', 'Outcome': '*',
+    'ParsePredictionOrders': '*', 'Outcome': '*', 'Symbol': '*',
     // every `XxxAsync`/`XxxBody` pair forwards the optionalArgs tail into a GetArg binding
     'LoadMarketsAsync': '*', 'LoadOutcomeAsync': '*', 'FetchOrdersAsync': '*',
     'FetchOrdersByStatusAsync': '*', 'FetchOrdersByStateAsync': '*',
@@ -6281,6 +6283,23 @@ function installCcxtGoGetArgTernaryStore (goTranspiler) {
     goTranspiler.__ccxtGoGetArgTernaryStoreInstalled = true;
 }
 
+// `const r = c ? this.safeMarket (id, market) : market` / `let r: Market = market`: the `any` alias
+// of a GetArgMap-bound map is nil-tested through IsEqual, and derefScalar reads a nil map box as
+// nil, so the alias's uses follow the unboxed rules (an alias with a native nil test is excluded)
+function installCcxtGoGetArgMapAlias (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoGetArgMapAliasInstalled
+        || (typeof goTranspiler.goGetArgUsesAreSafe !== 'function') || (typeof goTranspiler.goAnyLocalHoldsNonPointer !== 'function')) {
+        return;
+    }
+    const shipped = goTranspiler.goGetArgUsesAreSafe;
+    goTranspiler.goGetArgUsesAreSafe = function (body, param, name, goType, nilable, seen, boxed = false) {
+        const alias = boxed && nilable && (goType === CCXT_GO_PRODUCER_DICT_TYPE)
+            && (param?.kind === ts.SyntaxKind.VariableDeclaration) && !this.goAnyLocalHoldsNonPointer (param);
+        return shipped.call (this, body, param, name, goType, nilable, seen, alias ? false : boxed);
+    };
+    goTranspiler.__ccxtGoGetArgMapAliasInstalled = true;
+}
+
 // `since + d * 1000 - 1`: a GetArg pointer as an operand of a `+` the printer emits as the
 // runtime Add(...) helper, nested (through parentheses) inside the Subtract/Multiply/Divide/Mod
 // or comparison chain the shipped predicate already admits, or as a whole printed Add call.
@@ -6344,6 +6363,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     goTranspiler.CCXT_GO_GETARG_SAFE_CONSUMERS = CCXT_GO_GETARG_SAFE_CONSUMERS;
     installCcxtGoGetArgTernaryStore (goTranspiler);
     installCcxtGoGetArgAddArithmetic (goTranspiler);
+    installCcxtGoGetArgMapAlias (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
@@ -6893,6 +6913,9 @@ function ccxtGoTupleStringIsProducerElement (goTranspiler, node) {
 
 // a plain write that stores a *string (or a literal the write wraps into one)
 function ccxtGoTupleStringWriteIsProven (goTranspiler, right) {
+    if (ts.isIdentifier (right) && CCXT_GO_TUPLE_STRING_ASSUMED.has (ccxtGoParamDeclarationOf (goTranspiler, right))) {
+        return true; // the copy source whose own proof is in progress (see ccxtGoTupleStringCopyTargetIsSafe)
+    }
     return ccxtGoTupleStringWriteNeedsLift (goTranspiler, right)
         || (goTranspiler.goTypeOfInitializer (right, goTranspiler.printNode (right, 0)) === '*string');
 }
@@ -6941,7 +6964,70 @@ function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
             return true;
         }
     }
+    if ((parent.kind === ts.SyntaxKind.CallExpression) && (parent.expression !== current)
+        && ((CCXT_GO_TUPLE_STRING_SAFE_ARG_INDEX[printedCalleeOfCall (goTranspiler, parent) ?? ''] ?? []).includes (parent.arguments.indexOf (current)))) {
+        return true;
+    }
+    if ((current === node) && (parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === node)
+        && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) && (parent.left?.kind === ts.SyntaxKind.ElementAccessExpression)
+        && (typeof goTranspiler.goElementAssignmentContainerType === 'function')
+        && (goTranspiler.goElementAssignmentContainerType (parent.left.expression, goTranspiler.printNode (parent.left.expression, 0)) === 'map[string]any')) {
+        return true; // native `m["k"] = x` on a typed map boxes the pointer exactly like AddElementToObject
+    }
+    if ((current === node) && (parent.kind === ts.SyntaxKind.VariableDeclaration) && (parent.initializer === node)) {
+        return ccxtGoTupleStringCopyTargetIsSafe (goTranspiler, parent, node);
+    }
+    if ((current === node) && (parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === node)
+        && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (parent.left)
+        && (parent.parent?.kind === ts.SyntaxKind.ExpressionStatement)) {
+        const target = ccxtGoParamDeclarationOf (goTranspiler, parent.left);
+        return (goTranspiler.goEnclosingFunction (target) === goTranspiler.goEnclosingFunction (node))
+            && ccxtGoTupleStringCopyTargetIsSafe (goTranspiler, target, node);
+    }
     return (current === node) && nilDeclaredReadIsSafe (goTranspiler, node);
+}
+
+// callee -> exact argument indices bound through GetArg (derefs a pointer, folds a nil one to the default)
+const CCXT_GO_TUPLE_STRING_SAFE_ARG_INDEX = {
+    'this.HandleMarketTypeAndParams': [ 3 ],
+};
+
+// `let y = x` (x a *string of this family): y holds the same pointer, so the copy is safe when y's
+// own uses and writes pass the join with x taken as *string (checked uncached: no x<->y cycle)
+const CCXT_GO_TUPLE_STRING_COPY_CHECKING = new Set ();
+const CCXT_GO_TUPLE_STRING_ASSUMED = new Set ();
+
+function ccxtGoTupleStringIsCopyDeclaration (declaration) {
+    return (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && ts.isIdentifier (declaration.name)
+        && ts.isIdentifier (declaration.initializer ?? {}) && !isNilDeclaredInitializer (declaration.initializer)
+        && (declaration.parent?.parent?.kind === ts.SyntaxKind.VariableStatement)
+        && (declaration.parent.declarations.length === 1);
+}
+
+// the copy target `y` (declared `let y = x` or nil-declared and written `y = x`) passes the join
+// with the source `x` taken as *string; a target already being checked fails closed
+function ccxtGoTupleStringCopyTargetIsSafe (goTranspiler, target, source) {
+    const nilDeclared = (target?.kind === ts.SyntaxKind.VariableDeclaration) && ts.isIdentifier (target.name)
+        && isNilDeclaredInitializer (target.initializer) && (target.parent?.parent?.kind === ts.SyntaxKind.VariableStatement)
+        && (target.parent.declarations.length === 1);
+    if ((!nilDeclared && !ccxtGoTupleStringIsCopyDeclaration (target)) || CCXT_GO_TUPLE_STRING_COPY_CHECKING.has (target)) {
+        return false;
+    }
+    const sourceDeclaration = ccxtGoParamDeclarationOf (goTranspiler, source);
+    if (sourceDeclaration === undefined) {
+        return false;
+    }
+    const seeded = !CCXT_GO_TUPLE_STRING_ASSUMED.has (sourceDeclaration);
+    CCXT_GO_TUPLE_STRING_COPY_CHECKING.add (target);
+    CCXT_GO_TUPLE_STRING_ASSUMED.add (sourceDeclaration);
+    try {
+        return ccxtGoTupleStringJoinTypeUncached (goTranspiler, target) === '*string';
+    } finally {
+        CCXT_GO_TUPLE_STRING_COPY_CHECKING.delete (target);
+        if (seeded) {
+            CCXT_GO_TUPLE_STRING_ASSUMED.delete (sourceDeclaration);
+        }
+    }
 }
 
 function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
@@ -6983,7 +7069,7 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
         ts.forEachChild (n, visit);
     };
     ts.forEachChild (scope, visit);
-    const bound = (declaration.kind === ts.SyntaxKind.BindingElement) ? 1 : 0;
+    const bound = ((declaration.kind === ts.SyntaxKind.BindingElement) || ccxtGoTupleStringIsCopyDeclaration (declaration)) ? 1 : 0;
     if (!ok || (producers + bound + writes === 0)) {
         return undefined;
     }
@@ -7024,7 +7110,9 @@ function ccxtGoTupleStringJoinType (goTranspiler, declaration) {
     const bound = (declaration?.kind === ts.SyntaxKind.BindingElement) && ts.isIdentifier (declaration.name)
         && (declaration.parent?.parent?.parent?.parent?.kind === ts.SyntaxKind.VariableStatement)
         && ccxtGoTupleStringBindingIsProducer (goTranspiler, declaration);
-    if (!nilDeclared && !bound) {
+    const copied = ccxtGoTupleStringIsCopyDeclaration (declaration)
+        && (ccxtGoTupleStringDeclarationOf (goTranspiler, declaration.initializer) !== undefined);
+    if (!nilDeclared && !bound && !copied) {
         return undefined;
     }
     if (CCXT_GO_TUPLE_STRING_CACHE.has (declaration)) {
@@ -7075,7 +7163,8 @@ function installCcxtGoTupleStringJoin (goTranspiler) {
             return printed;
         }
         const head = this.getIden (identation) + 'var ' + this.printNode (declaration.name, 0) + ' ';
-        return (printed === head + 'any = ' + this.UNDEFINED_TOKEN) ? (head + '*string = ' + this.UNDEFINED_TOKEN) : printed;
+        const value = isNilDeclaredInitializer (declaration.initializer) ? this.UNDEFINED_TOKEN : this.printNode (declaration.initializer, 0);
+        return (printed === head + 'any = ' + value) ? (head + '*string = ' + value) : printed;
     };
     // the direct form `a := GetValue(h, i)` of a destructuring declaration
     const shippedBinding = goTranspiler.printVariableDeclarationList;
