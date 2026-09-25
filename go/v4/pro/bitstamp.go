@@ -118,12 +118,12 @@ func (this *Bitstamp) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitstamp) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -338,12 +338,12 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitstamp) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitstamp) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -461,12 +461,12 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Bitstamp) WatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

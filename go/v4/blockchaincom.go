@@ -480,7 +480,7 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan any, symbol any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var retRes43815 map[string]any = MapTyped(PanicOnError((<-this.FetchL3OrderBookAsync(symbol, limit, params))))
+	var retRes43815 map[string]any = MapTyped(PanicOnError((<-this.FetchL3OrderBookAsync(StringArg(symbol), limit, params))))
 	ch <- BoxAbsent(retRes43815)
 	return nil
 }
@@ -495,12 +495,12 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan any, symbol any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Blockchaincom) FetchL3OrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) FetchL3OrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchL3OrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -524,12 +524,12 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optiona
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
 	return nil
 }
-func (this *Blockchaincom) FetchL2OrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchL2OrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -746,12 +746,12 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blockchaincom) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Blockchaincom) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

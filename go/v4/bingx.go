@@ -2703,12 +2703,12 @@ func (this *Bingx) ParseIncome(income any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bingx) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bingx) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bingx) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2996,12 +2996,12 @@ func (this *Bingx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bingx) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bingx) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bingx) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3404,12 +3404,12 @@ func (this *Bingx) ParseBalance(response any) any {
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Bingx) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bingx) FetchPositionHistoryAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchPositionHistoryBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3722,12 +3722,12 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CreateMarketOrderWithCostAsync(symbol any, side string, cost any, optionalArgs ...any) <-chan any {
+func (this *Bingx) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Bingx) createMarketOrderWithCostBody(ch chan any, symbol any, side string, cost any, optionalArgs ...any) any {
+func (this *Bingx) createMarketOrderWithCostBody(ch chan any, symbol string, side string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3748,12 +3748,12 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan any, symbol any, side s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Bingx) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3774,12 +3774,12 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CreateMarketSellOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Bingx) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bingx) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Bingx) createMarketSellOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4104,12 +4104,12 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bingx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bingx) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bingx) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -6469,12 +6469,12 @@ func (this *Bingx) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		return nil
 	}
 }
-func (this *Bingx) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bingx) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bingx) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Bingx) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6487,12 +6487,12 @@ func (this *Bingx) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	ch <- BoxAbsent(retRes581815)
 	return nil
 }
-func (this *Bingx) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bingx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bingx) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Bingx) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7190,12 +7190,12 @@ func (this *Bingx) ParseLiquidation(liquidation any, optionalArgs ...any) any {
  * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bingx) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bingx) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7691,12 +7691,12 @@ func (this *Bingx) CustomEncode(params any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func (this *Bingx) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bingx) FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bingx) fetchMarketLeverageTiersBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

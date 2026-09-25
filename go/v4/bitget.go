@@ -4515,12 +4515,12 @@ func (this *Bitget) ParseCurrency(rawCurrency any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func (this *Bitget) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5828,12 +5828,12 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitget) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7690,12 +7690,12 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Bitget) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7762,12 +7762,12 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
  * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitget) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitget) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -12479,12 +12479,12 @@ func (this *Bitget) ParseFundingHistories(contracts any, optionalArgs ...any) an
 	}
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *Bitget) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Bitget) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -12565,12 +12565,12 @@ func (this *Bitget) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Bitget) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitget) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Bitget) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -12598,12 +12598,12 @@ func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Bitget) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitget) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitget) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Bitget) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -12927,12 +12927,12 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitget) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13422,12 +13422,12 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Bitget) BorrowIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitget) BorrowIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, amount any, optionalArgs ...any) any {
+func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13475,12 +13475,12 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Bitget) RepayIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitget) RepayIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, amount any, optionalArgs ...any) any {
+func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13823,12 +13823,12 @@ func (this *Bitget) ParseLiquidation(liquidation any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
-func (this *Bitget) FetchIsolatedBorrowRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) FetchIsolatedBorrowRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchIsolatedBorrowRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -14277,12 +14277,12 @@ func (this *Bitget) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -14902,12 +14902,12 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Bitget) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitget) FetchFundingIntervalAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

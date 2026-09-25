@@ -2355,12 +2355,12 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
  * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitfinex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4583,12 +4583,12 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitfinex) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4654,12 +4654,12 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitfinex) FetchOpenInterestHistoryAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestHistoryBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4825,12 +4825,12 @@ func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Bitfinex) FetchLiquidationsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

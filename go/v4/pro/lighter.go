@@ -287,12 +287,12 @@ func (this *Lighter) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Lighter) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lighter) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lighter) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -433,12 +433,12 @@ func (this *Lighter) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Lighter) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lighter) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lighter) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -571,12 +571,12 @@ func (this *Lighter) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Lighter) WatchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lighter) WatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lighter) watchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -621,12 +621,12 @@ func (this *Lighter) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Lighter) UnWatchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lighter) UnWatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lighter) unWatchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -831,12 +831,12 @@ func (this *Lighter) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lighter) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lighter) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lighter) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1258,12 +1258,12 @@ func (this *Lighter) HandleLiquidation(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lighter) WatchLiquidationsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Lighter) WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) watchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Lighter) watchLiquidationsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1554,12 +1554,12 @@ func (this *Lighter) RequestId(url any) any {
  * @param {int} [params.orderExpiry] orderExpiry
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lighter) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Lighter) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Lighter) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Lighter) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)

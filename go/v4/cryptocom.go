@@ -1971,12 +1971,12 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
  * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Cryptocom) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4391,12 +4391,12 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
  * @param {number} [params.price] for limit orders only
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Cryptocom) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Cryptocom) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Cryptocom) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)

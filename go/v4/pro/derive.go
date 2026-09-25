@@ -336,12 +336,12 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Derive) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Derive) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Derive) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Derive) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -379,12 +379,12 @@ func (this *Derive) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Derive) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Derive) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Derive) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Derive) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

@@ -2836,12 +2836,12 @@ func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinex) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Coinex) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Coinex) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Coinex) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3023,12 +3023,12 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
  * @param {boolean} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Coinex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4585,12 +4585,12 @@ func (this *Coinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	}
 	return tiers
 }
-func (this *Coinex) ModifyMarginHelperAsync(symbol any, amount any, addOrReduce any, optionalArgs ...any) <-chan any {
+func (this *Coinex) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Coinex) modifyMarginHelperBody(ch chan any, symbol any, amount any, addOrReduce any, optionalArgs ...any) any {
+func (this *Coinex) modifyMarginHelperBody(ch chan any, symbol string, amount any, addOrReduce any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4747,12 +4747,12 @@ func (this *Coinex) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Coinex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Coinex) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4773,12 +4773,12 @@ func (this *Coinex) addMarginBody(ch chan any, symbol any, amount any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Coinex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Coinex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4953,12 +4953,12 @@ func (this *Coinex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Coinex) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinex) FetchFundingIntervalAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinex) fetchFundingIntervalBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5784,12 +5784,12 @@ func (this *Coinex) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any {
  * @param {string} params.code unified currency code
  * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
-func (this *Coinex) FetchIsolatedBorrowRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinex) FetchIsolatedBorrowRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchIsolatedBorrowRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5951,12 +5951,12 @@ func (this *Coinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {boolean} [params.isAutoRenew] whether to renew the margin loan automatically or not, default is false
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Coinex) BorrowIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinex) BorrowIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol any, code any, amount any, optionalArgs ...any) any {
+func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6015,12 +6015,12 @@ func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
  * @param {string} [params.borrow_id] extra parameter that is not required
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Coinex) RepayIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinex) RepayIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) repayIsolatedMarginBody(ch chan any, symbol any, code any, amount any, optionalArgs ...any) any {
+func (this *Coinex) repayIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6400,12 +6400,12 @@ func (this *Coinex) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Coinex) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinex) FetchPositionHistoryAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchPositionHistoryBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -6498,12 +6498,12 @@ func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
  * @param {string} [params.clientOrderId] the client id of the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinex) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinex) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinex) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)

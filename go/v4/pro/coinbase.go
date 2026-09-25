@@ -392,12 +392,12 @@ func (this *Coinbase) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Coinbase) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -714,12 +714,12 @@ func (this *Coinbase) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinbase) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -925,12 +925,12 @@ func (this *Coinbase) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinbase) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

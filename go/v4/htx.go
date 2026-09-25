@@ -6430,12 +6430,12 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Htx) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Htx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Htx) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6469,12 +6469,12 @@ func (this *Htx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) CreateTrailingPercentOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Htx) CreateTrailingPercentOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createTrailingPercentOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Htx) createTrailingPercentOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Htx) createTrailingPercentOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -6906,12 +6906,12 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
  * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Htx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Htx) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Htx) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -10456,12 +10456,12 @@ func (this *Htx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
  * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
  * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Htx) FetchOpenInterestHistoryAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestHistoryBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) fetchOpenInterestHistoryBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1h")
@@ -10646,12 +10646,12 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Htx) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10845,12 +10845,12 @@ func (this *Htx) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Htx) BorrowIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Htx) BorrowIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Htx) borrowIsolatedMarginBody(ch chan any, symbol any, code any, amount any, optionalArgs ...any) any {
+func (this *Htx) borrowIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10943,12 +10943,12 @@ func (this *Htx) borrowCrossMarginBody(ch chan any, code any, amount any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Htx) RepayIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Htx) RepayIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol any, code any, amount any, optionalArgs ...any) any {
+func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11505,12 +11505,12 @@ func (this *Htx) ParseSettlement(settlement any, market map[string]any) any {
  * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Htx) FetchLiquidationsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) fetchLiquidationsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -11656,12 +11656,12 @@ func (this *Htx) ParseLiquidation(liquidation any, optionalArgs ...any) any {
  * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
  * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Htx) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)

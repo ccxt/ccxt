@@ -229,12 +229,12 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Woo) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -479,12 +479,12 @@ func (this *Woo) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woo) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -838,12 +838,12 @@ func (this *Woo) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Woo) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -892,12 +892,12 @@ func (this *Woo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Woo) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1015,12 +1015,12 @@ func (this *Woo) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woo) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1884,12 +1884,12 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Woo) WatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) watchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

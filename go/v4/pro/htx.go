@@ -202,12 +202,12 @@ func (this *Htx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Htx) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -340,12 +340,12 @@ func (this *Htx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Htx) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -429,12 +429,12 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Htx) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -478,12 +478,12 @@ func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Htx) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -626,12 +626,12 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Htx) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Htx) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Htx) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

@@ -291,12 +291,12 @@ func (this *Bybit) CleanParams(params any) any {
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bybit) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bybit) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bybit) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -351,12 +351,12 @@ func (this *Bybit) createOrderWsBody(ch chan any, symbol any, typeVar string, si
  * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'ccxt.LastPrice', default is 'ccxt.LastPrice', required if no initial value for takeProfit
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) EditOrderWsAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Bybit) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol any, typeVar string, side string, optionalArgs ...any) any {
+func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -598,12 +598,12 @@ func (this *Bybit) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bybit) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bybit) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bybit) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -847,12 +847,12 @@ func (this *Bybit) ParseWsBidAsk(orderbook any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bybit) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bybit) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bybit) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1014,12 +1014,12 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bybit) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bybit) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bybit) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1305,12 +1305,12 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bybit) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bybit) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bybit) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1558,12 +1558,12 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bybit) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bybit) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bybit) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2255,12 +2255,12 @@ func (this *Bybit) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
-func (this *Bybit) WatchLiquidationsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bybit) WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bybit) watchLiquidationsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

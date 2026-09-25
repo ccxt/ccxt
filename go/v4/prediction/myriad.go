@@ -1140,12 +1140,12 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan any, rpcUrl any, networkId 
  * @param {string} [params.expiration] unix-seconds expiration for a GTD order
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Myriad) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Myriad) createOrderBody(ch chan any, outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1464,12 +1464,12 @@ func (this *Myriad) editOrderBody(ch chan any, id any, outcome any, typeVar any,
  * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateAmmOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Myriad) CreateAmmOrderAsync(outcome string, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createAmmOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createAmmOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Myriad) createAmmOrderBody(ch chan any, outcome string, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
@@ -1553,12 +1553,12 @@ func (this *Myriad) createAmmOrderBody(ch chan any, outcome any, typeVar any, si
  * @param {object} [params] extra parameters passed through to createAmmOrder
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateMarketBuyOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <-chan any {
+func (this *Myriad) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan any, outcome any, cost any, optionalArgs ...any) any {
+func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan any, outcome string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
@@ -4753,12 +4753,12 @@ func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
  */
-func (this *Myriad) WatchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) WatchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) watchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) watchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Myriad has no ccxt.OHLCV websocket channel, so build candles from the live trade stream

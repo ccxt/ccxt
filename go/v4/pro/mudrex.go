@@ -176,12 +176,12 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArrayTickers(this.Tickers, "symbol", symbolsNormalized)
 	return nil
 }
-func (this *Mudrex) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

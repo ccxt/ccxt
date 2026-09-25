@@ -654,12 +654,12 @@ func (this *Extended) HandleOrders(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Extended) WatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) watchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -744,12 +744,12 @@ func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Extended) WatchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) WatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) watchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -926,12 +926,12 @@ func (this *Extended) HandleTrades(client any, message any) {
  * @param {string} [params.price] *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Extended) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

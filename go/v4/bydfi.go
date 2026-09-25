@@ -1484,12 +1484,12 @@ func (this *Bydfi) ParseFundingRateHistory(contract any, optionalArgs ...any) an
  * @param {bool} [params.closePosition] true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bydfi) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bydfi) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bydfi) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2592,12 +2592,12 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Bydfi) FetchPositionsForSymbolAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bydfi) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2748,12 +2748,12 @@ func (this *Bydfi) ParsePositionSide(side *string) *string {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Bydfi) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bydfi) FetchPositionHistoryAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchPositionHistoryBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

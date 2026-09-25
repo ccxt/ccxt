@@ -124,7 +124,7 @@ func (this *Kraken) Describe() any {
 		},
 	})
 }
-func (this *Kraken) OrderRequestWs(method string, symbol any, typeVar string, request any, amount any, optionalArgs ...any) any {
+func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string, request any, amount any, optionalArgs ...any) any {
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -310,12 +310,12 @@ func (this *Kraken) OrderRequestWs(method string, symbol any, typeVar string, re
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Kraken) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Kraken) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -395,12 +395,12 @@ func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) EditOrderWsAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Kraken) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol any, typeVar string, side string, optionalArgs ...any) any {
+func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1002,12 +1002,12 @@ func (this *Kraken) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kraken) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kraken) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kraken) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kraken) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

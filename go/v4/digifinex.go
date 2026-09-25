@@ -2103,12 +2103,12 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Digifinex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2450,12 +2450,12 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4306,12 +4306,12 @@ func (this *Digifinex) fetchFundingRateBody(ch chan any, symbol any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Digifinex) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchFundingIntervalAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchFundingIntervalBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5103,12 +5103,12 @@ func (this *Digifinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func (this *Digifinex) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchMarketLeverageTiersBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5395,12 +5395,12 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
  * @param {string} params.side the position side: 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Digifinex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Digifinex) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5424,12 +5424,12 @@ func (this *Digifinex) addMarginBody(ch chan any, symbol any, amount any, option
  * @param {string} params.side the position side: 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Digifinex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Digifinex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5441,12 +5441,12 @@ func (this *Digifinex) reduceMarginBody(ch chan any, symbol any, amount any, opt
 	ch <- BoxAbsent(retRes439515)
 	return nil
 }
-func (this *Digifinex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Digifinex) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

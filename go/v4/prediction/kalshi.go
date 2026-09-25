@@ -1142,12 +1142,12 @@ func (this *Kalshi) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-func (this *Kalshi) FetchOpenInterestAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) FetchOpenInterestAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchOpenInterestBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Kalshi) fetchOpenInterestBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2746,12 +2746,12 @@ func (this *Kalshi) ParseOrderStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Kalshi) createOrderBody(ch chan any, outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi has no market orders — every order is a limit order and the price is required
@@ -2893,7 +2893,7 @@ func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any,
 
 	ccxt.PanicOnError((<-this.CancelOrderAsync(id, outcome)))
 
-	var retRes212415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params))))
+	var retRes212415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(ccxt.StringArg(outcome), ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params))))
 	ch <- ccxt.BoxAbsent(retRes212415)
 	return nil
 }

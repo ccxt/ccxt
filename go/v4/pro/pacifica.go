@@ -113,12 +113,12 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -218,12 +218,12 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar string,
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) EditOrderWsAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Pacifica) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar string, side string, optionalArgs ...any) any {
+func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
@@ -595,12 +595,12 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Pacifica) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -613,8 +613,8 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var aggLevelparamsAggLevelVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 0)
 	paramsAggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 1)
-	var subMessageHash any = ccxt.Add("orderbook:", symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
+	var subMessageHash string = "orderbook:" + symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -1106,12 +1106,12 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Pacifica) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1281,12 +1281,12 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Pacifica) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1341,12 +1341,12 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Pacifica) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

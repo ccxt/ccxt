@@ -1374,12 +1374,12 @@ func (this *Woofipro) ParseFundingInterval(interval *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Woofipro) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) FetchFundingIntervalAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchFundingIntervalBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1716,12 +1716,12 @@ func (this *Woofipro) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Woofipro) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2573,12 +2573,12 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Woofipro) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4230,12 +4230,12 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func (this *Woofipro) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
+func (this *Woofipro) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4281,12 +4281,12 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func (this *Woofipro) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Woofipro) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4307,12 +4307,12 @@ func (this *Woofipro) addMarginBody(ch chan any, symbol any, amount any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
-func (this *Woofipro) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Woofipro) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

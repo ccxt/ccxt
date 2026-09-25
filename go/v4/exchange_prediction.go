@@ -1176,12 +1176,12 @@ func (this *PredictionExchange) fetchTradesBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *PredictionExchange) createOrderBody(ch chan any, outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1506,12 +1506,12 @@ func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome any, op
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-func (this *PredictionExchange) FetchOpenInterestAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) FetchOpenInterestAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1573,12 +1573,12 @@ func (this *PredictionExchange) cancelOrdersBody(ch chan any, ids any, optionalA
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, outcome any, cost any, optionalArgs ...any) any {
+func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, outcome string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
@@ -1602,12 +1602,12 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketSellOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, outcome any, cost any, optionalArgs ...any) any {
+func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, outcome string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

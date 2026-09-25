@@ -469,12 +469,12 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -539,12 +539,12 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -754,12 +754,12 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -972,12 +972,12 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1421,12 +1421,12 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} [params.responseRequired] ccxt.Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitvavo) createOrderWsBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1459,12 +1459,12 @@ func (this *Bitvavo) createOrderWsBody(ch chan any, symbol any, typeVar string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderWsAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderWsBody(ch chan any, id any, symbol any, typeVar string, side string, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1947,12 +1947,12 @@ func (this *Bitvavo) HandleWithdraws(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) FetchOHLCVWsAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVWsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

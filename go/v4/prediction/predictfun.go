@@ -2207,12 +2207,12 @@ func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBea
  * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2226,7 +2226,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar string
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	if tokenId == nil {
-		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id+" createOrder() could not resolve the on chain token id of ", outcome)))
+		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not resolve the on chain token id of " + outcome))
 	}
 	var strategy string = "LIMIT"
 	if typeVar == "market" {
@@ -3508,12 +3508,12 @@ func (this *Predictfun) watchOrderBookBody(ch chan any, outcome any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-func (this *Predictfun) UnWatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) UnWatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) unWatchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Predictfun) unWatchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3524,7 +3524,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan any, outcome any, optionalA
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *string = this.SafeString(info, "marketId")
 	if marketId == nil {
-		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id+" unWatchOrderBook() could not resolve the market id of ", outcome)))
+		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOrderBook() could not resolve the market id of " + outcome))
 	}
 	var topic string = "predictOrderbook/" + *marketId
 	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))

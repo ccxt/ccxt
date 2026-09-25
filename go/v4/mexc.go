@@ -2786,12 +2786,12 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Mexc) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2823,12 +2823,12 @@ func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateMarketSellOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <-chan any {
+func (this *Mexc) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+func (this *Mexc) createMarketSellOrderWithCostBody(ch chan any, symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2877,12 +2877,12 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan any, symbol any, cos
  * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Mexc) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -5128,12 +5128,12 @@ func (this *Mexc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 	ch <- this.ParseTrades(trades, market, since, limit, query)
 	return nil
 }
-func (this *Mexc) ModifyMarginHelperAsync(symbol any, amount any, addOrReduce any, optionalArgs ...any) <-chan any {
+func (this *Mexc) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Mexc) modifyMarginHelperBody(ch chan any, symbol any, amount any, addOrReduce any, optionalArgs ...any) any {
+func (this *Mexc) modifyMarginHelperBody(ch chan any, symbol string, amount any, addOrReduce any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5174,12 +5174,12 @@ func (this *Mexc) modifyMarginHelperBody(ch chan any, symbol any, amount any, ad
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Mexc) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Mexc) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5200,12 +5200,12 @@ func (this *Mexc) reduceMarginBody(ch chan any, symbol any, amount any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Mexc) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Mexc) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5432,12 +5432,12 @@ func (this *Mexc) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Mexc) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mexc) FetchFundingIntervalAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mexc) fetchFundingIntervalBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

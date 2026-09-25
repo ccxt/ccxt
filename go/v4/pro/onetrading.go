@@ -1191,12 +1191,12 @@ func (this *Onetrading) UpdateBalance(balance any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Onetrading) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Onetrading) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Onetrading) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")

@@ -102,12 +102,12 @@ func (this *Bitfinex) subscribeBody(ch chan any, channel string, symbol any, opt
 	ch <- result
 	return nil
 }
-func (this *Bitfinex) UnSubscribeAsync(channel string, topic string, symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) UnSubscribeAsync(channel string, topic string, symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unSubscribeBody(ch, channel, topic, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) unSubscribeBody(ch chan any, channel string, topic string, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) unSubscribeBody(ch chan any, channel string, topic string, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -122,7 +122,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan any, channel string, topic string,
 	var client ccxt.ClientInterface = this.Client(url)
 	var subMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", marketId))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:"+channel+":", marketId))
-	var unSubTopic *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe"+":"+topic+":", symbol))
+	var unSubTopic string = "unsubscribe" + ":" + topic + ":" + symbol
 	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubTopic)
 	var request map[string]any = map[string]any{
 		"event":  "unsubscribe",
@@ -172,12 +172,12 @@ func (this *Bitfinex) subscribePrivateBody(ch chan any, messageHash any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitfinex) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -225,12 +225,12 @@ func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {bool} true if successfully unsubscribed, false otherwise
  */
-func (this *Bitfinex) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -394,12 +394,12 @@ func (this *Bitfinex) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitfinex) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -486,12 +486,12 @@ func (this *Bitfinex) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitfinex) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

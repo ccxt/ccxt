@@ -1655,12 +1655,12 @@ func (this *Weex) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Weex) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1854,12 +1854,12 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
 
-		var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))))
+		var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(StringArg(symbol), timeframe, since, limit, params))))
 		ch <- BoxAbsent(retRes154619)
 		return nil
 	} else {
 
-		var retRes154819 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params))))
+		var retRes154819 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(StringArg(symbol), timeframe, since, limit, params))))
 		ch <- BoxAbsent(retRes154819)
 		return nil
 	}
@@ -1878,12 +1878,12 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Weex) FetchSpotOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchSpotOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchSpotOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1929,12 +1929,12 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...an
  * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Weex) FetchContractOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchContractOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchContractOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -2242,12 +2242,12 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Weex) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2691,12 +2691,12 @@ func (this *Weex) ParseTransferStatus(status *string) *string {
  * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Weex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2740,12 +2740,12 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar string, side 
  * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateSpotOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Weex) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createSpotOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2842,12 +2842,12 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string
  * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CreateContractOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
+func (this *Weex) CreateContractOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) createContractOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4602,7 +4602,7 @@ func (this *Weex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(symbol, params))))
+	var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(StringArg(symbol), params))))
 
 	ch <- this.SafeDict(positions, 0)
 	return nil
@@ -4618,12 +4618,12 @@ func (this *Weex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Weex) FetchPositionsForSymbolAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4820,12 +4820,12 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5306,12 +5306,12 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	ch <- PanicOnError((<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, paramsMarginMode))).Raw)
 	return nil
 }
-func (this *Weex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Weex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Weex) modifyMarginHelperBody(ch chan any, symbol string, amount any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5385,12 +5385,12 @@ func (this *Weex) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {string} params.positionId the id of the position to reduce margin from, required
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Weex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Weex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Weex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5412,12 +5412,12 @@ func (this *Weex) reduceMarginBody(ch chan any, symbol any, amount any, optional
  * @param {string} params.positionId the id of the position to add margin to, required
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Weex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Weex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Weex) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

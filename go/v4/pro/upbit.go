@@ -273,12 +273,12 @@ func (this *Upbit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.OHLCV[]} a list of [ccxt.OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
  */
-func (this *Upbit) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Upbit) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Upbit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Upbit) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1s")
