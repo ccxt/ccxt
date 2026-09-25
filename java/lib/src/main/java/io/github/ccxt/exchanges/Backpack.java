@@ -1872,7 +1872,7 @@ public class Backpack extends BackpackApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
+            Object networkId = this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
@@ -2047,7 +2047,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
-                "blockchain", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")))
+                "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")))
             );
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
             return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));

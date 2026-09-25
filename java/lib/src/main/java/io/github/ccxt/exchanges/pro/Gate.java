@@ -2845,8 +2845,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             this.checkRequiredCredentials(true);
             // uid is required for some subscriptions only so it's not a part of required credentials
             String eventVar = "api";
-            Object requestIdResolved = (((java.util.Objects.equals(requestId, null)))) ? String.valueOf(this.requestId()) : requestId;
-            Object messageHash = requestIdResolved;
+            String requestIdResolved = (((java.util.Objects.equals(requestId, null)))) ? String.valueOf(this.requestId()) : requestId;
+            String messageHash = requestIdResolved;
             Long time = this.seconds();
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             String signatureString = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes

@@ -2112,7 +2112,7 @@ public class Cex extends CexApi
             Map<String, Object> request = Helpers.newMap(
                 "accountId", accountId,
                 "currency", ((Map<String, Object>)currency).get("id"),
-                "blockchain", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")))
+                "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")))
             );
             Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //

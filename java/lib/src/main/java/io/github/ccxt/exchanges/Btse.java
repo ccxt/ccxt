@@ -4482,9 +4482,9 @@ public class Btse extends BtseApi
 
     public Object cleanPath(Object path)
     {
-        Object result = Helpers.replace(((String)path), "spot", "");
-        result = Helpers.replace(((String)result), "futures", "");
-        result = Helpers.replace(((String)result), "otc", "");
+        String result = Helpers.replace(((String)path), "spot", "");
+        result = Helpers.replace(result, (String)"futures", (String)"");
+        result = Helpers.replace(result, (String)"otc", (String)"");
         return result;
     }
 

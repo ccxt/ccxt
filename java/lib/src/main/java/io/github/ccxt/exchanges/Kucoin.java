@@ -3073,7 +3073,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
@@ -3120,7 +3120,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
@@ -3594,7 +3594,7 @@ public class Kucoin extends KucoinApi
             {
                 if (java.util.Objects.equals(tradeType, null))
                 {
-                    request.put("tradeType", this.typeToTradeType((String) (type)));
+                    request.put("tradeType", this.typeToTradeType(type));
                 }
                 response = (this.utaGetMarketTicker(this.extend(request, paramsMarketType))).join();
             } else if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
@@ -3770,7 +3770,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Helpers.isTrue(utaOption))
             {
-                request.put("tradeType", this.typeToTradeType((String) (type)));
+                request.put("tradeType", this.typeToTradeType(type));
                 response = (this.utaGetMarketTicker(this.extend(request, paramsMarketType))).join();
                 //
                 //     {
@@ -4268,7 +4268,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")))); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+                request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")))); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
             }
             Map<String, Object> response = (this.privatePostDepositAddressCreate(this.extend(request, paramsNetworkCode))).join();
             // {"code":"260000","msg":"Deposit address already exists."}
@@ -6914,7 +6914,7 @@ public class Kucoin extends KucoinApi
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Boolean isUnified = (java.util.Objects.equals(accountModeOption, "unified"));
-            Object tradeType = this.handleTradeType(isContract, Helpers.toStringArg(marginMode), isUnified, Helpers.toMapArg(paramsMarginMode));
+            Object tradeType = this.handleTradeType(isContract, marginMode, isUnified, Helpers.toMapArg(paramsMarginMode));
             Helpers.addElementToObject(paramsMarginMode, "tradeType", tradeType);
             if (!java.util.Objects.equals(since, null))
             {
@@ -9081,13 +9081,13 @@ public class Kucoin extends KucoinApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
                 }
             }
-            Object amountString = this.currencyToPrecision((String) (code), amount, Helpers.toStringArg(networkCode));
+            Object amountString = this.currencyToPrecision((String) (code), amount, networkCode);
             if (!java.util.Objects.equals(amountString, null))
             {
                 request.put("amount", Helpers.parseFloat(amountString));

@@ -1142,8 +1142,8 @@ public class TestMain extends BaseTest
                         List<Object> handleParts = (List<Object>) Helpers.split(outcomeSymbol, ":");
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
                         Object lowerPart = marketPart.toLowerCase();
-                        Object dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
-                        eventQuery = (dedashed == null ? null : ((String)dedashed).replace("_", " "));
+                        String dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
+                        eventQuery = Helpers.replaceAll(dedashed, (String)"_", (String)" ");
                     }
                     Map<String, Object> eventParams = new HashMap<String, Object>() {{}};
                     if (!java.util.Objects.equals(eventQuery, null))

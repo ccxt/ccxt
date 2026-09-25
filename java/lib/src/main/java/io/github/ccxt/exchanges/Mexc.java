@@ -4391,7 +4391,7 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object response = (this.fetchAccountHelper((String) (marketType), (Map<String, Object>) (query))).join();
+            Object response = (this.fetchAccountHelper(marketType, (Map<String, Object>) (query))).join();
             List<Object> data = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)

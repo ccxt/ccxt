@@ -2396,7 +2396,7 @@ public class Hashkey extends HashkeyApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainType", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
+                request.put("chainType", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
             }
             Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, paramsNetworkCode))).join();
             //
@@ -3588,7 +3588,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> response = null;
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsMethodName, (String) (methodNameOption), "accountId", (String) null);
+            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId", (String) null);
             String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
             var paramsAccountId = ((List<Object>) accountIdparamsAccountIdVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
@@ -3663,7 +3663,7 @@ public class Hashkey extends HashkeyApi
                 request.put("limit", limit);
             }
             List<Object> response = null;
-            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsTrigger, (String) (methodNameOption), "accountId", (String) null);
+            List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId", (String) null);
             String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
             Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
@@ -4937,8 +4937,8 @@ public class Hashkey extends HashkeyApi
 
     public Object customUrlencode(Map<String, Object> parameters)
     {
-        Object result = this.urlencode(parameters);
-        result = Helpers.replace(((String)result), "%2C", ",");
+        String result = this.urlencode(parameters);
+        result = Helpers.replace(result, (String)"%2C", (String)",");
         return result;
     }
 

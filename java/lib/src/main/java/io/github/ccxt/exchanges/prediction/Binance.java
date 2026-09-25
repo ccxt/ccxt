@@ -2287,9 +2287,9 @@ public class Binance extends BinanceApi
         {
             extendedParams.put("recvWindow", defaultRecvWindow);
         }
-        Object querystring = this.urlencodeNested(extendedParams);
-        querystring = (querystring == null ? null : ((String)querystring).replace("%5B", "["));
-        querystring = (querystring == null ? null : ((String)querystring).replace("%5D", "]"));
+        String querystring = this.urlencodeNested(extendedParams);
+        querystring = Helpers.replaceAll(querystring, (String)"%5B", (String)"[");
+        querystring = Helpers.replaceAll(querystring, (String)"%5D", (String)"]");
         String signature = (String) this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = Helpers.add((querystring + "&signature="), signature);
         Map<String, Object> headersValue = new HashMap<String, Object>() {{

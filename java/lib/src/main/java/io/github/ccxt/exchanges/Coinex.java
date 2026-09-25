@@ -2104,7 +2104,7 @@ public class Coinex extends CoinexApi
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market");
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(type));
+                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, type);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), Helpers.toMapArg(market)));
             }
@@ -3862,7 +3862,7 @@ public class Coinex extends CoinexApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a \"network\" parameter")) ;
             }
-            request.put("chain", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")))); // required for on-chain, not required for inter-user transfer
+            request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")))); // required for on-chain, not required for inter-user transfer
             Map<String, Object> response = (this.v2PrivateGetAssetsDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
             //     {
@@ -4922,7 +4922,7 @@ public class Coinex extends CoinexApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")))); // required for on-chain, not required for inter-user transfer
+                request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")))); // required for on-chain, not required for inter-user transfer
             }
             Map<String, Object> response = (this.v2PrivatePostAssetsWithdraw(this.extend(request, paramsNetworkCode))).join();
             //

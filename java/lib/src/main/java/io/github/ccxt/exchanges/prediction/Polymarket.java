@@ -3598,9 +3598,9 @@ public class Polymarket extends PolymarketApi
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                Object normalizedSecret = ((String)secret);
-                normalizedSecret = (normalizedSecret == null ? null : ((String)normalizedSecret).replace("-", "+"));
-                normalizedSecret = (normalizedSecret == null ? null : ((String)normalizedSecret).replace("_", "/"));
+                String normalizedSecret = ((String)secret);
+                normalizedSecret = Helpers.replaceAll(normalizedSecret, (String)"-", (String)"+");
+                normalizedSecret = Helpers.replaceAll(normalizedSecret, (String)"_", (String)"/");
                 Object secretBytes = this.base64ToBinary(normalizedSecret);
                 Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)

@@ -749,7 +749,7 @@ public class Hyperliquid extends HyperliquidApi
                         data.put("collateralTokenName", collateralTokenCode);
                         // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                         String safeCode = this.safeCurrencyCode(name, (Map<String, Object>) null);
-                        Object hip3Code = (((java.util.Objects.equals(safeCode, null)))) ? name : Helpers.replace((String)safeCode, (String)":", (String)"-");
+                        String hip3Code = (((java.util.Objects.equals(safeCode, null)))) ? name : Helpers.replace((String)safeCode, (String)":", (String)"-");
                         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("hip3TokensByName")), name, new HashMap<String, Object>() {{
         put( "quote", collateralTokenCode );
         put( "code", hip3Code );
@@ -1120,12 +1120,12 @@ public class Hyperliquid extends HyperliquidApi
             settleId = "USDC";
         }
         String baseName = this.safeString(market, "name");
-        Object base = this.safeCurrencyCode(baseName, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseName, (Map<String, Object>) null);
         if (java.util.Objects.equals(base, null))
         {
             throw new ExchangeError((this.id + " parseMarket() missing base currency")) ;
         }
-        base = Helpers.replace(((String)base), ":", "-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+        base = Helpers.replace(base, (String)":", (String)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String baseId = this.safeString(market, "baseId");
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
@@ -1252,7 +1252,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", Helpers.toMapArg(paramsMarketType), (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
-            var isUnifiedEnabledparamsValueVariable = (this.isUnifiedEnabled("fetchBalance", Helpers.toStringArg(userAddress), shouldRefresh, Helpers.toMapArg(paramsMarginMode))).join();
+            var isUnifiedEnabledparamsValueVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, Helpers.toMapArg(paramsMarginMode))).join();
             var isUnifiedEnabled = ((List<Object>) isUnifiedEnabledparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) isUnifiedEnabledparamsValueVariable).get(1);
             String dex = this.safeString(paramsValue, "dex");
@@ -2495,7 +2495,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> vaultAddressOptionparamsVaultVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress", (String) null);
             String vaultAddressOption = (String) ((List<Object>) vaultAddressOptionparamsVaultVariable).get(0);
             Map<String, Object> paramsVault = (Map<String, Object>) ((List<Object>) vaultAddressOptionparamsVaultVariable).get(1);
-            Object vaultAddress = this.formatVaultAddress(Helpers.toStringArg(vaultAddressOption));
+            Object vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Double durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
             Map<String, Object> orderObj = new HashMap<String, Object>() {{
                 put( "a", Hyperliquid.this.parseToInt(((Map<String, Object>)market).get("baseId")) );
@@ -5823,7 +5823,7 @@ public class Hyperliquid extends HyperliquidApi
         List<Object> userAuxparamsUserVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress", (String) null);
         String userAux = (String) ((List<Object>) userAuxparamsUserVariable).get(0);
         Map<String, Object> paramsUser = (Map<String, Object>) ((List<Object>) userAuxparamsUserVariable).get(1);
-        List<Object> userparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsUser, (String) (methodName), "address", Helpers.toStringArg(userAux));
+        List<Object> userparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsUser, (String) (methodName), "address", userAux);
         String user = (String) ((List<Object>) userparamsAddressVariable).get(0);
         Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) userparamsAddressVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
@@ -5862,7 +5862,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             coinId = Helpers.replace(((String)coin), ":", "-");
         }
-        return (this.safeCurrencyCode((String) (coinId), (Map<String, Object>) null) + "/USDC:USDC");
+        return (this.safeCurrencyCode(coinId, (Map<String, Object>) null) + "/USDC:USDC");
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

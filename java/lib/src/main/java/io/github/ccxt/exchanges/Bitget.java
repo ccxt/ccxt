@@ -4885,12 +4885,12 @@ public class Bitget extends BitgetApi
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             var paramsUTA = ((List<Object>) utaparamsUTAVariable).get(1);
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Object networkId = this.networkCodeToId((String) (networkCode), code);
+            Object networkId = this.networkCodeToId(networkCode, code);
             Map<String, Object> request = Helpers.newMap(
                 "coin", ((Map<String, Object>)currency).get("id"),
                 "address", address,
                 "chain", networkId,
-                "size", this.currencyToPrecision((String) (code), amount, Helpers.toStringArg(networkCode)),
+                "size", this.currencyToPrecision((String) (code), amount, networkCode),
                 "transferType", "on_chain"
             );
             if (!java.util.Objects.equals(tag, null))
@@ -5248,7 +5248,7 @@ public class Bitget extends BitgetApi
             }};
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId((String) (networkCode), code));
+                request.put("chain", this.networkCodeToId(networkCode, code));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
@@ -14792,13 +14792,13 @@ public class Bitget extends BitgetApi
                 if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                 {
                     Map<String,Object> sortedParams = this.keysort(parameters);
-                    Object queryInner = ("?" + this.urlencode(sortedParams, true));
+                    String queryInner = ("?" + this.urlencode(sortedParams, true));
                     // check #21169 pr
                     if (Helpers.isGreaterThan(((String)queryInner).indexOf("%24"), -1))
                     {
-                        queryInner = Helpers.replace(((String)queryInner), "%24", "$");
+                        queryInner = Helpers.replace(queryInner, (String)"%24", (String)"$");
                     }
-                    url = Helpers.add(url, queryInner);
+                    url = (url + queryInner);
                     // bitget signs the raw (non-percent-encoded) query string, so the
                     // signature must use the decoded values (e.g. non-ascii market ids).
                     // sort explicitly (true) so the signed order matches the url order in Go,

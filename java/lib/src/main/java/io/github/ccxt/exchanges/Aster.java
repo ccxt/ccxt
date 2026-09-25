@@ -2190,7 +2190,7 @@ public class Aster extends AsterApi
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 String marketId = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
-                Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
+                Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
                 Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), Helpers.toMapArg(safeMarket)), paramsMarketType);
                 ((List<Object>)results).add(priceData);
             }
@@ -3143,7 +3143,7 @@ public class Aster extends AsterApi
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
-            if (Boolean.TRUE.equals(this.isLinear(marketType, Helpers.toStringArg(subType))))
+            if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, paramsSubType))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
@@ -3275,7 +3275,7 @@ public class Aster extends AsterApi
 
             (this.loadMarketsAndSignIn()).join();
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Object orderSymbols = new ArrayList<Object>(Arrays.asList());
+            List<Object> orderSymbols = new ArrayList<Object>(Arrays.asList());
             if (((List<?>)orders).size() > 5)
             {
                 throw new InvalidOrder((this.id + " createOrders() order list max 5 orders")) ;
@@ -3294,8 +3294,8 @@ public class Aster extends AsterApi
                 Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
+            List<String> orderSymbolsResolved = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbolsResolved == null || 0 >= ((List<?>)orderSymbolsResolved).size() ? null : ((List<?>)orderSymbolsResolved).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;

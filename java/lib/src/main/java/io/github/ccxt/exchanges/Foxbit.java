@@ -1590,7 +1590,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network_code", this.networkCodeToId((String) (networkCode), code));
+                request.put("network_code", this.networkCodeToId(networkCode, code));
             }
             Map<String, Object> response = (this.v3PrivateGetDepositsAddress(this.extend(request, paramsOmited))).join();
             // {
@@ -1938,7 +1938,7 @@ public class Foxbit extends FoxbitApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network_code", this.networkCodeToId((String) (networkCode), code));
+                request.put("network_code", this.networkCodeToId(networkCode, code));
             }
             Map<String, Object> response = (this.v3PrivatePostWithdrawals(this.extend(request, paramsNetworkCode))).join();
             // {

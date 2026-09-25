@@ -3258,7 +3258,7 @@ public class Delta extends DeltaApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String amountString = String.valueOf(amount);
-            Object deltaMargin = (((java.util.Objects.equals(type, "reduce")))) ? Precise.stringMul(amountString, "-1") : amountString;
+            String deltaMargin = (((java.util.Objects.equals(type, "reduce")))) ? Precise.stringMul(amountString, "-1") : amountString;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
                 put( "delta_margin", deltaMargin );

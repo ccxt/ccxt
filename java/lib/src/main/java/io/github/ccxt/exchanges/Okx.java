@@ -4290,7 +4290,7 @@ public class Okx extends OkxApi
             //         "msg": ""
             //     }
             //
-            return this.parseBalanceByType((String) (marketType), (Map<String, Object>) (response));
+            return this.parseBalanceByType(marketType, (Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }

@@ -2579,7 +2579,7 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network", this.networkCodeToId((String) (networkCode), code));
+                request.put("network", this.networkCodeToId(networkCode, code));
             } else
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;

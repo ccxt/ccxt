@@ -2700,9 +2700,9 @@ public class Coinsph extends CoinsphApi
 
     public Object parseArrayParam(Object array, Object key)
     {
-        Object stringifiedArray = this.json(array);
-        stringifiedArray = Helpers.replace(((String)stringifiedArray), "[", "%5B");
-        stringifiedArray = Helpers.replace(((String)stringifiedArray), "]", "%5D");
+        String stringifiedArray = this.json(array);
+        stringifiedArray = Helpers.replace(stringifiedArray, (String)"[", (String)"%5B");
+        stringifiedArray = Helpers.replace(stringifiedArray, (String)"]", (String)"%5D");
         String urlEncodedParam = ((key + "=") + stringifiedArray);
         return urlEncodedParam;
     }

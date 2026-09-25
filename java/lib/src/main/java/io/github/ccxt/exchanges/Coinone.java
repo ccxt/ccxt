@@ -1594,7 +1594,7 @@ public class Coinone extends CoinoneApi
             this.checkRequiredCredentials(true);
             url = (url + request);
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
-            Object nonce = null;
+            String nonce = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2_1Private"))
             {
                 nonce = this.uuid();

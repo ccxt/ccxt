@@ -967,8 +967,8 @@ public class Phemex extends PhemexApi
         String baseId = this.safeString(market, "baseCurrency", contractUnderlyingAssets);
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency");
-        Object base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        base = Helpers.replace(((String)((String)base)), " ", ""); // replace space for junction codes, eg. `1000 SHIB`
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        base = Helpers.replace(base, (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         Boolean inverse = false;
@@ -5954,7 +5954,7 @@ public class Phemex extends PhemexApi
             Object networkId = null;
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networkId = this.networkCodeToId((String) (networkCode), code);
+                networkId = this.networkCodeToId(networkCode, code);
             }
             Object stableCoins = this.safeValue(this.options, "stableCoins");
             if (java.util.Objects.equals(networkId, null))

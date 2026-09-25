@@ -667,7 +667,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long interval = (Long) ((List<Object>) intervalparamsIntervalVariable).get(0);
             Map<String, Object> paramsInterval = (Map<String, Object>) ((List<Object>) intervalparamsIntervalVariable).get(1);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Object extraPart = null;
+            String extraPart = null;
             if (Boolean.TRUE.equals(isSnapshot))
             {
                 extraPart = ((String.valueOf(interval) + "-") + String.valueOf(limitResolved));
@@ -682,7 +682,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
-                ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), extraPart));
+                ((List<Object>)rawHashes).add(((marketId + "@") + extraPart));
                 messageHashes.add(("orderbook::" + ((Map<String, Object>)market).get("symbol")));
             }
             Map<String, Object> request = Helpers.newMap(

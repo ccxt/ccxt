@@ -3249,7 +3249,7 @@ public class Bitrue extends BitrueApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainName", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
+                request.put("chainName", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
             }
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {

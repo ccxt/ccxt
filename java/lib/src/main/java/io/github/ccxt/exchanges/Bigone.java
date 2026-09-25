@@ -2699,7 +2699,7 @@ public class Bigone extends BigoneApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("gateway_name", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
+                request.put("gateway_name", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
             }
             // requires write permission on the wallet
             Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, paramsNetworkCode))).join();

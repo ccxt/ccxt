@@ -3272,7 +3272,7 @@ public class Toobit extends ToobitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() : param[\"network\"] is required")) ;
             }
-            request.put("chainType", this.networkCodeToId((String) (networkCode), code));
+            request.put("chainType", this.networkCodeToId(networkCode, code));
             Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3338,7 +3338,7 @@ public class Toobit extends ToobitApi
                 "coin", ((Map<String, Object>)currency).get("id"),
                 "address", address,
                 "quantity", this.currencyToPrecision((String) (((Map<String, Object>)currency).get("code")), amount, (String) null),
-                "chainType", this.networkCodeToId((String) (networkCode), code),
+                "chainType", this.networkCodeToId(networkCode, code),
                 "clientOrderId", this.milliseconds()
             );
             if (!java.util.Objects.equals(tag, null))

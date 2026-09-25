@@ -3858,7 +3858,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", leverage );
-                put( "margin_type", Paradex.this.encodeMarginMode((String) (marginMode)) );
+                put( "margin_type", Paradex.this.encodeMarginMode(marginMode) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, paramsMarginMode))).join();
         });

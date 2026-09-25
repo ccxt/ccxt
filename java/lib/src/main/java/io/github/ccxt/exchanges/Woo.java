@@ -1820,7 +1820,7 @@ public class Woo extends WooApi
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                request.put("marginMode", this.encodeMarginMode((String) (marginMode)));
+                request.put("marginMode", this.encodeMarginMode(marginMode));
             }
             String triggerPrice = this.safeString2(paramsMarginMode, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(paramsMarginMode, "stopLoss");
@@ -3354,7 +3354,7 @@ public class Woo extends WooApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
-                put( "network", Woo.this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code"))) );
+                put( "network", Woo.this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code"))) );
             }};
             Map<String, Object> response = (this.v3PrivateGetAssetWalletDeposit(this.extend(request, paramsNetworkCode))).join();
             //
@@ -3380,7 +3380,7 @@ public class Woo extends WooApi
         List<Object> networkCodeRawparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCodeRaw = (String) ((List<Object>) networkCodeRawparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeRawparamsNetworkCodeVariable).get(1);
-        String networkCode = this.networkIdToCode(Helpers.toStringArg(networkCodeRaw), Helpers.toStringArg(Helpers.GetValue(currency, "code")));
+        String networkCode = this.networkIdToCode(networkCodeRaw, Helpers.toStringArg(Helpers.GetValue(currency, "code")));
         Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode, (Object) null));
         if (java.util.Objects.equals(networkEntry, null))
         {
@@ -3426,7 +3426,7 @@ public class Woo extends WooApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network", this.networkCodeToId((String) (networkCode), this.safeString(currency, "code")));
+                request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -4640,7 +4640,7 @@ public class Woo extends WooApi
                 List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
                 String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                 Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
-                request.put("marginMode", this.encodeMarginMode((String) (marginMode)));
+                request.put("marginMode", this.encodeMarginMode(marginMode));
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, paramsMarginMode))).join();
             } else
             {
@@ -4730,7 +4730,7 @@ public class Woo extends WooApi
                 List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
                 String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                 Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
-                request.put("marginMode", this.encodeMarginMode((String) (marginMode)));
+                request.put("marginMode", this.encodeMarginMode(marginMode));
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, paramsMarginMode))).join();
             } else
             {

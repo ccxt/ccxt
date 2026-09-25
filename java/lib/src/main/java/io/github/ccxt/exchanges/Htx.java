@@ -6427,7 +6427,7 @@ public class Htx extends HtxApi
             List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
-            String accountId = (this.fetchAccountIdByType(((Map<String, Object>)market).get("type"), Helpers.toStringArg(marginMode), symbol, new HashMap<String, Object>() {{}})).join();
+            String accountId = (this.fetchAccountIdByType(((Map<String, Object>)market).get("type"), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account-id", accountId );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -8377,9 +8377,9 @@ public class Htx extends HtxApi
             var paramsNetwork = ((List<Object>) networkCodeparamsNetworkVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId((String) (networkCode), code));
+                request.put("chain", this.networkCodeToId(networkCode, code));
             }
-            Object amountPrecision = this.currencyToPrecision((String) (code), amount, Helpers.toStringArg(networkCode));
+            Object amountPrecision = this.currencyToPrecision((String) (code), amount, networkCode);
             if (java.util.Objects.equals(amountPrecision, null))
             {
                 amountPrecision = "0";
@@ -8407,7 +8407,7 @@ public class Htx extends HtxApi
                     }
                 }
                 // fee needs to be deducted from whole amount
-                Object feeString = this.currencyToPrecision((String) (code), fee, Helpers.toStringArg(networkCode));
+                Object feeString = this.currencyToPrecision((String) (code), fee, networkCode);
                 String amountString = this.numberToString(amountValue);
                 String amountSubtractedString = Precise.stringSub(amountString, feeString);
                 String amountSubtractedParsed = amountSubtractedString;
@@ -8422,7 +8422,7 @@ public class Htx extends HtxApi
                     feeParsed = "0";
                 }
                 request.put("fee", Helpers.parseFloat(feeParsed));
-                Object amountAfterFee = this.currencyToPrecision((String) (code), amountSubtracted, Helpers.toStringArg(networkCode));
+                Object amountAfterFee = this.currencyToPrecision((String) (code), amountSubtracted, networkCode);
                 if (java.util.Objects.equals(amountAfterFee, null))
                 {
                     amountAfterFee = "0";

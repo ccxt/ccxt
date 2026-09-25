@@ -2630,7 +2630,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-            Object networkId = this.networkCodeToId((String) (networkCode), code);
+            Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
                 request.put("network_id", networkId);
@@ -4401,7 +4401,7 @@ public class Cryptocom extends CryptocomApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
         String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type), "/"), path);
@@ -4439,7 +4439,7 @@ public class Cryptocom extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                requestBody = Helpers.replace(((String)requestBody), arrayString, paramsString);
+                requestBody = Helpers.replace(requestBody, (String)arrayString, (String)paramsString);
             }
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

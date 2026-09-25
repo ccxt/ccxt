@@ -7138,7 +7138,7 @@ public Object describe()
         {
             Object fee = Helpers.GetValue(fees, i);
             String code = this.safeString(fee, "currency");
-            Object feeCurrencyCode = (((!java.util.Objects.equals(code, null)))) ? code : String.valueOf(i);
+            String feeCurrencyCode = (((!java.util.Objects.equals(code, null)))) ? code : String.valueOf(i);
             if (!java.util.Objects.equals(feeCurrencyCode, null))
             {
                 String rate = this.safeString(fee, "rate");
@@ -8390,7 +8390,7 @@ public Object describe()
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
         {
-            Helpers.addElementToObject(request, exchangeSpecificKey, this.networkCodeToId((String) (networkCode), currencyCode));
+            Helpers.addElementToObject(request, exchangeSpecificKey, this.networkCodeToId(networkCode, currencyCode));
         } else if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isRequired, false)))
         {
             throw new ArgumentsRequired((this.id + " - \"network\" param is required for this request")) ;

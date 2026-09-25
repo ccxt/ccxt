@@ -1475,7 +1475,7 @@ public class Weex extends WeexApi
                 Object rawTicker = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
-                Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
+                Map<String, Object> tickerMarket = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
                 ((List<Object>)results).add(this.parseTicker(rawTicker, Helpers.toMapArg(tickerMarket)));
             }
             return this.filterByArrayTickers(results, "symbol", symbolsNormalized, true);
@@ -4992,7 +4992,7 @@ public class Weex extends WeexApi
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                request.put("marginType", this.encodeMarginMode((String) (marginMode)));
+                request.put("marginType", this.encodeMarginMode(marginMode));
             }
             Double isolatedLongLeverage = this.safeNumber(paramsMarginMode, "isolatedLongLeverage", (Object) null);
             Double isolatedShortLeverage = this.safeNumber(paramsMarginMode, "isolatedShortLeverage", (Object) null);
@@ -5085,7 +5085,7 @@ public class Weex extends WeexApi
             }
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),
-                "marginType", this.encodeMarginMode((String) (marginMode)),
+                "marginType", this.encodeMarginMode(marginMode),
                 "separatedType", separatedType
             );
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, paramsMarginMode))).join();

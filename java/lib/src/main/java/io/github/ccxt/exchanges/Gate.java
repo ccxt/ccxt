@@ -3754,7 +3754,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", Helpers.toMapArg(market), parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Helpers.addElementToObject(request, "type", "fund"); // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -4197,7 +4197,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             List<Object> response = null;
@@ -4278,7 +4278,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsUnifiedAccount), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             var marginModerequestQueryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (requestParams));
@@ -5056,7 +5056,7 @@ public class Gate extends GateApi
             if (Boolean.TRUE.equals(contract))
             {
                 Object contractQuery = null;
-                var requestcontractQueryVariable = this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(paramsMarketType));
+                var requestcontractQueryVariable = this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(paramsMarketType));
                 request = ((List<Object>) requestcontractQueryVariable).get(0);
                 contractQuery = ((List<Object>) requestcontractQueryVariable).get(1);
                 query = (((java.util.Objects.equals(type, "option")))) ? this.omit(contractQuery, "order_id") : contractQuery;
@@ -5505,7 +5505,7 @@ public class Gate extends GateApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId((String) (networkCode), code));
+                request.put("chain", this.networkCodeToId(networkCode, code));
             }
             Map<String, Object> response = (this.privateWithdrawalsPostWithdrawals(this.extend(request, paramsNetworkCode))).join();
             //
@@ -6790,7 +6790,7 @@ public class Gate extends GateApi
         String type = (String) ((List<Object>) typequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
         Boolean contract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "option"));
-        var requestrequestParamsVariable = ((Boolean.TRUE.equals(contract))) ? this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query)) : this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query));
+        var requestrequestParamsVariable = ((Boolean.TRUE.equals(contract))) ? this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query)) : this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query));
         var request = ((List<Object>) requestrequestParamsVariable).get(0);
         var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
         Helpers.addElementToObject(request, "order_id", String.valueOf(orderId));
@@ -6989,7 +6989,7 @@ public class Gate extends GateApi
         Boolean spot = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
         Object request = new HashMap<String, Object>() {{}};
         Object query = new HashMap<String, Object>() {{}};
-        var requestqueryVariable = ((Boolean.TRUE.equals(spot))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(paramsMarketType)) : this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(paramsMarketType));
+        var requestqueryVariable = ((Boolean.TRUE.equals(spot))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(paramsMarketType)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(paramsMarketType));
         request = ((List<Object>) requestqueryVariable).get(0);
         query = ((List<Object>) requestqueryVariable).get(1);
         if (Boolean.TRUE.equals(spot) && (java.util.Objects.equals(trigger, true)))
@@ -7285,7 +7285,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Helpers.addElementToObject(request, "order_id", id);
@@ -7566,7 +7566,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(Helpers.toMapArg(market), trigger, Helpers.toMapArg(query)) : this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             List<Object> response = null;
@@ -8253,7 +8253,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "swap"))
@@ -8391,7 +8391,7 @@ public class Gate extends GateApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarketLeverageTiers", Helpers.toMapArg(market), parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(query));
+            var requestrequestParamsVariable = this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(query));
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "swap"))
@@ -8906,7 +8906,7 @@ public class Gate extends GateApi
         } else
         {
             this.checkRequiredCredentials(true);
-            Object queryString = "";
+            String queryString = "";
             String rawQueryString = "";
             Boolean requiresURLEncoding = false;
             if (((java.util.Objects.equals(type, "futures")) || (java.util.Objects.equals(type, "delivery"))) && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
@@ -8927,7 +8927,7 @@ public class Gate extends GateApi
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (((String)queryString).indexOf("currencies=") >= 0 && ((String)queryString).indexOf("%2C") >= 0)
                     {
-                        queryString = (queryString == null ? null : ((String)queryString).replace("%2C", ","));
+                        queryString = Helpers.replaceAll(queryString, (String)"%2C", (String)",");
                     }
                     url = Helpers.add(url, ("?" + queryString));
                 }
@@ -9294,7 +9294,7 @@ public class Gate extends GateApi
             {
                 throw new NotSupported((this.id + " fetchMySettlementHistory() supports option and future markets only")) ;
             }
-            var requestqueryVariable = this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(type), Helpers.toMapArg(paramsMarketType));
+            var requestqueryVariable = this.prepareRequest(Helpers.toMapArg(market), type, Helpers.toMapArg(paramsMarketType));
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -10556,7 +10556,7 @@ public class Gate extends GateApi
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Long until = this.safeInteger(paramsMarketType, "until");
             Object paramsOmitted = this.omit(paramsMarketType, "until");
-            var requestparamsValueVariable = this.prepareRequest(Helpers.toMapArg(market), Helpers.toStringArg(marketType), Helpers.toMapArg(paramsOmitted));
+            var requestparamsValueVariable = this.prepareRequest(Helpers.toMapArg(market), marketType, Helpers.toMapArg(paramsOmitted));
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
             if (!java.util.Objects.equals(limit, null))

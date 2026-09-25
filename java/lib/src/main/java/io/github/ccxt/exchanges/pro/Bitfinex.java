@@ -314,10 +314,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String key = this.safeString(subscription, "key", "");
         List<Object> keyParts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote(":"))));
         String interval = this.safeString(keyParts, 1);
-        Object marketId = key;
-        marketId = Helpers.replace(((String)marketId), "trade:", "");
-        marketId = Helpers.replace(((String)marketId), ((String)(interval + ":")), "");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        String marketId = key;
+        marketId = Helpers.replace(marketId, (String)"trade:", (String)"");
+        marketId = Helpers.replace(marketId, (String)(interval + ":"), (String)"");
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ((Helpers.add((channel + ":"), interval) + ":") + marketId);

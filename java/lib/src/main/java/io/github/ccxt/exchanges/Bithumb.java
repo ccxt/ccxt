@@ -3764,10 +3764,10 @@ public class Bithumb extends BithumbApi
         {
             return null;
         }
-        Object finalNumberStr = numberStr;
+        String finalNumberStr = numberStr;
         while (Helpers.isGreaterThan(((String)finalNumberStr).indexOf(","), -1))
         {
-            finalNumberStr = Helpers.replace(((String)finalNumberStr), ",", "");
+            finalNumberStr = Helpers.replace(finalNumberStr, (String)",", (String)"");
         }
         return finalNumberStr;
     }

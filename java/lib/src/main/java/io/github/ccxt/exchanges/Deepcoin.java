@@ -981,7 +981,7 @@ public class Deepcoin extends DeepcoinApi
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (marketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, paramsMarketType))).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1205,7 +1205,7 @@ public class Deepcoin extends DeepcoinApi
             String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (marketTypeOption)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketTypeOption) );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, paramsMarketType))).join();
             return this.parseBalance(response);
@@ -1603,7 +1603,7 @@ public class Deepcoin extends DeepcoinApi
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (marketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -2410,7 +2410,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, Helpers.toMapArg(market), Helpers.toMapArg(paramsMethodName), "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            request.put("instType", this.convertToInstrumentType((String) (marketType)));
+            request.put("instType", this.convertToInstrumentType(marketType));
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit); // default 100
@@ -3143,7 +3143,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", Helpers.toMapArg(market), parameters, marketType);
             String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
-            String instrumentType = this.convertToInstrumentType((String) (marketTypeOption));
+            String instrumentType = this.convertToInstrumentType(marketTypeOption);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", instrumentType );
             }};
@@ -3582,7 +3582,7 @@ public class Deepcoin extends DeepcoinApi
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (marketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
             if (!java.util.Objects.equals(market, null))
             {

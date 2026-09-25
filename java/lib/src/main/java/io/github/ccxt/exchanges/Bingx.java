@@ -3573,8 +3573,8 @@ public class Bingx extends BingxApi
         //         "totalFunding": "-2.921461693902908"
         //     }
         //
-        Object marketId = this.safeString(position, "symbol", "");
-        marketId = Helpers.replace(((String)marketId), "/", "-"); // standard return different format
+        String marketId = this.safeString(position, "symbol", "");
+        marketId = Helpers.replace(marketId, (String)"/", (String)"-"); // standard return different format
         Boolean isolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
         String marginMode = null;
         if (!java.util.Objects.equals(isolated, null))
@@ -6153,12 +6153,12 @@ public class Bingx extends BingxApi
         }
         String network = this.safeString(transaction, "network");
         String currencyId = this.safeString(transaction, "coin");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(network, null)) && (!java.util.Objects.equals(code, network)) && ((String)code).indexOf(network) >= 0)
         {
             if (!java.util.Objects.equals(network, null))
             {
-                code = Helpers.replace(((String)code), network, "");
+                code = Helpers.replace(code, (String)network, (String)"");
             }
         }
         String rawType = this.safeString(transaction, "transferType");
@@ -6173,7 +6173,7 @@ public class Bingx extends BingxApi
             "txid", this.safeString(transaction, "txId"),
             "type", type,
             "currency", code,
-            "network", this.networkIdToCode(network, Helpers.toStringArg(code)),
+            "network", this.networkIdToCode(network, code),
             "amount", this.safeNumber(transaction, "amount", (Object) null),
             "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
             "timestamp", timestamp,
@@ -7370,7 +7370,7 @@ public class Bingx extends BingxApi
             Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
             if ((value instanceof List))
             {
-                Object arrStr = null;
+                String arrStr = null;
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
                     Object arrayElement = (value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j));
@@ -7388,7 +7388,7 @@ public class Bingx extends BingxApi
                     {
                         if (Helpers.isGreaterThan(j, 0))
                         {
-                            arrStr = Helpers.add(arrStr, Helpers.add(",", String.valueOf(arrayElement)));
+                            arrStr = (arrStr + Helpers.add(",", String.valueOf(arrayElement)));
                         } else
                         {
                             arrStr = String.valueOf(arrayElement);

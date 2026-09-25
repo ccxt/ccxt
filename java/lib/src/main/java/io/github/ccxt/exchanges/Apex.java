@@ -1500,7 +1500,7 @@ public class Apex extends ApexApi
     public Object generateRandomClientIdOmni(String _accountId)
     {
         Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
-        Object accountId = null;
+        String accountId = null;
         if (Boolean.TRUE.equals(hasAccountId))
         {
             accountId = _accountId;

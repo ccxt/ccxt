@@ -863,8 +863,8 @@ public class Gemini extends GeminiApi
                 //         '<td>0.01 USD', // quote currency price increment
                 //         '</tr>'
                 //     ]
-                Object marketId = Helpers.replace(((String)Helpers.GetValue(cells, 0)), "<td>", "");
-                marketId = Helpers.replace(((String)marketId), "*", "");
+                String marketId = Helpers.replace(((String)Helpers.GetValue(cells, 0)), "<td>", "");
+                marketId = Helpers.replace(marketId, (String)"*", (String)"");
                 // const base = this.safeCurrencyCode (baseId);
                 String minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
                 List<Object> minAmountParts = (List<Object>) Helpers.split(minAmountString, " ");
@@ -876,7 +876,7 @@ public class Gemini extends GeminiApi
                 String pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
                 List<Object> pricePrecisionParts = (List<Object>) Helpers.split(pricePrecisionString, " ");
                 String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
-                String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(((String)marketId), quoteId, ""));
+                String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(marketId, (String)quoteId, (String)""));
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 ((List<Object>)result).add(Helpers.newMap(
@@ -2491,7 +2491,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
+            Object networkId = this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "network", networkId );
             }};

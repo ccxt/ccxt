@@ -7549,7 +7549,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainType", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(code)));
+                request.put("chainType", this.networkCodeToId(networkCode, Helpers.toStringArg(code)));
             }
             Map<String, Object> response = (this.privateGetV5AssetDepositQueryAddress(this.extend(request, paramsNetworkCode))).join();
             //
@@ -8251,7 +8251,7 @@ public class Bybit extends BybitApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsAccountType);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             var query = ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId((String) (networkCode), code);
+            Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
                 request.put("chain", ((String)networkId).toUpperCase());

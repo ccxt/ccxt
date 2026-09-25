@@ -2922,7 +2922,7 @@ public class Tokocrypto extends TokocryptoApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             var query = ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId((String) (networkCode), code);
+            Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
                 request.put("network", ((String)networkId).toUpperCase());

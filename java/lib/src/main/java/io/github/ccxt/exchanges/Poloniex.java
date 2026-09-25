@@ -3435,7 +3435,7 @@ public class Poloniex extends PoloniexApi
             {
                 throw new ArgumentsRequired((((this.id + " withdraw requires a network parameter for ") + code) + ".")) ;
             }
-            request.put("network", this.networkCodeToId((String) (networkCode), code));
+            request.put("network", this.networkCodeToId(networkCode, code));
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
                 request.put("paymentId", tagWithdrawTag);
