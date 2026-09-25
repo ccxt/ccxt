@@ -1530,6 +1530,9 @@ export default class gate extends gateRest {
             const side = this.safeString (position, 'side');
             // Control when position is closed no side is returned
             if (side === undefined) {
+                if (symbol === undefined) {
+                    continue;
+                }
                 const prevLongPosition = this.safeDict (cache, symbol + 'long');
                 if (prevLongPosition !== undefined) {
                     position['side'] = prevLongPosition['side'];

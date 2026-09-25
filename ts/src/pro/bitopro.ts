@@ -117,6 +117,9 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
+        if (event === undefined) {
+            return;
+        }
         const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -178,6 +181,9 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
+        if (event === undefined) {
+            return;
+        }
         const messageHash = event + ':' + symbol;
         const rawData = this.safeList (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
@@ -270,6 +276,9 @@ export default class bitopro extends bitoproRest {
         const parsed = this.parseWsTrade (data);
         trades.append (parsed);
         client.resolve (trades, messageHash);
+        if (messageHash === undefined) {
+            return;
+        }
         client.resolve (trades, messageHash + ':' + symbol);
     }
 
@@ -397,6 +406,9 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
+        if (event === undefined) {
+            return;
+        }
         const messageHash = event + ':' + symbol;
         const result = this.parseTicker (message, market);
         result['symbol'] = this.safeString (market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object

@@ -437,6 +437,9 @@ export default class paradex extends paradexRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const channel = this.safeString (params, 'channel');
+        if (channel === undefined) {
+            return message;
+        }
         const messageHash = channel + '.' + symbol;
         const ticker = this.parseTicker (data, market);
         this.tickers[symbol] = ticker;
@@ -543,6 +546,9 @@ export default class paradex extends paradexRest {
         const symbol = fundingRate['symbol'];
         this.fundingRates[(symbol as string)] = fundingRate;
         const channel = this.safeString (params, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const messageHash = channel + '.' + symbol;
         client.resolve (fundingRate, messageHash);
     }

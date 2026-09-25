@@ -606,6 +606,9 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
+        if (topic === undefined) {
+            return;
+        }
         const rawOrders: Dict[] = this.safeList (params, 'data', []);
         for (let i = 0; i < rawOrders.length; i++) {
             const data = rawOrders[i];
@@ -695,6 +698,9 @@ export default class derive extends deriveRest {
         }
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
+        if (topic === undefined) {
+            return;
+        }
         const rawTrades = this.safeList (params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (message);
