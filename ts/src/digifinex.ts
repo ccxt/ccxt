@@ -3994,18 +3994,16 @@ export default class digifinex extends Exchange {
             omitKeys.push ('marginMode');
             omitKeys.push ('defaultMarginMode');
         }
-        let side: Str = undefined;
-        if (marginMode === 'isolated') {
-            side = this.safeString (params, 'side');
-        }
-        if (marginMode === 'isolated') {
+        const side = this.safeString (params, 'side');
+        const isIsolated = (marginMode === 'isolated');
+        if (isIsolated) {
             if (side !== undefined) {
                 request['side'] = side;
             } else {
                 this.checkRequiredArgument ('setLeverage', side, 'side', [ 'long', 'short' ]);
             }
         }
-        if (side !== undefined) {
+        if (isIsolated && (side !== undefined)) {
             omitKeys.push ('side');
         }
         const paramsRequest = this.omit (params, omitKeys);
