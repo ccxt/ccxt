@@ -1296,7 +1296,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchBalance", null, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type is "spot"));
         string spotSubHash = "spot:balance";
         string swapSubHash = "swap:private";
         string spotMessageHash = "spot:balance";
@@ -1314,7 +1314,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> request = null;
         string? baseUrl = null;
         string uuid = this.uuid();
-        if (isEqual(type, "swap"))
+        if ((type is "swap"))
         {
             if ((subType == "inverse"))
             {
@@ -1421,7 +1421,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchPositions", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             throw new NotSupported ((this.id + " watchPositions is not supported for spot markets")) ;
         }

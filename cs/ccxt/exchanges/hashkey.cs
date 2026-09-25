@@ -3483,7 +3483,7 @@ public partial class hashkey : Exchange
         IList<object> isTriggerTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger);
         var isTriggerTrigger = isTriggerTriggerparamsTriggerVariable[0];
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerTriggerparamsTriggerVariable[1]);
-        if (isEqual(isTriggerTrigger, true))
+        if ((isTriggerTrigger is true))
         {
             request["type"] = "STOP";
         } else

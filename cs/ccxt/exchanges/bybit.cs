@@ -3217,7 +3217,7 @@ public partial class bybit : Exchange
         IDictionary<string, object> data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> markets = this.safeList(data, "list", new List<object>() {});
         object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions");
-        if (isEqual(loadAllOptions, true))
+        if ((loadAllOptions is true))
         {
             request["limit"] = 1000;
             string? paginationCursor = this.safeString(data, "nextPageCursor");
@@ -3310,7 +3310,7 @@ public partial class bybit : Exchange
             bool isActive = (status == "Trading");
             bool isInverse = (bs == settle);
             object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions");
-            if (isActive || (isEqual(loadAllOptions, true)) || (isEqual(loadExpiredOptions, true)))
+            if (isActive || ((loadAllOptions is true)) || ((loadExpiredOptions is true)))
             {
                 result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", id },
@@ -4745,7 +4745,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         string? type = null;
         object paramsMarketType = null;
         // don't use getBybitType here
@@ -5241,7 +5241,7 @@ public partial class bybit : Exchange
         }
         List<object> types = await this.isUnifiedEnabled();
         object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
-        if (!isEqual(enableUnifiedAccount, true))
+        if (!(enableUnifiedAccount is true))
         {
             throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
         }
@@ -6144,7 +6144,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         List<object> types = await this.isUnifiedEnabled();
         object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
-        if (!isEqual(enableUnifiedAccount, true))
+        if (!(enableUnifiedAccount is true))
         {
             throw new NotSupported ((this.id + " cancelOrders() supports UTA accounts only")) ;
         }
@@ -6279,7 +6279,7 @@ public partial class bybit : Exchange
         }
         List<object> types = await this.isUnifiedEnabled();
         object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
-        if (!isEqual(enableUnifiedAccount, true))
+        if (!(enableUnifiedAccount is true))
         {
             throw new NotSupported ((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
         }
@@ -6388,7 +6388,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
@@ -6522,7 +6522,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         if (!isUnifiedAccount)
         {
             return await this.FetchOrderClassic(id, symbol, parameters);
@@ -7978,7 +7978,7 @@ public partial class bybit : Exchange
         (string?, object) accountTypeOptionparamsAccountTypeVariable = this.handleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType");
         string? accountTypeOption = accountTypeOptionparamsAccountTypeVariable.Item1;
         IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeOptionparamsAccountTypeVariable.Item2);
-        string defaultAccountType = (isEqual(isUta, true)) ? "UTA" : "SPOT";
+        string defaultAccountType = ((isUta is true)) ? "UTA" : "SPOT";
         string? accountType = ((accountTypeOption == null)) ? defaultAccountType : accountTypeOption;
         if ((this.markets == null))
         {
@@ -8559,7 +8559,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
         Dictionary<string, object> marginModes = new Dictionary<string, object>() {
@@ -11031,7 +11031,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         string accountTypeDefault = "eb_convert_spot";
         if (isUnifiedAccount)
         {
@@ -11145,7 +11145,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         string accountTypeDefault = "eb_convert_spot";
         if (isUnifiedAccount)
         {
@@ -11250,7 +11250,7 @@ public partial class bybit : Exchange
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
-        bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
+        bool isUnifiedAccount = ((enableUnifiedMargin is true)) || ((enableUnifiedAccount is true));
         string accountTypeDefault = "eb_convert_spot";
         if (isUnifiedAccount)
         {

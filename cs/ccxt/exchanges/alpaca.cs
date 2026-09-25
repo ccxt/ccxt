@@ -2079,7 +2079,7 @@ public partial class alpaca : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         object addressValue = address;
-        if (((tagWithdrawTag != null)) && (!isEqual(tagWithdrawTag, "")))
+        if (((tagWithdrawTag != null)) && (!(tagWithdrawTag is "")))
         {
             addressValue = ((address + ":") + (tagWithdrawTag));
         }

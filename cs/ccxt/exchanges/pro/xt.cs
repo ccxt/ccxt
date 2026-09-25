@@ -862,7 +862,7 @@ public partial class xt : ccxt.xt
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
-        if (isEqual(fetchPositionsSnapshot, true))
+        if ((fetchPositionsSnapshot is true))
         {
             string messageHash = "fetchPositionsSnapshot";
             if (!((client.futures != null && client.futures.ContainsKey(messageHash))))

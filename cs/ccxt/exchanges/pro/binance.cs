@@ -1846,7 +1846,7 @@ public partial class binance : ccxt.binance
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
         var stock = stockparamsStockVariable[0];
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
-        if (isEqual(stock, true))
+        if ((stock is true))
         {
             if ((!(timeframeVar == "5m")) && (!(timeframeVar == "1h")) && (!(timeframeVar == "1d")) && (!(timeframeVar == "1w")) && (!(timeframeVar == "1M")))
             {
@@ -3750,7 +3750,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if (isEqual(isPortfolioMargin, true))
+        if ((isPortfolioMargin is true))
         {
             parameters["portfolioMargin"] = true;
         }
@@ -4052,7 +4052,7 @@ public partial class binance : ccxt.binance
         bool? isPortfolioMargin = this.handleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false).Item1;
         object url = "";
         object urlType = type;
-        if (isEqual(type, "spot") || isEqual(type, "margin"))
+        if ((type is "spot") || (type is "margin"))
         {
             // route to WebSocket API connection where the user data stream is subscribed
             url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), "spot");
@@ -4061,7 +4061,7 @@ public partial class binance : ccxt.binance
             if ((isPortfolioMargin == true))
             {
                 urlType = "papi";
-            } else if (isEqual(type, "option"))
+            } else if ((type is "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (((demoMode == true)) || this.isSandboxModeEnabled)
@@ -5803,7 +5803,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if (isEqual(isPortfolioMargin, true))
+        if ((isPortfolioMargin is true))
         {
             parameters["portfolioMargin"] = true;
         }

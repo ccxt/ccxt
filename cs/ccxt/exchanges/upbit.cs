@@ -920,7 +920,7 @@ public partial class upbit : Exchange
             object quoteCurrencies = "";
             for (int i = 0; i < (sortedQuoteIds?.Count ?? 0); i++)
             {
-                if (!isEqual(quoteCurrencies, ""))
+                if (!(quoteCurrencies is ""))
                 {
                     quoteCurrencies = add(quoteCurrencies, ",");
                 }

@@ -103,7 +103,7 @@ public partial class okx : ccxt.okx
         }
         object isSandbox = (this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
         string sandboxSuffix = "";
-        if (isEqual(isSandbox, true))
+        if ((isSandbox is true))
         {
             sandboxSuffix = "?brokerId=9999";
         }

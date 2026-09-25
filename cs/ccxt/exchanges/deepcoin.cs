@@ -2721,11 +2721,11 @@ public partial class deepcoin : Exchange
             }
             if ((stopLossPrice != null))
             {
-                request["slTriggerPx"] = (!isEqual(symbolResolved, "")) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
+                request["slTriggerPx"] = (!(symbolResolved is "")) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
             }
             if ((takeProfitPrice != null))
             {
-                request["tpTriggerPx"] = (!isEqual(symbolResolved, "")) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
+                request["tpTriggerPx"] = (!(symbolResolved is "")) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
             object paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, paramsOmitted));

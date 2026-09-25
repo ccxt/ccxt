@@ -3594,7 +3594,7 @@ public partial class bitfinex : Exchange
                 this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
                 throw new ExchangeError ((string)((this.id + " ") + (body))) ;
             }
-        } else if (isEqual(response, ""))
+        } else if ((response is ""))
         {
             throw new ExchangeError ((this.id + " returned empty response")) ;
         }

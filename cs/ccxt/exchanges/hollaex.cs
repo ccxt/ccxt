@@ -1990,7 +1990,7 @@ public partial class hollaex : Exchange
         object status = this.safeValue(transaction, "status");
         bool? dismissed = this.safeBool(transaction, "dismissed");
         bool? rejected = this.safeBool(transaction, "rejected");
-        if (isEqual(status, true))
+        if ((status is true))
         {
             status = "ok";
         } else if ((dismissed == true))

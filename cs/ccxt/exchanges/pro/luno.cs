@@ -381,7 +381,7 @@ public partial class luno : ccxt.luno
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(message, ""))
+        if ((message is ""))
         {
             return;
         }

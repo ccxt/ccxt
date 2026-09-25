@@ -1529,7 +1529,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleOrderRequest(client, message);
             }
-            if ((isEqual(result, true)) && !((message != null && ((IDictionary<string, object>)message).ContainsKey("id"))))
+            if (((result is true)) && !((message != null && ((IDictionary<string, object>)message).ContainsKey("id"))))
             {
                 this.handleAuthenticate(client, message);
             }

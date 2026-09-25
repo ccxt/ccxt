@@ -1464,7 +1464,7 @@ public partial class gate : ccxt.gate
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         bool isInverse = ((subType == "inverse"));
         object url = this.getUrlByMarketType(type, isInverse);
-        bool requiresUid = (!isEqual(type, "spot"));
+        bool requiresUid = (!(type is "spot"));
         string channelType = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot" },
             { "margin", "spot" },

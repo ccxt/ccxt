@@ -81,7 +81,7 @@ public partial class testMainClass : BaseTest
                 testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
             } else
             {
-                assert(isEqual(message, ""), message);
+                assert((message is ""), message);
             }
         }
         //

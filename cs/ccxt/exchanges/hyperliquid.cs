@@ -1185,7 +1185,7 @@ public partial class hyperliquid : Exchange
         var isUnifiedEnabled = isUnifiedEnabledparamsValueVariable[0];
         var paramsValue = isUnifiedEnabledparamsValueVariable[1];
         string? dex = this.safeString(paramsValue, "dex");
-        bool isSpot = (((type == "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
+        bool isSpot = (((type == "spot")) || ((isUnifiedEnabled is true))) && ((dex == null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", ((isSpot == true)) ? "spotClearinghouseState" : "clearinghouseState" },
             { "user", userAddress },

@@ -1066,7 +1066,7 @@ public partial class polymarket : PredictionExchange
                 object outcomeLabel = outcomeLabels[oi];
                 object clobTokenId = (clobTokenIds != null && oi < clobTokenIds.Count ? clobTokenIds[oi] : null);
                 double? outcomePrice = this.safeNumber(outcomePrices, oi);
-                if (((clobTokenId == null)) || (isEqual(clobTokenId, "")))
+                if (((clobTokenId == null)) || ((clobTokenId is "")))
                 {
                     continue;
                 }

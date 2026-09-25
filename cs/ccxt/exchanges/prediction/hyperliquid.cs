@@ -266,7 +266,7 @@ public partial class hyperliquid : PredictionExchange
         {
             bs = add(add(bs, "_ABOVE_"), targetPrice);
         }
-        if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
+        if (((expiryDate != null)) && (!(expiryDate is "")))
         {
             bs = add(add(bs, "_"), expiryDate);
         }
@@ -303,7 +303,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 bs = add(add(bs, "_ABOVE_"), targetPrice);
             }
-            if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
+            if (((expiryDate != null)) && (!(expiryDate is "")))
             {
                 bs = add(add(bs, "_"), expiryDate);
             }
@@ -356,7 +356,7 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
                         }
                         object bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
-                        if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
+                        if (((expiryDate != null)) && (!(expiryDate is "")))
                         {
                             bs = add(add(bs, "_"), expiryDate);
                         }
@@ -367,7 +367,7 @@ public partial class hyperliquid : PredictionExchange
                 if (((questionUnderlying != null) && questionUnderlying != "") && isFallbackLike)
                 {
                     object bs = (questionUnderlying.ToUpper() + "_OTHER");
-                    if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
+                    if (((expiryDate != null)) && (!(expiryDate is "")))
                     {
                         bs = add(add(bs, "_"), expiryDate);
                     }
@@ -405,7 +405,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (((name != null)) && (!isEqual(name, "")))
+        if (((name != null)) && (!(name is "")))
         {
             return ((this.shortenSlug(name) + "_") + outcomeId.ToString());
         }

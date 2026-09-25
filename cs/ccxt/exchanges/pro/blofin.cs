@@ -558,7 +558,7 @@ public partial class blofin : ccxt.blofin
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         var marketType = marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        if (isEqual(marketType, "spot"))
+        if ((marketType is "spot"))
         {
             throw new NotSupported ((this.id + " watchBalance() is not supported for spot markets yet")) ;
         }

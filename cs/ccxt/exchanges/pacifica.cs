@@ -1799,13 +1799,13 @@ public partial class pacifica : Exchange
         var operationType = requestoperationTypeVariable[1];
         object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"});
         Dictionary<string, object> response = null;
-        if (isEqual(operationType, "create_market_order"))
+        if ((operationType is "create_market_order"))
         {
             response = await this.privatePostOrdersCreateMarket(this.extend(request, paramsOmitted));
-        } else if (isEqual(operationType, "create_stop_order"))
+        } else if ((operationType is "create_stop_order"))
         {
             response = await this.privatePostOrdersStopCreate(this.extend(request, paramsOmitted));
-        } else if (isEqual(operationType, "set_position_tpsl"))
+        } else if ((operationType is "set_position_tpsl"))
         {
             response = await this.privatePostPositionsTpsl(this.extend(request, paramsOmitted));
         } else

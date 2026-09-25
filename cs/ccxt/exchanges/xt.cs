@@ -5928,7 +5928,7 @@ public partial class xt : Exchange
             string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
             object matchesSubType = isInverse ? (market.ContainsKey("inverse") ? market["inverse"] : null) : (market.ContainsKey("linear") ? market["linear"] : null);
-            if (((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && (isEqual(matchesSubType, true)))
+            if (((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((matchesSubType is true)))
             {
                 result[(string)symbol] = this.parseTradingFee(fee, market);
             }

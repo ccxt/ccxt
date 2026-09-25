@@ -811,8 +811,8 @@ public partial class BaseExchange
 
     public virtual void checkConflictingProxies(object proxyAgentSet, object proxyUrlSet)
     {
-        bool proxyAgentIsSet = ((proxyAgentSet != null)) && ((proxyAgentSet != null)) && (!isEqual(proxyAgentSet, ""));
-        bool proxyUrlIsSet = ((proxyUrlSet != null)) && ((proxyUrlSet != null)) && (!isEqual(proxyUrlSet, ""));
+        bool proxyAgentIsSet = ((proxyAgentSet != null)) && ((proxyAgentSet != null)) && (!(proxyAgentSet is ""));
+        bool proxyUrlIsSet = ((proxyUrlSet != null)) && ((proxyUrlSet != null)) && (!(proxyUrlSet is ""));
         if (proxyAgentIsSet && proxyUrlIsSet)
         {
             throw new InvalidProxySettings ((this.id + " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
@@ -1523,7 +1523,7 @@ public partial class BaseExchange
 
     public virtual bool isEmptyString(object value)
     {
-        return !this.valueIsDefined(value) || isEqual(value, "");
+        return !this.valueIsDefined(value) || (value is "");
     }
 
     public virtual double? safeNumberOmitZero(object obj, object key, object defaultValue = null)
@@ -2653,7 +2653,7 @@ public partial class BaseExchange
                 timeInForce = "IOC";
             }
             // allow postOnly override
-            if (isEqual(postOnly, true))
+            if ((postOnly is true))
             {
                 timeInForce = "PO";
             }
@@ -3449,7 +3449,7 @@ public partial class BaseExchange
                 List<object> splitted_by_end = ((string)content).Split(new [] {endRegex}, StringSplitOptions.None).ToList<object>();
                 content = (splitted_by_end != null && 0 < splitted_by_end.Count ? splitted_by_end[0] : null); // we need first part after start
             }
-            if ((isEqual(returnAsJson, true)) && ((content is string)))
+            if (((returnAsJson is true)) && ((content is string)))
             {
                 object jsoned = this.parseJson(((string)content).Trim()); // content should be trimmed before json parsing
                 if (((jsoned != null)) && ((jsoned != null)))
@@ -4400,7 +4400,7 @@ public partial class BaseExchange
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (((values == null)) || ((values == null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
+        if (((values == null)) || ((values == null)) || ((values is false)) || (isEqual(values, 0)) || ((values is "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed == true)
@@ -4432,7 +4432,7 @@ public partial class BaseExchange
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (((values == null)) || ((values == null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
+        if (((values == null)) || ((values == null)) || ((values is false)) || (isEqual(values, 0)) || ((values is "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed == true)
@@ -4822,7 +4822,7 @@ public partial class BaseExchange
         {
             string? key = ((string)keys[i]);
             object credentialValue = getValue(this, key);
-            bool credentialMissing = ((credentialValue == null)) || ((credentialValue == null)) || (isEqual(credentialValue, false)) || (isEqual(credentialValue, ""));
+            bool credentialMissing = ((credentialValue == null)) || ((credentialValue == null)) || ((credentialValue is false)) || ((credentialValue is ""));
             if ((isEqual(getValue(this.requiredCredentials, key), true)) && credentialMissing)
             {
                 if (isTrue(error))
@@ -6346,15 +6346,15 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool timeInForcePostOnly = timeInForce == "PO";
-        if (!isEqual(postOnly, true))
+        if (!(postOnly is true))
         {
             postOnly = timeInForcePostOnly;
         }
-        if (!isEqual(postOnly, true))
+        if (!(postOnly is true))
         {
             postOnly = exchangeSpecificParam;
         }
-        if (isEqual(postOnly, true))
+        if ((postOnly is true))
         {
             if (ioc || fok)
             {
@@ -6388,15 +6388,15 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool po = timeInForce == "PO";
-        if (!isEqual(postOnly, true))
+        if (!(postOnly is true))
         {
             postOnly = po;
         }
-        if (!isEqual(postOnly, true))
+        if (!(postOnly is true))
         {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if (isEqual(postOnly, true))
+        if ((postOnly is true))
         {
             if (ioc || fok)
             {
@@ -6961,7 +6961,7 @@ public partial class BaseExchange
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
-        if ((isEqual(paginationDirection, "forward")))
+        if (((paginationDirection is "forward")))
         {
             if ((since == null))
             {
@@ -6974,7 +6974,7 @@ public partial class BaseExchange
             calls = add(calls, 1);
             try
             {
-                if (isEqual(paginationDirection, "backward"))
+                if ((paginationDirection is "backward"))
                 {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work

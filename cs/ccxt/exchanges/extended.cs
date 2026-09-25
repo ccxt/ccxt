@@ -3836,7 +3836,7 @@ public partial class extended : Exchange
             result = add(getValue(hexChars, remainder), result);
             decimalString = Precise.stringDiv(decimalString, "16", 0);
         }
-        if (isEqual(result, ""))
+        if ((result is ""))
         {
             return "0";
         }

@@ -128,10 +128,10 @@ public partial class pacifica : ccxt.pacifica
         }
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
-        if (isEqual(operationType, "create_stop_order"))
+        if ((operationType is "create_stop_order"))
         {
             throw new NotSupported ((this.id + " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")) ;
-        } else if (isEqual(operationType, "set_position_tpsl"))
+        } else if ((operationType is "set_position_tpsl"))
         {
             throw new NotSupported ((this.id + " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")) ;
         }

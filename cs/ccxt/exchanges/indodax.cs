@@ -1420,7 +1420,7 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", requestId.ToString() },
         };
-        if (((tagWithdrawTag != null)) && (!isEqual(tagWithdrawTag, "")))
+        if (((tagWithdrawTag != null)) && (!(tagWithdrawTag is "")))
         {
             request["withdraw_memo"] = tagWithdrawTag;
         }

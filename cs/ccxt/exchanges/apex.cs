@@ -1425,7 +1425,7 @@ public partial class apex : Exchange
 
     public virtual string? generateRandomClientIdOmni(object _accountId)
     {
-        bool hasAccountId = ((_accountId != null)) && (!isEqual(_accountId, ""));
+        bool hasAccountId = ((_accountId != null)) && (!(_accountId is ""));
         object accountId = null;
         if (hasAccountId)
         {

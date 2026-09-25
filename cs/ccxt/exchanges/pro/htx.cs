@@ -1809,7 +1809,7 @@ public partial class htx : ccxt.htx
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = add(add(marginMode, ":positions"), messageHash);
         string? channel = "positions.*";
-        if (isEqual(marginMode, "cross"))
+        if ((marginMode is "cross"))
         {
             channel = "positions_cross.*";
         }

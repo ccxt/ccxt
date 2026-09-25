@@ -1823,7 +1823,7 @@ public partial class weex : ccxt.weex
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         var type = typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        bool isContract = (!isEqual(type, "spot"));
+        bool isContract = (!(type is "spot"));
         string urlType = "spot";
         if (isContract)
         {

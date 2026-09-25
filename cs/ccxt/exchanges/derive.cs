@@ -3183,7 +3183,7 @@ public partial class derive : Exchange
         IList<object> derivesubAccountIdparamsSubaccountIdVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "subaccount_id");
         var derivesubAccountId = derivesubAccountIdparamsSubaccountIdVariable[0];
         IDictionary<string, object> paramsSubaccountId = ((IDictionary<string, object>)derivesubAccountIdparamsSubaccountIdVariable[1]);
-        if (((derivesubAccountId != null)) && (!isEqual(derivesubAccountId, "")))
+        if (((derivesubAccountId != null)) && (!(derivesubAccountId is "")))
         {
             this.options["subaccount_id"] = derivesubAccountId; // saving in options
             return new List<object>() {derivesubAccountId, paramsSubaccountId};

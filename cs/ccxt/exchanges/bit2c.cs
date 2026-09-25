@@ -1099,7 +1099,7 @@ public partial class bit2c : Exchange
             side = this.safeValue(trade, "isBid");
             if ((side != null))
             {
-                if (((side != null)) && (!isEqual(side, "")))
+                if (((side != null)) && (!(side is "")))
                 {
                     side = "buy";
                 } else

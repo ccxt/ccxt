@@ -2028,7 +2028,7 @@ public partial class weex : Exchange
         {
             string? commissionAsset = this.safeString(trade, "commissionAsset");
             string? feeCurrency = this.safeCurrencyCode(commissionAsset);
-            if (isEqual(isSpot, true))
+            if ((isSpot is true))
             {
                 if (side == "buy")
                 {
@@ -3757,7 +3757,7 @@ public partial class weex : Exchange
     {
         object errorCodeValue = ((errorCode == null)) ? "" : errorCode;
         object errorMessageValue = ((errorMessage == null)) ? "" : errorMessage;
-        if ((isEqual(errorCodeValue, "")) && (isEqual(errorMessageValue, "")))
+        if (((errorCodeValue is "")) && ((errorMessageValue is "")))
         {
             // some endpoints could return an empty string if there is no error
             return;

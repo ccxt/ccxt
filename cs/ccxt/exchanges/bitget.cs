@@ -3693,7 +3693,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchMarkets", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             return await this.FetchUtaMarkets(paramsUTA);
         }
@@ -4660,13 +4660,13 @@ public partial class bitget : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            if (isEqual(uta, true))
+            if ((uta is true))
             {
                 return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, since, limit, paramsPaginate, "orderId", "cursor", null, 100));
             }
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, since, limit, paramsPaginate, "idLessThan", "idLessThan", null, 100));
         }
-        object defaultWindow = (isEqual(uta, true)) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        object defaultWindow = ((uta is true)) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
         object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), defaultWindow) : since;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceResolved },
@@ -4686,7 +4686,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = null;
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.privateUtaGetV3AccountDepositRecords(this.extend(requestUntil, paramsUntil));
         } else
@@ -4813,7 +4813,7 @@ public partial class bitget : Exchange
             request["tag"] = tag;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.privateUtaPostV3AccountWithdrawal(this.extend(request, paramsUTA));
         } else
@@ -4879,7 +4879,7 @@ public partial class bitget : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            if (isEqual(uta, true))
+            if ((uta is true))
             {
                 return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", null, since, limit, paramsPaginate, "orderId", "cursor", null, 100));
             }
@@ -4890,7 +4890,7 @@ public partial class bitget : Exchange
         {
             currency = this.currency(code);
         }
-        object defaultWindow = (isEqual(uta, true)) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        object defaultWindow = ((uta is true)) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
         object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), defaultWindow) : since;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceResolved },
@@ -4908,7 +4908,7 @@ public partial class bitget : Exchange
             requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.privateUtaGetV3AccountWithdrawalRecords(this.extend(requestUntil, paramsUntil));
         } else
@@ -5152,7 +5152,7 @@ public partial class bitget : Exchange
             request["chain"] = this.networkCodeToId(networkCode, code);
         }
         Dictionary<string, object> response = null;
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.privateUtaGetV3AccountDepositAddress(this.extend(request, paramsNetworkCode));
         } else
@@ -5240,7 +5240,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchOrderBook", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             request["category"] = productType;
             response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, paramsUTA));
@@ -5279,12 +5279,12 @@ public partial class bitget : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string bidsKey = "bids";
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             bidsKey = "b";
         }
         string asksKey = "asks";
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             asksKey = "a";
         }
@@ -5468,7 +5468,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchTicker", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             request["category"] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
@@ -5686,7 +5686,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchTickers", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             if ((symbols != null))
             {
@@ -6533,7 +6533,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsPaginate, "fetchOHLCV", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             timeframes = getValue(timeframesOption, "uta");
             request["interval"] = this.safeString(timeframes, timeframeVar, timeframeVar);
@@ -6635,7 +6635,7 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsPrice);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             if ((priceType != null))
             {
@@ -6702,7 +6702,7 @@ public partial class bitget : Exchange
                 }
             }
         }
-        if (isEqual(response, ""))
+        if ((response is ""))
         {
             return ccxt.BaseExchange.ToOHLCVList(new List<object>() {});  // happens when a new token is listed
         }
@@ -7509,7 +7509,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "createOrder", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             Dictionary<string, object> request = this.createUtaOrderRequest(symbol, type, side, amount, price, paramsUTA);
             if (isStopLossOrTakeProfitTrigger)
@@ -9069,7 +9069,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsOmitted, "fetchOrder", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, paramsUTA));
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -9198,7 +9198,7 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        if ((!isEqual(uta, true)) && ((response is string)))
+        if ((!(uta is true)) && ((response is string)))
         {
             response = parseJson(response);
         }
@@ -11046,7 +11046,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPosition", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             request["category"] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, paramsUTA));
@@ -12012,7 +12012,7 @@ public partial class bitget : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            if (isEqual(uta, true))
+            if ((uta is true))
             {
                 return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "cursor", "cursor"));
             }
@@ -12039,7 +12039,7 @@ public partial class bitget : Exchange
             requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             requestUntil["coin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             requestUntil["category"] = productType;
@@ -12054,7 +12054,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object bills = this.safeList2(data, "bills", "list", new List<object>() {});
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             bills = this.filterByArray(bills, "type", new List<object>() {"CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT"}, false);
         }
@@ -12477,7 +12477,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "setPositionMode", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             request["holdMode"] = posMode;
             response = await this.privateUtaPostV3AccountSetHoldMode(this.extend(request, paramsUTA));
@@ -12523,7 +12523,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchOpenInterest", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             request["category"] = productType;
             response = await this.publicUtaGetV3MarketOpenInterest(this.extend(request, paramsUTA));
@@ -12695,7 +12695,7 @@ public partial class bitget : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.privateUtaPostV3AccountTransfer(this.extend(request, paramsOmitted));
         } else
@@ -13441,7 +13441,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.publicUtaGetV3MarketMarginLoans(this.extend(request, paramsUTA));
             //
@@ -13741,7 +13741,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closePosition", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             if ((side != null))
             {
@@ -13789,7 +13789,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closeAllPositions", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             request["category"] = productType;
             response = await this.privateUtaPostV3TradeClosePositions(this.extend(request, paramsUTA));
@@ -13926,7 +13926,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPositionsHistory", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             requestUntil["category"] = productType;
             response = await this.privateUtaGetV3PositionHistoryPosition(this.extend(requestUntil, paramsUTA));
@@ -14275,7 +14275,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingInterval", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if (isEqual(uta, true))
+        if ((uta is true))
         {
             response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, paramsUTA));
         } else

@@ -1400,7 +1400,7 @@ public partial class bybit : ccxt.bybit
         object m = this.safeValue(trade, "m");
         if ((side == null))
         {
-            side = (isEqual(m, true)) ? "buy" : "sell";
+            side = ((m is true)) ? "buy" : "sell";
         } else
         {
             // spot private

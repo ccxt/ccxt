@@ -4483,11 +4483,11 @@ public partial class bingx : Exchange
         }
         object stopLoss = this.safeValue(orderData, "stopLoss");
         object stopLossPrice = null;
-        if (((stopLoss != null)) && (!isEqual(stopLoss, "")))
+        if (((stopLoss != null)) && (!(stopLoss is "")))
         {
             stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopLoss"));
         }
-        if (((stopLoss != null)) && (!(stopLoss is Int64 || stopLoss is int || stopLoss is float || stopLoss is double)) && (!isEqual(stopLoss, "")))
+        if (((stopLoss != null)) && (!(stopLoss is Int64 || stopLoss is int || stopLoss is float || stopLoss is double)) && (!(stopLoss is "")))
         {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if ((stopLoss is string))
@@ -4498,11 +4498,11 @@ public partial class bingx : Exchange
         }
         object takeProfit = this.safeValue(orderData, "takeProfit");
         object takeProfitPrice = null;
-        if ((takeProfit != null) && (!isEqual(takeProfit, "")))
+        if ((takeProfit != null) && (!(takeProfit is "")))
         {
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "takeProfit"));
         }
-        if (((takeProfit != null)) && (!(takeProfit is Int64 || takeProfit is int || takeProfit is float || takeProfit is double)) && (!isEqual(takeProfit, "")))
+        if (((takeProfit != null)) && (!(takeProfit is Int64 || takeProfit is int || takeProfit is float || takeProfit is double)) && (!(takeProfit is "")))
         {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if ((takeProfit is string))

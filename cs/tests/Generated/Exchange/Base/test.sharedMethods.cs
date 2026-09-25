@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
             object formatKeyVal = exchange.safeValue(format, key);
             bool same_string = ((entryKeyVal is string)) && ((formatKeyVal is string));
             bool same_numeric = ((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double)) && ((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double));
-            bool same_boolean = ((isEqual(entryKeyVal, true)) || (isEqual(entryKeyVal, false))) && ((isEqual(formatKeyVal, true)) || (isEqual(formatKeyVal, false)));
+            bool same_boolean = (((entryKeyVal is true)) || ((entryKeyVal is false))) && (((formatKeyVal is true)) || ((formatKeyVal is false)));
             bool same_array = ((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
             // returns false for an empty {} format marker — accept a dict entry against an empty-array format
@@ -92,7 +92,7 @@ public partial class testMainClass : BaseTest
                     assert((value != null), ((((object)i).ToString() + " index is expected to have a value") + (logText)));
                     // because of other langs, this is needed for arrays
                     object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, i, format);
-                    assert(isEqual(typeAssertion, true), ((((object)i).ToString() + " index does not have an expected type ") + (logText)));
+                    assert((typeAssertion is true), ((((object)i).ToString() + " index does not have an expected type ") + (logText)));
                 }
             } else
             {
@@ -121,7 +121,7 @@ public partial class testMainClass : BaseTest
                     if (key != "info")
                     {
                         object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, key, format);
-                        assert(isEqual(typeAssertion, true), ((("\"" + (stringValue(key))) + "\" key is neither undefined, neither of expected type") + (logText)));
+                        assert((typeAssertion is true), ((("\"" + (stringValue(key))) + "\" key is neither undefined, neither of expected type") + (logText)));
                         if (isTrue(deep))
                         {
                             if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -813,7 +813,7 @@ public partial class testMainClass : BaseTest
                     }
                 }
             }
-            assert(isEqual(eMessage, ""), eMessage); // trigger error
+            assert((eMessage is ""), eMessage); // trigger error
         }
 
     }

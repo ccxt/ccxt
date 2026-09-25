@@ -9459,7 +9459,7 @@ public partial class binance : Exchange
         if ((selfTradePrevention != null))
         {
             object warnOnStpForInverse = this.handleOption("createOrder", "warnOnSTPForInverse");
-            if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && (isEqual(warnOnStpForInverse, true)))
+            if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && ((warnOnStpForInverse is true)))
             {
                 throw new NotSupported ((this.id + " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.")) ;
             }

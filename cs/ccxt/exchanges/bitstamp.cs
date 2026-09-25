@@ -1219,7 +1219,7 @@ public partial class bitstamp : Exchange
                 }
             }
             bool isSpot = (type == "spot");
-            string? settle = ((settleId != null) && !isEqual(settleId, "")) ? this.safeCurrencyCode(settleId) : null;
+            string? settle = ((settleId != null) && !(settleId is "")) ? this.safeCurrencyCode(settleId) : null;
             result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
                 { "symbol", symbol },
@@ -3558,7 +3558,7 @@ public partial class bitstamp : Exchange
                 privateHeaders["Content-Type"] = contentType;
             }
             object authBody = "";
-            if ((requestBody != null) && !isEqual(requestBody, ""))
+            if ((requestBody != null) && !(requestBody is ""))
             {
                 authBody = requestBody;
             }

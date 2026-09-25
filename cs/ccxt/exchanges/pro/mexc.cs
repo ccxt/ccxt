@@ -327,7 +327,7 @@ public partial class mexc : ccxt.mexc
         object isSpot = marketIdIsUndefined ? channelStartsWithSpot : (market.ContainsKey("spot") ? market["spot"] : null);
         string spotPrefix = "spot:";
         string messageHashPrefix = "";
-        if (isEqual(isSpot, true))
+        if ((isSpot is true))
         {
             messageHashPrefix = spotPrefix;
         }
@@ -337,7 +337,7 @@ public partial class mexc : ccxt.mexc
         {
             object entry = data[i];
             Dictionary<string, object> ticker = null;
-            if (isEqual(isSpot, true))
+            if ((isSpot is true))
             {
                 ticker = this.parseWsTicker(entry, market);
             } else

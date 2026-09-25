@@ -284,7 +284,7 @@ public partial class testMainClass : BaseTest
         }
         object needsCancel = exchange.inArray(getValue(orderFetched, "status"), new List<object>() {"open", "pending", null});
         // if it was not reported as closed/filled, then try to cancel it
-        if (isEqual(needsCancel, true))
+        if ((needsCancel is true))
         {
             tcoDebug(exchange, symbol, "trying to cancel the remaining amount of partially filled order...");
             try

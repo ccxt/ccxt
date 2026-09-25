@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         IDictionary<string, object> featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
         IDictionary<string, object> fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
         object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!isEqual(isFetchCurrenciesPrivate, true))
+        if (!(isFetchCurrenciesPrivate is true))
         {
             List<object> values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);

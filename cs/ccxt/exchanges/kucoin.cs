@@ -4685,7 +4685,7 @@ public partial class kucoin : Exchange
         var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
         var takeProfitPrice = triggerPricestopLossPricetakeProfitPriceVariable[2];
         string? tradeType = this.safeString(paramsSync, "tradeType"); // keep it for backward compatibility
-        bool isTriggerOrder = (!isEqual(triggerPrice, null)) || (!isEqual(stopLossPrice, null)) || (!isEqual(takeProfitPrice, null));
+        bool isTriggerOrder = (!(triggerPrice == null)) || (!(stopLossPrice == null)) || (!(takeProfitPrice == null));
         string? marginMode = this.handleMarginModeAndParams("createOrder", paramsSync).Item1;
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
         // don't omit anything before calling createOrderRequest
@@ -4801,17 +4801,17 @@ public partial class kucoin : Exchange
         var triggerPrice = triggerPricestopLossPricetakeProfitPriceVariable[0];
         var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
         var takeProfitPrice = triggerPricestopLossPricetakeProfitPriceVariable[2];
-        bool isTriggerOrder = (!isEqual(triggerPrice, null)) || (!isEqual(stopLossPrice, null)) || (!isEqual(takeProfitPrice, null));
+        bool isTriggerOrder = (!(triggerPrice == null)) || (!(stopLossPrice == null)) || (!(takeProfitPrice == null));
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
         paramsOmitted = this.omit(paramsOmitted, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"});
         if (isTriggerOrder)
         {
-            if (!isEqual(triggerPrice, null))
+            if (!(triggerPrice == null))
             {
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
-            } else if ((!isEqual(stopLossPrice, null)) || (!isEqual(takeProfitPrice, null)))
+            } else if ((!(stopLossPrice == null)) || (!(takeProfitPrice == null)))
             {
-                if (!isEqual(stopLossPrice, null))
+                if (!(stopLossPrice == null))
                 {
                     request["stop"] = ((side == "buy")) ? "entry" : "loss";
                     request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
@@ -4998,7 +4998,7 @@ public partial class kucoin : Exchange
         string? triggerPriceType = this.safeString(paramsOmitted, "triggerPriceType", "mark");
         string? triggerPriceTypeValue = this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType);
         paramsOmitted = this.omit(paramsOmitted, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"});
-        if (!isEqual(triggerPrice, null))
+        if (!(triggerPrice == null))
         {
             request["stop"] = ((side == "buy")) ? "up" : "down";
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -5021,9 +5021,9 @@ public partial class kucoin : Exchange
                 priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
             request["stopPriceType"] = priceType;
-        } else if ((!isEqual(stopLossPrice, null)) || (!isEqual(takeProfitPrice, null)))
+        } else if ((!(stopLossPrice == null)) || (!(takeProfitPrice == null)))
         {
-            if (!isEqual(stopLossPrice, null))
+            if (!(stopLossPrice == null))
             {
                 request["stop"] = ((side == "buy")) ? "up" : "down";
                 request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
@@ -5065,7 +5065,7 @@ public partial class kucoin : Exchange
             throw new BadRequest ((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
         object iceberg = this.safeValue(paramsOmitted, "iceberg");
-        if (((iceberg != null)) && (!isEqual(iceberg, false)))
+        if (((iceberg != null)) && (!(iceberg is false)))
         {
             string? visibleSize = this.safeString(paramsOmitted, "visibleSize");
             if ((visibleSize == null))
@@ -5300,7 +5300,7 @@ public partial class kucoin : Exchange
             { "last", "TP" },
             { "index", "IP" },
         };
-        if (!isEqual(triggerPrice, null))
+        if (!(triggerPrice == null))
         {
             string? triggerDirection = this.safeString(paramsOmitted, "triggerDirection");
             if ((triggerDirection == null))
@@ -5329,9 +5329,9 @@ public partial class kucoin : Exchange
                 request["tpTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
                 request["tpTriggerPriceType"] = this.safeString(triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType);
             }
-        } else if ((!isEqual(stopLossPrice, null)) || (!isEqual(takeProfitPrice, null)))
+        } else if ((!(stopLossPrice == null)) || (!(takeProfitPrice == null)))
         {
-            if (!isEqual(stopLossPrice, null))
+            if (!(stopLossPrice == null))
             {
                 request["triggerDirection"] = ((side == "buy")) ? "UP" : "DOWN";
                 request["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
@@ -6185,7 +6185,7 @@ public partial class kucoin : Exchange
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
-        if (((trigger != null)) && (!isEqual(trigger, false)))
+        if (((trigger != null)) && (!(trigger is false)))
         {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, paramsOmitted));
         } else
@@ -12384,7 +12384,7 @@ public partial class kucoin : Exchange
         {
             market = this.market(symbol);
             isContractMarket = (market.ContainsKey("contract") ? market["contract"] : null);
-            if (!isEqual(isContractMarket, true))
+            if (!(isContractMarket is true))
             {
                 uta = true; // spot market orders can only be cancelled via the uta endpoint
             }

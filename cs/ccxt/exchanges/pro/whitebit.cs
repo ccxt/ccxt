@@ -830,7 +830,7 @@ public partial class whitebit : ccxt.whitebit
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         string messageHash = "wallet:";
         string? method = null;
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             method = "balanceSpot_subscribe";
             messageHash = messageHash + "spot";
@@ -1275,7 +1275,7 @@ public partial class whitebit : ccxt.whitebit
         for (int i = 0; i < values.Count; i++)
         {
             object subscription = values[i];
-            if (!isEqual(subscription, true))
+            if (!(subscription is true))
             {
                 Int64? subId = this.safeInteger(subscription, "id");
                 if (((subId != null)) && (isEqual(subId, id)))

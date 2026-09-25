@@ -492,7 +492,7 @@ public partial class lighter : Exchange
             return signer;
         }
         string? libraryPath = this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath").Item1;
-        bool lighterPrivateKeyIsSet = ((privateKey != null)) && (!isEqual(privateKey, ""));
+        bool lighterPrivateKeyIsSet = ((privateKey != null)) && (!(privateKey is ""));
         if (lighterPrivateKeyIsSet && ((libraryPath != null)) && ((apiKeyIndex != null)) && ((accountIndex != null)))
         {
             // load lighter library, and create lighter client
