@@ -953,11 +953,11 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
+        const accIndexAndParams = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
+        let accountIndex: Int = accIndexAndParams[0];
         params['accountIndex'] = accountIndex;
-        let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
+        const apiKeyIndexAndParams = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
+        let apiKeyIndex: Int = apiKeyIndexAndParams[0];
         // before order-req creation, we need to know account status
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
