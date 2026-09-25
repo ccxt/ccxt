@@ -3608,7 +3608,7 @@ public partial class paradex : Exchange
         };
     }
 
-    public virtual string? encodeMarginMode(object mode)
+    public virtual string? encodeMarginMode(string? mode)
     {
         Dictionary<string, object> modes = new Dictionary<string, object>() {
             { "cross", "CROSS" },

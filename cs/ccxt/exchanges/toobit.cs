@@ -2023,7 +2023,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsCost);
         bool isPostOnly = (bool)isPostOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)isPostOnlyparamsPostOnlyVariable[1]);
-        if (isEqual(isPostOnly, true))
+        if ((isPostOnly == true))
         {
             request["type"] = "LIMIT_MAKER";
         } else
@@ -2054,10 +2054,10 @@ public partial class toobit : Exchange
         IDictionary<string, object> paramsReduceOnly = ((IDictionary<string, object>)reduceOnlyparamsReduceOnlyVariable[1]);
         if ((side == "buy"))
         {
-            request["side"] = (isEqual(reduceOnly, true)) ? "BUY_CLOSE" : "BUY_OPEN";
+            request["side"] = ((reduceOnly == true)) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if ((side == "sell"))
         {
-            request["side"] = (isEqual(reduceOnly, true)) ? "SELL_CLOSE" : "SELL_OPEN";
+            request["side"] = ((reduceOnly == true)) ? "SELL_CLOSE" : "SELL_OPEN";
         } else
         {
             request["side"] = side;
@@ -2078,7 +2078,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsReduceOnly);
         bool isPostOnly = (bool)isPostOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)isPostOnlyparamsPostOnlyVariable[1]);
-        if (isEqual(isPostOnly, true))
+        if ((isPostOnly == true))
         {
             request["timeInForce"] = "LIMIT_MAKER";
         }
@@ -2971,14 +2971,14 @@ public partial class toobit : Exchange
             currency = this.currency(code);
             request["coin"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        if (!isEqual(since, null))
+        if (!(since == null))
         {
             request["startTime"] = since;
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if (!isEqual(limit, null))
+        if (!(limit == null))
         {
             ((IDictionary<string,object>)requestUntil)["limit"] = limit;
         }

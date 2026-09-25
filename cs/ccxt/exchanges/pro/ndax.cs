@@ -474,23 +474,23 @@ public partial class ndax : ccxt.ndax
         for (int i = 0; i < payload.Count; i++)
         {
             List<object> bidask = this.safeList(payload, i);
-            if (isEqual(timestamp, null))
+            if ((timestamp == null))
             {
                 timestamp = this.safeInteger(bidask, 2);
             } else
             {
                 Int64? newTimestamp = this.safeInteger(bidask, 2);
-                object currentTimestampValue = (isEqual(timestamp, null)) ? 0 : timestamp;
+                object currentTimestampValue = ((timestamp == null)) ? 0 : timestamp;
                 Int64? newTimestampValue = ((newTimestamp == null)) ? 0 : newTimestamp;
                 timestamp = mathMax(currentTimestampValue, newTimestampValue);
             }
-            if (isEqual(nonce, null))
+            if ((nonce == null))
             {
                 nonce = this.safeInteger(bidask, 0);
             } else
             {
                 Int64? newNonce = this.safeInteger(bidask, 0);
-                object currentNonceValue = (isEqual(nonce, null)) ? 0 : nonce;
+                object currentNonceValue = ((nonce == null)) ? 0 : nonce;
                 Int64? newNonceValue = ((newNonce == null)) ? 0 : newNonce;
                 nonce = mathMax(currentNonceValue, newNonceValue);
             }

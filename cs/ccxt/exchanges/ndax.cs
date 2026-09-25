@@ -910,7 +910,7 @@ public partial class ndax : Exchange
         for (int i = 0; i < getArrayLength(orderbook); i++)
         {
             object level = getValue(orderbook, i);
-            if (isEqual(latestTimestamp, null))
+            if ((latestTimestamp == null))
             {
                 latestTimestamp = this.safeInteger(level, 2);
             } else
@@ -921,7 +921,7 @@ public partial class ndax : Exchange
                     latestTimestamp = mathMax(latestTimestamp, newTimestamp);
                 }
             }
-            if (isEqual(nonce, null))
+            if ((nonce == null))
             {
                 nonce = this.safeInteger(level, 0);
             } else

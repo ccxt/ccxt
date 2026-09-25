@@ -2613,7 +2613,7 @@ public partial class alpaca : Exchange
         // }
         string feedback = ((this.id + " ") + (body));
         string? errorCode = this.safeString(response, "code");
-        if (!isEqual(code, null))
+        if (!(code == null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         }

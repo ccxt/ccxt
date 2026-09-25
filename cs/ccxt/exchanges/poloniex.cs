@@ -3766,7 +3766,7 @@ public partial class poloniex : Exchange
         IList<object> hedgedparamsHedgedVariable = (IList<object>)this.handleParamBool(paramsMarginMode, "hedged", false);
         bool? hedged = (bool?)hedgedparamsHedgedVariable[0];
         IDictionary<string, object> paramsHedged = ((IDictionary<string, object>)hedgedparamsHedgedVariable[1]);
-        if (isEqual(hedged, true))
+        if ((hedged == true))
         {
             if (!((paramsHedged != null && paramsHedged.ContainsKey("posSide"))))
             {

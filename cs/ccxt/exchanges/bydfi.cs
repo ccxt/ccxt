@@ -1019,13 +1019,13 @@ public partial class bydfi : Exchange
         Int64 now = this.milliseconds();
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object timeDelta = multiply(duration, numberOfCandles);
-        if (isEqual(startTime, null) && isEqual(until, null))
+        if ((startTime == null) && (until == null))
         {
             startTime = subtract(now, timeDelta);
             until = now;
-        } else if (isEqual(until, null))
+        } else if ((until == null))
         {
-            if (isEqual(startTime, null))
+            if ((startTime == null))
             {
                 throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since or until argument")) ;
             }
@@ -1034,7 +1034,7 @@ public partial class bydfi : Exchange
             {
                 until = now;
             }
-        } else if (isEqual(startTime, null))
+        } else if ((startTime == null))
         {
             startTime = subtract(until, timeDelta);
         }
@@ -2045,9 +2045,9 @@ public partial class bydfi : Exchange
         Int64 now = this.milliseconds();
         Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
         object startTime = since;
-        if (isEqual(startTime, null))
+        if ((startTime == null))
         {
-            if (isEqual(until, null))
+            if ((until == null))
             {
                 // both since and until are undefined
                 startTime = (now - sevenDays);
@@ -2057,7 +2057,7 @@ public partial class bydfi : Exchange
                 // since is undefined but until is defined
                 startTime = subtract(until, sevenDays);
             }
-        } else if (isEqual(until, null))
+        } else if ((until == null))
         {
             // until is undefined but since is defined
             object delta = subtract(now, startTime);
@@ -3239,9 +3239,9 @@ public partial class bydfi : Exchange
         Int64 now = this.milliseconds();
         Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
         object startTime = since;
-        if (isEqual(startTime, null))
+        if ((startTime == null))
         {
-            if (isEqual(until, null))
+            if ((until == null))
             {
                 // both since and until are undefined
                 startTime = (now - sevenDays);
@@ -3251,7 +3251,7 @@ public partial class bydfi : Exchange
                 // since is undefined but until is defined
                 startTime = subtract(until, sevenDays);
             }
-        } else if (isEqual(until, null))
+        } else if ((until == null))
         {
             // until is undefined but since is defined
             object delta = subtract(now, startTime);
@@ -3265,7 +3265,7 @@ public partial class bydfi : Exchange
         }
         request["startTime"] = startTime;
         request["endTime"] = until;
-        if (!isEqual(limit, null))
+        if (!(limit == null))
         {
             request["limit"] = limit;
         }

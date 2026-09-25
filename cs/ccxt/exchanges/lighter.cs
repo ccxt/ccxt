@@ -597,7 +597,7 @@ public partial class lighter : Exchange
         var apiKeyIndexOption = apiKeyIndexOptionparamsApiKeyIndexVariable[0];
         var paramsApiKeyIndex = apiKeyIndexOptionparamsApiKeyIndexVariable[1];
         object apiKeyIndex = apiKeyIndexOption;
-        if ((isEqual(apiKeyIndex, null)) || (isLessThan(apiKeyIndex, 4)) || (isGreaterThan(apiKeyIndex, 254)))
+        if (((apiKeyIndex == null)) || (isLessThan(apiKeyIndex, 4)) || (isGreaterThan(apiKeyIndex, 254)))
         {
             // apiKeyIndex = this.randNumber (2);
             apiKeyIndex = 254;
@@ -612,7 +612,7 @@ public partial class lighter : Exchange
         var accountIndexOption = accountIndexOptionparamsAccountIndexVariable[0];
         var paramsAccountIndex = accountIndexOptionparamsAccountIndexVariable[1];
         object accountIndex = accountIndexOption;
-        if (isEqual(accountIndex, null))
+        if ((accountIndex == null))
         {
             string walletAddress = this.walletAddress;
             if ((this.privateKey != null))
@@ -891,7 +891,7 @@ public partial class lighter : Exchange
         this.options["chainId"] = isTrue(enable) ? 300 : 304;
     }
 
-    public virtual List<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -924,7 +924,7 @@ public partial class lighter : Exchange
             throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument")) ;
         }
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        string orderType = ((string)type).ToUpper();
+        string orderType = type.ToUpper();
         Dictionary<string, object> market = this.market(symbol);
         string orderSide = ((string)side).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2781,7 +2781,7 @@ public partial class lighter : Exchange
 
     public virtual string? parseOrderTypeInteger(object typeInteger)
     {
-        if (isEqual(typeInteger, null))
+        if ((typeInteger == null))
         {
             return null;
         }
@@ -3522,14 +3522,14 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, object marginMode, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, string? marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((!(marginMode == "cross")) && (!(marginMode == "isolated")))
         {
             throw new BadRequest ((this.id + " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")) ;
         }
@@ -3551,7 +3551,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
-            { "margin_mode", (isEqual(marginMode, "cross")) ? 0 : 1 },
+            { "margin_mode", ((marginMode == "cross")) ? 0 : 1 },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },

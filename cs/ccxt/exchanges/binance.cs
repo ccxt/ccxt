@@ -6860,7 +6860,7 @@ public partial class binance : Exchange
         {
             limitRequested = maxLimit;
         }
-        object limitValue = (isEqual(limitRequested, null)) ? defaultLimit : mathMin(limitRequested, maxLimit);
+        object limitValue = ((limitRequested == null)) ? defaultLimit : mathMin(limitRequested, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -9787,7 +9787,7 @@ public partial class binance : Exchange
         {
             limitResolved = mathMin(limit, 100);
         }
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             if ((stock == true))
             {
@@ -11160,15 +11160,15 @@ public partial class binance : Exchange
             Int64 oneWeek = ((((7L * 24L) * 60) * 60) * 1000);
             if (isGreaterThanOrEqual((subtract(currentTimestamp, startTime)), oneWeek))
             {
-                if ((isEqual(endTime, null)) && ((this.safeBool(market, "linear") == true)))
+                if (((endTime == null)) && ((this.safeBool(market, "linear") == true)))
                 {
                     endTime = this.sum(startTime, oneWeek);
-                    object endTimeValue = (isEqual(endTime, null)) ? 0 : endTime;
+                    object endTimeValue = ((endTime == null)) ? 0 : endTime;
                     endTime = mathMin(endTimeValue, currentTimestamp);
                 }
             }
         }
-        if (!isEqual(endTime, null))
+        if (!(endTime == null))
         {
             request["endTime"] = endTime;
             paramsPaginate = this.omit(paramsPaginate, new List<object>() {"endTime", "until"});
@@ -11181,11 +11181,11 @@ public partial class binance : Exchange
             limitContract = mathMin(limit, 1000);
         }
         object limitResolved = limitContract;
-        if (!isEqual(limitContract, null) && (stock == true))
+        if (!(limitContract == null) && (stock == true))
         {
             limitResolved = mathMin(limitContract, 100);
         }
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             if ((stock == true))
             {
@@ -11210,7 +11210,7 @@ public partial class binance : Exchange
             paramsPaginate = isPortfolioMarginparamsPaginateVariable[1];
             if ((stock == true))
             {
-                if (isEqual(endTime, null))
+                if ((endTime == null))
                 {
                     endTime = this.milliseconds();
                     request["endTime"] = endTime;

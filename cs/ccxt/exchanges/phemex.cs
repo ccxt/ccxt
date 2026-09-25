@@ -1567,7 +1567,7 @@ public partial class phemex : Exchange
 
     public virtual object toEn(object n, object scale)
     {
-        if (((n == null)) || (isEqual(scale, null)))
+        if (((n == null)) || ((scale == null)))
         {
             return null;
         }
@@ -2405,7 +2405,7 @@ public partial class phemex : Exchange
             string? lockedWithdraw = this.fromEn(lockedWithdrawEv, scale);
             string? used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
             Int64? lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
-            timestamp = (isEqual(timestamp, null)) ? lastUpdateTimeNs : mathMax(timestamp, lastUpdateTimeNs);
+            timestamp = ((timestamp == null)) ? lastUpdateTimeNs : mathMax(timestamp, lastUpdateTimeNs);
             account["total"] = total;
             account["used"] = used;
             result[(string)code] = account;
@@ -3135,12 +3135,12 @@ public partial class phemex : Exchange
                         string? priceString = this.numberToString(price);
                         string? quoteAmount = Precise.stringMul(amountString, priceString);
                         cost = this.parseNumber(quoteAmount);
-                    } else if (isEqual(cost, null))
+                    } else if ((cost == null))
                     {
                         throw new ArgumentsRequired ((((this.id + " createOrder() ") + qtyType) + " requires a price argument or a cost parameter")) ;
                     }
                 }
-                cost = (isEqual(cost, null)) ? amount : cost;
+                cost = ((cost == null)) ? amount : cost;
                 string? costString = this.costToPrecision(symbol, cost);
                 request["quoteQtyEv"] = this.toEv(costString, market);
             } else
@@ -3915,7 +3915,7 @@ public partial class phemex : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object limitResolved = ((limit == null)) ? null : mathMin(200, limit);
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             request["limit"] = limitResolved;
         }
@@ -3924,7 +3924,7 @@ public partial class phemex : Exchange
         {
             request["currency"] = "USDT";
             request["offset"] = 0;
-            if (isEqual(limitResolved, null))
+            if ((limitResolved == null))
             {
                 request["limit"] = 200;
             }
@@ -5112,7 +5112,7 @@ public partial class phemex : Exchange
         {
             leverage = 0;
         }
-        if (isEqual(leverage, null))
+        if ((leverage == null))
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter")) ;
         }

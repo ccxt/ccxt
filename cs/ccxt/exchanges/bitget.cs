@@ -6605,7 +6605,7 @@ public partial class bitget : Exchange
         }
         // if historical endpoint is needed, we should re-set the variables
         bool historicalEndpointNeeded = false;
-        if ((!isEqual(calculatedStartTime, null) && isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || ((useHistoryEndpoint == true)))
+        if ((!(calculatedStartTime == null) && isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || ((useHistoryEndpoint == true)))
         {
             historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit

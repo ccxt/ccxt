@@ -1043,8 +1043,8 @@ public partial class bybit : ccxt.bybit
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string channel = "orderbook.";
         object limit = this.safeInteger(parameters, "limit");
-        object paramsOmitted = (!isEqual(limit, null)) ? this.omit(parameters, "limit") : parameters;
-        if (isEqual(limit, null))
+        object paramsOmitted = (!(limit == null)) ? this.omit(parameters, "limit") : parameters;
+        if ((limit == null))
         {
             Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
             limit = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) == true)) ? 50 : 500;

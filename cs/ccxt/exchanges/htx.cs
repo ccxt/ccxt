@@ -6284,7 +6284,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(orderType == "market", orderType == "limit-maker", paramsMarginMode);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             orderType = "limit-maker";
         }
@@ -6410,7 +6410,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        object orderType = (isEqual(postOnly, true)) ? "post_only" : type;
+        object orderType = ((postOnly == true)) ? "post_only" : type;
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("createOrder", market, paramsPostOnly);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -7660,7 +7660,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        if (isEqual(timeout, null))
+        if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }

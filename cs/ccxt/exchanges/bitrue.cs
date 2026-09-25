@@ -2728,7 +2728,7 @@ public partial class bitrue : Exchange
             request["startTime"] = since;
         }
         object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             request["limit"] = limitResolved;
         }
@@ -3309,7 +3309,7 @@ public partial class bitrue : Exchange
             request["beginTime"] = since;
         }
         object limitResolved = ((limit == null)) ? null : mathMin(limit, 200);
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             request["limit"] = limitResolved;
         }

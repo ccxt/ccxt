@@ -2266,7 +2266,7 @@ public partial class lbank : Exchange
         {
             request["size"] = limit;
         }
-        if (!isEqual(sinceValue, null))
+        if (!(sinceValue == null))
         {
             request["start_date"] = this.ymd(sinceValue, "-"); // max query 2 days ago
             request["end_date"] = this.ymd(add(sinceValue, 86400000), "-"); // will cover 2 days

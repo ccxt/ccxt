@@ -801,7 +801,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, paramsMarketType, subscriptionHash));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object marketType, object subscriptionHash = null, object parameters = null)
+    public virtual void setBalanceCache(WebSocketClient client, string? marketType, object subscriptionHash = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (((subscriptionHash == null)) || (inOp(client.subscriptions, subscriptionHash)))
@@ -809,7 +809,7 @@ public partial class toobit : ccxt.toobit
             return;
         }
         string type = "contract";
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             type = "spot";
         }

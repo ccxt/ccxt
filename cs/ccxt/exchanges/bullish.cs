@@ -1594,14 +1594,14 @@ public partial class bullish : Exchange
         Int64 maxDelta = multiply(multiply(1000, duration), maxLimit);
         object startTime = since;
         // both of since and until are required
-        if (isEqual(startTime, null) && isEqual(until, null))
+        if ((startTime == null) && (until == null))
         {
             until = this.milliseconds();
             startTime = subtract(until, maxDelta);
-        } else if (isEqual(startTime, null))
+        } else if ((startTime == null))
         {
             startTime = subtract(until, maxDelta);
-        } else if (isEqual(until, null))
+        } else if ((until == null))
         {
             until = this.sum(startTime, maxDelta);
         }
@@ -1827,13 +1827,13 @@ public partial class bullish : Exchange
         sinceKey ??= "createdAtDatetime[gte]";
         untilKey ??= "createdAtDatetime[lte]";
         object until = this.safeInteger(parameters, "until");
-        bool sinceFromUntil = ((since == null)) && (!isEqual(until, null));
+        bool sinceFromUntil = ((since == null)) && (!(until == null));
         object paramsResult = parameters;
         if (sinceFromUntil)
         {
             paramsResult = this.omit(parameters, "until");
         }
-        if (((since != null)) || (!isEqual(until, null)))
+        if (((since != null)) || (!(until == null)))
         {
             Int64 timeDelta = ((((7L * 24L) * 60) * 60) * 1000); // 7 days
             object sinceResolved = since;
@@ -1841,7 +1841,7 @@ public partial class bullish : Exchange
             {
                 sinceResolved = subtract(until, timeDelta);
             }
-            if (((since != null)) && (isEqual(until, null)))
+            if (((since != null)) && ((until == null)))
             {
                 until = this.sum(since, timeDelta);
                 Int64 now = this.milliseconds();
@@ -3182,7 +3182,7 @@ public partial class bullish : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Int64? until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
         // current endpoint requires both since and until parameters
-        if (isEqual(startTimestamp, null))
+        if ((startTimestamp == null))
         {
             startTimestamp = (now - ((((1000L * 60L) * 60) * 24) * 90)); // Only the last 90 days of data is available for querying
         }

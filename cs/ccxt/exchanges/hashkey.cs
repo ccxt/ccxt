@@ -2541,17 +2541,17 @@ public partial class hashkey : Exchange
         return this.safeString(types, type, type);
     }
 
-    public virtual Int64? encodeAccountType(object type)
+    public virtual Int64? encodeAccountType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "spot", "1" },
             { "swap", "3" },
             { "custody", "5" },
         };
-        return this.safeInteger(types, ((string)type), type);
+        return this.safeInteger(types, type, type);
     }
 
-    public virtual Int64? encodeFlowType(object type)
+    public virtual Int64? encodeFlowType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "trade", "1" },
@@ -2560,7 +2560,7 @@ public partial class hashkey : Exchange
             { "deposit", "900" },
             { "withdraw", "904" },
         };
-        return this.safeInteger(types, ((string)type), type);
+        return this.safeInteger(types, type, type);
     }
 
     /**
@@ -2852,7 +2852,7 @@ public partial class hashkey : Exchange
         }
     }
 
-    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2881,13 +2881,13 @@ public partial class hashkey : Exchange
          * @returns {object} request to be sent to the exchange
          */
         Dictionary<string, object> market = this.market(symbol);
-        string typeValue = ((string)type).ToUpper();
+        string typeValue = type.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
             { "type", typeValue },
         };
-        if (!isEqual(amount, null))
+        if (!(amount == null))
         {
             request["quantity"] = this.amountToPrecision(symbol, amount);
         }
@@ -2922,7 +2922,7 @@ public partial class hashkey : Exchange
         return this.extend(request, paramsClientOrderId);
     }
 
-    public virtual Dictionary<string, object> createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSwapOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -2949,7 +2949,7 @@ public partial class hashkey : Exchange
             { "type", "LIMIT" },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        bool isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = (type == "market");
         if (isMarketOrder)
         {
             request["priceType"] = "MARKET";
@@ -2963,11 +2963,11 @@ public partial class hashkey : Exchange
         bool? reduceOnly = (bool?)reduceOnlyparamsReduceOnlyVariable[0];
         IDictionary<string, object> paramsReduceOnly = ((IDictionary<string, object>)reduceOnlyparamsReduceOnlyVariable[1]);
         string suffix = "_OPEN";
-        if (isEqual(reduceOnly, true))
+        if ((reduceOnly == true))
         {
             suffix = "_CLOSE";
         }
-        request["side"] = (((string)side).ToUpper() + suffix);
+        request["side"] = (side.ToUpper() + suffix);
         IList<object> timeInForceParamparamsTimeInForceVariable = (IList<object>)this.handleParamString(paramsReduceOnly, "timeInForce");
         string? timeInForceParam = (string)timeInForceParamparamsTimeInForceVariable[0];
         var paramsTimeInForce = timeInForceParamparamsTimeInForceVariable[1];
@@ -3160,7 +3160,7 @@ public partial class hashkey : Exchange
             IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
             bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
             IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 request["type"] = "STOP";
             } else
@@ -3328,7 +3328,7 @@ public partial class hashkey : Exchange
             IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
             bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
             IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 request["type"] = "STOP";
             }
@@ -3588,7 +3588,7 @@ public partial class hashkey : Exchange
             IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
             bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
             IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 request["type"] = "STOP";
             } else

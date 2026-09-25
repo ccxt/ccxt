@@ -302,7 +302,7 @@ public partial class luno : ccxt.luno
         double? price = this.safeNumber(bidask, priceKey);
         double? amount = this.safeNumber(bidask, amountKey);
         List<object> result = new List<object>() {price, amount};
-        if (!isEqual(thirdKey, null))
+        if (!(thirdKey == null))
         {
             object thirdValue = this.safeString(bidask, thirdKey);
             result.Add(thirdValue);

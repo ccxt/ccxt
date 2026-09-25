@@ -2284,7 +2284,7 @@ public partial class whitebit : Exchange
             Int64? start = this.parseToInt(((double?)since / 1000));
             request["start"] = start;
         }
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             request["limit"] = mathMin(limitResolved, 1440);
         }
@@ -2794,7 +2794,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object paramsOmitted = this.omit(parameters, "symbol");
-        if (isEqual(timeout, null))
+        if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
