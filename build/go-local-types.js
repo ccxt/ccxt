@@ -158,6 +158,9 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.Account': 'map[string]any',
     'this.ParseOrderBook': 'map[string]any',
     'this.Market': 'map[string]any',
+    'this.Currency': 'map[string]any',
+    'this.SafeCurrency': 'map[string]any',
+    'this.SafeMarket': 'map[string]any',
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',
     'this.SafeOutcome': 'map[string]any',

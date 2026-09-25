@@ -2342,6 +2342,61 @@ export function collapseRedundantNilChecks (content: string): string {
         .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
 }
 
+// Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
+// the identity and a `.(map[string]any)` assertion on it does not compile, so both are dropped.
+const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook' ];
+
+function dropNoOpMapTyped (content: string): string {
+    const callee = new RegExp ('^this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')\\(');
+    // index of the paren closing the one opened at `open`, -1 when unbalanced
+    const close = (text: string, open: number): number => {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"' || c === '`' || c === "'") {
+                i = goSkipLiteralText (text, i);
+            } else if (c === '(') {
+                depth += 1;
+            } else if (c === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    };
+    let out = '';
+    let cursor = 0;
+    const wrapper = /\b(?:ccxt\.)?MapTyped\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
+    for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
+        if (m.index < cursor) {
+            continue;
+        }
+        const open = m.index + m[0].length - 1;
+        const end = close (content, open);
+        if (end < 0) {
+            continue;
+        }
+        if (m[0].startsWith ('this.')) {
+            if (content.startsWith ('.(map[string]any)', end + 1)) {
+                out += content.substring (cursor, end + 1);
+                cursor = end + 1 + '.(map[string]any)'.length;
+            }
+            continue;
+        }
+        const inner = content.substring (open + 1, end);
+        const innerOpen = inner.indexOf ('(');
+        if (!callee.test (inner) || (close (inner, innerOpen) !== inner.length - 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
+        cursor = end + 1;
+        wrapper.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -2355,7 +2410,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
-    content = goGofmtSplicedText (content);
+    content = goGofmtSplicedText (dropNoOpMapTyped (content));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -5426,8 +5481,35 @@ ${caseStatements.join('\n')}
             const line = lines[i];
             const trimmed = line.trim ();
             if (!inLiteral[offset] && /^return([ \t]|$)/.test (trimmed)) {
-                const expr = trimmed.substring ('return'.length).trim ();
+                let expr = trimmed.substring ('return'.length).trim ();
                 if (expr.length === 0) {
+                    return undefined;
+                }
+                // a multi-line expression (e.g. a map literal argument) ends where its delimiters balance;
+                // an expression that never balances leaves the whole method untyped
+                const depthOf = (text: string): number => {
+                    let depth = 0;
+                    for (let k = 0; k < text.length; k++) {
+                        const c = text[k];
+                        if (c === '"' || c === '`' || c === "'") {
+                            k = goSkipLiteralText (text, k);
+                        } else if (c === '(' || c === '[' || c === '{') {
+                            depth += 1;
+                        } else if (c === ')' || c === ']' || c === '}') {
+                            depth -= 1;
+                        }
+                    }
+                    return depth;
+                };
+                while ((depthOf (expr) > 0) && (i + 1 < lines.length)) {
+                    if (/func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
+                        return undefined;
+                    }
+                    offset += lines[i].length + 1;
+                    i += 1;
+                    expr += '\n' + lines[i];
+                }
+                if (depthOf (expr) !== 0) {
                     return undefined;
                 }
                 const indent = line.substring (0, line.length - line.trimStart ().length);
@@ -5436,8 +5518,8 @@ ${caseStatements.join('\n')}
             } else {
                 out.push (line);
             }
-            offset += line.length + 1;
-            if (!inLiteral[offset - 1] && /func\s*\(/.test (line) && (line.indexOf ('{', line.search (/func\s*\(/)) < 0)) {
+            offset += lines[i].length + 1;
+            if (!inLiteral[offset - 1] && /func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
                 return undefined; // a func literal that opens its brace on a later line
             }
         }
@@ -5509,6 +5591,10 @@ ${caseStatements.join('\n')}
             [ 'BaseExchange', 'Market',
               (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
               true ],
+            // TS returns a dictionary on every path (currency panics, the safe forms build a structure)
+            [ 'BaseExchange', 'Currency', (expr: string) => expr.length > 0, true ],
+            [ 'BaseExchange', 'SafeCurrency', (expr: string) => expr.length > 0, true ],
+            [ 'BaseExchange', 'SafeMarket', (expr: string) => expr.length > 0, true ],
         ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]);
@@ -5533,6 +5619,12 @@ ${caseStatements.join('\n')}
         ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], undefined, true);
+        }
+        // every exchange override of a base map accessor carries the base's map signature
+        const overrides = content.match (/func\s+\(this \*\w+\)\s+(?:Currency|SafeCurrency|SafeMarket)\(/g) || [];
+        for (let i = 0; i < overrides.length; i++) {
+            const parts = /\*(\w+)\)\s+(\w+)\(/.exec (overrides[i]);
+            content = this.retypeGoMapMethod (content, parts[1], parts[2], undefined, true);
         }
         return content;
     }
