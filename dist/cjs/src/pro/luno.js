@@ -82,7 +82,7 @@ class luno extends luno$1["default"] {
         //         "timestamp": 1660598775360
         //     }
         //
-        const rawTrades = this.safeValue(message, 'trade_updates', []);
+        const rawTrades = this.safeList(message, 'trade_updates', []);
         const length = rawTrades.length;
         if (length === 0) {
             return;
@@ -220,8 +220,8 @@ class luno extends luno$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', countOrIdKey = 2) {
-        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),

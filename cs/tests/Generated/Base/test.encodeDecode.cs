@@ -13,9 +13,9 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             string input = "encode-test";
-            object encoded = exchange.encode(input);
-            object decoded = exchange.decode(encoded);
-            Assert(isEqual(decoded, input), add(add(add("decoded should be equal to input, got ", decoded), " instead of "), input));
+            string? encoded = exchange.encode(input);
+            string? decoded = exchange.decode(encoded);
+            Assert((decoded == input), ((("decoded should be equal to input, got " + decoded) + " instead of ") + input));
         }
         public void testDecode()
         {
@@ -23,9 +23,9 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             string input = "decode-test";
-            object encoded = exchange.encode(input);
-            object decoded = exchange.decode(encoded);
-            Assert(isEqual(decoded, input), add(add(add("decoded should be equal to input, got ", decoded), " instead of "), input));
+            string? encoded = exchange.encode(input);
+            string? decoded = exchange.decode(encoded);
+            Assert((decoded == input), ((("decoded should be equal to input, got " + decoded) + " instead of ") + input));
         }
         public void testEncodeDecode()
         {

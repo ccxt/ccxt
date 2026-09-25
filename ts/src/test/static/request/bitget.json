@@ -7,6 +7,36 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchWithdrawal": [
+            {
+                "description": "uta fetchWithdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?endTime=1790001618970&orderId=1477203433330230002&startTime=1787409618970",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "uta fetchDeposit by id",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?endTime=1790001616831&orderId=1477183242218870001&startTime=1787409616831",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingIntervals": [
             {
                 "description": "fetchFundingIntervals with params",
@@ -2515,6 +2545,43 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "uta margin fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v3/account/fee-rate?category=MARGIN&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta swap fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v3/account/fee-rate?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v3/account/fee-rate?category=SPOT&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "swap trading fee",
                 "method": "fetchTradingFee",
                 "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=mix&symbol=BTCUSDT",
@@ -2534,6 +2601,81 @@
         ],
         "fetchTradingFees": [
             {
+                "description": "uta inverse fetchTradingFees skips rows whose id is missing from the loaded markets",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=COIN-FUTURES&symbol=BTCUSD_CM",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse",
+                        "symbol": "BTCUSD_CM"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta linear fetchTradingFees single symbol",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "symbol": "BTCUSDT"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta linear fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=USDT-FUTURES",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta margin fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=MARGIN",
+                "input": [
+                    {
+                        "uta": true,
+                        "margin": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=SPOT",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta inverse fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=COIN-FUTURES",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "spot trading fees",
                 "method": "fetchTradingFees",
                 "url": "https://api.bitget.com/api/v2/spot/public/symbols",
@@ -2541,6 +2683,125 @@
             }
         ],
         "fetchLedger": [
+            {
+                "description": "uta funding ledger paginated keeps the funding route and uta mode",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/funding-financial-records?coin=USDT&limit=100&startTime=1789000000000",
+                "input": [
+                    "USDT",
+                    1789000000000,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "funding",
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta swap ledger for a single symbol",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot ledger with coin, since and until",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=SPOT&coin=USDT&endTime=1789300000000&startTime=1787700000000",
+                "input": [
+                    "USDT",
+                    1787700000000,
+                    null,
+                    {
+                        "uta": true,
+                        "until": 1789300000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta margin ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=MARGIN",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta linear ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=USDT-FUTURES",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot ledger with coin",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=SPOT&coin=USDT",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta spot ledger empty window returns an empty list",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?category=SPOT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta funding ledger with coin and since",
+                "method": "fetchLedger",
+                "url": "https://api.bitget.com/api/v3/account/funding-financial-records?coin=USDT&startTime=1787700000000",
+                "input": [
+                    "USDT",
+                    1787700000000,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",

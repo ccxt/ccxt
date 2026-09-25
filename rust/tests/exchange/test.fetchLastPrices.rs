@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLastprices".to_string());
+    let mut method: Value = Value::Str("fetchLastprices".into());
     // log ('fetching all tickers at once...')
     let mut response: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -21,7 +21,7 @@ pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Val
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-        response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::List(vec![symbol.clone()])]).await;
+        response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::from(vec![symbol.clone()])]).await;
         checkedSymbol = symbol.clone();
     }
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), checkedSymbol.clone()]);
@@ -30,11 +30,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut atLeastOnePassed: Value = Value::Bool(false);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1450: bool = true;
-        while { if !__for_first_1450 { i = add(&i, &Value::Int(1)); } __for_first_1450 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_1523: bool = true;
+        while { if !__for_first_1523 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1523 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         // todo: symbol check here
-        testLastPrice(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&values, &i), checkedSymbol.clone());
-        atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || is_true(&(is_greater_than(&exchange.safe_number(get_value(&values, &i), Value::Str("price".to_string()), &[]), &Value::Int(0)))));
+        testLastPrice(exchange.clone(), skippedProperties.clone(), method.clone(), values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), checkedSymbol.clone());
+        atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || (exchange.safe_number(values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)));
     }
     }
     assert!(ccxt::runtime::is_true(&(atLeastOnePassed.clone())));

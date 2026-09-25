@@ -41,6 +41,13 @@ pub mod runtime;
 
 pub mod exchange_errors;
 pub mod exchange_stubs;
+// Hand-written client for the CCXT order-router service. The sixth port of a
+// class whose TypeScript reference is ts/src/base/OrderRouter.ts; all six are
+// held together by ts/src/test/base/fixtures/orderRouter.json.
+pub mod order_router;
+// The shared-fixture suite for the above. Public so ti-rust can drive it in CI
+// and `cargo test -p ccxt-base` can drive it locally, from one source.
+pub mod order_router_selftest;
 
 // The transpiled base method surface (now the `ExchangeBase` trait, review #1)
 // compiles and typechecks against the hand-written base; the per-exchange REST
@@ -61,22 +68,22 @@ pub mod exchange_generated;
 // surface. The prediction tier is a second inheritance layer (Core →
 // PredictionExchange → Exchange) wired with its own static ExchangeBase dispatch
 // (review #1 pointer removal).
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod prediction_exchange;
 
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod prediction_exchange_generated;
 
 // Transpiled prediction-market venue Cores (ts/src/prediction/*.ts). Kept in
 // their own module so an id that also exists as a regular exchange (hyperliquid)
 // doesn't collide under `exchanges`.
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod prediction;
 
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 pub mod exchanges;
 
-#[cfg(not(feature = "transpiled-base"))]
+#[cfg(not(feature = "engine"))]
 pub mod exchanges {
     // empty until transpiled-base feature is enabled
 }
@@ -95,6 +102,7 @@ pub use error::ExchangeError;
 pub use params::{Config, Params};
 pub use value::{Value, get_value, set_value, safe_string, safe_number, safe_integer, safe_bool};
 pub use exchange::Exchange;
+pub use order_router::{OrderRouter, RouterVenue, RouterResult};
 
 /// Convenience Result alias used throughout the crate.
 pub type Result<T> = std::result::Result<T, ExchangeError>;

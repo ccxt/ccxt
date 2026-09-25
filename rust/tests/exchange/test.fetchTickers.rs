@@ -13,43 +13,43 @@ pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value,
     // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     // is impractical and the "every active market has a ticker" check doesn't apply — test
     // fetchTickers by the outcome handle instead
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
-        let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
-        return Value::List(vec![predictionResult.clone()]);
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("prediction".into()), &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
+        return Value::from(vec![predictionResult.clone()]);
     }
     let mut withoutSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
-    let mut results: Value = promise_all(&Value::List(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
-    fetchTickersAmountsTest(exchange.clone(), skippedProperties.clone(), get_value(&results, &Value::Int(0)));
+    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
+    let mut results: Value = promise_all(&Value::from(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
+    fetchTickersAmountsTest(exchange.clone(), skippedProperties.clone(), results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
     return results;
 
     Value::Null
 }
 async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Value, mut argSymbols: Value, optional_args: &[Value]) -> Value {
     let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
-    let mut method: Value = Value::Str("fetchTickers".to_string());
+    let mut method: Value = Value::Str("fetchTickers".into());
     let mut response: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_tickers", vec![argSymbols.clone(), argParams.clone()]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), exchange.json(argSymbols.clone()).clone()]);
     let mut values: Value = object_values(&response);
     let mut checkedSymbol: Value = Value::Null;
-    if !is_equal(&argSymbols, &Value::Null) && is_equal(&get_array_length(&argSymbols), &Value::Int(1)) {
-        checkedSymbol = get_value(&argSymbols, &Value::Int(0));
+    if (argSymbols != Value::Null) && (Value::Int(argSymbols.len() as i64).as_f64() == Some(1.0)) {
+        checkedSymbol = argSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1468: bool = true;
-        while { if !__for_first_1468 { i = add(&i, &Value::Int(1)); } __for_first_1468 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_1541: bool = true;
+        while { if !__for_first_1541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1541 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         // todo: symbol check here
-        let mut ticker: Value = get_value(&values, &i);
+        let mut ticker: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
             let mut ohlcv: Value = Value::Null;
-            let mut tickerSymbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            if is_true(&(!is_equal(&tickerSymbol, &Value::Null))) && is_true(&crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone())) {
-                ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.clone(), Value::Str("1d".to_string()), Value::Null, Value::Int(5)]).await;
+            let mut tickerSymbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            if (tickerSymbol != Value::Null) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
+                ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.clone(), Value::Str("1d".into()), Value::Null, Value::Int(5)]).await;
             }
             crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone(), ohlcv.clone());
         }
@@ -61,23 +61,23 @@ if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
 }
 fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mut tickers: Value) {
     let mut tickersValues: Value = object_values(&tickers);
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("checkActiveSymbols".to_string()))))) {
+    if !(in_op(&skippedProperties, &Value::Str("checkActiveSymbols".into()))) {
         //
         // ensure all "active" symbols have tickers
         //
         let mut nonInactiveMarkets: Value = crate::tests_support::shared::get_active_markets(exchange.clone());
         let mut notInactiveSymbolsLength: Value = get_array_length(&nonInactiveMarkets);
-        let mut obtainedTickersLength: Value = get_array_length(&tickersValues);
+        let mut obtainedTickersLength: Value = Value::Int(tickersValues.len() as i64);
         let mut minRatio: Value = Value::Float(0.99); // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&obtainedTickersLength, &multiply(&notInactiveSymbolsLength, &minRatio))))));
+        assert!(ccxt::runtime::is_true(&((obtainedTickersLength.as_f64().unwrap_or(f64::NAN) >= multiply(&notInactiveSymbolsLength, &minRatio).as_f64().unwrap_or(f64::NAN)))));
         //
         // ensure tickers length is less than markets length
         //
-        let mut allMarkets: Value = get_value(&exchange, &Value::Str("markets".to_string()));
-        if is_equal(&allMarkets, &Value::Null) {
+        let mut allMarkets: Value = get_value(&exchange, &Value::Str("markets".into()));
+        if (allMarkets == Value::Null) {
             return;
         }
-        let mut allMarketsLength: Value = get_array_length(&object_keys(&allMarkets));
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&obtainedTickersLength, &allMarketsLength)))));
+        let mut allMarketsLength: Value = Value::Int(object_keys(&allMarkets).len() as i64);
+        assert!(ccxt::runtime::is_true(&((obtainedTickersLength.as_f64().unwrap_or(f64::NAN) <= allMarketsLength.as_f64().unwrap_or(f64::NAN)))));
     }
 }

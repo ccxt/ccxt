@@ -374,9 +374,9 @@ class bitget extends bitget$1["default"] {
         //         "ts": 1753230479687
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
-        const data = this.safeValue(message, 'data', []);
-        const ticker = this.safeValue(data, 0, {});
+        const arg = this.safeDict(message, 'arg', {});
+        const data = this.safeList(message, 'data', []);
+        const ticker = this.safeDict(data, 0, {});
         const utaTimestamp = this.safeInteger(message, 'ts');
         const timestamp = this.safeInteger(ticker, 'ts', utaTimestamp);
         const instType = this.safeStringLower(arg, 'instType');
@@ -468,9 +468,9 @@ class bitget extends bitget$1["default"] {
         client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market = undefined) {
-        const arg = this.safeValue(message, 'arg', {});
-        const data = this.safeValue(message, 'data', []);
-        const ticker = this.safeValue(data, 0, {});
+        const arg = this.safeDict(message, 'arg', {});
+        const data = this.safeList(message, 'data', []);
+        const ticker = this.safeDict(data, 0, {});
         const utaTimestamp = this.safeInteger(message, 'ts');
         const timestamp = this.safeInteger(ticker, 'ts', utaTimestamp);
         const instType = this.safeStringLower(arg, 'instType');
@@ -510,7 +510,7 @@ class bitget extends bitget$1["default"] {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue(this.options, 'timeframes');
+        const timeframes = this.safeDict(this.options, 'timeframes');
         const interval = this.safeString(timeframes, timeframe);
         let messageHash = undefined;
         let instType = undefined;
@@ -636,13 +636,13 @@ class bitget extends bitget$1["default"] {
         //         "ts": 1755594421877
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeStringLower(arg, 'instType');
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
@@ -653,7 +653,7 @@ class bitget extends bitget$1["default"] {
         else {
             isUta = true;
         }
-        const timeframes = this.safeValue(this.options, 'timeframes');
+        const timeframes = this.safeDict(this.options, 'timeframes');
         const timeframe = this.findTimeframe(interval, timeframes);
         if (timeframe === undefined) {
             return;
@@ -664,7 +664,7 @@ class bitget extends bitget$1["default"] {
             stored = new Cache.ArrayCacheByTimestamp(limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV(data[i], market);
             stored.append(parsed);
@@ -884,7 +884,7 @@ class bitget extends bitget$1["default"] {
         //     "ts": 1755937421337
         // }
         //
-        const arg = this.safeValue(message, 'arg');
+        const arg = this.safeDict(message, 'arg');
         const channel = this.safeString2(arg, 'channel', 'topic', '');
         const instType = this.safeStringLower(arg, 'instType');
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
@@ -892,8 +892,8 @@ class bitget extends bitget$1["default"] {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const data = this.safeValue(message, 'data');
-        const rawOrderBook = this.safeValue(data, 0);
+        const data = this.safeList(message, 'data');
+        const rawOrderBook = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(rawOrderBook, 'ts');
         const incrementalBook = channel === 'books';
         if (incrementalBook) {
@@ -1042,7 +1042,7 @@ class bitget extends bitget$1["default"] {
         }
         const trades = await this.watchPublicMultiple(uta, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1107,7 +1107,7 @@ class bitget extends bitget$1["default"] {
         //         "ts": 1701910980730
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeStringLower(arg, 'instType');
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
         const marketId = this.safeString2(arg, 'instId', 'symbol');
@@ -1959,8 +1959,8 @@ class bitget extends bitget$1["default"] {
         const timestamp = this.safeInteger2(order, 'cTime', 'createdTime');
         const symbol = market['symbol'];
         const rawStatus = this.safeString2(order, 'status', 'orderStatus');
-        const orderFee = this.safeValue(order, 'feeDetail', []);
-        const fee = this.safeValue(orderFee, 0);
+        const orderFee = this.safeList(order, 'feeDetail', []);
+        const fee = this.safeDict(orderFee, 0);
         const feeAmount = this.safeString(fee, 'fee');
         let feeObject = undefined;
         if (feeAmount !== undefined) {
@@ -2416,7 +2416,7 @@ class bitget extends bitget$1["default"] {
         //
         const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeStringLower(arg, 'instType');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             if (instType === 'uta') {
@@ -2742,8 +2742,8 @@ class bitget extends bitget$1["default"] {
             'account-crossed': this.handleBalance,
             'kline': this.handleOHLCV,
         };
-        const arg = this.safeValue(message, 'arg', {});
-        const topic = this.safeValue2(arg, 'channel', 'topic', '');
+        const arg = this.safeDict(message, 'arg', {});
+        const topic = this.safeString2(arg, 'channel', 'topic', '');
         const method = this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
@@ -2878,7 +2878,7 @@ class bitget extends bitget$1["default"] {
         else {
             isUta = true;
         }
-        const timeframes = this.safeValue(this.options, 'timeframes');
+        const timeframes = this.safeDict(this.options, 'timeframes');
         const timeframe = this.findTimeframe(interval, timeframes);
         const market = this.safeMarket(instId, undefined, undefined, type);
         const symbol = market['symbol'];

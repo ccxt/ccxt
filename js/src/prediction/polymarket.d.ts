@@ -329,7 +329,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
-     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -443,6 +443,7 @@ export default class polymarket extends Exchange {
      */
     parseEvents(rawEvents: any[]): any[];
     handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    nonce(): number;
     /**
      * @ignore
      * @method
@@ -567,5 +568,5 @@ export default class polymarket extends Exchange {
     handleOrder(client: any, event: any): void;
     handleMyTrade(client: any, event: any): void;
     tokenIdToSymbol(tokenId: Str): Str;
-    parsePolyTimestamp(raw: Str): number;
+    parsePolyTimestamp(raw: Str): Int;
 }

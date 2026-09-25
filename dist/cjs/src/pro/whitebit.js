@@ -78,7 +78,7 @@ class whitebit extends whitebit$1["default"] {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         const interval = this.safeInteger(timeframes, timeframe);
         const marketId = market['id'];
         // currently there is no way of knowing
@@ -113,7 +113,7 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString(data, 7);
@@ -157,7 +157,7 @@ class whitebit extends whitebit$1["default"] {
         }
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const defaultPriceInterval = this.safeString(options, 'priceInterval', '0');
         const priceInterval = this.safeString(params, 'priceInterval', defaultPriceInterval);
         params = this.omit(params, 'priceInterval');
@@ -208,12 +208,12 @@ class whitebit extends whitebit$1["default"] {
         //     "id":null
         //  }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         const isSnapshot = this.safeValue(params, 0);
         const marketId = this.safeString(params, 2);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const data = this.safeValue(params, 1);
+        const data = this.safeDict(params, 1);
         const timestamp = this.safeTimestamp(data, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook();
@@ -227,8 +227,8 @@ class whitebit extends whitebit$1["default"] {
             orderbook.reset(snapshot);
         }
         else {
-            const asks = this.safeValue(data, 'asks', []);
-            const bids = this.safeValue(data, 'bids', []);
+            const asks = this.safeList(data, 'asks', []);
+            const bids = this.safeList(data, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
         }
@@ -281,7 +281,7 @@ class whitebit extends whitebit$1["default"] {
         symbols = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const messageHashes = [];
         const args = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -317,11 +317,11 @@ class whitebit extends whitebit$1["default"] {
         //       "id": null
         //   }
         //
-        const tickers = this.safeValue(message, 'params', []);
+        const tickers = this.safeList(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const rawTicker = this.safeValue(tickers, 1, {});
+        const rawTicker = this.safeDict(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker(rawTicker, market);
         this.tickers[symbol] = ticker;
@@ -397,7 +397,7 @@ class whitebit extends whitebit$1["default"] {
         //        ]
         //    }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         const marketId = this.safeString(params, 0);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -407,7 +407,7 @@ class whitebit extends whitebit$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(params, 1, []);
+        const data = this.safeList(params, 1, []);
         const parsedTrades = this.parseTrades(data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
@@ -597,8 +597,8 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
-        const data = this.safeValue(params, 1);
+        const params = this.safeList(message, 'params', []);
+        const data = this.safeDict(params, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -868,7 +868,7 @@ class whitebit extends whitebit$1["default"] {
     }
     async watchPublic(messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'id': id,
             'method': method,
@@ -882,7 +882,7 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const client = this.safeValue(this.clients, url);
         let request = undefined;
         let marketIds = [];
@@ -906,7 +906,7 @@ class whitebit extends whitebit$1["default"] {
             return await this.watch(url, messageHash, message, method, subscription);
         }
         else {
-            const subscription = this.safeValue(client.subscriptions, method, {});
+            const subscription = this.safeDict(client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];
@@ -944,7 +944,7 @@ class whitebit extends whitebit$1["default"] {
         this.checkRequiredCredentials();
         await this.authenticate();
         const url = this.urls['api']['ws'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'id': id,
             'method': method,
@@ -1000,7 +1000,7 @@ class whitebit extends whitebit$1["default"] {
                 // venue answers that with an opaque socket drop
                 throw new errors.AuthenticationError(this.id + ' authenticate() received an empty websocket_token');
             }
-            const id = this.nonce();
+            const id = this.incrementingNonce();
             const request = {
                 'id': id,
                 'method': 'authorize',

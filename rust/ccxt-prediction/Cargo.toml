@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-prediction"
-version = "4.5.78"
+version = "4.5.84"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed prediction-market API"
 license = "MIT"
@@ -15,12 +15,30 @@ categories = ["api-bindings", "asynchronous", "finance"]
 name = "ccxt_prediction"
 path = "src/lib.rs"
 
+[features]
+# `all` (the default) keeps today's behaviour: every prediction venue compiles.
+# Pick venues instead to cut build time and memory by two orders of magnitude:
+#   ccxt-prediction = { version = "…", default-features = false, features = ["polymarket", "kalshi"] }
+default = ["all"]
+# BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
+binance = ["ccxt-base/prediction-binance"]
+hyperliquid = ["ccxt-base/prediction-hyperliquid"]
+kalshi = ["ccxt-base/prediction-kalshi"]
+limitless = ["ccxt-base/prediction-limitless"]
+myriad = ["ccxt-base/prediction-myriad"]
+opinion = ["ccxt-base/prediction-opinion"]
+polymarket = ["ccxt-base/prediction-polymarket"]
+predictfun = ["ccxt-base/prediction-predictfun"]
+sxbet = ["ccxt-base/prediction-sxbet"]
+all = ["binance", "hyperliquid", "kalshi", "limitless", "myriad", "opinion", "polymarket", "predictfun", "sxbet"]
+# END GENERATED FEATURES
+
 [dependencies]
 # The untyped engine. The per-venue typed wrappers wrap its prediction Cores
 # (ccxt_base::prediction::<id>) and base method surface. This crate re-exports
 # ccxt-base at its root, so `ccxt_prediction::Value` / `::types::…` resolve
 # alongside the typed wrappers (`ccxt_prediction::Kalshi`).
-ccxt-base = { path = "../ccxt-base", version = "4.5.78", features = ["transpiled-base"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.84", features = ["engine"] }
 
 # The generated typed wrappers (`src/prediction/*_typed.rs`, `typed.rs`, emitted
 # by build/generateRustWrappers.ts) reference exactly one external crate

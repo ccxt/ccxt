@@ -11,18 +11,18 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testImplodeParams() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut path: Value = Value::Str("v2/watchlists/{timeframe_id}/{symbol_id}".to_string());
+    let mut path: Value = Value::Str("v2/watchlists/{timeframe_id}/{symbol_id}".into());
     let mut params: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("timeframe_id".to_string(), Value::Str("1m".to_string()));
-            m.insert("symbol_id".to_string(), Value::Str("BTC/USDT".to_string()));
-            m.insert("extra_param".to_string(), Value::Str("should_be_ignored".to_string()));
+            m.insert("timeframe_id".to_string(), Value::Str("1m".into()));
+            m.insert("symbol_id".to_string(), Value::Str("BTC/USDT".into()));
+            m.insert("extra_param".to_string(), Value::Str("should_be_ignored".into()));
         m
     });
-    let mut expected: Value = Value::Str("v2/watchlists/1m/BTC/USDT".to_string());
+    let mut expected: Value = Value::Str("v2/watchlists/1m/BTC/USDT".into());
     let mut result: Value = exchange.implode_params(path.clone(), params.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result, &expected)))));
+    assert!(ccxt::runtime::is_true(&((result.as_str() == expected.as_str()))));
 }

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btse import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -28,7 +28,7 @@ class btse(Exchange, ImplicitAPI):
         return self.deep_extend(super(btse, self).describe(), {
             'id': 'btse',
             'name': 'BTSE',
-            'countries': ['VG'],  # Virgin Islands(British)
+            'countries': ['VG'],  # Virgin Islands (British)
             'rateLimit': 1000 / 75,  # 75 requests per second
             'version': 'v3',  # spot v3.3 and v3.2, swap v.2.3
             'certified': False,
@@ -524,12 +524,12 @@ class btse(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # 200 {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
-                    # {"code":400,"msg":"BADREQUEST: startTime can not before than 1569888000000(2019-10-01T00:00)","time":1770828108074,"data":null,"success":false}
+                    # {"code":400,"msg":"BADREQUEST: startTime can not before than 1569888000000 (2019-10-01T00:00)","time":1770828108074,"data":null,"success":false}
                     # {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     # when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     # {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
                     # {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    # code -1 is ambiguous(TIMEOUT in the official status enum, generic failure with a
+                    # code -1 is ambiguous (TIMEOUT in the official status enum, generic failure with a
                     # varying message in the legacy envelope), so it is classified by message in the broad map
                     '-2': BadRequest,  # INVALID_REQUEST {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError,  # {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
@@ -569,7 +569,7 @@ class btse(Exchange, ImplicitAPI):
                     '51523': InsufficientFunds,  # {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
                     '33001001': InvalidOrder,  # {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
                     '33001003': InvalidOrder,  # {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
-                    '33199101': InsufficientFunds,  # {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet self order.","extraData":["0.013553333"]}
+                    '33199101': InsufficientFunds,  # {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
                     '33199120': InvalidOrder,  # {"status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null}
                 },
                 'broad': {
@@ -618,7 +618,7 @@ class btse(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -636,7 +636,7 @@ class btse(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'epoch')
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for btse
 
@@ -663,7 +663,7 @@ class btse(Exchange, ImplicitAPI):
         #         "baseCurrency": "BTC",
         #         "quoteCurrency": "USDT",
         #         "displayName": "Bitcoin",
-        #         "active": True,
+        #         "active": true,
         #         "minOrderPrice": "0.1",
         #         "minPriceIncrement": "0.1",
         #         "pricePrecision": 1,
@@ -682,7 +682,7 @@ class btse(Exchange, ImplicitAPI):
         #         "baseCurrency": "BTC",
         #         "quoteCurrency": "USDT",
         #         "displayName": "Bitcoin",
-        #         "active": True,
+        #         "active": true,
         #         "minOrderPrice": "0.1",
         #         "minPriceIncrement": "0.1",
         #         "pricePrecision": 1,
@@ -691,7 +691,7 @@ class btse(Exchange, ImplicitAPI):
         #         "minSizeIncrement": "1",
         #         "sizePrecision": 0,
         #         "contractSize": "0.00001",
-        #         "availableSettlement": ["USD", "USDT"]
+        #         "availableSettlement": [ "USD", "USDT" ]
         #     }
         #
         # future
@@ -703,7 +703,7 @@ class btse(Exchange, ImplicitAPI):
         #         "baseCurrency": "BTC",
         #         "quoteCurrency": "USDT",
         #         "displayName": "Bitcoin",
-        #         "active": True,
+        #         "active": true,
         #         "minOrderPrice": "0.1",
         #         "minPriceIncrement": "0.1",
         #         "pricePrecision": 1,
@@ -712,7 +712,7 @@ class btse(Exchange, ImplicitAPI):
         #         "minSizeIncrement": "1",
         #         "sizePrecision": 0,
         #         "contractSize": "0.00001",
-        #         "availableSettlement": ["USD", "USDT"],
+        #         "availableSettlement": [ "USD", "USDT" ],
         #         "contractStartTime": 1774569600000,
         #         "contractEndTime": 1790323230000,
         #         "matchingStartTime": 1774569615000,
@@ -747,9 +747,9 @@ class btse(Exchange, ImplicitAPI):
                 type = 'future'
             else:
                 type = 'swap'
-        fees = self.safe_value(self.fees, 'contract')
+        fees = self.safe_dict(self.fees, 'contract', {})
         if isSpot:
-            fees = self.safe_value(self.fees, 'spot')
+            fees = self.safe_dict(self.fees, 'spot', {})
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -802,7 +802,7 @@ class btse(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -865,7 +865,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786604274378
         #     }
         #
@@ -876,12 +876,12 @@ class btse(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1786600800",  # timestamp in seconds
+        #         "1786600800", // timestamp in seconds
         #         "1895.78",
         #         "1898.52",
         #         "1892.05",
         #         "1898.3",
-        #         "560622.306372"  # volume in quote currency, contract rows may use scientific notation
+        #         "560622.306372" // volume in quote currency, contract rows may use scientific notation
         #     ]
         #
         return [
@@ -893,7 +893,7 @@ class btse(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -917,15 +917,15 @@ class btse(Exchange, ImplicitAPI):
         #         "data": {
         #             "timestamp": 1786605670799,
         #             "bids": [
-        #                 ["1896.11", "0.015"]
+        #                 [ "1896.11", "0.015" ]
         #             ],
         #             "asks": [
-        #                 ["1896.74", "0.945"]
+        #                 [ "1896.74", "0.945" ]
         #             ]
         #         },
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786605670833
         #     }
         #
@@ -933,7 +933,7 @@ class btse(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks')
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -981,7 +981,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786607775380
         #     }
         #
@@ -997,7 +997,7 @@ class btse(Exchange, ImplicitAPI):
                 result.append(rate)
         return result
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "timestamp": 1786003200911,
@@ -1013,7 +1013,7 @@ class btse(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1039,13 +1039,13 @@ class btse(Exchange, ImplicitAPI):
             #                 "type": "CRYPTO",
             #                 "totalAmount": "100.0",
             #                 "availableAmount": "100.0",
-            #                 "availableActions": ["CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO"],
-            #                 "cryptoNetwork": {"depositNetworks": ["BITCOIN"], "withdrawalNetworks": ["BITCOIN"]}
+            #                 "availableActions": [ "CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO" ],
+            #                 "cryptoNetwork": { "depositNetworks": [ "BITCOIN" ], "withdrawalNetworks": [ "BITCOIN" ] }
             #             }
             #         ],
             #         "code": 1,
             #         "msg": "Success",
-            #         "success": True,
+            #         "success": true,
             #         "time": 1624989977940
             #     }
             #
@@ -1121,7 +1121,7 @@ class btse(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
 
         https://docs.btse.com/markets/rest/get-market-risk-limits/
@@ -1147,14 +1147,14 @@ class btse(Exchange, ImplicitAPI):
         #             {
         #                 "symbol": "BTC-PERP-USDT",
         #                 "riskLimits": [
-        #                     {"level": 1, "value": 3000000},
-        #                     {"level": 2, "value": 6000000}
+        #                     { "level": 1, "value": 3000000 },
+        #                     { "level": 2, "value": 6000000 }
         #                 ]
         #             }
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786609503920
         #     }
         #
@@ -1204,7 +1204,7 @@ class btse(Exchange, ImplicitAPI):
             result[symbolKey] = tiersList
         return result
 
-    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
+    async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, for different trade sizes for a single market
 
@@ -1221,7 +1221,7 @@ class btse(Exchange, ImplicitAPI):
         result = await self.fetch_leverage_tiers([symbol], params)
         return result[symbol]
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://docs.btse.com/markets/rest/get-24-hr-ticker/
@@ -1239,7 +1239,7 @@ class btse(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1283,7 +1283,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786602644221
         #     }
         #
@@ -1337,7 +1337,7 @@ class btse(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         Retrieves the open interest of a derivative trading pair
 
@@ -1361,7 +1361,7 @@ class btse(Exchange, ImplicitAPI):
             interest = self.safe_dict(rows, 0, {})
         return self.parse_open_interest(interest, market)
 
-    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+    async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
         """
         Retrieves the open interest for a list of symbols
 
@@ -1383,7 +1383,7 @@ class btse(Exchange, ImplicitAPI):
                 rows.append(row)
         return self.parse_open_interests(rows, symbols)
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         # ticker/24hr contract rows, see parseFundingRate for the full shape
         #
@@ -1423,7 +1423,7 @@ class btse(Exchange, ImplicitAPI):
             data = self.safe_dict(rows, 0, {})
         return self.parse_funding_rate(data, market)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
@@ -1479,7 +1479,7 @@ class btse(Exchange, ImplicitAPI):
         nextFundingTimestamp = self.safe_integer_omit_zero(contract, 'nextFundingTime')
         fundingIntervalMinutes = self.safe_integer(contract, 'fundingIntervalMinutes')
         interval = None
-        # a wire value of zero minutes reaches self, and zero hours is not an
+        # a wire value of zero minutes reaches this, and zero hours is not an
         # interval: a caller annualising a rate divides by it. anything under an
         # hour rounds to the same string, and the vocabulary has no minutes
         if (fundingIntervalMinutes is not None) and (fundingIntervalMinutes >= 60):
@@ -1506,7 +1506,7 @@ class btse(Exchange, ImplicitAPI):
             'interval': interval,
         }
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1544,7 +1544,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786605671650
         #     }
         #
@@ -1560,7 +1560,7 @@ class btse(Exchange, ImplicitAPI):
                 result.append(trade)
         return result
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1621,7 +1621,7 @@ class btse(Exchange, ImplicitAPI):
             #         ],
             #         "code": 1,
             #         "msg": "Success",
-            #         "success": True,
+            #         "success": true,
             #         "time": 1786610160164
             #     }
             #
@@ -1662,7 +1662,7 @@ class btse(Exchange, ImplicitAPI):
             #         ],
             #         "code": 1,
             #         "msg": "Success",
-            #         "success": True,
+            #         "success": true,
             #         "time": 1786610160164
             #     }
             #
@@ -1672,7 +1672,7 @@ class btse(Exchange, ImplicitAPI):
             rows = response
         return self.parse_trades(rows, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -1796,7 +1796,7 @@ class btse(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1823,7 +1823,7 @@ class btse(Exchange, ImplicitAPI):
         :param float [params.stopPrice]: *NB - It is NOT stopLossPrice or triggerPricenot !! OCO orders only* Mandatory when creating an OCO order. Indicates the stop price
         :param bool [params.hedged]: *contract markets only* True for hedged mode, False for one way mode, default is False
         :param str [params.marginMode]: *contract markets only* 'cross' or 'isolated'(default is 'cross') - the exchange does not have cross/isolated margin modes but instead has 'ONE_WAY', 'HEDGE' and 'ISOLATED' position modes, so self param will be converted to the appropriate position mode
-        :param str [params.positionMode]: *contract markets only* 'ONE_WAY(default) or 'HEDGE or 'ISOLATED'(if not provided, it will be derived from marginMode and hedged params)
+        :param str [params.positionMode]: *contract markets only* 'ONE_WAY (default) or 'HEDGE or 'ISOLATED'(if not provided, it will be derived from marginMode and hedged params)
         :param dict [params.takeProfit]: *contract markets only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: *contract markets only* take profit trigger price
         :param str [params.takeProfit.priceType]: *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
@@ -1839,7 +1839,7 @@ class btse(Exchange, ImplicitAPI):
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order on spot market
 
@@ -1883,7 +1883,7 @@ class btse(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'LIMIT')
         postOnly = False
         # exchange-specific postOnly is the same as the unified one
-        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # self will remove PO from params.timeInForce if present
+        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # this will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
         timeInForce = self.handle_time_in_force(params)
@@ -1938,7 +1938,7 @@ class btse(Exchange, ImplicitAPI):
             #             "type": 76,
             #             "orderSide": "BUY",
             #             "orderPrice": 61024.1,
-            #             "postOnly": False,
+            #             "postOnly": false,
             #             "timestamp": 1784891308063,
             #             "orderDetailType": null,
             #             "message": null,
@@ -2014,7 +2014,7 @@ class btse(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 0, {})
         return self.parse_order(order, market)
 
-    async def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order on contract market
 
@@ -2082,7 +2082,7 @@ class btse(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'LIMIT')
         postOnly = False
         # exchange-specific postOnly is the same as the unified one
-        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # self will remove PO from params.timeInForce if present
+        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # this will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
         timeInForce = self.handle_time_in_force(params)
@@ -2125,7 +2125,7 @@ class btse(Exchange, ImplicitAPI):
             #         "status": 2,
             #         "type": 0,
             #         "symbol": "BTC-PERP",
-            #         "postOnly": False,
+            #         "postOnly": false,
             #         "orderSide": "BUY",
             #         "orderId": "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
             #         "clOrderID": "",
@@ -2213,7 +2213,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(priceTypes, priceType, priceType)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an open order made by the user
 
@@ -2256,7 +2256,7 @@ class btse(Exchange, ImplicitAPI):
             order = self.safe_dict(order, 0, {})
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -2320,7 +2320,7 @@ class btse(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 0, {})
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.btse.com/spot/rest/cancel-order
@@ -2372,7 +2372,7 @@ class btse(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 0, {})
         return self.parse_order(order, market)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -2406,7 +2406,7 @@ class btse(Exchange, ImplicitAPI):
             response = await self.privateDeleteFuturesApiV23Order(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def cancel_all_orders_after(self, timeout: Int, params={}):
+    async def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -2432,7 +2432,7 @@ class btse(Exchange, ImplicitAPI):
             response = await self.privatePostFuturesApiV3TradeOrdersCancelAllAfter(self.extend(request, params))
         return response
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2480,12 +2480,12 @@ class btse(Exchange, ImplicitAPI):
         #         "timestamp": 1770813053751,
         #         "triggerPrice": 0,
         #         "stopPrice": null,
-        #         "trigger": False,
+        #         "trigger": false,
         #         "message": "",
         #         "clOrderID": null,
         #         "stealth": 1,
         #         "deviation": 1,
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "orderDetailType": null,
         #         "originalOrderBaseSize": 0.0001,
         #         "originalOrderQuoteSize": null,
@@ -2510,7 +2510,7 @@ class btse(Exchange, ImplicitAPI):
         #         "orderID": "5c6a26db-8cfb-45c7-b25d-56927bc36795",
         #         "timestamp": 1770821231984,
         #         "triggerPrice": 0,
-        #         "trigger": False,
+        #         "trigger": false,
         #         "deviation": 100,
         #         "stealth": 100,
         #         "message": "",
@@ -2521,7 +2521,7 @@ class btse(Exchange, ImplicitAPI):
         #         "filledSize": 1,
         #         "totalFilledSize": 1,
         #         "remainingSize": 0,
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "orderDetailType": null,
         #         "positionMode": "ONE_WAY",
         #         "positionDirection": null,
@@ -2533,8 +2533,8 @@ class btse(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'timestamp')
         # open_orders rows carry no numeric status - the state lives in
-        # orderState(STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
-        # is spelled timeInForce there(observed live), so both fall back
+        # orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
+        # is spelled timeInForce there (observed live), so both fall back
         rawStatus = self.safe_string_2(order, 'status', 'orderState')
         rawType = self.safe_string_2(order, 'orderType', 'type')
         status = self.parse_order_status(rawStatus)
@@ -2624,7 +2624,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(values, timeInForce, timeInForce)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -2674,7 +2674,7 @@ class btse(Exchange, ImplicitAPI):
             }
         return result
 
-    async def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         # the helper always receives a non empty history type list, the list is
         # rebuilt through safeList so the transpilers treat it as an array in
         # every runtime
@@ -2728,7 +2728,7 @@ class btse(Exchange, ImplicitAPI):
         #                 "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         rawRows = self.safe_list(response, 'data', response)
@@ -2748,7 +2748,7 @@ class btse(Exchange, ImplicitAPI):
                 rows.append(entry)
         return [rows, currency]
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2765,7 +2765,7 @@ class btse(Exchange, ImplicitAPI):
         rows, currency = await self.request_wallet_history_rows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params)
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2782,7 +2782,7 @@ class btse(Exchange, ImplicitAPI):
         rows, currency = await self.request_wallet_history_rows('fetchDeposits', ['DEPOSIT'], code, since, limit, params)
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2873,7 +2873,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -3021,7 +3021,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(directions, type)
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -3057,7 +3057,7 @@ class btse(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3078,7 +3078,7 @@ class btse(Exchange, ImplicitAPI):
             rows = response
         return self.parse_positions(rows, symbols)
 
-    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> list[Position]:
+    async def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
         """
         fetch open positions for a single market
 
@@ -3096,7 +3096,7 @@ class btse(Exchange, ImplicitAPI):
         }, params)
         return await self.fetch_positions([symbol], params)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "marginType": 91,
@@ -3113,19 +3113,19 @@ class btse(Exchange, ImplicitAPI):
         #         "isolatedLeverage": 25,
         #         "adlScoreBucket": 1,
         #         "contractSize": 0.0001,
-        #         "liquidationInProgress": False,
+        #         "liquidationInProgress": false,
         #         "timestamp": 1770880518034,
         #         "takeProfitOrder": {
         #             "orderId": "18b4056a-59de-424a-843e-c2df5c9f7265",
         #             "side": "SELL",
         #             "triggerPrice": 2500,
-        #             "triggerUseLastPrice": False
+        #             "triggerUseLastPrice": false
         #         },
         #         "stopLossOrder": {
         #             "orderId": "e7ef1035-0773-446d-9a80-2de0e1de2c13",
         #             "side": "SELL",
         #             "triggerPrice": 1000,
-        #             "triggerUseLastPrice": False
+        #             "triggerUseLastPrice": false
         #         },
         #         "positionMode": "ONE_WAY",
         #         "positionDirection": null,
@@ -3200,7 +3200,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
+    async def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for btse is set identically for all linear markets or all inverse markets
 
@@ -3234,7 +3234,7 @@ class btse(Exchange, ImplicitAPI):
             'hedged': hedged,
         }
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
         """
         NBnot !! This method also sets margin mode to cross on btse. Set hedged to True or False for a cross-margin market.
 
@@ -3245,7 +3245,7 @@ class btse(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        # NBnot !! This method also sets margin mode to cross on btse
+        # NB!!! This method also sets margin mode to cross on btse
         # btse do not have specific endpoint for marginMode
         # both marginMode and positionMode are set and get with the same endpoints
         # it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
@@ -3261,7 +3261,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return await self.privatePostFuturesApiV3TradePositionMode(self.extend(request, params))
 
-    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+    async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
         """
         fetches the margin mode of a specific symbol
 
@@ -3301,7 +3301,7 @@ class btse(Exchange, ImplicitAPI):
             'marginMode': marginModeValue,
         }
 
-    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated'
 
@@ -3344,7 +3344,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return await self.privatePostFuturesApiV3TradePositionMode(self.extend(request, params))
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         closes an open position for a market
 
@@ -3383,7 +3383,7 @@ class btse(Exchange, ImplicitAPI):
             order = response
         return self.parse_order(order, market)
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the leverage for a market
 
@@ -3442,7 +3442,7 @@ class btse(Exchange, ImplicitAPI):
         result['shortLeverage'] = shortLeverage
         return result
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -3595,5 +3595,5 @@ class btse(Exchange, ImplicitAPI):
         result = result.replace('otc', '')
         return result
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']

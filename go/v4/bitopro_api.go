@@ -8,131 +8,131 @@
 package ccxt
 
 // PublicGetOrderBookPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetOrderBookPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBookPair", args...)
+func (this *Bitopro) PublicGetOrderBookPair(args ...any) <-chan any {
+	return this.Fetch2Async("order-book/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickers returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickers", args...)
+func (this *Bitopro) PublicGetTickers(args ...any) <-chan any {
+	return this.Fetch2Async("tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickersPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetTickersPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickersPair", args...)
+func (this *Bitopro) PublicGetTickersPair(args ...any) <-chan any {
+	return this.Fetch2Async("tickers/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTradesPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetTradesPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradesPair", args...)
+func (this *Bitopro) PublicGetTradesPair(args ...any) <-chan any {
+	return this.Fetch2Async("trades/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetProvisioningCurrencies returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetProvisioningCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetProvisioningCurrencies", args...)
+func (this *Bitopro) PublicGetProvisioningCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("provisioning/currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetProvisioningTradingPairs returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetProvisioningTradingPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetProvisioningTradingPairs", args...)
+func (this *Bitopro) PublicGetProvisioningTradingPairs(args ...any) <-chan any {
+	return this.Fetch2Async("provisioning/trading-pairs", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetProvisioningLimitationsAndFees returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetProvisioningLimitationsAndFees(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetProvisioningLimitationsAndFees", args...)
+func (this *Bitopro) PublicGetProvisioningLimitationsAndFees(args ...any) <-chan any {
+	return this.Fetch2Async("provisioning/limitations-and-fees", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTradingHistoryPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetTradingHistoryPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingHistoryPair", args...)
+func (this *Bitopro) PublicGetTradingHistoryPair(args ...any) <-chan any {
+	return this.Fetch2Async("trading-history/{pair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPriceOtcCurrency returns a channel that yields a JSON object.
-func (this *BitoproCore) PublicGetPriceOtcCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPriceOtcCurrency", args...)
+func (this *Bitopro) PublicGetPriceOtcCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("price/otc/{currency}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountsBalance returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetAccountsBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsBalance", args...)
+func (this *Bitopro) PrivateGetAccountsBalance(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersHistory returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersHistory", args...)
+func (this *Bitopro) PrivateGetOrdersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("orders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersAllPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetOrdersAllPair(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersAllPair", args...)
+func (this *Bitopro) PrivateGetOrdersAllPair(args ...any) <-chan any {
+	return this.Fetch2Async("orders/all/{pair}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersTradesPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetOrdersTradesPair(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersTradesPair", args...)
+func (this *Bitopro) PrivateGetOrdersTradesPair(args ...any) <-chan any {
+	return this.Fetch2Async("orders/trades/{pair}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersPairOrderId returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetOrdersPairOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersPairOrderId", args...)
+func (this *Bitopro) PrivateGetOrdersPairOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("orders/{pair}/{orderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletWithdrawCurrencySerial returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetWalletWithdrawCurrencySerial(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletWithdrawCurrencySerial", args...)
+func (this *Bitopro) PrivateGetWalletWithdrawCurrencySerial(args ...any) <-chan any {
+	return this.Fetch2Async("wallet/withdraw/{currency}/{serial}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletWithdrawCurrencyIdId returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetWalletWithdrawCurrencyIdId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletWithdrawCurrencyIdId", args...)
+func (this *Bitopro) PrivateGetWalletWithdrawCurrencyIdId(args ...any) <-chan any {
+	return this.Fetch2Async("wallet/withdraw/{currency}/id/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletDepositHistoryCurrency returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetWalletDepositHistoryCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletDepositHistoryCurrency", args...)
+func (this *Bitopro) PrivateGetWalletDepositHistoryCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("wallet/depositHistory/{currency}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWalletWithdrawHistoryCurrency returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetWalletWithdrawHistoryCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletWithdrawHistoryCurrency", args...)
+func (this *Bitopro) PrivateGetWalletWithdrawHistoryCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("wallet/withdrawHistory/{currency}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersOpen returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateGetOrdersOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersOpen", args...)
+func (this *Bitopro) PrivateGetOrdersOpen(args ...any) <-chan any {
+	return this.Fetch2Async("orders/open", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivatePostOrdersPair(args ...any) <-chan any {
+func (this *Bitopro) PrivatePostOrdersPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersPair", args...)
 }
 
 // PrivatePostOrdersBatch returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivatePostOrdersBatch(args ...any) <-chan any {
+func (this *Bitopro) PrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
 // PrivatePostWalletWithdrawCurrency returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivatePostWalletWithdrawCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletWithdrawCurrency", args...)
+func (this *Bitopro) PrivatePostWalletWithdrawCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("wallet/withdraw/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivatePutOrders returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivatePutOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutOrders", args...)
+func (this *Bitopro) PrivatePutOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateDeleteOrdersPairId returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateDeleteOrdersPairId(args ...any) <-chan any {
+func (this *Bitopro) PrivateDeleteOrdersPairId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersPairId", args...)
 }
 
 // PrivateDeleteOrdersAll returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+func (this *Bitopro) PrivateDeleteOrdersAll(args ...any) <-chan any {
+	return this.Fetch2Async("orders/all", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateDeleteOrdersPair returns a channel that yields a JSON object.
-func (this *BitoproCore) PrivateDeleteOrdersPair(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersPair", args...)
+func (this *Bitopro) PrivateDeleteOrdersPair(args ...any) <-chan any {
+	return this.Fetch2Async("orders/{pair}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }

@@ -7,10 +7,21 @@
 // layer, via this crate's own `pro` module).
 pub use ccxt_base::prediction::*;
 
+#[cfg(feature = "binance")]
 pub mod binance_typed;
+#[cfg(feature = "hyperliquid")]
 pub mod hyperliquid_typed;
+#[cfg(feature = "kalshi")]
 pub mod kalshi_typed;
+#[cfg(feature = "limitless")]
 pub mod limitless_typed;
+#[cfg(feature = "myriad")]
 pub mod myriad_typed;
+#[cfg(feature = "opinion")]
 pub mod opinion_typed;
+#[cfg(feature = "polymarket")]
 pub mod polymarket_typed;
+#[cfg(feature = "predictfun")]
+pub mod predictfun_typed;
+#[cfg(feature = "sxbet")]
+pub mod sxbet_typed;

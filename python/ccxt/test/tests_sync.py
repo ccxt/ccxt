@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, set_fetch_response_by_url, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
@@ -88,6 +88,7 @@ class testMainClass:
             'timeout': 30000,
         }
         exchange = init_exchange(exchange_id, exchange_args, self.ws_tests)
+        set_exchange_prop(exchange, 'fetchHistoryCacheSize', 5)
         if exchange.alias:
             dump(self.add_padding('[INFO] skipping alias', 25))
             exit_script(0)
@@ -310,7 +311,7 @@ class testMainClass:
                 is_auth_error = (isinstance(e, AuthenticationError))
                 is_not_supported = (isinstance(e, NotSupported))
                 is_operation_failed = (isinstance(e, OperationFailed))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                last_url_msg = '' if self.ws_tests else ' (Last url: ' + exchange.last_request_url + ' )'
+                last_url_msg = '' if self.ws_tests else ' (Last url: ' + self.get_last_request_url(exchange) + ' )'
                 if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
@@ -365,6 +366,16 @@ class testMainClass:
                         dump('[TEST_FAILURE]', exchange.id, method_name, args_stringified, last_url_msg, exception_message(e))
                         return False
         return True
+
+    def get_last_request_url(self, exchange):
+        fetch_cache = exchange.get_fetch_cache()
+        url = ''
+        if len(fetch_cache) > 0:
+            last_entry = fetch_cache[len(fetch_cache) - 1]
+            last_request = last_entry['request']
+            if last_request is not None:
+                url = exchange.safe_string(last_request, 'url', '')
+        return url
 
     def run_public_tests(self, exchange, symbols):
         primary_symbol = symbols[0]
@@ -1488,6 +1499,19 @@ class testMainClass:
         try:
             call_output = exchange.safe_value(data, 'output')
             self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
+            # optional per-test header pinning. only the keys the fixture lists are compared, so a
+            # fixture can pin one auth header without freezing the whole header set. this is the
+            # only cross-language assertion on header *names*, which the php transpiler can
+            # silently corrupt when a header literal contains a local/parameter name of sign ()
+            stored_headers = exchange.safe_dict(data, 'headers')
+            if stored_headers is not None:
+                sent_headers = exchange.last_request_headers if (exchange.last_request_headers is not None) else {}
+                stored_header_keys = list(stored_headers.keys())
+                for i in range(0, len(stored_header_keys)):
+                    header_key = stored_header_keys[i]
+                    stored_header_value = stored_headers[header_key]
+                    sent_header_value = exchange.safe_string(sent_headers, header_key)
+                    self.assert_static_error(sent_header_value == stored_header_value, 'header mismatch for ' + header_key, stored_header_value, sent_header_value)
         except Exception as e:
             self.request_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
@@ -1496,7 +1520,15 @@ class testMainClass:
 
     def test_response_statically(self, exchange, method, skip_keys, data):
         expected_result = exchange.safe_value(data, 'parsedResponse')
-        mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
+        # 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        # endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        # so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        responses_by_url = exchange.safe_dict(data, 'httpResponseByUrl')
+        mocked_exchange = exchange
+        if responses_by_url is not None:
+            mocked_exchange = set_fetch_response_by_url(exchange, responses_by_url)
+        else:
+            mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
         if self.info:
             dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description'])
         try:
@@ -1660,6 +1692,9 @@ class testMainClass:
                 is_disabled_php = exchange.safe_string(result, 'disabledPHP')
                 if (is_disabled_php is not None) and (self.lang == 'PHP'):
                     continue
+                is_disabled_rust = exchange.safe_string(result, 'disabledRS')
+                if (is_disabled_rust is not None) and (self.lang == 'RUST'):
+                    continue
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.extend_exchange_options(test_exchange_options)
@@ -1686,14 +1721,14 @@ class testMainClass:
         wasm_exec_path = None
         library_path = None
         # const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         # const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         # const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         base_path = get_root_dir() + 'ts/src/test/static/binaries/'
         if exchange_name == 'lighter':
             if self.lang == 'JS':
                 wasm_exec_path = base_path + 'wasm_exec.js'
-                library_path = base_path + 'lighter.wasm'
+                library_path = base_path + 'lighter-signer.wasm'
             else:
                 if is_windows():
                     library_path = base_path + 'lighter-signer-windows-amd64.dll'
@@ -2009,7 +2044,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2138,6 +2173,37 @@ class testMainClass:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
         assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
+        if not is_sync():
+            close(exchange)
+        return True
+
+    def test_bithumb(self):
+        exchange = self.init_offline_exchange('bithumb')
+        id = 'CCXT'
+        req_headers = {}
+        try:
+            # default path: generation 2, the versioned (jwt-signed) endpoints
+            exchange.create_order('BTC/KRW', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (v2 endpoints).'
+        req_headers = {}
+        try:
+            # legacy path: generation 1, the hmac-signed endpoints
+            exchange.create_order('BTC/KRW', 'limit', 'buy', 1, 20000, {
+                'generation': 1,
+            })
+        except Exception as e:
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (legacy endpoints).'
+        req_headers = {}
+        try:
+            # public endpoints carry the partner header as well
+            exchange.fetch_ticker('BTC/KRW')
+        except Exception as e:
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (public endpoints).'
         if not is_sync():
             close(exchange)
         return True

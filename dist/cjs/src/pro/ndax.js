@@ -72,7 +72,7 @@ class ndax extends ndax$1["default"] {
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleTicker(client, message) {
-        const payload = this.safeValue(message, 'o', {});
+        const payload = this.safeDict(message, 'o', {});
         //
         //     {
         //         "OMSId": 1,
@@ -149,7 +149,7 @@ class ndax extends ndax$1["default"] {
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         // initial snapshot
         //
@@ -247,7 +247,7 @@ class ndax extends ndax$1["default"] {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         //     [
         //         [
@@ -273,7 +273,7 @@ class ndax extends ndax$1["default"] {
             if (marketId !== undefined) {
                 updates[marketId] = {};
             }
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             const keys = Object.keys(this.timeframes);
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];
@@ -349,7 +349,7 @@ class ndax extends ndax$1["default"] {
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
-                const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
+                const stored = this.safeList(this.ohlcvs[symbol], timeframe, []);
                 client.resolve(stored, messageHash);
             }
         }
@@ -411,7 +411,7 @@ class ndax extends ndax$1["default"] {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -426,7 +426,7 @@ class ndax extends ndax$1["default"] {
         //         0,   // 9 Side
         //     ],
         //
-        const firstBidAsk = this.safeValue(payload, 0, []);
+        const firstBidAsk = this.safeList(payload, 0, []);
         const marketId = this.safeString(firstBidAsk, 7);
         if (marketId === undefined) {
             return;
@@ -494,7 +494,7 @@ class ndax extends ndax$1["default"] {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         //     [
         //         [
@@ -532,7 +532,7 @@ class ndax extends ndax$1["default"] {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = (id === undefined) ? undefined : this.safeValue(subscriptionsById, id);
+        const subscription = (id === undefined) ? undefined : this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {

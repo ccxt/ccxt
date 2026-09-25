@@ -470,7 +470,7 @@ class p2b extends p2b$1["default"] {
         //        current_time: '1699252644.487566'
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTickers(result, symbols);
     }
     /**
@@ -511,7 +511,7 @@ class p2b extends p2b$1["default"] {
         //        current_time: '1699252958.859391'
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const timestamp = this.safeIntegerProduct(response, 'cache_time', 1000);
         return this.extend({ 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) }, this.parseTicker(result, market));
     }
@@ -549,7 +549,7 @@ class p2b extends p2b$1["default"] {
         //
         const timestamp = this.safeIntegerProduct(ticker, 'at', 1000);
         if ('ticker' in ticker) {
-            ticker = this.safeValue(ticker, 'ticker');
+            ticker = this.safeDict(ticker, 'ticker');
         }
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
@@ -625,7 +625,7 @@ class p2b extends p2b$1["default"] {
         //        "current_time": 1698733470.469274
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const timestamp = this.safeIntegerProduct(response, 'current_time', 1000);
         return this.parseOrderBook(result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -851,7 +851,7 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseBalance(result);
     }
     parseBalance(response) {
@@ -1093,7 +1093,7 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const records = this.safeList(result, 'records', []);
         return this.parseTrades(records, market, since, limit);
     }
@@ -1173,7 +1173,7 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const deals = this.safeList(result, 'deals', []);
         return this.parseTrades(deals, market, since, limit);
     }
@@ -1255,7 +1255,7 @@ class p2b extends p2b$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         let orders = [];
         const keys = Object.keys(result);
         for (let i = 0; i < keys.length; i++) {
@@ -1344,7 +1344,9 @@ class p2b extends p2b$1["default"] {
         }
         if (api === 'private') {
             params['request'] = '/api/v2/' + path;
-            params['nonce'] = this.nonce().toString();
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            params['nonce'] = this.incrementingNonce().toString();
             const payload = this.stringToBase64(this.json(params)); // Body json encoded in base64
             headers = {
                 'Content-Type': 'application/json',
@@ -1370,10 +1372,12 @@ class p2b extends p2b$1["default"] {
             const errorCode = this.safeString(response, 'errorCode');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-            if (code < 400) {
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new errors.ExchangeError(feedback);
             }
-            // unmapped codes on error statuses fall through to the default http-status handler
+            // unmapped codes on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }

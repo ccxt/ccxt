@@ -8,716 +8,716 @@
 package ccxt
 
 // V1PublicGetPublicVolumeStats returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicVolumeStats(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicVolumeStats", args...)
+func (this *Modetrade) V1PublicGetPublicVolumeStats(args ...any) <-chan any {
+	return this.Fetch2Async("public/volume/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicBrokerName returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicBrokerName(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicBrokerName", args...)
+func (this *Modetrade) V1PublicGetPublicBrokerName(args ...any) <-chan any {
+	return this.Fetch2Async("public/broker/name", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicChainInfoBrokerId returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicChainInfoBrokerId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicChainInfoBrokerId", args...)
+func (this *Modetrade) V1PublicGetPublicChainInfoBrokerId(args ...any) <-chan any {
+	return this.Fetch2Async("public/chain_info/{broker_id}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicSystemInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicSystemInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicSystemInfo", args...)
+func (this *Modetrade) V1PublicGetPublicSystemInfo(args ...any) <-chan any {
+	return this.Fetch2Async("public/system_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicVaultBalance returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicVaultBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicVaultBalance", args...)
+func (this *Modetrade) V1PublicGetPublicVaultBalance(args ...any) <-chan any {
+	return this.Fetch2Async("public/vault_balance", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicInsurancefund returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicInsurancefund(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicInsurancefund", args...)
+func (this *Modetrade) V1PublicGetPublicInsurancefund(args ...any) <-chan any {
+	return this.Fetch2Async("public/insurancefund", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicChainInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicChainInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicChainInfo", args...)
+func (this *Modetrade) V1PublicGetPublicChainInfo(args ...any) <-chan any {
+	return this.Fetch2Async("public/chain_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetFaucetUsdc returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetFaucetUsdc(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFaucetUsdc", args...)
+func (this *Modetrade) V1PublicGetFaucetUsdc(args ...any) <-chan any {
+	return this.Fetch2Async("faucet/usdc", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicAccount returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicAccount", args...)
+func (this *Modetrade) V1PublicGetPublicAccount(args ...any) <-chan any {
+	return this.Fetch2Async("public/account", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetGetAccount returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetGetAccount", args...)
+func (this *Modetrade) V1PublicGetGetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("get_account", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetRegistrationNonce returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetRegistrationNonce(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetRegistrationNonce", args...)
+func (this *Modetrade) V1PublicGetRegistrationNonce(args ...any) <-chan any {
+	return this.Fetch2Async("registration_nonce", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetGetOrderlyKey returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetGetOrderlyKey(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetGetOrderlyKey", args...)
+func (this *Modetrade) V1PublicGetGetOrderlyKey(args ...any) <-chan any {
+	return this.Fetch2Async("get_orderly_key", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicLiquidation returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicLiquidation(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicLiquidation", args...)
+func (this *Modetrade) V1PublicGetPublicLiquidation(args ...any) <-chan any {
+	return this.Fetch2Async("public/liquidation", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicLiquidatedPositions returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicLiquidatedPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicLiquidatedPositions", args...)
+func (this *Modetrade) V1PublicGetPublicLiquidatedPositions(args ...any) <-chan any {
+	return this.Fetch2Async("public/liquidated_positions", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicConfig returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicConfig", args...)
+func (this *Modetrade) V1PublicGetPublicConfig(args ...any) <-chan any {
+	return this.Fetch2Async("public/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicCampaignRanking returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicCampaignRanking(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicCampaignRanking", args...)
+func (this *Modetrade) V1PublicGetPublicCampaignRanking(args ...any) <-chan any {
+	return this.Fetch2Async("public/campaign/ranking", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaignStats returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicCampaignStats(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicCampaignStats", args...)
+func (this *Modetrade) V1PublicGetPublicCampaignStats(args ...any) <-chan any {
+	return this.Fetch2Async("public/campaign/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaignUser returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicCampaignUser(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicCampaignUser", args...)
+func (this *Modetrade) V1PublicGetPublicCampaignUser(args ...any) <-chan any {
+	return this.Fetch2Async("public/campaign/user", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaignStatsDetails returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicCampaignStatsDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicCampaignStatsDetails", args...)
+func (this *Modetrade) V1PublicGetPublicCampaignStatsDetails(args ...any) <-chan any {
+	return this.Fetch2Async("public/campaign/stats/details", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaigns returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicCampaigns(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicCampaigns", args...)
+func (this *Modetrade) V1PublicGetPublicCampaigns(args ...any) <-chan any {
+	return this.Fetch2Async("public/campaigns", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicPointsLeaderboard returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicPointsLeaderboard(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicPointsLeaderboard", args...)
+func (this *Modetrade) V1PublicGetPublicPointsLeaderboard(args ...any) <-chan any {
+	return this.Fetch2Async("public/points/leaderboard", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetClientPoints returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetClientPoints(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetClientPoints", args...)
+func (this *Modetrade) V1PublicGetClientPoints(args ...any) <-chan any {
+	return this.Fetch2Async("client/points", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicPointsEpoch returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicPointsEpoch(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicPointsEpoch", args...)
+func (this *Modetrade) V1PublicGetPublicPointsEpoch(args ...any) <-chan any {
+	return this.Fetch2Async("public/points/epoch", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicPointsEpochDates returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicPointsEpochDates(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicPointsEpochDates", args...)
+func (this *Modetrade) V1PublicGetPublicPointsEpochDates(args ...any) <-chan any {
+	return this.Fetch2Async("public/points/epoch_dates", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicReferralCheckRefCode returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicReferralCheckRefCode(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicReferralCheckRefCode", args...)
+func (this *Modetrade) V1PublicGetPublicReferralCheckRefCode(args ...any) <-chan any {
+	return this.Fetch2Async("public/referral/check_ref_code", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicReferralVerifyRefCode returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicReferralVerifyRefCode(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicReferralVerifyRefCode", args...)
+func (this *Modetrade) V1PublicGetPublicReferralVerifyRefCode(args ...any) <-chan any {
+	return this.Fetch2Async("public/referral/verify_ref_code", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralAdminInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralAdminInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralAdminInfo", args...)
+func (this *Modetrade) V1PublicGetReferralAdminInfo(args ...any) <-chan any {
+	return this.Fetch2Async("referral/admin_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralInfo", args...)
+func (this *Modetrade) V1PublicGetReferralInfo(args ...any) <-chan any {
+	return this.Fetch2Async("referral/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRefereeInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralRefereeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralRefereeInfo", args...)
+func (this *Modetrade) V1PublicGetReferralRefereeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("referral/referee_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRefereeRebateSummary returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralRefereeRebateSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralRefereeRebateSummary", args...)
+func (this *Modetrade) V1PublicGetReferralRefereeRebateSummary(args ...any) <-chan any {
+	return this.Fetch2Async("referral/referee_rebate_summary", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRefereeHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralRefereeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralRefereeHistory", args...)
+func (this *Modetrade) V1PublicGetReferralRefereeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("referral/referee_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralReferralHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralReferralHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralReferralHistory", args...)
+func (this *Modetrade) V1PublicGetReferralReferralHistory(args ...any) <-chan any {
+	return this.Fetch2Async("referral/referral_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRebateSummary returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetReferralRebateSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetReferralRebateSummary", args...)
+func (this *Modetrade) V1PublicGetReferralRebateSummary(args ...any) <-chan any {
+	return this.Fetch2Async("referral/rebate_summary", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetClientDistributionHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetClientDistributionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetClientDistributionHistory", args...)
+func (this *Modetrade) V1PublicGetClientDistributionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("client/distribution_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvConfig returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetTvConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTvConfig", args...)
+func (this *Modetrade) V1PublicGetTvConfig(args ...any) <-chan any {
+	return this.Fetch2Async("tv/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetTvHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTvHistory", args...)
+func (this *Modetrade) V1PublicGetTvHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tv/history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvSymbolInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetTvSymbolInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTvSymbolInfo", args...)
+func (this *Modetrade) V1PublicGetTvSymbolInfo(args ...any) <-chan any {
+	return this.Fetch2Async("tv/symbol_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvKlineHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetTvKlineHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTvKlineHistory", args...)
+func (this *Modetrade) V1PublicGetTvKlineHistory(args ...any) <-chan any {
+	return this.Fetch2Async("tv/kline_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // V1PublicGetPublicFundingRateHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicFundingRateHistory", args...)
+func (this *Modetrade) V1PublicGetPublicFundingRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("public/funding_rate_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFundingRateSymbol returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan any {
+func (this *Modetrade) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetPublicFundingRateSymbol", args...)
 }
 
 // V1PublicGetPublicFundingRates returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicFundingRates(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicFundingRates", args...)
+func (this *Modetrade) V1PublicGetPublicFundingRates(args ...any) <-chan any {
+	return this.Fetch2Async("public/funding_rates", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicInfo", args...)
+func (this *Modetrade) V1PublicGetPublicInfo(args ...any) <-chan any {
+	return this.Fetch2Async("public/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicInfoSymbol returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicInfoSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicInfoSymbol", args...)
+func (this *Modetrade) V1PublicGetPublicInfoSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("public/info/{symbol}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicMarketTrades returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicMarketTrades", args...)
+func (this *Modetrade) V1PublicGetPublicMarketTrades(args ...any) <-chan any {
+	return this.Fetch2Async("public/market_trades", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicToken returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicToken(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicToken", args...)
+func (this *Modetrade) V1PublicGetPublicToken(args ...any) <-chan any {
+	return this.Fetch2Async("public/token", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFutures returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicFutures", args...)
+func (this *Modetrade) V1PublicGetPublicFutures(args ...any) <-chan any {
+	return this.Fetch2Async("public/futures", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFuturesSymbol returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicGetPublicFuturesSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicFuturesSymbol", args...)
+func (this *Modetrade) V1PublicGetPublicFuturesSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("public/futures/{symbol}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicPostRegisterAccount returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicPostRegisterAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicPostRegisterAccount", args...)
+func (this *Modetrade) V1PublicPostRegisterAccount(args ...any) <-chan any {
+	return this.Fetch2Async("register_account", []string{"v1", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicPostPublicQuery returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PublicPostPublicQuery(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicPostPublicQuery", args...)
+func (this *Modetrade) V1PublicPostPublicQuery(args ...any) <-chan any {
+	return this.Fetch2Async("public/query", []string{"v1", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientKeyInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientKeyInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientKeyInfo", args...)
+func (this *Modetrade) V1PrivateGetClientKeyInfo(args ...any) <-chan any {
+	return this.Fetch2Async("client/key_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivateGetClientOrderlyKeyIpRestriction returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientOrderlyKeyIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientOrderlyKeyIpRestriction", args...)
+func (this *Modetrade) V1PrivateGetClientOrderlyKeyIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("client/orderly_key_ip_restriction", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivateGetOrderOid returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetOrderOid(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrderOid", args...)
+func (this *Modetrade) V1PrivateGetOrderOid(args ...any) <-chan any {
+	return this.Fetch2Async("order/{oid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientOrderClientOrderId returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientOrderClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientOrderClientOrderId", args...)
+func (this *Modetrade) V1PrivateGetClientOrderClientOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("client/order/{client_order_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAlgoOrderOid returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetAlgoOrderOid(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAlgoOrderOid", args...)
+func (this *Modetrade) V1PrivateGetAlgoOrderOid(args ...any) <-chan any {
+	return this.Fetch2Async("algo/order/{oid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAlgoClientOrderClientOrderId returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetAlgoClientOrderClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAlgoClientOrderClientOrderId", args...)
+func (this *Modetrade) V1PrivateGetAlgoClientOrderClientOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("algo/client/order/{client_order_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetOrders returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrders", args...)
+func (this *Modetrade) V1PrivateGetOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAlgoOrders returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAlgoOrders", args...)
+func (this *Modetrade) V1PrivateGetAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("algo/orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetTradeTid returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetTradeTid(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetTradeTid", args...)
+func (this *Modetrade) V1PrivateGetTradeTid(args ...any) <-chan any {
+	return this.Fetch2Async("trade/{tid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetTrades returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetTrades", args...)
+func (this *Modetrade) V1PrivateGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetOrderOidTrades returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetOrderOidTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrderOidTrades", args...)
+func (this *Modetrade) V1PrivateGetOrderOidTrades(args ...any) <-chan any {
+	return this.Fetch2Async("order/{oid}/trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientLiquidatorLiquidations returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientLiquidatorLiquidations(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientLiquidatorLiquidations", args...)
+func (this *Modetrade) V1PrivateGetClientLiquidatorLiquidations(args ...any) <-chan any {
+	return this.Fetch2Async("client/liquidator_liquidations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetLiquidations returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetLiquidations(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetLiquidations", args...)
+func (this *Modetrade) V1PrivateGetLiquidations(args ...any) <-chan any {
+	return this.Fetch2Async("liquidations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAssetHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetAssetHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAssetHistory", args...)
+func (this *Modetrade) V1PrivateGetAssetHistory(args ...any) <-chan any {
+	return this.Fetch2Async("asset/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientHolding returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientHolding(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientHolding", args...)
+func (this *Modetrade) V1PrivateGetClientHolding(args ...any) <-chan any {
+	return this.Fetch2Async("client/holding", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetWithdrawNonce returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetWithdrawNonce(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetWithdrawNonce", args...)
+func (this *Modetrade) V1PrivateGetWithdrawNonce(args ...any) <-chan any {
+	return this.Fetch2Async("withdraw_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetSettleNonce returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetSettleNonce(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetSettleNonce", args...)
+func (this *Modetrade) V1PrivateGetSettleNonce(args ...any) <-chan any {
+	return this.Fetch2Async("settle_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetPnlSettlementHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetPnlSettlementHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPnlSettlementHistory", args...)
+func (this *Modetrade) V1PrivateGetPnlSettlementHistory(args ...any) <-chan any {
+	return this.Fetch2Async("pnl_settlement/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetInternalTransferHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetInternalTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetInternalTransferHistory", args...)
+func (this *Modetrade) V1PrivateGetInternalTransferHistory(args ...any) <-chan any {
+	return this.Fetch2Async("internal_transfer_history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetVolumeUserDaily returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetVolumeUserDaily(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetVolumeUserDaily", args...)
+func (this *Modetrade) V1PrivateGetVolumeUserDaily(args ...any) <-chan any {
+	return this.Fetch2Async("volume/user/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetVolumeUserStats returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetVolumeUserStats(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetVolumeUserStats", args...)
+func (this *Modetrade) V1PrivateGetVolumeUserStats(args ...any) <-chan any {
+	return this.Fetch2Async("volume/user/stats", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientStatistics returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientStatistics(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientStatistics", args...)
+func (this *Modetrade) V1PrivateGetClientStatistics(args ...any) <-chan any {
+	return this.Fetch2Async("client/statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientInfo", args...)
+func (this *Modetrade) V1PrivateGetClientInfo(args ...any) <-chan any {
+	return this.Fetch2Async("client/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientStatisticsDaily returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientStatisticsDaily(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientStatisticsDaily", args...)
+func (this *Modetrade) V1PrivateGetClientStatisticsDaily(args ...any) <-chan any {
+	return this.Fetch2Async("client/statistics/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetPositions returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetPositions(args ...any) <-chan any {
+func (this *Modetrade) V1PrivateGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPositions", args...)
 }
 
 // V1PrivateGetPositionSymbol returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetPositionSymbol(args ...any) <-chan any {
+func (this *Modetrade) V1PrivateGetPositionSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
 }
 
 // V1PrivateGetFundingFeeHistory returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetFundingFeeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetFundingFeeHistory", args...)
+func (this *Modetrade) V1PrivateGetFundingFeeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("funding_fee/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // V1PrivateGetNotificationInboxNotifications returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetNotificationInboxNotifications(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetNotificationInboxNotifications", args...)
+func (this *Modetrade) V1PrivateGetNotificationInboxNotifications(args ...any) <-chan any {
+	return this.Fetch2Async("notification/inbox/notifications", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetNotificationInboxUnread returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetNotificationInboxUnread(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetNotificationInboxUnread", args...)
+func (this *Modetrade) V1PrivateGetNotificationInboxUnread(args ...any) <-chan any {
+	return this.Fetch2Async("notification/inbox/unread", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetVolumeBrokerDaily returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetVolumeBrokerDaily(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetVolumeBrokerDaily", args...)
+func (this *Modetrade) V1PrivateGetVolumeBrokerDaily(args ...any) <-chan any {
+	return this.Fetch2Async("volume/broker/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetBrokerFeeRateDefault returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetBrokerFeeRateDefault(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetBrokerFeeRateDefault", args...)
+func (this *Modetrade) V1PrivateGetBrokerFeeRateDefault(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fee_rate/default", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetBrokerUserInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetBrokerUserInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetBrokerUserInfo", args...)
+func (this *Modetrade) V1PrivateGetBrokerUserInfo(args ...any) <-chan any {
+	return this.Fetch2Async("broker/user_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetBrokerDailyFeeRevenue returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetBrokerDailyFeeRevenue(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetBrokerDailyFeeRevenue", args...)
+func (this *Modetrade) V1PrivateGetBrokerDailyFeeRevenue(args ...any) <-chan any {
+	return this.Fetch2Async("broker/daily_fee_revenue", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetOrderbookSymbol returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetOrderbookSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrderbookSymbol", args...)
+func (this *Modetrade) V1PrivateGetOrderbookSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("orderbook/{symbol}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetKline returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetKline", args...)
+func (this *Modetrade) V1PrivateGetKline(args ...any) <-chan any {
+	return this.Fetch2Async("kline", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientLeverages returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientLeverages(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientLeverages", args...)
+func (this *Modetrade) V1PrivateGetClientLeverages(args ...any) <-chan any {
+	return this.Fetch2Async("client/leverages", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientMarginModes returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetClientMarginModes(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientMarginModes", args...)
+func (this *Modetrade) V1PrivateGetClientMarginModes(args ...any) <-chan any {
+	return this.Fetch2Async("client/margin_modes", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdmin returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdmin(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdmin", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelAdmin(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetReferralMultiLevelAdminInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdminInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminInfo", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelAdminInfo(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdminRefereeList returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdminRefereeList(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminRefereeList", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelAdminRefereeList(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/referee_list", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdminSummary returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdminSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminSummary", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelAdminSummary(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/summary", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelMaxRebateRate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelMaxRebateRate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelMaxRebateRate", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelMaxRebateRate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/max_rebate_rate", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetReferralMultiLevelRebateInfo returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelRebateInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelRebateInfo", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelRebateInfo(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/rebate_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetReferralMultiLevelRefereeList returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelRefereeList(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelRefereeList", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelRefereeList(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/referee_list", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelStatistics returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelStatistics(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelStatistics", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelStatistics(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelVolumePrerequisite returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateGetReferralMultiLevelVolumePrerequisite(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelVolumePrerequisite", args...)
+func (this *Modetrade) V1PrivateGetReferralMultiLevelVolumePrerequisite(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/volume_prerequisite", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostOrderlyKey returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostOrderlyKey(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrderlyKey", args...)
+func (this *Modetrade) V1PrivatePostOrderlyKey(args ...any) <-chan any {
+	return this.Fetch2Async("orderly_key", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostClientSetOrderlyKeyIpRestriction returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClientSetOrderlyKeyIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientSetOrderlyKeyIpRestriction", args...)
+func (this *Modetrade) V1PrivatePostClientSetOrderlyKeyIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("client/set_orderly_key_ip_restriction", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivatePostClientResetOrderlyKeyIpRestriction returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClientResetOrderlyKeyIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientResetOrderlyKeyIpRestriction", args...)
+func (this *Modetrade) V1PrivatePostClientResetOrderlyKeyIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("client/reset_orderly_key_ip_restriction", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivatePostOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrder", args...)
+func (this *Modetrade) V1PrivatePostOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostBatchOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostBatchOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostBatchOrder", args...)
+func (this *Modetrade) V1PrivatePostBatchOrder(args ...any) <-chan any {
+	return this.Fetch2Async("batch-order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostAlgoOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAlgoOrder", args...)
+func (this *Modetrade) V1PrivatePostAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algo/order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostLiquidation returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostLiquidation(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostLiquidation", args...)
+func (this *Modetrade) V1PrivatePostLiquidation(args ...any) <-chan any {
+	return this.Fetch2Async("liquidation", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostClaimInsuranceFund returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClaimInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClaimInsuranceFund", args...)
+func (this *Modetrade) V1PrivatePostClaimInsuranceFund(args ...any) <-chan any {
+	return this.Fetch2Async("claim_insurance_fund", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostWithdrawRequest returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostWithdrawRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostWithdrawRequest", args...)
+func (this *Modetrade) V1PrivatePostWithdrawRequest(args ...any) <-chan any {
+	return this.Fetch2Async("withdraw_request", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostSettlePnl returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostSettlePnl(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostSettlePnl", args...)
+func (this *Modetrade) V1PrivatePostSettlePnl(args ...any) <-chan any {
+	return this.Fetch2Async("settle_pnl", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostInternalTransfer returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostInternalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostInternalTransfer", args...)
+func (this *Modetrade) V1PrivatePostInternalTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("internal_transfer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostNotificationInboxMarkRead returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostNotificationInboxMarkRead(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostNotificationInboxMarkRead", args...)
+func (this *Modetrade) V1PrivatePostNotificationInboxMarkRead(args ...any) <-chan any {
+	return this.Fetch2Async("notification/inbox/mark_read", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivatePostNotificationInboxMarkReadAll returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostNotificationInboxMarkReadAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostNotificationInboxMarkReadAll", args...)
+func (this *Modetrade) V1PrivatePostNotificationInboxMarkReadAll(args ...any) <-chan any {
+	return this.Fetch2Async("notification/inbox/mark_read_all", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivatePostClientLeverage returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClientLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
+func (this *Modetrade) V1PrivatePostClientLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("client/leverage", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
 }
 
 // V1PrivatePostClientLeverages returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClientLeverages(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientLeverages", args...)
+func (this *Modetrade) V1PrivatePostClientLeverages(args ...any) <-chan any {
+	return this.Fetch2Async("client/leverages", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
 }
 
 // V1PrivatePostClientMarginMode returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClientMarginMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientMarginMode", args...)
+func (this *Modetrade) V1PrivatePostClientMarginMode(args ...any) <-chan any {
+	return this.Fetch2Async("client/margin_mode", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostPositionMargin returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostPositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPositionMargin", args...)
+func (this *Modetrade) V1PrivatePostPositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("position_margin", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostClientMaintenanceConfig returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostClientMaintenanceConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientMaintenanceConfig", args...)
+func (this *Modetrade) V1PrivatePostClientMaintenanceConfig(args ...any) <-chan any {
+	return this.Fetch2Async("client/maintenance_config", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivatePostDelegateSigner returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostDelegateSigner(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostDelegateSigner", args...)
+func (this *Modetrade) V1PrivatePostDelegateSigner(args ...any) <-chan any {
+	return this.Fetch2Async("delegate_signer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostDelegateOrderlyKey returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostDelegateOrderlyKey(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostDelegateOrderlyKey", args...)
+func (this *Modetrade) V1PrivatePostDelegateOrderlyKey(args ...any) <-chan any {
+	return this.Fetch2Async("delegate_orderly_key", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostDelegateSettlePnl returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostDelegateSettlePnl(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostDelegateSettlePnl", args...)
+func (this *Modetrade) V1PrivatePostDelegateSettlePnl(args ...any) <-chan any {
+	return this.Fetch2Async("delegate_settle_pnl", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostDelegateWithdrawRequest returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostDelegateWithdrawRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostDelegateWithdrawRequest", args...)
+func (this *Modetrade) V1PrivatePostDelegateWithdrawRequest(args ...any) <-chan any {
+	return this.Fetch2Async("delegate_withdraw_request", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostBrokerFeeRateSet returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostBrokerFeeRateSet(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostBrokerFeeRateSet", args...)
+func (this *Modetrade) V1PrivatePostBrokerFeeRateSet(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fee_rate/set", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostBrokerFeeRateSetDefault returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostBrokerFeeRateSetDefault(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostBrokerFeeRateSetDefault", args...)
+func (this *Modetrade) V1PrivatePostBrokerFeeRateSetDefault(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fee_rate/set_default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostBrokerFeeRateDefault returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostBrokerFeeRateDefault(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostBrokerFeeRateDefault", args...)
+func (this *Modetrade) V1PrivatePostBrokerFeeRateDefault(args ...any) <-chan any {
+	return this.Fetch2Async("broker/fee_rate/default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralCreate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralCreate", args...)
+func (this *Modetrade) V1PrivatePostReferralCreate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/create", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralUpdate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralUpdate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralUpdate", args...)
+func (this *Modetrade) V1PrivatePostReferralUpdate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralBind returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralBind(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralBind", args...)
+func (this *Modetrade) V1PrivatePostReferralBind(args ...any) <-chan any {
+	return this.Fetch2Async("referral/bind", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralEditSplit returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralEditSplit(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralEditSplit", args...)
+func (this *Modetrade) V1PrivatePostReferralEditSplit(args ...any) <-chan any {
+	return this.Fetch2Async("referral/edit_split", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralEditRefereeDescription returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralEditRefereeDescription(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralEditRefereeDescription", args...)
+func (this *Modetrade) V1PrivatePostReferralEditRefereeDescription(args ...any) <-chan any {
+	return this.Fetch2Async("referral/edit_referee_description", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostReferralMultiLevelAdmin returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdmin(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdmin", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelAdmin(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminUpdate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminUpdate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminUpdate", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelAdminUpdate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminCreateAffiliate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminCreateAffiliate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminCreateAffiliate", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelAdminCreateAffiliate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/create/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminResetAffiliate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminResetAffiliate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminResetAffiliate", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelAdminResetAffiliate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/reset/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminUpdateAffiliate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminUpdateAffiliate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminUpdateAffiliate", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelAdminUpdateAffiliate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/admin/update/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelClaimCode returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelClaimCode(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelClaimCode", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelClaimCode(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/claim_code", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelRebateRateSetDefault returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelRebateRateSetDefault(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelRebateRateSetDefault", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelRebateRateSetDefault(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/rebate_rate/set_default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelRebateRateUpdate returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePostReferralMultiLevelRebateRateUpdate(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelRebateRateUpdate", args...)
+func (this *Modetrade) V1PrivatePostReferralMultiLevelRebateRateUpdate(args ...any) <-chan any {
+	return this.Fetch2Async("referral/multi_level/rebate_rate/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePutOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePutOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePutOrder", args...)
+func (this *Modetrade) V1PrivatePutOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePutAlgoOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivatePutAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePutAlgoOrder", args...)
+func (this *Modetrade) V1PrivatePutAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algo/order", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteOrder", args...)
+func (this *Modetrade) V1PrivateDeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteAlgoOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteAlgoOrder", args...)
+func (this *Modetrade) V1PrivateDeleteAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algo/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteClientOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteClientOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteClientOrder", args...)
+func (this *Modetrade) V1PrivateDeleteClientOrder(args ...any) <-chan any {
+	return this.Fetch2Async("client/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteAlgoClientOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteAlgoClientOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteAlgoClientOrder", args...)
+func (this *Modetrade) V1PrivateDeleteAlgoClientOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algo/client/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteAlgoOrders returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteAlgoOrders", args...)
+func (this *Modetrade) V1PrivateDeleteAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("algo/orders", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteOrders returns a channel that yields a JSON array.
-func (this *ModetradeCore) V1PrivateDeleteOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteOrders", args...)
+func (this *Modetrade) V1PrivateDeleteOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteBatchOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteBatchOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteBatchOrder", args...)
+func (this *Modetrade) V1PrivateDeleteBatchOrder(args ...any) <-chan any {
+	return this.Fetch2Async("batch-order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteClientBatchOrder returns a channel that yields a JSON object.
-func (this *ModetradeCore) V1PrivateDeleteClientBatchOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteClientBatchOrder", args...)
+func (this *Modetrade) V1PrivateDeleteClientBatchOrder(args ...any) <-chan any {
+	return this.Fetch2Async("client/batch-order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

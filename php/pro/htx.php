@@ -132,13 +132,13 @@ class htx extends \ccxt\async\htx {
             'exceptions' => array(
                 'ws' => array(
                     'exact' => array(
-                        'bad-request' => '\\ccxt\\BadRequest', // array(  ts => 1586323747018,  status => 'error',    'err-code' => 'bad-request',  err-msg' => 'invalid mbp.150.symbol linkusdt', id => '2')
-                        '2002' => '\\ccxt\\AuthenticationError', // array( action => 'sub', code => 2002, ch => 'accounts.update#2', message => 'invalid.auth.state' )
+                        'bad-request' => '\\ccxt\\BadRequest', // {  ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002' => '\\ccxt\\AuthenticationError', // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
                         '2021' => '\\ccxt\\BadRequest',
-                        '2001' => '\\ccxt\\BadSymbol', // array( action => 'sub', code => 2001, ch => 'orders#2ltcusdt', message => 'invalid.symbol')
-                        '2011' => '\\ccxt\\BadSymbol', // array( op => 'sub', cid => '1649149285', topic => 'orders_cross.ltc-usdt', 'err-code' => 2011, 'err-msg' => "Contract doesn't exist.", ts => 1649149287637 )
-                        '2040' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1649152947', 'err-code' => 2040, 'err-msg' => 'Missing required parameter.', ts => 1649152948684 )
-                        '4007' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1', topic => 'accounts_unify.USDT', 'err-code' => 4007, 'err-msg' => 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts => 1698419318540 )
+                        '2001' => '\\ccxt\\BadSymbol', // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011' => '\\ccxt\\BadSymbol', // { op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2040' => '\\ccxt\\BadRequest', // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
+                        '4007' => '\\ccxt\\BadRequest', // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     ),
                 ),
             ),
@@ -212,40 +212,40 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         // "market.btcusdt.detail"
         //     {
-        //         "ch" => "market.btcusdt.detail",
-        //         "ts" => 1583494163784,
-        //         "tick" => {
-        //             "id" => 209988464418,
-        //             "low" => 8988,
-        //             "high" => 9155.41,
-        //             "open" => 9078.91,
-        //             "close" => 9136.46,
-        //             "vol" => 237813910.5928412,
-        //             "amount" => 26184.202558551195,
-        //             "version" => 209988464418,
-        //             "count" => 265673
+        //         "ch": "market.btcusdt.detail",
+        //         "ts": 1583494163784,
+        //         "tick": {
+        //             "id": 209988464418,
+        //             "low": 8988,
+        //             "high": 9155.41,
+        //             "open": 9078.91,
+        //             "close": 9136.46,
+        //             "vol": 237813910.5928412,
+        //             "amount": 26184.202558551195,
+        //             "version": 209988464418,
+        //             "count": 265673
         //         }
         //     }
         // "market.btcusdt.bbo"
         //     {
-        //         "ch" => "market.btcusdt.bbo",
-        //         "ts" => 1671941599613,
-        //         "tick" => {
-        //             "seqId" => 161499562790,
-        //             "ask" => 16829.51,
-        //             "askSize" => 0.707776,
-        //             "bid" => 16829.5,
-        //             "bidSize" => 1.685945,
-        //             "quoteTime" => 1671941599612,
-        //             "symbol" => "btcusdt"
+        //         "ch": "market.btcusdt.bbo",
+        //         "ts": 1671941599613,
+        //         "tick": {
+        //             "seqId": 161499562790,
+        //             "ask": 16829.51,
+        //             "askSize": 0.707776,
+        //             "bid": 16829.5,
+        //             "bidSize": 1.685945,
+        //             "quoteTime": 1671941599612,
+        //             "symbol": "btcusdt"
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
+        $tick = $this->safe_dict($message, 'tick', array());
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             return $message;
@@ -254,7 +254,7 @@ class htx extends \ccxt\async\htx {
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $ticker = $this->parse_ticker($tick, $market);
-        $timestamp = $this->safe_value($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
         $symbol = $ticker['symbol'];
@@ -324,29 +324,29 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message): array {
         //
         //     {
-        //         "ch" => "market.btcusdt.trade.detail",
-        //         "ts" => 1583495834011,
-        //         "tick" => {
-        //             "id" => 105004645372,
-        //             "ts" => 1583495833751,
-        //             "data" => array(
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583495834011,
+        //         "tick": {
+        //             "id": 105004645372,
+        //             "ts": 1583495833751,
+        //             "data": [
         //                 {
-        //                     "id" => 1.050046453727319e+22,
-        //                     "ts" => 1583495833751,
-        //                     "tradeId" => 102090727790,
-        //                     "amount" => 0.003893,
-        //                     "price" => 9150.01,
-        //                     "direction" => "sell"
+        //                     "id": 1.050046453727319e+22,
+        //                     "ts": 1583495833751,
+        //                     "tradeId": 102090727790,
+        //                     "amount": 0.003893,
+        //                     "price": 9150.01,
+        //                     "direction": "sell"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
-        $data = $this->safe_value($tick, 'data', array());
+        $tick = $this->safe_dict($message, 'tick', array());
+        $data = $this->safe_list($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             return $message;
@@ -432,20 +432,20 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "ch" => "market.btcusdt.kline.1min",
-        //         "ts" => 1583501786794,
-        //         "tick" => {
-        //             "id" => 1583501760,
-        //             "open" => 9094.5,
-        //             "close" => 9094.51,
-        //             "low" => 9094.5,
-        //             "high" => 9094.51,
-        //             "amount" => 0.44639786263800907,
-        //             "vol" => 4059.76919054,
-        //             "count" => 16
+        //         "ch": "market.btcusdt.kline.1min",
+        //         "ts": 1583501786794,
+        //         "tick": {
+        //             "id": 1583501760,
+        //             "open": 9094.5,
+        //             "close": 9094.51,
+        //             "low": 9094.5,
+        //             "high": 9094.51,
+        //             "amount": 0.44639786263800907,
+        //             "vol": 4059.76919054,
+        //             "count": 16
         //         }
         //     }
         //
@@ -459,7 +459,7 @@ class htx extends \ccxt\async\htx {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -561,25 +561,25 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_snapshot(Client $client, array $message, array $subscription) {
         //
         //     {
-        //         "id" => 1583473663565,
-        //         "rep" => "market.btcusdt.mbp.150",
-        //         "status" => "ok",
-        //         "ts" => 1698359289261,
-        //         "data" => {
-        //             "seqNum" => 104999417756,
-        //             "bids" => array(
+        //         "id": 1583473663565,
+        //         "rep": "market.btcusdt.mbp.150",
+        //         "status": "ok",
+        //         "ts": 1698359289261,
+        //         "data": {
+        //             "seqNum": 104999417756,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -592,11 +592,11 @@ class htx extends \ccxt\async\htx {
         $lastTimestamp = $this->safe_integer($subscription, 'lastTimestamp');
         try {
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            $data = $this->safe_value($message, 'data');
+            $data = $this->safe_dict($message, 'data');
             $messages = $orderbook->cache;
-            $firstMessage = $this->safe_value($messages, 0, array());
+            $firstMessage = $this->safe_dict($messages, 0, array());
             $snapshot = $this->parse_order_book($data, $symbol);
-            $tick = $this->safe_value($firstMessage, 'tick');
+            $tick = $this->safe_dict($firstMessage, 'tick');
             $sequence = $this->safe_integer($tick, 'prevSeqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             if ($nonce === null) {
@@ -611,7 +611,7 @@ class htx extends \ccxt\async\htx {
             if (($sequence === null) || ($nonce < $sequence)) {
                 $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
-                // retry to synchronize if we have not reached $maxAttempts yet
+                // retry to synchronize if we have not reached maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
                     // safety guard
                     if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
@@ -625,7 +625,7 @@ class htx extends \ccxt\async\htx {
                         $this->delay($delayTime, array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
                     }
                 } else {
-                    // throw upon failing to synchronize in $maxAttempts
+                    // throw upon failing to synchronize in maxAttempts
                     throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
                 }
             } else {
@@ -651,11 +651,11 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
+    public function watch_order_book_snapshot(Client $client, array $message, array $subscription) {
         return Async\async(self::do_watch_order_book_snapshot(...))($client, $message, $subscription);
     }
 
-    private function do_watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
+    private function do_watch_order_book_snapshot(Client $client, array $message, array $subscription) {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
@@ -669,7 +669,7 @@ class htx extends \ccxt\async\htx {
             'req' => $messageHash,
             'id' => $requestId,
         );
-        // this is a temporary $subscription by a specific $requestId
+        // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         $snapshotSubscription = array(
             'id' => $requestId,
@@ -705,70 +705,70 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message) {
+    public function handle_order_book_message(Client $client, array $message) {
         // spot markets
         //
         //     {
-        //         "ch" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583472025885,
-        //         "tick" => {
-        //             "seqNum" => 104998984994,
-        //             "prevSeqNum" => 104998984977,
-        //             "bids" => array(
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
-        // non-spot $market update
+        // non-spot market update
         //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
-        //         "tick":array(
-        //             "asks":array(),
-        //             "bids":array(
+        //         "tick":{
+        //             "asks":[],
+        //             "bids":[
         //                 [43445.74,1],
         //                 [43444.48,0 ],
         //                 [40593.92,9]
-        //             ),
+        //             ],
         //             "ch":"market.BTC220218.depth.size_150.high_freq",
         //             "event":"update",
         //             "id":152727500274,
         //             "mrid":152727500274,
         //             "ts":1645023376098,
         //             "version":37536690
-        //         ),
+        //         },
         //         "ts":1645023376098
         //     }
-        // non-spot $market $snapshot
+        // non-spot market snapshot
         //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
-        //         "tick":array(
-        //             "asks":array(
+        //         "tick":{
+        //             "asks":[
         //                 [43445.74,1],
         //                 [43444.48,0 ],
         //                 [40593.92,9]
-        //             ),
-        //             "bids":array(
+        //             ],
+        //             "bids":[
         //                 [43445.74,1],
         //                 [43444.48,0 ],
         //                 [40593.92,9]
-        //             ),
+        //             ],
         //             "ch":"market.BTC220218.depth.size_150.high_freq",
         //             "event":"snapshot",
         //             "id":152727500274,
         //             "mrid":152727500274,
         //             "ts":1645023376098,
         //             "version":37536690
-        //         ),
+        //         },
         //         "ts":1645023376098
         //     }
         //
@@ -778,7 +778,7 @@ class htx extends \ccxt\async\htx {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $orderbook = $this->orderbooks[$symbol];
-        $tick = $this->safe_value($message, 'tick', array());
+        $tick = $this->safe_dict($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
         $event = $this->safe_string($tick, 'event');
@@ -798,8 +798,8 @@ class htx extends \ccxt\async\htx {
         $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $orderbook['nonce']);
         if (($spotConditon === true) || ($nonSpotCondition === true)) {
-            $asks = $this->safe_value($tick, 'asks', array());
-            $bids = $this->safe_value($tick, 'bids', array());
+            $asks = $this->safe_list($tick, 'asks', array());
+            $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = ($spotConditon === true) ? $seqNum : $version;
@@ -808,28 +808,28 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // deltas
         //
         // spot markets
         //
         //     {
-        //         "ch" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583472025885,
-        //         "tick" => {
-        //             "seqNum" => 104998984994,
-        //             "prevSeqNum" => 104998984977,
-        //             "bids" => array(
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -837,20 +837,20 @@ class htx extends \ccxt\async\htx {
         //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
-        //         "tick":array(
-        //             "asks":array(),
-        //             "bids":array(
+        //         "tick":{
+        //             "asks":[],
+        //             "bids":[
         //                 [43445.74,1],
         //                 [43444.48,0 ],
         //                 [40593.92,9]
-        //             ),
+        //             ],
         //             "ch":"market.BTC220218.depth.size_150.high_freq",
         //             "event":"update",
         //             "id":152727500274,
         //             "mrid":152727500274,
         //             "ts":1645023376098,
         //             "version":37536690
-        //         ),
+        //         },
         //         "ts":1645023376098
         //     }
         //
@@ -882,7 +882,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $limit = $this->safe_integer($subscription, 'limit');
@@ -952,12 +952,12 @@ class htx extends \ccxt\async\htx {
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('trade', $market, $params);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);
             $messageHash = $this->safe_string($channelAndMessageHashAndParams, 1);
-            $params = $this->safe_value($channelAndMessageHashAndParams, 2, array());
+            $params = $this->safe_dict($channelAndMessageHashAndParams, 2, array());
         } else {
             $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
             $channel = $this->safe_string($channelAndMessageHash, 0);
             $orderMessageHash = $this->safe_string($channelAndMessageHash, 1);
-            // we will take advantage of the order $messageHash because already handles stuff
+            // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
             $messageHash = $orderMessageHash . ':' . 'trade';
         }
@@ -974,7 +974,7 @@ class htx extends \ccxt\async\htx {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function get_order_channel_and_message_hash(mixed $type, mixed $subType, ?array $market = null, $params = array()) {
+    public function get_order_channel_and_message_hash(?string $type, ?string $subType, ?array $market = null, $params = array()): array {
         $messageHash = null;
         $channel = null;
         $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
@@ -988,7 +988,7 @@ class htx extends \ccxt\async\htx {
         $prefix = $orderType;
         $messageHash = $prefix;
         if ($subType === 'linear') {
-            // USDT Margined Contracts Example => LTC/USDT:USDT
+            // USDT Margined Contracts Example: LTC/USDT:USDT
             $marginMode = $this->safe_string($params, 'margin', 'cross');
             $marginPrefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
             $messageHash = $marginPrefix;
@@ -999,7 +999,7 @@ class htx extends \ccxt\async\htx {
                 $channel = $marginPrefix . '.' . '*';
             }
         } elseif ($type === 'future') {
-            // inverse futures Example => BCH/USD:BCH-220408
+            // inverse futures Example: BCH/USD:BCH-220408
             if ($baseId !== null) {
                 $channel = $prefix . '.' . strtolower($baseId);
                 $messageHash = $channel;
@@ -1007,7 +1007,7 @@ class htx extends \ccxt\async\htx {
                 $channel = $prefix . '.' . '*';
             }
         } else {
-            // inverse swaps => Example => BTC/USD:BTC
+            // inverse swaps: Example: BTC/USD:BTC
             if ($marketCode !== null) {
                 $channel = $prefix . '.' . $marketCode;
                 $messageHash = $channel;
@@ -1018,7 +1018,7 @@ class htx extends \ccxt\async\htx {
         return array( $channel, $messageHash );
     }
 
-    public function get_v5_linear_channel_and_message_hash(mixed $topic, ?array $market = null, $params = array()) {
+    public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()) {
         $contractCode = ($market !== null) ? $market['id'] : $this->safe_string($params, 'contract_code', '*');
         $channel = $topic;
         $messageHash = $topic;
@@ -1082,7 +1082,7 @@ class htx extends \ccxt\async\htx {
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('orders', $market, $params);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);
             $messageHash = $this->safe_string($channelAndMessageHashAndParams, 1);
-            $params = $this->safe_value($channelAndMessageHashAndParams, 2, array());
+            $params = $this->safe_dict($channelAndMessageHashAndParams, 2, array());
         } else {
             $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
             $channel = $this->safe_string($channelAndMessageHash, 0);
@@ -1098,178 +1098,178 @@ class htx extends \ccxt\async\htx {
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // spot
         //
-        //     for new $order creation
+        //     for new order creation
         //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
-        //         "data" => {
-        //             "orderStatus" => "submitted",
-        //             "eventType" => "creation",
-        //             "totalTradeAmount" => 0 // for "submitted" $order $status
-        //             "orderCreateTime" => 1645116048355, // only when `submitted` $status
-        //             "orderSource" => "spot-web",
-        //             "accountId" => 44234548,
-        //             "orderPrice" => "100",
-        //             "orderSize" => "0.05",
-        //             "symbol" => "ethusdt",
-        //             "type" => "buy-$limit",
-        //             "orderId" => "478861479986886",
-        //             "clientOrderId" => '',
+        //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
+        //             "orderSource": "spot-web",
+        //             "accountId": 44234548,
+        //             "orderPrice": "100",
+        //             "orderSize": "0.05",
+        //             "symbol": "ethusdt",
+        //             "type": "buy-limit",
+        //             "orderId": "478861479986886",
+        //             "clientOrderId": '',
         //         }
         //     }
         //
-        //     for $filled $order, additional fields are present:
+        //     for filled order, additional fields are present:
         //
-        //             "orderStatus" => "filled",
-        //             "eventType" => "trade",
-        //             "totalTradeAmount" => "5.9892649859",
-        //             "tradePrice" => "0.676669",
-        //             "tradeVolume" => "8.8511",
-        //             "tradeTime" => 1760427775894,
-        //             "aggressor" => false,
-        //             "execAmt" => "8.8511",
-        //             "tradeId" => 100599712781,
-        //             "remainAmt" => "0",
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
         //     {
-        //         "action" => "push",
-        //         "ch" => "orders#ltcusdt",
-        //         "data" => {
-        //             "tradePrice" => "130.01",
-        //             "tradeVolume" => "0.0385",
-        //             "tradeTime" => 1648714741525,
-        //             "aggressor" => true,
-        //             "execAmt" => "0.0385",
-        //             "orderSource" => "spot-web",
-        //             "orderSize" => "0.0385",
-        //             "remainAmt" => "0",
-        //             "tradeId" => 101541578884,
-        //             "symbol" => "ltcusdt",
-        //             "type" => "sell-$market",
-        //             "eventType" => "trade",
-        //             "clientOrderId" => '',
-        //             "orderStatus" => "filled",
-        //             "orderId" => 509835753860328
+        //         "action": "push",
+        //         "ch": "orders#ltcusdt",
+        //         "data": {
+        //             "tradePrice": "130.01",
+        //             "tradeVolume": "0.0385",
+        //             "tradeTime": 1648714741525,
+        //             "aggressor": true,
+        //             "execAmt": "0.0385",
+        //             "orderSource": "spot-web",
+        //             "orderSize": "0.0385",
+        //             "remainAmt": "0",
+        //             "tradeId": 101541578884,
+        //             "symbol": "ltcusdt",
+        //             "type": "sell-market",
+        //             "eventType": "trade",
+        //             "clientOrderId": '',
+        //             "orderStatus": "filled",
+        //             "orderId": 509835753860328
         //         }
         //     }
         //
-        // non spot $order
+        // non spot order
         //
         // {
-        //     "contract_type" => "swap",
-        //     "pair" => "LTC-USDT",
-        //     "business_type" => "swap",
-        //     "op" => "notify",
-        //     "topic" => "orders_cross.ltc-usdt",
-        //     "ts" => 1650354508696,
-        //     "symbol" => "LTC",
-        //     "contract_code" => "LTC-USDT",
-        //     "volume" => 1,
-        //     "price" => 110.34,
-        //     "order_price_type" => "lightning",
-        //     "direction" => "sell",
-        //     "offset" => "close",
-        //     "status" => 6,
-        //     "lever_rate" => 1,
-        //     "order_id" => "966002354015051776",
-        //     "order_id_str" => "966002354015051776",
-        //     "client_order_id" => null,
-        //     "order_source" => "web",
-        //     "order_type" => 1,
-        //     "created_at" => 1650354508649,
-        //     "trade_volume" => 1,
-        //     "trade_turnover" => 11.072,
-        //     "fee" => -0.005536,
-        //     "trade_avg_price" => 110.72,
-        //     "margin_frozen" => 0,
-        //     "profit" => -0.045,
-        //     "trade" => array(
+        //     "contract_type": "swap",
+        //     "pair": "LTC-USDT",
+        //     "business_type": "swap",
+        //     "op": "notify",
+        //     "topic": "orders_cross.ltc-usdt",
+        //     "ts": 1650354508696,
+        //     "symbol": "LTC",
+        //     "contract_code": "LTC-USDT",
+        //     "volume": 1,
+        //     "price": 110.34,
+        //     "order_price_type": "lightning",
+        //     "direction": "sell",
+        //     "offset": "close",
+        //     "status": 6,
+        //     "lever_rate": 1,
+        //     "order_id": "966002354015051776",
+        //     "order_id_str": "966002354015051776",
+        //     "client_order_id": null,
+        //     "order_source": "web",
+        //     "order_type": 1,
+        //     "created_at": 1650354508649,
+        //     "trade_volume": 1,
+        //     "trade_turnover": 11.072,
+        //     "fee": -0.005536,
+        //     "trade_avg_price": 110.72,
+        //     "margin_frozen": 0,
+        //     "profit": -0.045,
+        //     "trade": [
         //       {
-        //         "trade_fee" => -0.005536,
-        //         "fee_asset" => "USDT",
-        //         "real_profit" => 0.473,
-        //         "profit" => -0.045,
-        //         "trade_id" => 86678766507,
-        //         "id" => "86678766507-966002354015051776-1",
-        //         "trade_volume" => 1,
-        //         "trade_price" => 110.72,
-        //         "trade_turnover" => 11.072,
-        //         "created_at" => 1650354508656,
-        //         "role" => "taker"
+        //         "trade_fee": -0.005536,
+        //         "fee_asset": "USDT",
+        //         "real_profit": 0.473,
+        //         "profit": -0.045,
+        //         "trade_id": 86678766507,
+        //         "id": "86678766507-966002354015051776-1",
+        //         "trade_volume": 1,
+        //         "trade_price": 110.72,
+        //         "trade_turnover": 11.072,
+        //         "created_at": 1650354508656,
+        //         "role": "taker"
         //       }
-        //     ),
-        //     "canceled_at" => 0,
-        //     "fee_asset" => "USDT",
-        //     "margin_asset" => "USDT",
-        //     "uid" => "359305390",
-        //     "liquidation_type" => "0",
-        //     "margin_mode" => "cross",
-        //     "margin_account" => "USDT",
-        //     "is_tpsl" => 0,
-        //     "real_profit" => 0.473,
-        //     "trade_partition" => "USDT",
-        //     "reduce_only" => 1
+        //     ],
+        //     "canceled_at": 0,
+        //     "fee_asset": "USDT",
+        //     "margin_asset": "USDT",
+        //     "uid": "359305390",
+        //     "liquidation_type": "0",
+        //     "margin_mode": "cross",
+        //     "margin_account": "USDT",
+        //     "is_tpsl": 0,
+        //     "real_profit": 0.473,
+        //     "trade_partition": "USDT",
+        //     "reduce_only": 1
         //   }
         //
         //
         // linear v5 watchOrders
         //
         //     {
-        //         "op" => "notify",
-        //         "topic" => "orders",
-        //         "contract_code" => "BTC-USDT",
-        //         "ts" => 1782367563267,
-        //         "uid" => "359305390",
-        //         "data" => {
-        //             "side" => "buy",
-        //             "type" => "limit",
-        //             "price" => "40000",
-        //             "volume" => "1",
-        //             "state" => "new",
-        //             "profit" => "0",
-        //             "contract_code" => "BTC-USDT",
-        //             "position_side" => "both",
-        //             "price_match" => null,
-        //             "order_id" => "1519705236917489664",
-        //             "client_order_id" => "1519705236917489664",
-        //             "margin_mode" => "cross",
-        //             "lever_rate" => 10,
-        //             "order_source" => "api",
-        //             "reduce_only" => false,
-        //             "time_in_force" => "gtc",
-        //             "trade_avg_price" => "0",
-        //             "trade_volume" => "0",
-        //             "trade_turnover" => "0",
-        //             "fee_currency" => null,
-        //             "fee" => "0",
-        //             "tp_trigger_price" => "",
-        //             "tp_order_price" => "",
-        //             "tp_type" => "",
-        //             "tp_trigger_price_type" => "",
-        //             "sl_trigger_price" => "",
-        //             "sl_order_price" => "",
-        //             "sl_type" => "",
-        //             "sl_trigger_price_type" => "",
-        //             "contract_type" => "swap",
-        //             "cancel_reason" => "",
-        //             "created_time" => "1782367563239",
-        //             "updated_time" => "1782367563239",
-        //             "self_match_prevent" => "cancel_taker",
-        //             "amend_origin_volume" => "",
-        //             "amend_source" => "",
-        //             "amend_result" => ""
+        //         "op": "notify",
+        //         "topic": "orders",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367563267,
+        //         "uid": "359305390",
+        //         "data": {
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "40000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": "0",
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "both",
+        //             "price_match": null,
+        //             "order_id": "1519705236917489664",
+        //             "client_order_id": "1519705236917489664",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 10,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": null,
+        //             "fee": "0",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "",
+        //             "sl_trigger_price_type": "",
+        //             "contract_type": "swap",
+        //             "cancel_reason": "",
+        //             "created_time": "1782367563239",
+        //             "updated_time": "1782367563239",
+        //             "self_match_prevent": "cancel_taker",
+        //             "amend_origin_volume": "",
+        //             "amend_source": "",
+        //             "amend_result": ""
         //         }
         //     }
         //
         $messageHash = $this->safe_string_2($message, 'ch', 'topic');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($message, 'contract_code');
         if ($marketId === null) {
             $marketId = $this->safe_string_2($data, 'contract_code', 'symbol');
@@ -1280,10 +1280,10 @@ class htx extends \ccxt\async\htx {
             // spot updates
             $eventType = $this->safe_string($data, 'eventType');
             if ($eventType === 'trade') {
-                // when a spot $order is $filled we get an update $message
+                // when a spot order is filled we get an update message
                 // with the trade info
                 $parsedTrade = $this->parse_order_trade($data, $market);
-                // inject trade in existing $order by faking an $order object
+                // inject trade in existing order by faking an order object
                 $orderId = $this->safe_string($parsedTrade, 'order');
                 $trades = array( $parsedTrade );
                 $status = $this->parse_order_status($this->safe_string_2($data, 'orderStatus', 'status', 'closed'));
@@ -1308,7 +1308,7 @@ class htx extends \ccxt\async\htx {
         } else {
             // contract branch
             $parsedOrder = $this->parse_ws_order($message, $market);
-            $rawTrades = $this->safe_value($message, 'trade', array());
+            $rawTrades = $this->safe_list($message, 'trade', array());
             $tradesLength = count($rawTrades);
             if ($tradesLength > 0) {
                 $tradesObject = array(
@@ -1316,13 +1316,13 @@ class htx extends \ccxt\async\htx {
                     'ch' => $messageHash,
                     'symbol' => $marketId,
                 );
-                // inject $order params in every trade
+                // inject order params in every trade
                 $extendTradeParams = array(
                     'order' => $this->safe_string($parsedOrder, 'id'),
                     'type' => $this->safe_string($parsedOrder, 'type'),
                     'side' => $this->safe_string($parsedOrder, 'side'),
                 );
-                // $trades arrive inside an $order update
+                // trades arrive inside an order update
                 // we're forwarding them to handleMyTrade
                 // so they can be properly resolved
                 $this->handle_my_trade($client, $tradesObject, $extendTradeParams);
@@ -1339,7 +1339,7 @@ class htx extends \ccxt\async\htx {
             $specificMessageHash = $messageHash . '.' . strtolower($marketId);
             $client->resolve($this->orders, $specificMessageHash);
         }
-        // when we make a global subscription (for contracts only) our $message hash can't have a symbol/currency attached
+        // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
         if ($messageHash === null) {
             return;
@@ -1350,83 +1350,83 @@ class htx extends \ccxt\async\htx {
         $client->resolve($this->orders, $genericMessageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //
         //     {
-        //         "orderSource" => "spot-web",
-        //         "orderCreateTime" => 1645116048355, // creating only
-        //         "accountId" => 44234548,
-        //         "orderPrice" => "100",
-        //         "orderSize" => "0.05",
-        //         "orderValue" => "3.71676361", // $market-buy only
-        //         "symbol" => "ethusdt",
-        //         "type" => "buy-limit",
-        //         "orderId" => "478861479986886",
-        //         "eventType" => "creation",
-        //         "clientOrderId" => '',
-        //         "orderStatus" => "submitted"
+        //         "orderSource": "spot-web",
+        //         "orderCreateTime": 1645116048355, // creating only
+        //         "accountId": 44234548,
+        //         "orderPrice": "100",
+        //         "orderSize": "0.05",
+        //         "orderValue": "3.71676361", // market-buy only
+        //         "symbol": "ethusdt",
+        //         "type": "buy-limit",
+        //         "orderId": "478861479986886",
+        //         "eventType": "creation",
+        //         "clientOrderId": '',
+        //         "orderStatus": "submitted"
         //         "lastActTime":1645118621810 // except creating
         //         "execAmt":"0"
         //     }
         //
-        // swap $order
+        // swap order
         //
         //     {
-        //         "contract_type" => "swap",
-        //         "pair" => "LTC-USDT",
-        //         "business_type" => "swap",
-        //         "op" => "notify",
-        //         "topic" => "orders_cross.ltc-usdt",
-        //         "ts" => 1648717911384,
-        //         "symbol" => "LTC",
-        //         "contract_code" => "LTC-USDT",
-        //         "volume" => 1,
-        //         "price" => 129.13,
-        //         "order_price_type" => "lightning",
-        //         "direction" => "sell",
-        //         "offset" => "close",
-        //         "status" => 6,
-        //         "lever_rate" => 5,
-        //         "order_id" => "959137967397068800",
-        //         "order_id_str" => "959137967397068800",
-        //         "client_order_id" => null,
-        //         "order_source" => "web",
-        //         "order_type" => 1,
-        //         "created_at" => 1648717911344,
-        //         "trade_volume" => 1,
-        //         "trade_turnover" => 12.952,
-        //         "fee" => -0.006476,
-        //         "trade_avg_price" => 129.52,
-        //         "margin_frozen" => 0,
-        //         "profit" => -0.005,
-        //         "trade" => array(
+        //         "contract_type": "swap",
+        //         "pair": "LTC-USDT",
+        //         "business_type": "swap",
+        //         "op": "notify",
+        //         "topic": "orders_cross.ltc-usdt",
+        //         "ts": 1648717911384,
+        //         "symbol": "LTC",
+        //         "contract_code": "LTC-USDT",
+        //         "volume": 1,
+        //         "price": 129.13,
+        //         "order_price_type": "lightning",
+        //         "direction": "sell",
+        //         "offset": "close",
+        //         "status": 6,
+        //         "lever_rate": 5,
+        //         "order_id": "959137967397068800",
+        //         "order_id_str": "959137967397068800",
+        //         "client_order_id": null,
+        //         "order_source": "web",
+        //         "order_type": 1,
+        //         "created_at": 1648717911344,
+        //         "trade_volume": 1,
+        //         "trade_turnover": 12.952,
+        //         "fee": -0.006476,
+        //         "trade_avg_price": 129.52,
+        //         "margin_frozen": 0,
+        //         "profit": -0.005,
+        //         "trade": [
         //             {
-        //                 "trade_fee" => -0.006476,
-        //                 "fee_asset" => "USDT",
-        //                 "real_profit" => -0.005,
-        //                 "profit" => -0.005,
-        //                 "trade_id" => 83619995370,
-        //                 "id" => "83619995370-959137967397068800-1",
-        //                 "trade_volume" => 1,
-        //                 "trade_price" => 129.52,
-        //                 "trade_turnover" => 12.952,
-        //                 "created_at" => 1648717911352,
-        //                 "role" => "taker"
+        //                 "trade_fee": -0.006476,
+        //                 "fee_asset": "USDT",
+        //                 "real_profit": -0.005,
+        //                 "profit": -0.005,
+        //                 "trade_id": 83619995370,
+        //                 "id": "83619995370-959137967397068800-1",
+        //                 "trade_volume": 1,
+        //                 "trade_price": 129.52,
+        //                 "trade_turnover": 12.952,
+        //                 "created_at": 1648717911352,
+        //                 "role": "taker"
         //             }
-        //         ),
-        //         "canceled_at" => 0,
-        //         "fee_asset" => "USDT",
-        //         "margin_asset" => "USDT",
-        //         "uid" => "359305390",
-        //         "liquidation_type" => "0",
-        //         "margin_mode" => "cross",
-        //         "margin_account" => "USDT",
-        //         "is_tpsl" => 0,
-        //         "real_profit" => -0.005,
-        //         "trade_partition" => "USDT",
-        //         "reduce_only" => 1
+        //         ],
+        //         "canceled_at": 0,
+        //         "fee_asset": "USDT",
+        //         "margin_asset": "USDT",
+        //         "uid": "359305390",
+        //         "liquidation_type": "0",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "is_tpsl": 0,
+        //         "real_profit": -0.005,
+        //         "trade_partition": "USDT",
+        //         "reduce_only": 1
         //     }
         //
         //     {
@@ -1455,55 +1455,55 @@ class htx extends \ccxt\async\htx {
         //         "trade_avg_price":0.0905,
         //         "margin_frozen":0,
         //         "profit":0,
-        //         "trade":array(),
+        //         "trade":[],
         //         "canceled_at":0,
         //         "fee_asset":"ADA",
         //         "uid":"123456789",
         //         "liquidation_type":"0",
-        //         "is_tpsl" => 0,
-        //         "real_profit" => 0
+        //         "is_tpsl": 0,
+        //         "real_profit": 0
         //     }
         //
         // linear v5 watchOrders
         //
         //     {
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "price" => "40000",
-        //         "volume" => "1",
-        //         "state" => "new",
-        //         "profit" => "0",
-        //         "contract_code" => "BTC-USDT",
-        //         "position_side" => "both",
-        //         "price_match" => null,
-        //         "order_id" => "1519705236917489664",
-        //         "client_order_id" => "1519705236917489664",
-        //         "margin_mode" => "cross",
-        //         "lever_rate" => 10,
-        //         "order_source" => "api",
-        //         "reduce_only" => false,
-        //         "time_in_force" => "gtc",
-        //         "trade_avg_price" => "0",
-        //         "trade_volume" => "0",
-        //         "trade_turnover" => "0",
-        //         "fee_currency" => null,
-        //         "fee" => "0",
-        //         "tp_trigger_price" => "",
-        //         "tp_order_price" => "",
-        //         "tp_type" => "",
-        //         "tp_trigger_price_type" => "",
-        //         "sl_trigger_price" => "",
-        //         "sl_order_price" => "",
-        //         "sl_type" => "",
-        //         "sl_trigger_price_type" => "",
-        //         "contract_type" => "swap",
-        //         "cancel_reason" => "",
-        //         "created_time" => "1782367563239",
-        //         "updated_time" => "1782367563239",
-        //         "self_match_prevent" => "cancel_taker",
-        //         "amend_origin_volume" => "",
-        //         "amend_source" => "",
-        //         "amend_result" => ""
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "40000",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": "0",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "both",
+        //         "price_match": null,
+        //         "order_id": "1519705236917489664",
+        //         "client_order_id": "1519705236917489664",
+        //         "margin_mode": "cross",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": null,
+        //         "fee": "0",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "",
+        //         "sl_trigger_price_type": "",
+        //         "contract_type": "swap",
+        //         "cancel_reason": "",
+        //         "created_time": "1782367563239",
+        //         "updated_time": "1782367563239",
+        //         "self_match_prevent": "cancel_taker",
+        //         "amend_origin_volume": "",
+        //         "amend_source": "",
+        //         "amend_result": ""
         //     }
         //
         $lastTradeTimestamp = $this->safe_integer_n($order, array( 'lastActTime', 'updated_time', 'ts' ));
@@ -1576,25 +1576,25 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function parse_order_trade(mixed $trade, ?array $market = null) {
-        // spot private wrapped $trade
+    public function parse_order_trade(array $trade, ?array $market = null): array {
+        // spot private wrapped trade
         //
         //     {
-        //         "tradePrice" => "130.01",
-        //         "tradeVolume" => "0.0385",
-        //         "tradeTime" => 1648714741525,
-        //         "aggressor" => true,
-        //         "execAmt" => "0.0385",
-        //         "orderSource" => "spot-web",
-        //         "orderSize" => "0.0385",
-        //         "remainAmt" => "0",
-        //         "tradeId" => 101541578884,
-        //         "symbol" => "ltcusdt",
-        //         "type" => "sell-$market",
-        //         "eventType" => "trade",
-        //         "clientOrderId" => '',
-        //         "orderStatus" => "filled",
-        //         "orderId" => 509835753860328
+        //         "tradePrice": "130.01",
+        //         "tradeVolume": "0.0385",
+        //         "tradeTime": 1648714741525,
+        //         "aggressor": true,
+        //         "execAmt": "0.0385",
+        //         "orderSource": "spot-web",
+        //         "orderSize": "0.0385",
+        //         "remainAmt": "0",
+        //         "tradeId": 101541578884,
+        //         "symbol": "ltcusdt",
+        //         "type": "sell-market",
+        //         "eventType": "trade",
+        //         "clientOrderId": '',
+        //         "orderStatus": "filled",
+        //         "orderId": 509835753860328
         //     }
         //
         $marketResolved = $this->safe_market(null, $market);
@@ -1612,7 +1612,7 @@ class htx extends \ccxt\async\htx {
             $side = $typeParts[0];
             $type = $typeParts[1];
         }
-        $aggressor = $this->safe_value($trade, 'aggressor');
+        $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
             $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
@@ -1691,7 +1691,7 @@ class htx extends \ccxt\async\htx {
             }
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('positions', $v5Market, $params);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);
-            $params = $this->safe_value($channelAndMessageHashAndParams, 2, array());
+            $params = $this->safe_dict($channelAndMessageHashAndParams, 2, array());
         }
         $subscriptionParams = array(
             'isV5' => $isV5Linear,
@@ -1704,84 +1704,84 @@ class htx extends \ccxt\async\htx {
         return $this->filter_by_symbols_since_limit($this->safe_value($this->safe_value($this->positions, $url), $marginMode), $symbols, $since, $limit, false);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
-        //        op => 'notify',
-        //        $topic => 'positions_cross',
-        //        ts => 1696767149650,
-        //        event => 'snapshot',
-        //        data => array(
-        //          array(
-        //            contract_type => 'swap',
-        //            pair => 'BTC-USDT',
-        //            business_type => 'swap',
-        //            liquidation_price => null,
-        //            symbol => 'BTC',
-        //            contract_code => 'BTC-USDT',
-        //            volume => 1,
-        //            available => 1,
-        //            frozen => 0,
-        //            cost_open => 27802.2,
-        //            cost_hold => 27802.2,
-        //            profit_unreal => 0.0175,
-        //            profit_rate => 0.000629446590557581,
-        //            profit => 0.0175,
-        //            margin_asset => 'USDT',
-        //            position_margin => 27.8197,
-        //            lever_rate => 1,
-        //            direction => 'buy',
-        //            last_price => 27819.7,
-        //            margin_mode => 'cross',
-        //            margin_account => 'USDT',
-        //            trade_partition => 'USDT',
-        //            position_mode => 'dual_side'
-        //          ),
-        //        )
+        //        op: 'notify',
+        //        topic: 'positions_cross',
+        //        ts: 1696767149650,
+        //        event: 'snapshot',
+        //        data: [
+        //          {
+        //            contract_type: 'swap',
+        //            pair: 'BTC-USDT',
+        //            business_type: 'swap',
+        //            liquidation_price: null,
+        //            symbol: 'BTC',
+        //            contract_code: 'BTC-USDT',
+        //            volume: 1,
+        //            available: 1,
+        //            frozen: 0,
+        //            cost_open: 27802.2,
+        //            cost_hold: 27802.2,
+        //            profit_unreal: 0.0175,
+        //            profit_rate: 0.000629446590557581,
+        //            profit: 0.0175,
+        //            margin_asset: 'USDT',
+        //            position_margin: 27.8197,
+        //            lever_rate: 1,
+        //            direction: 'buy',
+        //            last_price: 27819.7,
+        //            margin_mode: 'cross',
+        //            margin_account: 'USDT',
+        //            trade_partition: 'USDT',
+        //            position_mode: 'dual_side'
+        //          },
+        //        ]
         //    }
         //
         // watchPositions linear v5
         //
         //     {
-        //         "op" => "notify",
-        //         "topic" => "positions",
-        //         "contract_code" => "BTC-USDT",
-        //         "ts" => 1782460576073,
-        //         "uid" => "359305390",
-        //         "event" => "snapshot",
-        //         "data" => array(
+        //         "op": "notify",
+        //         "topic": "positions",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782460576073,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": [
         //             {
-        //                 "contract_code" => "BTC-USDT",
-        //                 "symbol" => "BTC",
-        //                 "position_mode" => "single_side",
-        //                 "position_side" => "both",
-        //                 "direction" => "buy",
-        //                 "margin_mode" => "cross",
-        //                 "open_avg_price" => "60547.9",
-        //                 "volume" => "1",
-        //                 "available" => "1",
-        //                 "fee" => "0.03632874",
-        //                 "break_even_price" => "60620.55748",
-        //                 "total_trade_fee" => "0.03632874",
-        //                 "lever_rate" => 10,
-        //                 "adl_risk_percent" => 4,
-        //                 "liquidation_price" => "-102094.847680676304309652",
-        //                 "initial_margin" => "6.05807",
-        //                 "maintenance_margin" => "0.20597438",
-        //                 "profit_unreal" => "0.0328",
-        //                 "profit" => "0",
-        //                 "profit_rate" => "0.0054",
-        //                 "margin_rate" => "0.0012",
-        //                 "state" => "normal",
-        //                 "funding_fee" => "0",
-        //                 "mark_price" => "60580.7",
-        //                 "last_price" => "60591.4",
-        //                 "contract_type" => "swap",
-        //                 "version" => 7,
-        //                 "created_time" => "1782460515119",
-        //                 "updated_time" => "1782460515119"
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "position_mode": "single_side",
+        //                 "position_side": "both",
+        //                 "direction": "buy",
+        //                 "margin_mode": "cross",
+        //                 "open_avg_price": "60547.9",
+        //                 "volume": "1",
+        //                 "available": "1",
+        //                 "fee": "0.03632874",
+        //                 "break_even_price": "60620.55748",
+        //                 "total_trade_fee": "0.03632874",
+        //                 "lever_rate": 10,
+        //                 "adl_risk_percent": 4,
+        //                 "liquidation_price": "-102094.847680676304309652",
+        //                 "initial_margin": "6.05807",
+        //                 "maintenance_margin": "0.20597438",
+        //                 "profit_unreal": "0.0328",
+        //                 "profit": "0",
+        //                 "profit_rate": "0.0054",
+        //                 "margin_rate": "0.0012",
+        //                 "state": "normal",
+        //                 "funding_fee": "0",
+        //                 "mark_price": "60580.7",
+        //                 "last_price": "60591.4",
+        //                 "contract_type": "swap",
+        //                 "version": 7,
+        //                 "created_time": "1782460515119",
+        //                 "updated_time": "1782460515119"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $url = $client->url;
@@ -1790,11 +1790,11 @@ class htx extends \ccxt\async\htx {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        $clientPositions = $this->safe_value($this->positions, $url);
+        $clientPositions = $this->safe_dict($this->positions, $url);
         if ($clientPositions === null) {
             $this->positions[$url] = array();
         }
-        $rawPositions = $this->safe_value($message, 'data', array());
+        $rawPositions = $this->safe_list($message, 'data', array());
         if ($this->is_empty($rawPositions)) {
             $prefixes = array( 'cross:positions', 'isolated:positions' );
             for ($i = 0; $i < count($prefixes); $i++) {
@@ -1823,14 +1823,14 @@ class htx extends \ccxt\async\htx {
                 $this->positions[$url][$marginMode] = $cache;
             }
             $newPositions[] = $position;
-            $positionsByMarginMode[$marginMode] = $this->safe_value($positionsByMarginMode, $marginMode, array());
+            $positionsByMarginMode[$marginMode] = $this->safe_list($positionsByMarginMode, $marginMode, array());
             $positionsByMarginMode[$marginMode][] = $position;
             $cache->append($position);
         }
         $marginModes = is_array($positionsByMarginMode) ? array_keys($positionsByMarginMode) : array();
         for ($i = 0; $i < count($marginModes); $i++) {
             $marginMode = $marginModes[$i];
-            $marginModePositions = $this->safe_value($positionsByMarginMode, $marginMode, array());
+            $marginModePositions = $this->safe_list($positionsByMarginMode, $marginMode, array());
             $messageHashes = $this->find_message_hashes($client, $marginMode . ':$positions::');
             for ($j = 0; $j < count($messageHashes); $j++) {
                 $messageHash = $messageHashes[$j];
@@ -1865,7 +1865,7 @@ class htx extends \ccxt\async\htx {
         list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params, 'linear');
-        $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
+        $isUnifiedAccount = $this->safe_bool_2($params, 'isUnifiedAccount', 'unified', false);
         $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1952,28 +1952,28 @@ class htx extends \ccxt\async\htx {
             'margin' => $marginMode,
             'isV5' => $isV5Linear,
         );
-        // we are differentiating the $channel from the $messageHash for global subscriptions (*)
-        // because huobi returns a different topic than the topic sent. Example => we send
-        // "accounts.*" and "accounts" is returned so we're setting $channel = "accounts.*" and
-        // $messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
+        // we are differentiating the channel from the messageHash for global subscriptions (*)
+        // because huobi returns a different topic than the topic sent. Example: we send
+        // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
+        // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
         return Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params, $subscriptionParams));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         // spot
         //
         //     {
-        //         "action" => "push",
-        //         "ch" => "accounts.update#0",
-        //         "data" => {
-        //             "currency" => "btc",
-        //             "accountId" => 123456,
-        //             "balance" => "23.111",
-        //             "available" => "2028.699426619837209087",
-        //             "changeType" => "transfer",
+        //         "action": "push",
+        //         "ch": "accounts.update#0",
+        //         "data": {
+        //             "currency": "btc",
+        //             "accountId": 123456,
+        //             "balance": "23.111",
+        //             "available": "2028.699426619837209087",
+        //             "changeType": "transfer",
         //             "accountType":"trade",
-        //             "seqNum" => "86872993928",
-        //             "changeTime" => 1568601800000
+        //             "seqNum": "86872993928",
+        //             "changeTime": 1568601800000
         //         }
         //     }
         //
@@ -1984,7 +1984,7 @@ class htx extends \ccxt\async\htx {
         //         "topic":"accounts.ada",
         //         "ts":1604388667226,
         //         "event":"order.match",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "symbol":"ADA",
         //                 "margin_balance":446.417641681222726716,
@@ -2000,50 +2000,50 @@ class htx extends \ccxt\async\htx {
         //                 "lever_rate":20,
         //                 "adjust_factor":0.4
         //             }
-        //         ),
+        //         ],
         //         "uid":"123456789"
         //     }
         //
         // watchBalance linear v5
         //
         //     {
-        //         "op" => "notify",
-        //         "topic" => "account",
-        //         "contract_code" => "",
-        //         "ts" => 1782459963509,
-        //         "uid" => "359305390",
-        //         "event" => "snapshot",
-        //         "data" => {
-        //             "equity" => "0",
-        //             "state" => "normal",
-        //             "details" => array(
+        //         "op": "notify",
+        //         "topic": "account",
+        //         "contract_code": "",
+        //         "ts": 1782459963509,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": {
+        //             "equity": "0",
+        //             "state": "normal",
+        //             "details": [
         //                 {
-        //                     "currency" => "USDT",
-        //                     "equity" => "162.331953938562004875",
-        //                     "available" => "162.331953938562004875",
-        //                     "profit_unreal" => "0",
-        //                     "initial_margin" => "0",
-        //                     "maintenance_margin" => "0",
-        //                     "maintenance_margin_rate" => "0",
-        //                     "initial_margin_rate" => "0",
-        //                     "voucher" => "0",
-        //                     "voucher_value" => "0",
-        //                     "created_time" => "1770293270932",
-        //                     "updated_time" => "1780329743956",
-        //                     "isolated_equity" => "0",
-        //                     "isolated_profit_unreal" => "0",
-        //                     "withdraw_available" => "162.331953938562004875"
+        //                     "currency": "USDT",
+        //                     "equity": "162.331953938562004875",
+        //                     "available": "162.331953938562004875",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "created_time": "1770293270932",
+        //                     "updated_time": "1780329743956",
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0",
+        //                     "withdraw_available": "162.331953938562004875"
         //                 }
-        //             ),
-        //             "initial_margin" => "0",
-        //             "maintenance_margin" => "0",
-        //             "maintenance_margin_rate" => "0",
-        //             "profit_unreal" => "0",
-        //             "available_margin" => "0",
-        //             "created_time" => "1770293268881",
-        //             "updated_time" => "1780329743956",
-        //             "version" => 5659,
-        //             "voucher_value" => "0"
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "0",
+        //             "created_time": "1770293268881",
+        //             "updated_time": "1780329743956",
+        //             "version": 5659,
+        //             "voucher_value": "0"
         //         }
         //     }
         //
@@ -2054,7 +2054,7 @@ class htx extends \ccxt\async\htx {
         //         "topic":"accounts.ada",
         //         "ts":1604388667226,
         //         "event":"order.match",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "symbol":"ADA",
         //                 "margin_balance":446.417641681222726716,
@@ -2070,18 +2070,18 @@ class htx extends \ccxt\async\htx {
         //                 "lever_rate":20,
         //                 "adjust_factor":0.4
         //             }
-        //         ),
+        //         ],
         //         "uid":"123456789"
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $timestamp = $this->safe_integer($data, 'changeTime', $this->safe_integer($message, 'ts'));
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         $this->balance['info'] = $data;
         if ($channel !== null) {
-            // spot $balance
+            // spot balance
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2093,7 +2093,7 @@ class htx extends \ccxt\async\htx {
             $this->balance = $this->safe_balance($this->balance);
             $client->resolve($this->balance, $channel);
         } else {
-            // contract $balance
+            // contract balance
             $topic = $this->safe_string($message, 'topic');
             if ($topic === null) {
                 return;
@@ -2122,37 +2122,37 @@ class htx extends \ccxt\async\htx {
             if ($dataLength === 0) {
                 return;
             }
-            $first = $this->safe_value($data, 0, array());
+            $first = $this->safe_dict($data, 0, array());
             $splitTopic = explode('.', $topic);
             $messageHash = $this->safe_string($splitTopic, 0);
-            $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
+            $subscription = $this->safe_dict_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
-                // if $subscription not found means that we subscribed to a specific currency/symbol
-                // and we use the $first $data entry to find it
-                // Example => $topic = 'accounts'
-                // $client->subscription hash = 'accounts.usdt'
-                // we do 'accounts' . '.' . $data[0]]['margin_asset'] to get it
+                // if subscription not found means that we subscribed to a specific currency/symbol
+                // and we use the first data entry to find it
+                // Example: topic = 'accounts'
+                // client.subscription hash = 'accounts.usdt'
+                // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
                 $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
                 if ($currencyId === null) {
                     return;
                 }
                 $messageHash .= '.' . strtolower($currencyId);
-                $subscription = $this->safe_value($client->subscriptions, $messageHash);
+                $subscription = $this->safe_dict($client->subscriptions, $messageHash);
             }
             $subType = $this->safe_string($subscription, 'subType');
             if ($topic === 'accounts_unify') {
                 // {
-                //     "margin_asset" => "USDT",
-                //     "margin_static" => 10,
-                //     "cross_margin_static" => 10,
-                //     "margin_balance" => 10,
-                //     "cross_profit_unreal" => 0,
-                //     "margin_frozen" => 0,
-                //     "withdraw_available" => 10,
-                //     "cross_risk_rate" => null,
-                //     "cross_swap" => array(),
-                //     "cross_future" => array(),
-                //     "isolated_swap" => array()
+                //     "margin_asset": "USDT",
+                //     "margin_static": 10,
+                //     "cross_margin_static": 10,
+                //     "margin_balance": 10,
+                //     "cross_profit_unreal": 0,
+                //     "margin_frozen": 0,
+                //     "withdraw_available": 10,
+                //     "cross_risk_rate": null,
+                //     "cross_swap": [],
+                //     "cross_future": [],
+                //     "isolated_swap": []
                 // }
                 $marginAsset = $this->safe_string($first, 'margin_asset');
                 $code = $this->safe_currency_code($marginAsset);
@@ -2168,7 +2168,7 @@ class htx extends \ccxt\async\htx {
             } elseif ($subType === 'linear') {
                 $margin = $this->safe_string($subscription, 'margin');
                 if ($margin === 'cross') {
-                    // the cross $account is one shared $margin $balance, keyed by the settle currency
+                    // the cross account is one shared margin balance, keyed by the settle currency
                     $currencyId = $this->safe_string_2($first, 'margin_asset', 'margin_account');
                     $code = $this->safe_currency_code($currencyId);
                     if ($code !== null) {
@@ -2180,7 +2180,7 @@ class htx extends \ccxt\async\htx {
                         $this->balance = $this->safe_balance($this->balance);
                     }
                 } else {
-                    // isolated $margin
+                    // isolated margin
                     for ($i = 0; $i < count($data); $i++) {
                         $isolatedBalance = $data[$i];
                         $account = $this->account();
@@ -2213,21 +2213,21 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         //     {
-        //         "id" => 1583414227,
-        //         "status" => "ok",
-        //         "subbed" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583414229143
+        //         "id": 1583414227,
+        //         "status": "ok",
+        //         "subbed": "market.btcusdt.mbp.150",
+        //         "ts": 1583414229143
         //     }
         //
         // unsubscribe
         //     {
-        //         "id" => "2",
-        //         "status" => "ok",
-        //         "unsubbed" => "market.BTC-USDT-251003.detail",
-        //         "ts" => 1759329276980
+        //         "id": "2",
+        //         "status": "ok",
+        //         "unsubbed": "market.BTC-USDT-251003.detail",
+        //         "ts": 1759329276980
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -2265,58 +2265,58 @@ class htx extends \ccxt\async\htx {
         $this->clean_cache($subscription);
     }
 
-    public function handle_system_status(Client $client, mixed $message) {
+    public function handle_system_status(Client $client, array $message): array {
         //
-        // todo => answer the question whether handleSystemStatus should be renamed
+        // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
-        //         "id" => "1578090234088", // connectId
-        //         "type" => "welcome",
+        //         "id": "1578090234088", // connectId
+        //         "type": "welcome",
         //     }
         //
         return $message;
     }
 
-    public function handle_subject(Client $client, mixed $message) {
+    public function handle_subject(Client $client, array $message) {
         // spot
         //     {
-        //         "ch" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583472025885,
-        //         "tick" => {
-        //             "seqNum" => 104998984994,
-        //             "prevSeqNum" => 104998984977,
-        //             "bids" => array(
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         // non spot
         //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
-        //         "tick":array(
-        //             "asks":array(),
-        //             "bids":array(
+        //         "tick":{
+        //             "asks":[],
+        //             "bids":[
         //                 [43445.74,1],
         //                 [43444.48,0 ],
         //                 [40593.92,9]
-        //             ),
+        //             ],
         //             "ch":"market.BTC220218.depth.size_150.high_freq",
         //             "event":"update",
         //             "id":152727500274,
         //             "mrid":152727500274,
         //             "ts":1645023376098,
         //             "version":37536690
-        //         ),
+        //         },
         //         "ts":1645023376098
         //     }
         //
@@ -2325,11 +2325,11 @@ class htx extends \ccxt\async\htx {
         //     {
         //         "action":"push",
         //         "ch":"trade.clearing#ltcusdt#1",
-        //         "data":array(
+        //         "data":{
         //             "eventType":"trade",
         //             "symbol":"ltcusdt",
         //             // ...
-        //         ),
+        //         },
         //     }
         //
         // spot order
@@ -2337,14 +2337,14 @@ class htx extends \ccxt\async\htx {
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt",
-        //         "data" => {
+        //         "data": {
         //             "orderSide":"buy",
         //             "lastActTime":1583853365586,
         //             "clientOrderId":"abc123",
         //             "orderStatus":"rejected",
         //             "symbol":"btcusdt",
         //             "eventType":"trigger",
-        //             "errCode" => 2002,
+        //             "errCode": 2002,
         //             "errMessage":"invalid.client.order.id (NT)"
         //         }
         //     }
@@ -2358,7 +2358,7 @@ class htx extends \ccxt\async\htx {
         //         // ?
         //     }
         //
-        $ch = $this->safe_value($message, 'ch', '');
+        $ch = $this->safe_string($message, 'ch', '');
         $parts = explode('.', $ch);
         $type = $this->safe_string($parts, 0);
         if ($type === 'market') {
@@ -2412,15 +2412,15 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         //
-        //     array( $ping => 1583491673714 )
-        //     array( $action => "ping", $data => array( ts => 1645108204665 ) )
-        //     array( $op => "ping", ts => "1645202800015" )
+        //     { ping: 1583491673714 }
+        //     { action: "ping", data: { ts: 1645108204665 } }
+        //     { op: "ping", ts: "1645202800015" }
         //
         try {
             $ping = $this->safe_integer($message, 'ping');
@@ -2430,7 +2430,7 @@ class htx extends \ccxt\async\htx {
             }
             $action = $this->safe_string($message, 'action');
             if ($action === 'ping') {
-                $data = $this->safe_value($message, 'data');
+                $data = $this->safe_dict($message, 'data');
                 $pingTs = $this->safe_integer($data, 'ts');
                 Async\await($client->send(array( 'action' => 'pong', 'data' => array( 'ts' => $pingTs ))));
                 return;
@@ -2446,59 +2446,59 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message) {
         //
         // spot
         //
         //     {
-        //         "action" => "req",
-        //         "code" => 200,
-        //         "ch" => "auth",
-        //         "data" => array()
+        //         "action": "req",
+        //         "code": 200,
+        //         "ch": "auth",
+        //         "data": {}
         //     }
         //
         // non spot
         //
         //    {
-        //        "op" => "auth",
-        //        "type" => "api",
-        //        "err-code" => 0,
-        //        "ts" => 1645200307319,
-        //        "data" => array( "user-id" => "35930539" )
+        //        "op": "auth",
+        //        "type": "api",
+        //        "err-code": 0,
+        //        "ts": 1645200307319,
+        //        "data": { "user-id": "35930539" }
         //    }
         //
         $promise = $client->futures['auth'];
         $promise->resolve($message);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         "action" => "sub",
-        //         "code" => 2002,
-        //         "ch" => "accounts.update#2",
-        //         "message" => "invalid.auth.state"
+        //         "action": "sub",
+        //         "code": 2002,
+        //         "ch": "accounts.update#2",
+        //         "message": "invalid.auth.state"
         //      }
         //
         //     {
-        //         "ts" => 1586323747018,
-        //         "status" => "error",
-        //         'err-code' => "bad-request",
-        //         'err-msg' => "invalid mbp.150.symbol linkusdt",
-        //         "id" => "2"
+        //         "ts": 1586323747018,
+        //         "status": "error",
+        //         'err-code': "bad-request",
+        //         'err-msg': "invalid mbp.150.symbol linkusdt",
+        //         "id": "2"
         //     }
         //
         //     {
-        //         "op" => "sub",
-        //         "cid" => "1",
-        //         "topic" => "accounts_unify.USDT",
-        //         "err-$code" => 4007,
-        //         'err-msg' => "Non - single account user is not available, please check through the cross and isolated account asset interface",
-        //         "ts" => 1698419490189
+        //         "op": "sub",
+        //         "cid": "1",
+        //         "topic": "accounts_unify.USDT",
+        //         "err-code": 4007,
+        //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
+        //         "ts": 1698419490189
         //     }
         //     {
         //         "action":"req",
@@ -2514,7 +2514,7 @@ class htx extends \ccxt\async\htx {
                 return false;
             }
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $id);
+            $subscription = $this->safe_dict($subscriptionsById, $id);
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {
@@ -2529,7 +2529,7 @@ class htx extends \ccxt\async\htx {
                             unset($client->subscriptions[$id]);
                         }
                     }
-                    // the $subscription is keyed by the $messageHash, not by the $id -
+                    // the subscription is keyed by the messageHash, not by the id -
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
@@ -2562,18 +2562,18 @@ class htx extends \ccxt\async\htx {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             //
-            //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
+            //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
             // first ping format
             //
-            //    array("ping" => 1645106821667 )
+            //    {"ping": 1645106821667 }
             //
             // second ping format
             //
-            //    array("action":"ping","data":array("ts":1645106821667))
+            //    {"action":"ping","data":{"ts":1645106821667}}
             //
             // third pong format
             //
@@ -2581,20 +2581,20 @@ class htx extends \ccxt\async\htx {
             // auth spot
             //
             //     {
-            //         "action" => "req",
-            //         "code" => 200,
-            //         "ch" => "auth",
-            //         "data" => array()
+            //         "action": "req",
+            //         "code": 200,
+            //         "ch": "auth",
+            //         "data": {}
             //     }
             //
             // auth non spot
             //
             //    {
-            //        "op" => "auth",
-            //        "type" => "api",
-            //        "err-code" => 0,
-            //        "ts" => 1645200307319,
-            //        "data" => array( "user-id" => "35930539" )
+            //        "op": "auth",
+            //        "type": "api",
+            //        "err-code": 0,
+            //        "ts": 1645200307319,
+            //        "data": { "user-id": "35930539" }
             //    }
             //
             // trade
@@ -2658,7 +2658,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_my_trade(Client $client, mixed $message, $extendParams = array()) {
+    public function handle_my_trade(Client $client, array $message, array $extendParams = array()) {
         //
         // spot
         //
@@ -2670,7 +2670,7 @@ class htx extends \ccxt\async\htx {
         //             "symbol":"ltcusdt",
         //             "orderId":"478862728954426",
         //             "orderSide":"buy",
-        //             "orderType":"buy-$market",
+        //             "orderType":"buy-market",
         //             "accountId":44234548,
         //             "source":"spot-web",
         //             "orderValue":"5.01724137",
@@ -2691,9 +2691,9 @@ class htx extends \ccxt\async\htx {
         // contract
         //
         //     {
-        //         "symbol" => "ADA/USDT:USDT"
-        //         "ch" => "orders_cross.ada-usdt"
-        //         "trades" => array(
+        //         "symbol": "ADA/USDT:USDT"
+        //         "ch": "orders_cross.ada-usdt"
+        //         "trades": [
         //             {
         //                 "trade_fee":-0.022099447513812154,
         //                 "fee_asset":"ADA",
@@ -2704,38 +2704,38 @@ class htx extends \ccxt\async\htx {
         //                 "trade_turnover":10,
         //                 "created_at":1604388667194,
         //                 "profit":0,
-        //                 "real_profit" => 0,
+        //                 "real_profit": 0,
         //                 "role":"maker"
         //             }
-        //         ),
+        //         ],
         //     }
         //
         // linear v5 watchMyTrades
         //
         //     {
-        //         "op" => "notify",
-        //         "topic" => "trade",
-        //         "contract_code" => "BTC-USDT",
-        //         "ts" => 1782367694387,
-        //         "uid" => "359305390",
-        //         "data" => array(
+        //         "op": "notify",
+        //         "topic": "trade",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367694387,
+        //         "uid": "359305390",
+        //         "data": [
         //             {
-        //                 "direction" => "buy",
-        //                 "id" => "100121555172810-1519705786942156810-1",
-        //                 "contract_code" => "BTC-USDT",
-        //                 "contract_type" => "swap",
-        //                 "order_id" => "1519705786942156810",
-        //                 "trade_id" => "155233460",
-        //                 "position_side" => "both",
-        //                 "trade_volume" => "1",
-        //                 "trade_price" => "61629",
-        //                 "trade_turnover" => "61.629",
-        //                 "role" => "taker",
-        //                 "client_order_id" => "1519705786942156810",
-        //                 "created_time" => "1782367694375",
-        //                 "updated_time" => "1782367694385"
+        //                 "direction": "buy",
+        //                 "id": "100121555172810-1519705786942156810-1",
+        //                 "contract_code": "BTC-USDT",
+        //                 "contract_type": "swap",
+        //                 "order_id": "1519705786942156810",
+        //                 "trade_id": "155233460",
+        //                 "position_side": "both",
+        //                 "trade_volume": "1",
+        //                 "trade_price": "61629",
+        //                 "trade_turnover": "61.629",
+        //                 "role": "taker",
+        //                 "client_order_id": "1519705786942156810",
+        //                 "created_time": "1782367694375",
+        //                 "updated_time": "1782367694385"
         //             }
-        //         )
+        //         ]
         //     }
         //
         if ($this->myTrades === null) {
@@ -2772,8 +2772,8 @@ class htx extends \ccxt\async\htx {
             } else {
                 // this trades object is artificially created
                 // in handleOrder
-                $rawTrades = $this->safe_value($message, 'trades', array());
-                $marketId = $this->safe_value($message, 'symbol');
+                $rawTrades = $this->safe_list($message, 'trades', array());
+                $marketId = $this->safe_string($message, 'symbol');
                 $market = $this->market($marketId);
                 for ($i = 0; $i < count($rawTrades); $i++) {
                     $trade = $rawTrades[$i];
@@ -2782,14 +2782,14 @@ class htx extends \ccxt\async\htx {
                     $parsedTrade = $this->extend($parsedTrade, $extendParams);
                     $cachedTrades->append($parsedTrade);
                 }
-                // $messageHash here is the orders one, so
-                // we have to recreate the trades $messageHash = orderMessageHash . ':' . 'trade'
+                // messageHash here is the orders one, so
+                // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
                 $tradesHash = $messageHash . ':' . 'trade';
                 $client->resolve($this->myTrades, $tradesHash);
                 // when we make an global order sub we have to send the channel like this
-                // ch = orders_cross.* and we store $messageHash = 'orders_cross'
-                // however it is returned with the specific order update $symbol => ch = orders_cross.btc-usd
-                // since this is a global sub, our $messageHash does not specify any $symbol (ex => orders_cross:$trade)
+                // ch = orders_cross.* and we store messageHash = 'orders_cross'
+                // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
+                // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 $genericOrderHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
                 $lowerCaseBaseId = $this->safe_string_lower($market, 'baseId');
@@ -2800,7 +2800,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         // spot private
         //
         //     {
@@ -2808,7 +2808,7 @@ class htx extends \ccxt\async\htx {
         //         "symbol":"ltcusdt",
         //         "orderId":"478862728954426",
         //         "orderSide":"buy",
-        //         "orderType":"buy-$market",
+        //         "orderType":"buy-market",
         //         "accountId":44234548,
         //         "source":"spot-web",
         //         "orderValue":"5.01724137",
@@ -2828,20 +2828,20 @@ class htx extends \ccxt\async\htx {
         // linear v5 watchMyTrades
         //
         //     {
-        //         "direction" => "buy",
-        //         "id" => "100121555172810-1519705786942156810-1",
-        //         "contract_code" => "BTC-USDT",
-        //         "contract_type" => "swap",
-        //         "order_id" => "1519705786942156810",
-        //         "trade_id" => "155233460",
-        //         "position_side" => "both",
-        //         "trade_volume" => "1",
-        //         "trade_price" => "61629",
-        //         "trade_turnover" => "61.629",
-        //         "role" => "taker",
-        //         "client_order_id" => "1519705786942156810",
-        //         "created_time" => "1782367694375",
-        //         "updated_time" => "1782367694385"
+        //         "direction": "buy",
+        //         "id": "100121555172810-1519705786942156810-1",
+        //         "contract_code": "BTC-USDT",
+        //         "contract_type": "swap",
+        //         "order_id": "1519705786942156810",
+        //         "trade_id": "155233460",
+        //         "position_side": "both",
+        //         "trade_volume": "1",
+        //         "trade_price": "61629",
+        //         "trade_turnover": "61.629",
+        //         "role": "taker",
+        //         "client_order_id": "1519705786942156810",
+        //         "created_time": "1782367694375",
+        //         "updated_time": "1782367694385"
         //     }
         //
         $marketId = $this->safe_string_2($trade, 'symbol', 'contract_code');
@@ -2854,7 +2854,7 @@ class htx extends \ccxt\async\htx {
         $order = $this->safe_string_2($trade, 'orderId', 'order_id');
         $timestamp = $this->safe_integer_n($trade, array( 'tradeTime', 'updated_time', 'created_time' ));
         $orderType = $this->safe_string_2($trade, 'orderType', 'type');
-        $aggressor = $this->safe_value($trade, 'aggressor');
+        $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
             $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
@@ -2892,7 +2892,7 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function get_url_by_market_type(mixed $type, $isLinear = true, $isPrivate = false, $isFeed = false, $isV5 = false) {
+    public function get_url_by_market_type(mixed $type, $isLinear = true, $isPrivate = false, $isFeed = false, $isV5 = false): ?string {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $hostnameURL = null;
@@ -2924,11 +2924,11 @@ class htx extends \ccxt\async\htx {
         return $url;
     }
 
-    public function subscribe_public(mixed $url, mixed $symbol, mixed $messageHash, mixed $method = null, $params = array()) {
+    public function subscribe_public(?string $url, ?string $symbol, ?string $messageHash, mixed $method = null, $params = array()) {
         return Async\async(self::do_subscribe_public(...))($url, $symbol, $messageHash, $method, $params);
     }
 
-    private function do_subscribe_public(mixed $url, mixed $symbol, mixed $messageHash, mixed $method = null, $params = array()) {
+    private function do_subscribe_public(?string $url, ?string $symbol, ?string $messageHash, mixed $method = null, $params = array()) {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -2978,11 +2978,11 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_private(mixed $channel, mixed $messageHash, mixed $type, mixed $subtype, $params = array(), $subscriptionParams = array()) {
+    public function subscribe_private(?string $channel, ?string $messageHash, ?string $type, ?string $subtype, $params = array(), array $subscriptionParams = array()) {
         return Async\async(self::do_subscribe_private(...))($channel, $messageHash, $type, $subtype, $params, $subscriptionParams);
     }
 
-    private function do_subscribe_private(mixed $channel, mixed $messageHash, mixed $type, mixed $subtype, $params = array(), $subscriptionParams = array()) {
+    private function do_subscribe_private(?string $channel, ?string $messageHash, ?string $type, ?string $subtype, $params = array(), array $subscriptionParams = array()) {
         $requestId = $this->request_id();
         $subscription = array(
             'id' => $requestId,

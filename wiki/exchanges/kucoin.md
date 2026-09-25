@@ -85,6 +85,7 @@
 * [setContractLeverage](#setcontractleverage)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
@@ -2403,6 +2404,29 @@ fetch the current funding rate
 
 ```javascript
 kucoin.fetchFundingRate (symbol, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetch the current funding rates for multiple markets
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
+
+**See**: https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols, all markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES |
+| params.symbol | <code>string</code> | No | exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided |
+
+
+```javascript
+kucoin.fetchFundingRates (symbols?, params?)
 ```
 
 

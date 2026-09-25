@@ -82,6 +82,79 @@
         ],
         "watchTicker": [
             {
+                "description": "Exchange rate underlying swap watchTicker",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "url": "wss://fstream.binance.com/market/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "24hrMiniTicker",
+                        "E": 1790231379097,
+                        "s": "USDBRLUSDT",
+                        "ps": "USDBRLUSDT",
+                        "c": "5.17040",
+                        "o": "5.11040",
+                        "h": "5.17750",
+                        "l": "5.11000",
+                        "v": "264120.33",
+                        "q": "1358988.06444",
+                        "st": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "usdbrlusdt@miniTicker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "USDBRL/USDT:USDT",
+                        "timestamp": 1790231379097,
+                        "datetime": "2026-09-24T06:29:39.097Z",
+                        "high": 5.1775,
+                        "low": 5.11,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 5.145336841128436,
+                        "open": 5.1104,
+                        "close": 5.1704,
+                        "last": 5.1704,
+                        "previousClose": null,
+                        "change": 0.06,
+                        "percentage": 1.17407639323732,
+                        "average": 5.1404,
+                        "baseVolume": 264120.33,
+                        "quoteVolume": 1358988.06444,
+                        "info": {
+                            "e": "24hrMiniTicker",
+                            "E": 1790231379097,
+                            "s": "USDBRLUSDT",
+                            "ps": "USDBRLUSDT",
+                            "c": "5.17040",
+                            "o": "5.11040",
+                            "h": "5.17750",
+                            "l": "5.11000",
+                            "v": "264120.33",
+                            "q": "1358988.06444",
+                            "st": 1
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "linear swap ticker",
                 "input": [
                     "BTC/USDT:USDT"
@@ -486,6 +559,64 @@
             }
         ],
         "watchOHLCV": [
+            {
+                "description": "Exchange rate underlying swap watchOHLCV",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "url": "wss://fstream.binance.com/market/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "kline",
+                        "E": 1790231463001,
+                        "s": "USDBRLUSDT",
+                        "k": {
+                            "t": 1790231400000,
+                            "T": 1790231459999,
+                            "s": "USDBRLUSDT",
+                            "i": "1m",
+                            "f": 73667,
+                            "L": 73667,
+                            "o": "5.17040",
+                            "c": "5.17040",
+                            "h": "5.17040",
+                            "l": "5.17040",
+                            "v": "0.01",
+                            "n": 1,
+                            "x": true,
+                            "q": "0.0517040",
+                            "V": "0",
+                            "Q": "0",
+                            "B": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "usdbrlusdt@kline_1m"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1790231400000,
+                            5.1704,
+                            5.1704,
+                            5.1704,
+                            5.1704,
+                            0.01
+                        ]
+                    ]
+                ]
+            },
             {
                 "description": "linear swap ohlcv 1m",
                 "input": [
@@ -4455,6 +4586,74 @@
             }
         ],
         "watchTrades": [
+            {
+                "description": "Exchange rate underlying swap watchTrades",
+                "input": [
+                    "USDBRL/USDT:USDT"
+                ],
+                "url": "wss://fstream.binance.com/public/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "trade",
+                        "E": 1790231520511,
+                        "T": 1790231520511,
+                        "s": "USDBRLUSDT",
+                        "t": 73669,
+                        "p": "5.17050",
+                        "q": "0.01",
+                        "X": "MARKET",
+                        "m": false,
+                        "st": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "usdbrlusdt@trade"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "e": "trade",
+                                "E": 1790231520511,
+                                "T": 1790231520511,
+                                "s": "USDBRLUSDT",
+                                "t": 73669,
+                                "p": "5.17050",
+                                "q": "0.01",
+                                "X": "MARKET",
+                                "m": false,
+                                "st": 1
+                            },
+                            "timestamp": 1790231520511,
+                            "datetime": "2026-09-24T06:32:00.511Z",
+                            "symbol": "USDBRL/USDT:USDT",
+                            "id": "73669",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 5.1705,
+                            "amount": 0.01,
+                            "cost": 0.051705,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            },
             {
                 "description": "linear swap trades",
                 "input": [

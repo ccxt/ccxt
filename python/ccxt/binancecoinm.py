@@ -5,6 +5,7 @@
 
 from ccxt.binance import binance
 from ccxt.abstract.binancecoinm import ImplicitAPI
+from ccxt.base.types import TransferEntry
 
 
 class binancecoinm(binance, ImplicitAPI):
@@ -41,10 +42,10 @@ class binancecoinm(binance, ImplicitAPI):
             },
         })
 
-    def transfer_in(self, code: str, amount: object, params={}):
+    def transfer_in(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         # transfer from spot wallet to coinm futures wallet
         return self.futuresTransfer(code, amount, 3, params)
 
-    def transfer_out(self, code: str, amount: object, params={}):
+    def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         # transfer from coinm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 4, params)

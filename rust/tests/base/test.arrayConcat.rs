@@ -11,8 +11,8 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testArrayConcat() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testArrayConcat".to_string()).clone(), exchange.array_concat(Value::List(vec![Value::Str("b".to_string())]), Value::List(vec![Value::Str("a".to_string()), Value::Str("c".to_string())])).clone(), Value::List(vec![Value::Str("b".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testArrayConcat".into()).clone(), exchange.array_concat(Value::from(vec![Value::Str("b".into())]), Value::from(vec![Value::Str("a".into()), Value::Str("c".into())])).clone(), Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]).clone()]);
 }

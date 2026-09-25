@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-base"
-version = "4.5.78"
+version = "4.5.84"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – untyped engine (runtime, Value, REST/prediction Cores, WS infra)"
 license = "MIT"
@@ -26,7 +26,135 @@ default = []
 # `ccxt-pro` and `ccxt-typed` crates so no single `rustc` invocation holds the
 # whole generated surface at once (it OOM'd the 16 GB CI runner). Depend on
 # those crates directly instead of enabling a feature.
-transpiled-base = []
+#
+# `transpiled-base` = the whole surface (engine + every REST and prediction
+# Core), unchanged for existing users and CI. `engine` is the base method
+# surface alone; the sibling `ccxt` / `ccxt-pro` / `ccxt-prediction` crates
+# enable it plus one per-exchange feature per venue the user asked for, so
+# `ccxt = { default-features = false, features = ["binance"] }` compiles a
+# single Core instead of all 200+.
+transpiled-base = ["engine", "all-exchanges", "all-prediction"]
+engine = []
+# One feature per transpiled Core, emitted by build/generateRustWrappers.ts; a
+# derived venue lists its parent so the parent Core compiles too. Prediction
+# Cores are prefixed `prediction-` because their ids overlap the REST venues.
+# BEGIN GENERATED FEATURES
+alpaca = []
+apex = []
+aster = []
+backpack = []
+bequant = ["hitbtc"]
+bigone = []
+binance = []
+binancecoinm = ["binance"]
+binanceus = ["binance"]
+binanceusdm = ["binance"]
+bingx = []
+bit2c = []
+bitbank = []
+bitbns = []
+bitfinex = []
+bitflyer = []
+bitget = []
+bithumb = []
+bitopro = []
+bitrue = []
+bitso = []
+bitstamp = []
+bitteam = []
+bittrade = []
+bitvavo = []
+blockchaincom = []
+blofin = []
+btcbox = []
+btcmarkets = []
+btcturk = []
+btse = []
+bullish = []
+bybit = []
+bybiteu = ["bybit"]
+bybitid = ["bybit"]
+bydfi = []
+cex = []
+coinbase = []
+coinbaseexchange = []
+coinbaseinternational = []
+coincheck = []
+coinex = []
+coinmate = []
+coinone = []
+coinsph = []
+coinspot = []
+cryptocom = []
+cryptomus = []
+deepcoin = []
+delta = []
+deribit = []
+derive = []
+digifinex = []
+dydx = []
+extended = []
+fmfwio = ["hitbtc"]
+foxbit = []
+gate = []
+gateeu = ["gate"]
+gemini = []
+grvt = []
+hashkey = []
+hibachi = []
+hitbtc = []
+hollaex = []
+htx = []
+hyperliquid = []
+independentreserve = []
+indodax = []
+kraken = []
+krakenfutures = []
+kucoin = []
+kucoinfutures = ["kucoin"]
+latoken = []
+lbank = []
+lighter = []
+luno = []
+mercado = []
+mexc = []
+modetrade = []
+mudrex = []
+myokx = ["okx"]
+nado = []
+ndax = []
+okx = []
+okxus = ["okx"]
+onetrading = []
+p2b = []
+pacifica = []
+paradex = []
+paymium = []
+phemex = []
+poloniex = []
+revolutx = []
+tokocrypto = []
+toobit = []
+upbit = []
+weex = []
+whitebit = []
+woo = []
+woofipro = []
+xt = []
+zaif = []
+zebpay = []
+prediction-binance = []
+prediction-hyperliquid = []
+prediction-kalshi = []
+prediction-limitless = []
+prediction-myriad = []
+prediction-opinion = []
+prediction-polymarket = []
+prediction-predictfun = []
+prediction-sxbet = []
+all-exchanges = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "bydfi", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinex", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
+all-prediction = ["prediction-binance", "prediction-hyperliquid", "prediction-kalshi", "prediction-limitless", "prediction-myriad", "prediction-opinion", "prediction-polymarket", "prediction-predictfun", "prediction-sxbet"]
+# END GENERATED FEATURES
 
 [dependencies]
 # HTTP client (async)
@@ -84,6 +212,12 @@ chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
 # Error handling
 thiserror = "1"
+# async fns in traits, which is what makes RouterVenue dyn-compatible. OrderRouter::execute
+# takes a BTreeMap<String, Box<dyn RouterVenue>>, and without this macro the trait's async
+# methods return `impl Future`, which is not object-safe — the map cannot exist and 131
+# downstream errors follow. Upstream's Cargo.toml has no order_router.rs and so no reason to
+# carry this; it must be re-added on every merge from upstream until that changes.
+async-trait = "0.1"
 # Insertion-order-preserving map. Used as Value::Map's backing store so
 # that JSON / URL-encoded payloads serialize keys in the order exchanges
 # expect (bingx/digifinex/mexc createOrders fixtures assert specific

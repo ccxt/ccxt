@@ -13,8 +13,8 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name hollaex#watchTrades
@@ -26,8 +26,8 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name hollaex#watchMyTrades
@@ -39,8 +39,8 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: Dict, subscription?: Dict | undefined): void;
     /**
      * @method
      * @name hollaex#watchOrders
@@ -52,8 +52,8 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: Dict | undefined): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict, subscription?: Dict | undefined): void;
     /**
      * @method
      * @name hollaex#watchBalance
@@ -62,16 +62,14 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    watchPublic(messageHash: any, params?: {}): Promise<any>;
-    watchPrivate(messageHash: any, params?: {}): Promise<any>;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    watchPublic(messageHash: string, params?: Dict): Promise<any>;
+    watchPrivate(messageHash: string, params?: Dict): Promise<any>;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
-    ping(client: Client): {
-        op: string;
-    };
-    handlePong(client: Client, message: any): any;
+    handleMessage(client: Client, message: Dict): void;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): Dict;
     onError(client: Client, error: any): void;
     onClose(client: Client, error: any): void;
 }

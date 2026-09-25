@@ -409,7 +409,7 @@ class limitless extends limitless$1["default"] {
         const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], slug);
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString(raw, 'conditionId');
-        const tokens = this.safeValue(raw, 'tokens', {});
+        const tokens = this.safeDict(raw, 'tokens', {});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool(raw, 'expired', false);
@@ -1101,15 +1101,14 @@ class limitless extends limitless$1["default"] {
         if (askSizeStr !== undefined) {
             askSizeStr = Precise["default"].stringDiv(askSizeStr, '1000000');
         }
-        const now = this.milliseconds();
         const outcomeSymbol = this.safeOutcomeSymbol(undefined, market);
         return this.safePredictionTicker({
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString(market, 'outcomeId'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.parseNumber(bidStr),
@@ -1212,7 +1211,7 @@ class limitless extends limitless$1["default"] {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents(this.extend(request, params));
         //
@@ -1287,7 +1286,6 @@ class limitless extends limitless$1["default"] {
         //         "lastTradePrice": "0.161"
         //     }
         //
-        const timestamp = this.milliseconds();
         const decimals = this.safeInteger(this.options, 'usdcDecimals', 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         const scaleStr = this.parsePrecision(this.numberToString(-decimals));
@@ -1326,8 +1324,8 @@ class limitless extends limitless$1["default"] {
             'outcome': this.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': this.sortBy(bids, 0, true),
             'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
         return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -2055,7 +2053,7 @@ class limitless extends limitless$1["default"] {
         catch (e) {
             throw new errors.InvalidAddress(this.id + ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
         }
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const sides = {
             'buy': 0,
             'sell': 1,
@@ -3082,22 +3080,27 @@ class limitless extends limitless$1["default"] {
         }
         return allRaw;
     }
+    nonce() {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two orders are signed within the same millisecond
+        return this.milliseconds();
+    }
     /**
      * @ignore
      * @method
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, section = 'limitless', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof section === 'string' ? section : section[0];
-        const access = typeof section === 'string' ? 'public' : section[1];
+    sign(path, api = 'limitless', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiGroup = typeof api === 'string' ? api : api[0];
+        const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams(path, params);
@@ -3126,10 +3129,13 @@ class limitless extends limitless$1["default"] {
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
             const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
             headers = this.extend(headers, {
-                'lmts-api-key': this.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
+            const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
+            const headersKey = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend(headers, headersKey);
         }
         url = baseUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

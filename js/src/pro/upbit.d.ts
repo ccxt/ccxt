@@ -1,9 +1,9 @@
 import upbitRest from '../upbit.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Strings, OHLCV, Market } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers, Strings, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
     describe(): any;
-    watchPublicMultiple(symbols: Strings, channel: any, params?: {}): Promise<any>;
+    watchPublicMultiple(symbols: Strings, channel: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name upbit#watchTicker
@@ -13,7 +13,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name upbit#watchTickers
@@ -23,7 +23,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name upbit#watchTrades
@@ -35,7 +35,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name upbit#watchTradesForSymbols
@@ -47,7 +47,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name upbit#watchOrderBook
@@ -58,7 +58,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name upbit#watchOHLCV
@@ -72,13 +72,13 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleTicker(client: Client, message: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    handleTrades(client: Client, message: any): void;
-    handleOHLCV(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<import("../base/ws/WsClient.js").default>;
-    watchPrivate(symbol: any, channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleTicker(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleTrades(client: Client, message: Dict): void;
+    handleOHLCV(client: Client, message: Dict): void;
+    authenticate(params?: Dict): Promise<import("../base/ws/WsClient.js").default>;
+    watchPrivate(symbol: Str, channel: string, messageHash: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name upbit#watchOrders
@@ -90,7 +90,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name upbit#watchMyTrades
@@ -102,13 +102,13 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsOrderStatus(status: Str): string | undefined;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    handleMyOrder(client: Client, message: any): void;
-    handleMyTrade(client: Client, message: any): void;
-    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    handleMyOrder(client: Client, message: Dict): void;
+    handleMyTrade(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name upbit#watchBalance
@@ -117,7 +117,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: Dict): void;
 }

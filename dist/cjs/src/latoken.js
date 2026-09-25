@@ -600,10 +600,10 @@ class latoken extends latoken$1["default"] {
         let maxTimestamp = undefined;
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString(params, 'type', defaultType);
-        const types = this.safeValue(this.options, 'types', {});
+        const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
-        const balances = this.safeValue(balancesByType, accountType, []);
+        const balances = this.safeList(balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'currency');
@@ -860,7 +860,7 @@ class latoken extends latoken$1["default"] {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
         const costString = this.safeString(trade, 'cost');
-        const makerBuyer = this.safeValue(trade, 'makerBuyer');
+        const makerBuyer = this.safeBool(trade, 'makerBuyer');
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
             side = (makerBuyer === true) ? 'sell' : 'buy';
@@ -956,7 +956,7 @@ class latoken extends latoken$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        const options = this.safeValue(this.options, 'fetchTradingFee', {});
+        const options = this.safeDict(this.options, 'fetchTradingFee', {});
         const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFee');
         const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
@@ -1229,7 +1229,7 @@ class latoken extends latoken$1["default"] {
             await this.loadMarkets();
         }
         let response;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
@@ -1293,7 +1293,7 @@ class latoken extends latoken$1["default"] {
         // 'limit': limit, // default '100'
         };
         let market = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
@@ -1361,7 +1361,7 @@ class latoken extends latoken$1["default"] {
         const request = {
             'id': id,
         };
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
         if (isTrigger === true) {
@@ -1478,7 +1478,7 @@ class latoken extends latoken$1["default"] {
         const request = {
             'id': id,
         };
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
         if (isTrigger === true) {
@@ -1518,7 +1518,7 @@ class latoken extends latoken$1["default"] {
         // 'quote': market['quoteId'],
         };
         let market = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
         if (symbol !== undefined) {

@@ -11,20 +11,20 @@ public partial class testMainClass : BaseTest
     {
         string method = "fetchOHLCV";
         List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
-        assert(isGreaterThan(getArrayLength(timeframeKeys), 0), add(add(add(exchange.id, " "), method), " - no timeframes found"));
+        assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
         int limit = 10;
-        object duration = exchange.parseTimeframe(chosenTimeframeKey);
-        object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
+        int duration = exchange.parseTimeframe(chosenTimeframeKey);
+        Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
         object ohlcvs = await invokeExchangeDynamically(exchange, "fetchOHLCV", symbol, chosenTimeframeKey, since, limit);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
-        object now = exchange.milliseconds();
-        for (int i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+        Int64 now = exchange.milliseconds();
+        for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
             testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
         }

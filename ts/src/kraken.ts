@@ -580,7 +580,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    override feeToPrecision (symbol: Str, fee: any) {
+    override feeToPrecision (symbol: Str, fee: any): string {
         return this.decimalToPrecision (fee, TRUNCATE, this.market (symbol)['precision']['amount'], this.precisionMode);
     }
 
@@ -592,7 +592,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promises: List = [];
         promises.push (this.publicGetAssetPairs (params));
         if (this.options['adjustForTimeDifference'] === true) {
@@ -688,7 +688,7 @@ export default class kraken extends Exchange {
                 throw new ExchangeError (this.id + ' method() missing base');
             }
             if (spot && (base in cachedCurrencies)) {
-                const currency = this.safeValue (cachedCurrencies, base);
+                const currency = this.safeDict (cachedCurrencies, base);
                 const currencyPrecision = this.safeNumber (currency, 'precision');
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision === undefined) {
@@ -767,7 +767,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetSystemStatus (params);
         //
         // {
@@ -794,7 +794,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetAssets (params);
         //
         //     {
@@ -945,7 +945,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -984,15 +984,15 @@ export default class kraken extends Exchange {
         //        }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTradingFee (result, market);
     }
 
-    parseTradingFee (response: any, market: any) {
-        const makerFees = this.safeValue (response, 'fees_maker', {});
-        const takerFees = this.safeValue (response, 'fees', {});
-        const symbolMakerFee = this.safeValue (makerFees, market['id'], {});
-        const symbolTakerFee = this.safeValue (takerFees, market['id'], {});
+    parseTradingFee (response: Dict, market: any): TradingFeeInterface {
+        const makerFees = this.safeDict (response, 'fees_maker', {});
+        const takerFees = this.safeDict (response, 'fees', {});
+        const symbolMakerFee = this.safeDict (makerFees, market['id'], {});
+        const symbolTakerFee = this.safeDict (takerFees, market['id'], {});
         return {
             'info': response,
             'symbol': market['symbol'],
@@ -1020,7 +1020,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1051,12 +1051,12 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         let orderbook = this.safeValue (result, market['id']);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        const marketInfo = this.safeValue (market, 'info', {});
-        const wsName = this.safeValue (marketInfo, 'wsname');
+        const marketInfo = this.safeDict (market, 'info', {});
+        const wsName = this.safeString (marketInfo, 'wsname');
         if (wsName !== undefined) {
             orderbook = this.safeValue (result, wsName, orderbook);
         }
@@ -1078,17 +1078,17 @@ export default class kraken extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const v = this.safeValue (ticker, 'v', []);
+        const v = this.safeList (ticker, 'v', []);
         const baseVolume = this.safeString (v, 1);
-        const p = this.safeValue (ticker, 'p', []);
+        const p = this.safeList (ticker, 'p', []);
         const vwap = this.safeString (p, 1);
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
-        const c = this.safeValue (ticker, 'c', []);
+        const c = this.safeList (ticker, 'c', []);
         const last = this.safeString (c, 0);
-        const high = this.safeValue (ticker, 'h', []);
-        const low = this.safeValue (ticker, 'l', []);
-        const bid = this.safeValue (ticker, 'b', []);
-        const ask = this.safeValue (ticker, 'a', []);
+        const high = this.safeList (ticker, 'h', []);
+        const low = this.safeList (ticker, 'l', []);
+        const bid = this.safeList (ticker, 'b', []);
+        const ask = this.safeList (ticker, 'a', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1122,7 +1122,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1162,7 +1162,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1212,7 +1212,7 @@ export default class kraken extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1253,12 +1253,12 @@ export default class kraken extends Exchange {
         //             "last":1591517580
         //         }
         //     }
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const ohlcvs = this.safeList (result, market['id'], []) as List;
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'trade': 'trade',
             'withdrawal': 'transaction',
@@ -1337,7 +1337,7 @@ export default class kraken extends Exchange {
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#get-ledgers-info
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1367,8 +1367,8 @@ export default class kraken extends Exchange {
         //                                                 "amount": "-0.2805800000",
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
-        const result = this.safeValue (response, 'result', {});
-        const ledger = this.safeValue (result, 'ledger', {});
+        const result = this.safeDict (response, 'result', {});
+        const ledger = this.safeDict (result, 'ledger', {});
         const keys = Object.keys (ledger);
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1380,7 +1380,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}): Promise<LedgerEntry[]> {
+    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#query-ledgers
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1411,7 +1411,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items);
     }
 
-    override async fetchLedgerEntry (id: string, code: Str = undefined, params = {}): Promise<LedgerEntry> {
+    override async fetchLedgerEntry (id: string, code: Str = undefined, params: Dict = {}): Promise<LedgerEntry> {
         const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
@@ -1578,7 +1578,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1622,7 +1622,7 @@ export default class kraken extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'result', {});
+        const balances = this.safeDict (response, 'result', {});
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1632,7 +1632,7 @@ export default class kraken extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
@@ -1651,7 +1651,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1685,7 +1685,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1706,7 +1706,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1736,7 +1736,7 @@ export default class kraken extends Exchange {
      * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1777,7 +1777,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1845,7 +1845,7 @@ export default class kraken extends Exchange {
     }
 
     findMarketByAltnameOrId (id: any) {
-        const marketsByAltname = this.safeValue (this.options, 'marketsByAltname', {});
+        const marketsByAltname = this.safeDict (this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
             return marketsByAltname[id];
         } else {
@@ -1905,7 +1905,7 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: any) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             // we dont add "space" delimited orders here (eg. stop loss) because they need separate parsing
             'take-profit': 'market',
@@ -2108,7 +2108,7 @@ export default class kraken extends Exchange {
         }
         const userref = this.safeString (order, 'userref');
         const clientOrderId = this.safeString (order, 'cl_ord_id', userref);
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const rawTrades = this.safeList (order, 'trades', []);
         const trades: List = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -2177,7 +2177,7 @@ export default class kraken extends Exchange {
         }, market);
     }
 
-    orderRequest (method: string, symbol: Str, type: Str, request: Dict, amount: Num, price: Num = undefined, params = {}) {
+    orderRequest (method: string, symbol: Str, type: Str, request: Dict, amount: Num, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
@@ -2322,7 +2322,7 @@ export default class kraken extends Exchange {
      * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2385,7 +2385,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2438,7 +2438,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeDict (response, 'result', []);
         if (!(id in result)) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
@@ -2457,7 +2457,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const orderTrades = this.safeValue (params, 'trades');
         const tradeIds: List = [];
         if (orderTrades === undefined) {
@@ -2478,7 +2478,7 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
         }
-        const options = this.safeValue (this.options, 'fetchOrderTrades', {});
+        const options = this.safeDict (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
         let numBatches = this.parseToInt (numTradeIds / batchSize);
@@ -2539,7 +2539,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2547,7 +2547,7 @@ export default class kraken extends Exchange {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const orders: List = [];
         const orderIds = Object.keys (result);
         for (let i = 0; i < orderIds.length; i++) {
@@ -2572,7 +2572,7 @@ export default class kraken extends Exchange {
      * @param {int} [params.end] timestamp in seconds of the latest trade entry
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2647,7 +2647,7 @@ export default class kraken extends Exchange {
      * @param {int} [params.userref] the orders user reference id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2696,7 +2696,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'orders': ids,
         };
@@ -2725,7 +2725,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2754,7 +2754,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}) {
         if (timeout === undefined) {
             throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
         }
@@ -2796,7 +2796,7 @@ export default class kraken extends Exchange {
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2882,7 +2882,7 @@ export default class kraken extends Exchange {
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2970,8 +2970,8 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseNetwork (network: any) {
-        const withdrawMethods = this.safeValue (this.options, 'withdrawMethods', {});
+    parseNetwork (network: Str): Str {
+        const withdrawMethods = this.safeDict (this.options, 'withdrawMethods', {});
         return this.safeString (withdrawMethods, network, network);
     }
 
@@ -3109,7 +3109,7 @@ export default class kraken extends Exchange {
      * @param {int} [params.end] timestamp in seconds of the latest transaction entry
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         // https://www.kraken.com/en-us/help/api#deposit-status
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3155,7 +3155,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         // https://www.kraken.com/en-us/features/api#get-server-time
         const response = await this.publicGetTime (params);
         //
@@ -3167,7 +3167,7 @@ export default class kraken extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.safeTimestamp (result, 'unixtime');
     }
 
@@ -3280,7 +3280,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         const request: Dict = {
             'new': 'true',
         };
@@ -3296,7 +3296,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    async fetchDepositMethods (code: string, params = {}): Promise<Dict[]> {
+    async fetchDepositMethods (code: string, params: Dict = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3340,19 +3340,19 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         let network = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
         params = this.omit (params, 'network');
         if ((code === 'USDT') && (network === 'TRC20')) {
             code = code + '-' + network;
         }
-        const defaultDepositMethods = this.safeValue (this.options, 'depositMethods', {});
+        const defaultDepositMethods = this.safeDict (this.options, 'depositMethods', {});
         const defaultDepositMethod = this.safeString (defaultDepositMethods, code);
         let depositMethod = this.safeString (params, 'method', defaultDepositMethod);
         // if the user has specified an exchange-specific method in params
@@ -3374,7 +3374,7 @@ export default class kraken extends Exchange {
             }
             // if depositMethod was not specified, fallback to the first available deposit method
             if (depositMethod === undefined) {
-                const firstDepositMethod = this.safeValue (depositMethods, 0, {});
+                const firstDepositMethod = this.safeDict (depositMethods, 0, {});
                 depositMethod = this.safeString (firstDepositMethod, 'method');
             }
         }
@@ -3391,8 +3391,8 @@ export default class kraken extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        const firstResult = this.safeValue (result, 0, {});
+        const result = this.safeList (response, 'result', []);
+        const firstResult = this.safeDict (result, 0, {});
         if (firstResult === undefined) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);
         }
@@ -3432,7 +3432,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if ('key' in params) {
             await this.loadMarkets ();
@@ -3470,7 +3470,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3531,7 +3531,7 @@ export default class kraken extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //             {
         //                 "pair": "ETHUSDT",
@@ -3599,7 +3599,7 @@ export default class kraken extends Exchange {
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transferOut (code: string, amount: any, params = {}) {
+    async transferOut (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         return await this.transfer (code, amount, 'spot', 'swap', params);
     }
 
@@ -3615,7 +3615,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3661,7 +3661,7 @@ export default class kraken extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (transfer, 'result', {});
+        const result = this.safeDict (transfer, 'result', {});
         const refid = this.safeString (result, 'refid');
         return {
             'info': transfer,
@@ -3676,7 +3676,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
@@ -3692,7 +3692,8 @@ export default class kraken extends Exchange {
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            const nonce = this.incrementingNonce ().toString ();
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
@@ -3721,7 +3722,7 @@ export default class kraken extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 

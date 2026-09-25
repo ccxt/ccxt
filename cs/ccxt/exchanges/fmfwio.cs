@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class fmfwio : hitbtc
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "fmfwio" },

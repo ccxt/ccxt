@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct GateeuCore {
@@ -189,10 +193,10 @@ impl GateeuCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("gateeu".to_string()));
-        m.insert("name".to_string(), Value::Str("Gate EU".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
-        m.insert("version".to_string(), Value::Str("v4".to_string()));
+        m.insert("id".to_string(), Value::Str("gateeu".into()));
+        m.insert("name".to_string(), Value::Str("Gate EU".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".into())]));
+        m.insert("version".to_string(), Value::Str("v4".into()));
         m.insert("rateLimit".to_string(), Value::Int(20));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -202,26 +206,26 @@ impl GateeuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("wallet".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("margin".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("spot".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("sub_accounts".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("earn".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
+        m.insert("wallet".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("margin".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("spot".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("sub_accounts".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("earn".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("withdrawals".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("wallet".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("margin".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("spot".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("subAccounts".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("unified".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("rebate".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("earn".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("account".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("loan".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
-        m.insert("otc".to_string(), Value::Str("https://api.gateeu.com/api/v4".to_string()));
+        m.insert("withdrawals".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("wallet".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("margin".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("spot".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("subAccounts".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("unified".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("rebate".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("earn".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("account".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("loan".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
+        m.insert("otc".to_string(), Value::Str("https://api.gateeu.com/api/v4".into()));
     m
 }));
     m
@@ -242,7 +246,12 @@ impl GateeuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".into())]));
+    m
+}));
+        m.insert("fetchOrderBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maxSpotLimit".to_string(), Value::Int(100));
     m
 }));
         m.insert("mica".to_string(), Value::Bool(true));

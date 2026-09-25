@@ -480,7 +480,7 @@ export default class gemini extends Exchange {
         //    }
         //
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
-        const currenciesArray = this.safeValue(data, 'currencies', []);
+        const currenciesArray = this.safeList(data, 'currencies', []);
         return this.parseCurrencies(currenciesArray);
     }
     parseCurrency(rawCurrency) {
@@ -551,7 +551,7 @@ export default class gemini extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        const method = this.safeString(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises = [];
             promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
@@ -677,7 +677,7 @@ export default class gemini extends Exchange {
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue(this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets = this.safeList(this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
@@ -1019,7 +1019,7 @@ export default class gemini extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        const method = this.safeString(this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1(symbol, params);
         }
@@ -1065,7 +1065,7 @@ export default class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue(ticker, 'volume', {});
+        const volume = this.safeDict(ticker, 'volume', {});
         const timestamp = this.safeInteger(volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower(ticker, 'pair');
@@ -1478,7 +1478,7 @@ export default class gemini extends Exchange {
         const id = this.safeString(order, 'order_id');
         const side = this.safeStringLower(order, 'side');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const optionsArray = this.safeValue(order, 'options', []);
+        const optionsArray = this.safeList(order, 'options', []);
         const option = this.safeString(optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;
@@ -2010,7 +2010,8 @@ export default class gemini extends Exchange {
             if (apiKey.indexOf('account') < 0) {
                 throw new AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
-            const nonce = this.nonce().toString();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            const nonce = this.incrementingNonce().toString();
             const finalUrl = url;
             const request = this.extend({
                 'request': finalUrl,

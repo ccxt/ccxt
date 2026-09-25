@@ -39,8 +39,8 @@ class kraken extends \ccxt\async\kraken {
                 'cancelOrderWs' => true,
                 'cancelOrdersWs' => true,
                 'cancelAllOrdersWs' => true,
-                // 'watchHeartbeat' => true,
-                // 'watchStatus' => true,
+                // 'watchHeartbeat': true,
+                // 'watchStatus': true,
             ),
             'urls' => array(
                 'api' => array(
@@ -54,9 +54,9 @@ class kraken extends \ccxt\async\kraken {
                     ),
                 ),
             ),
-            // 'versions' => array(
-            //     'ws' => '0.2.0',
-            // ),
+            // 'versions': {
+            //     'ws': '0.2.0',
+            // },
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -128,7 +128,7 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function order_request_ws(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array()) {
+    public function order_request_ws(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array()): array {
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if ($isLimitOrder) {
             if ($price === null) {
@@ -313,31 +313,31 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_create_edit_order(Client $client, mixed $message) {
+    public function handle_create_edit_order(Client $client, array $message) {
         //
         //  createOrder
         //     {
-        //         "method" => "add_order",
-        //         "req_id" => 1,
-        //         "result" => array(
-        //             "order_id" => "OXM2QD-EALR2-YBAVEU"
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2025-05-13T10:12:13.876173Z",
-        //         "time_out" => "2025-05-13T10:12:13.890137Z"
+        //         "method": "add_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "order_id": "OXM2QD-EALR2-YBAVEU"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-13T10:12:13.876173Z",
+        //         "time_out": "2025-05-13T10:12:13.890137Z"
         //     }
         //
         //  editOrder
         //     {
-        //         "method" => "amend_order",
-        //         "req_id" => 1,
-        //         "result" => array(
-        //             "amend_id" => "TYDLSQ-OYNYU-3MNRER",
-        //             "order_id" => "OGL7HR-SWFO4-NRQTHO"
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2025-05-14T13:54:10.840342Z",
-        //         "time_out" => "2025-05-14T13:54:10.855046Z"
+        //         "method": "amend_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "amend_id": "TYDLSQ-OYNYU-3MNRER",
+        //             "order_id": "OGL7HR-SWFO4-NRQTHO"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-14T13:54:10.840342Z",
+        //         "time_out": "2025-05-14T13:54:10.855046Z"
         //     }
         //
         $result = $this->safe_dict($message, 'result', array());
@@ -383,7 +383,7 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
     }
 
@@ -451,17 +451,17 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_cancel_order(Client $client, mixed $message) {
+    public function handle_cancel_order(Client $client, array $message) {
         //
         //     {
-        //         "method" => "cancel_order",
-        //         "req_id" => 123456789,
-        //         "result" => array(
-        //             "order_id" => "OKAGJC-YHIWK-WIOZWG"
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2023-09-21T14:36:57.428972Z",
-        //         "time_out" => "2023-09-21T14:36:57.437952Z"
+        //         "method": "cancel_order",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "order_id": "OKAGJC-YHIWK-WIOZWG"
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
         $reqId = $this->safe_string($message, 'req_id');
@@ -500,44 +500,44 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_cancel_all_orders(Client $client, mixed $message) {
+    public function handle_cancel_all_orders(Client $client, array $message) {
         //
         //     {
-        //         "method" => "cancel_all",
-        //         "req_id" => 123456789,
-        //         "result" => array(
-        //             "count" => 1
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2023-09-21T14:36:57.428972Z",
-        //         "time_out" => "2023-09-21T14:36:57.437952Z"
+        //         "method": "cancel_all",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "count": 1
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
         $reqId = $this->safe_string($message, 'req_id');
         $client->resolve($message, $reqId);
     }
 
-    public function handle_ticker(mixed $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "ticker",
-        //         "type" => "snapshot",
-        //         "data" => array(
+        //         "channel": "ticker",
+        //         "type": "snapshot",
+        //         "data": [
         //             {
-        //                 "symbol" => "BTC/USD",
-        //                 "bid" => 108359.8,
-        //                 "bid_qty" => 0.01362603,
-        //                 "ask" => 108359.9,
-        //                 "ask_qty" => 17.17988863,
-        //                 "last" => 108359.8,
-        //                 "volume" => 2158.32346723,
-        //                 "vwap" => 108894.5,
-        //                 "low" => 106824,
-        //                 "high" => 111300,
-        //                 "change" => -2679.9,
-        //                 "change_pct" => -2.41
+        //                 "symbol": "BTC/USD",
+        //                 "bid": 108359.8,
+        //                 "bid_qty": 0.01362603,
+        //                 "ask": 108359.9,
+        //                 "ask_qty": 17.17988863,
+        //                 "last": 108359.8,
+        //                 "volume": 2158.32346723,
+        //                 "vwap": 108894.5,
+        //                 "low": 106824,
+        //                 "high": 111300,
+        //                 "change": -2679.9,
+        //                 "change_pct": -2.41
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -577,22 +577,22 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($result, $messageHash);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "trade",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "trade",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "side" => "sell",
-        //                 "price" => 0.5117,
-        //                 "qty" => 40.0,
-        //                 "ord_type" => "market",
-        //                 "trade_id" => 4665906,
-        //                 "timestamp" => "2023-09-25T07:49:37.708706Z"
+        //                 "symbol": "MATIC/USD",
+        //                 "side": "sell",
+        //                 "price": 0.5117,
+        //                 "qty": 40.0,
+        //                 "ord_type": "market",
+        //                 "trade_id": 4665906,
+        //                 "timestamp": "2023-09-25T07:49:37.708706Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -613,27 +613,27 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "ohlc",
-        //         "type" => "update",
-        //         "timestamp" => "2023-10-04T16:26:30.524394914Z",
-        //         "data" => array(
+        //         "channel": "ohlc",
+        //         "type": "update",
+        //         "timestamp": "2023-10-04T16:26:30.524394914Z",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "open" => 0.5624,
-        //                 "high" => 0.5628,
-        //                 "low" => 0.5622,
-        //                 "close" => 0.5627,
-        //                 "trades" => 12,
-        //                 "volume" => 30927.68066226,
-        //                 "vwap" => 0.5626,
-        //                 "interval_begin" => "2023-10-04T16:25:00.000000000Z",
-        //                 "interval" => 5,
-        //                 "timestamp" => "2023-10-04T16:30:00.000000Z"
+        //                 "symbol": "MATIC/USD",
+        //                 "open": 0.5624,
+        //                 "high": 0.5628,
+        //                 "low": 0.5622,
+        //                 "close": 0.5627,
+        //                 "trades": 12,
+        //                 "volume": 30927.68066226,
+        //                 "vwap": 0.5626,
+        //                 "interval_begin": "2023-10-04T16:25:00.000000000Z",
+        //                 "interval": 5,
+        //                 "timestamp": "2023-10-04T16:30:00.000000Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -647,7 +647,7 @@ class kraken extends \ccxt\async\kraken {
         $timeframe = $this->find_timeframe($interval);
         $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
         $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -672,7 +672,7 @@ class kraken extends \ccxt\async\kraken {
     }
 
     public function request_id() {
-        // their support said that $reqid must be an int32, not documented
+        // their support said that reqid must be an int32, not documented
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
@@ -879,15 +879,15 @@ class kraken extends \ccxt\async\kraken {
 
     private function do_load_markets($reload = false, $params = array()) {
         $markets = Async\await(parent::load_markets($reload, $params));
-        $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
+        $marketsByWsName = $this->safe_dict($this->options, 'marketsByWsName');
         if (($marketsByWsName === null) || $reload) {
             $marketsByWsName = array();
-            $symbols = $this->symbols; // do not cast `as stringarray()` => $this->symbols is List<Object> in Java, and List<Object>->List<'strval'> is an illegal cast
+            $symbols = $this->symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             if ($symbols !== null) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
                     $market = $this->market($symbol);
-                    $info = $this->safe_value($market, 'info', array());
+                    $info = $this->safe_dict($market, 'info', array());
                     $wsName = $this->safe_string($info, 'wsname');
                     $marketsByWsName[$wsName] = $market;
                 }
@@ -908,7 +908,7 @@ class kraken extends \ccxt\async\kraken {
         return $request;
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -924,78 +924,78 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch($url, $event));
     }
 
-    public function handle_heartbeat(Client $client, mixed $message) {
+    public function handle_heartbeat(Client $client, array $message) {
         //
         // every second (approx) if no other updates are sent
         //
-        //     array( "channel" => "heartbeat" )
+        //     { "channel": "heartbeat" }
         //
         $event = $this->safe_string($message, 'channel');
         $client->resolve($message, $event);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
-        // $first $message (snapshot)
+        // first message (snapshot)
         //
         //     {
-        //         "channel" => "book",
-        //         "type" => "snapshot",
-        //         "data" => array(
+        //         "channel": "book",
+        //         "type": "snapshot",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "bids" => array(
-        //                     array(
-        //                         "price" => 0.5666,
-        //                         "qty" => 4831.75496356
-        //                     ),
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
         //                     {
-        //                         "price" => 0.5665,
-        //                         "qty" => 6658.22734739
-        //                     }
-        //                 ),
-        //                 "asks" => array(
-        //                     array(
-        //                         "price" => 0.5668,
-        //                         "qty" => 4410.79769741
-        //                     ),
+        //                         "price": 0.5666,
+        //                         "qty": 4831.75496356
+        //                     },
         //                     {
-        //                         "price" => 0.5669,
-        //                         "qty" => 4655.40412487
+        //                         "price": 0.5665,
+        //                         "qty": 6658.22734739
         //                     }
-        //                 ),
-        //                 "checksum" => 2439117997
+        //                 ],
+        //                 "asks": [
+        //                     {
+        //                         "price": 0.5668,
+        //                         "qty": 4410.79769741
+        //                     },
+        //                     {
+        //                         "price": 0.5669,
+        //                         "qty": 4655.40412487
+        //                     }
+        //                 ],
+        //                 "checksum": 2439117997
         //             }
-        //         )
+        //         ]
         //     }
         //
         // subsequent updates
         //
         //     {
-        //         "channel" => "book",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "book",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "bids" => array(
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
         //                     {
-        //                         "price" => 0.5657,
-        //                         "qty" => 1098.3947558
+        //                         "price": 0.5657,
+        //                         "qty": 1098.3947558
         //                     }
-        //                 ),
-        //                 "asks" => array(),
-        //                 "checksum" => 2114181697,
-        //                 "timestamp" => "2023-10-06T17:35:55.440295Z"
+        //                 ],
+        //                 "asks": [],
+        //                 "checksum": 2114181697,
+        //                 "timestamp": "2023-10-06T17:35:55.440295Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_list($message, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         $symbol = $this->safe_string($first, 'symbol');
-        $a = $this->safe_value($first, 'asks', array());
-        $b = $this->safe_value($first, 'bids', array());
+        $a = $this->safe_list($first, 'asks', array());
+        $b = $this->safe_list($first, 'bids', array());
         $c = $this->safe_integer($first, 'checksum');
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
         $orderbook = null;
@@ -1022,7 +1022,7 @@ class kraken extends \ccxt\async\kraken {
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
                 $bookside = $orderbook[$key];
-                $deltas = $this->safe_value($first, $key, array());
+                $deltas = $this->safe_list($first, $key, array());
                 $deltasLength = count($deltas);
                 if ($deltasLength > 0) {
                     $this->custom_handle_deltas($bookside, $deltas);
@@ -1031,15 +1031,15 @@ class kraken extends \ccxt\async\kraken {
             $orderbook['symbol'] = $symbol;
         }
         $orderbook->limit();
-        // $checksum temporarily disabled because the exchange $checksum was not reliable
+        // checksum temporarily disabled because the exchange checksum was not reliable
         $checksum = $this->handle_option('watchOrderBook', 'checksum', false);
         if ($checksum === true) {
             $payloadArray = array();
             if ($c !== null) {
                 $checkAsks = $orderbook['asks'];
                 $checkBids = $orderbook['bids'];
-                // $checkAsks = asks.map ((elem) => array( elem['price'], elem['qty'] ));
-                // $checkBids = bids.map ((elem) => array( elem['price'], elem['qty'] ));
+                // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
+                // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for ($i = 0; $i < 10; $i++) {
                     $currentAsk = $this->safe_value($checkAsks, $i, array());
                     $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
@@ -1064,25 +1064,25 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_handle_deltas(mixed $bookside, mixed $deltas) {
-        // $sortOrder = (key === 'bids') ? true : false;
+    public function custom_handle_deltas(mixed $bookside, array $deltas) {
+        // const sortOrder = (key === 'bids') ? true : false;
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = $this->safe_number($delta, 'price');
             $amount = $this->safe_number($delta, 'qty');
             $bookside->store($price, $amount);
-            // if ($amount === 0) {
-            //     $index = $bookside->findIndex((x => Int) => x[0] === $price);
-            //     $bookside->splice($index, 1);
+            // if (amount === 0) {
+            //     const index = bookside.findIndex ((x: Int) => x[0] === price);
+            //     bookside.splice (index, 1);
             // } else {
-            //     $bookside->store($price, $amount);
+            //     bookside.store (price, amount);
             // }
-            // $bookside = $this->sort_by($bookside, 0, $sortOrder);
-            // mb_substr($bookside, 0, 9 - 0);
+            // bookside = this.sortBy (bookside, 0, sortOrder);
+            // bookside.slice (0, 9);
         }
     }
 
-    public function format_number(mixed $data) {
+    public function format_number(string $data): string {
         $parts = explode('.', $data);
         $integer = $this->safe_string($parts, 0);
         $decimals = $this->safe_string($parts, 1, '');
@@ -1097,37 +1097,37 @@ class kraken extends \ccxt\async\kraken {
         return $joinedResult;
     }
 
-    public function handle_system_status(Client $client, mixed $message) {
+    public function handle_system_status(Client $client, array $message): array {
         //
-        // todo => answer the question whether handleSystemStatus should be renamed
+        // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
-        //         "connectionID" => 15527282728335292000,
-        //         "event" => "systemStatus",
-        //         "status" => "online", // online|maintenance|(custom status tbd)
-        //         "version" => "0.2.0"
+        //         "connectionID": 15527282728335292000,
+        //         "event": "systemStatus",
+        //         "status": "online", // online|maintenance|(custom status tbd)
+        //         "version": "0.2.0"
         //     }
         //
         // v2
         //     {
-        //         channel => 'status',
-        //         type => 'update',
-        //         data => array(
+        //         channel: 'status',
+        //         type: 'update',
+        //         data: [
         //             {
-        //                 version => '2.0.10',
-        //                 system => 'online',
-        //                 api_version => 'v2',
-        //                 connection_id => 6447481662169813000
+        //                 version: '2.0.10',
+        //                 system: 'online',
+        //                 api_version: 'v2',
+        //                 connection_id: 6447481662169813000
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $message;
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -1141,30 +1141,30 @@ class kraken extends \ccxt\async\kraken {
         $expires = $this->safe_integer($subscription, 'expires');
         if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
             // single-flight leader election, see
-            // https://github.com/ccxt/ccxt/issues/29393 => the staleness gate
+            // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
             // so N concurrent watchPrivate () calls on a cold instance each
             // pass the gate and each burn a rate-limited private REST call to
-            // mint a separate $token-> $client->futures is the flight registry
-            // itself, namespaced away from the real $subscription keys on the
-            // same $client that already caches the $token, and settlement goes
-            // through $client->resolve() / $client->reject() so every write to
+            // mint a separate token. client.futures is the flight registry
+            // itself, namespaced away from the real subscription keys on the
+            // same client that already caches the token, and settlement goes
+            // through client.resolve () / client.reject () so every write to
             // that map stays behind the client's own lock
             $messageHash = 'authenticateFlight';
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 // a flight is already in progress - wake when the leader
-                // settles it => the $token is then in the subscriptions bucket
+                // settles it: the token is then in the subscriptions bucket
                 Async\await($client->future($messageHash));
                 $subscription = $this->safe_dict($client->subscriptions, $authenticated);
                 return $this->safe_string($subscription, 'token');
             }
             $future = $client->reusableFuture($messageHash);
             try {
-                // https://docs.kraken.com/api/docs/rest-api/get-websockets-$token
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
                 $response = Async\await($this->privatePostGetWebSocketsToken($params));
                 //
                 //     {
-                //         "error":array(),
+                //         "error":[],
                 //         "result":{
                 //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
                 //             "expires":900
@@ -1196,11 +1196,11 @@ class kraken extends \ccxt\async\kraken {
         return $this->safe_string($subscription, 'token');
     }
 
-    public function watch_private(mixed $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function watch_private(string $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(self::do_watch_private(...))($name, $symbol, $since, $limit, $params);
     }
 
-    private function do_watch_private(mixed $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_private(string $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         Async\await($this->load_markets());
         $token = Async\await($this->authenticate());
         $subscriptionHash = 'executions';
@@ -1249,36 +1249,36 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch_private('myTrades', $symbol, $since, $limit, $params));
     }
 
-    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, array $message, ?array $subscription = null) {
         //
         //     {
-        //         "channel" => "executions",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "executions",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "order_id" => "O6NTZC-K6FRH-ATWBCK",
-        //                 "exec_id" => "T5DIUI-5N4KO-Z5BPXK",
-        //                 "exec_type" => "trade",
-        //                 "trade_id" => 8253473,
-        //                 "symbol" => "USDC/USD",
-        //                 "side" => "sell",
-        //                 "last_qty" => 15.44,
-        //                 "last_price" => 1.0002,
-        //                 "liquidity_ind" => "t",
-        //                 "cost" => 15.443088,
-        //                 "order_userref" => 0,
-        //                 "order_status" => "filled",
-        //                 "order_type" => "market",
-        //                 "fee_usd_equiv" => 0.03088618,
-        //                 "fees" => array(
+        //                 "order_id": "O6NTZC-K6FRH-ATWBCK",
+        //                 "exec_id": "T5DIUI-5N4KO-Z5BPXK",
+        //                 "exec_type": "trade",
+        //                 "trade_id": 8253473,
+        //                 "symbol": "USDC/USD",
+        //                 "side": "sell",
+        //                 "last_qty": 15.44,
+        //                 "last_price": 1.0002,
+        //                 "liquidity_ind": "t",
+        //                 "cost": 15.443088,
+        //                 "order_userref": 0,
+        //                 "order_status": "filled",
+        //                 "order_type": "market",
+        //                 "fee_usd_equiv": 0.03088618,
+        //                 "fees": [
         //                     {
-        //                         "asset" => "USD",
-        //                         "qty" => 0.3458
+        //                         "asset": "USD",
+        //                         "qty": 0.3458
         //                     }
-        //                 )
+        //                 ]
         //             }
-        //         ),
-        //         "sequence" => 10
+        //         ],
+        //         "sequence": 10
         //     }
         //
         $allTrades = $this->safe_list($message, 'data', array());
@@ -1307,29 +1307,29 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "order_id" => "O6NTZC-K6FRH-ATWBCK",
-        //         "exec_id" => "T5DIUI-5N4KO-Z5BPXK",
-        //         "exec_type" => "trade",
-        //         "trade_id" => 8253473,
-        //         "symbol" => "USDC/USD",
-        //         "side" => "sell",
-        //         "last_qty" => 15.44,
-        //         "last_price" => 1.0002,
-        //         "liquidity_ind" => "t",
-        //         "cost" => 15.443088,
-        //         "order_userref" => 0,
-        //         "order_status" => "filled",
-        //         "order_type" => "market",
-        //         "fee_usd_equiv" => 0.03088618,
-        //         "fees" => array(
+        //         "order_id": "O6NTZC-K6FRH-ATWBCK",
+        //         "exec_id": "T5DIUI-5N4KO-Z5BPXK",
+        //         "exec_type": "trade",
+        //         "trade_id": 8253473,
+        //         "symbol": "USDC/USD",
+        //         "side": "sell",
+        //         "last_qty": 15.44,
+        //         "last_price": 1.0002,
+        //         "liquidity_ind": "t",
+        //         "cost": 15.443088,
+        //         "order_userref": 0,
+        //         "order_status": "filled",
+        //         "order_type": "market",
+        //         "fee_usd_equiv": 0.03088618,
+        //         "fees": [
         //             {
-        //                 "asset" => "USD",
-        //                 "qty" => 0.3458
+        //                 "asset": "USD",
+        //                 "qty": 0.3458
         //             }
-        //         )
+        //         ]
         //     }
         //
         $symbol = $this->safe_string($trade, 'symbol');
@@ -1380,32 +1380,32 @@ class kraken extends \ccxt\async\kraken {
         return $this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true )));
     }
 
-    public function handle_orders(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_orders(Client $client, array $message, ?array $subscription = null) {
         //
         //     {
-        //         "channel" => "executions",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "executions",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "order_id" => "OK4GJX-KSTLS-7DZZO5",
-        //                 "order_userref" => 3,
-        //                 "symbol" => "BTC/USD",
-        //                 "order_qty" => 0.005,
-        //                 "cum_cost" => 0.0,
-        //                 "time_in_force" => "GTC",
-        //                 "exec_type" => "pending_new",
-        //                 "side" => "sell",
-        //                 "order_type" => "limit",
-        //                 "limit_price_type" => "static",
-        //                 "limit_price" => 26500.0,
-        //                 "stop_price" => 0.0,
-        //                 "order_status" => "pending_new",
-        //                 "fee_usd_equiv" => 0.0,
-        //                 "fee_ccy_pref" => "fciq",
-        //                 "timestamp" => "2023-09-22T10:33:05.709950Z"
+        //                 "order_id": "OK4GJX-KSTLS-7DZZO5",
+        //                 "order_userref": 3,
+        //                 "symbol": "BTC/USD",
+        //                 "order_qty": 0.005,
+        //                 "cum_cost": 0.0,
+        //                 "time_in_force": "GTC",
+        //                 "exec_type": "pending_new",
+        //                 "side": "sell",
+        //                 "order_type": "limit",
+        //                 "limit_price_type": "static",
+        //                 "limit_price": 26500.0,
+        //                 "stop_price": 0.0,
+        //                 "order_status": "pending_new",
+        //                 "fee_usd_equiv": 0.0,
+        //                 "fee_ccy_pref": "fciq",
+        //                 "timestamp": "2023-09-22T10:33:05.709950Z"
         //             }
-        //         ),
-        //         "sequence" => 8
+        //         ],
+        //         "sequence": 8
         //     }
         //
         $allOrders = $this->safe_list($message, 'data', array());
@@ -1422,8 +1422,8 @@ class kraken extends \ccxt\async\kraken {
                 $id = $this->safe_string($order, 'order_id');
                 $parsed = $this->parse_ws_order($order);
                 $symbol = $this->safe_string($order, 'symbol');
-                $previousOrders = $this->safe_value($stored->hashmap, $symbol);
-                $previousOrder = $this->safe_value($previousOrders, $id);
+                $previousOrders = $this->safe_dict($stored->hashmap, $symbol);
+                $previousOrder = $this->safe_dict($previousOrders, $id);
                 $newOrder = $parsed;
                 if ($previousOrder !== null) {
                     $newRawOrder = $this->extend($previousOrder['info'], $newOrder['info']);
@@ -1432,7 +1432,7 @@ class kraken extends \ccxt\async\kraken {
                 $length = count($stored);
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
-                    $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
+                    $symbolsByOrderId = $this->safe_dict($this->options, 'symbolsByOrderId', array());
                     if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
                         unset($symbolsByOrderId[$first['id']]);
                     }
@@ -1452,44 +1452,44 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // watchOrders
         //
-        // open $order
+        // open order
         //     {
-        //         "order_id" => "OK4GJX-KSTLS-7DZZO5",
-        //         "order_userref" => 3,
-        //         "symbol" => "BTC/USD",
-        //         "order_qty" => 0.005,
-        //         "cum_cost" => 0.0,
-        //         "time_in_force" => "GTC",
-        //         "exec_type" => "pending_new",
-        //         "side" => "sell",
-        //         "order_type" => "limit",
-        //         "limit_price_type" => "static",
-        //         "limit_price" => 26500.0,
-        //         "stop_price" => 0.0,
-        //         "order_status" => "pending_new",
-        //         "fee_usd_equiv" => 0.0,
-        //         "fee_ccy_pref" => "fciq",
-        //         "timestamp" => "2023-09-22T10:33:05.709950Z"
+        //         "order_id": "OK4GJX-KSTLS-7DZZO5",
+        //         "order_userref": 3,
+        //         "symbol": "BTC/USD",
+        //         "order_qty": 0.005,
+        //         "cum_cost": 0.0,
+        //         "time_in_force": "GTC",
+        //         "exec_type": "pending_new",
+        //         "side": "sell",
+        //         "order_type": "limit",
+        //         "limit_price_type": "static",
+        //         "limit_price": 26500.0,
+        //         "stop_price": 0.0,
+        //         "order_status": "pending_new",
+        //         "fee_usd_equiv": 0.0,
+        //         "fee_ccy_pref": "fciq",
+        //         "timestamp": "2023-09-22T10:33:05.709950Z"
         //     }
         //
-        // canceled $order
+        // canceled order
         //
         //     {
-        //         "timestamp" => "2025-10-11T15:11:47.695226Z",
-        //         "order_status" => "canceled",
-        //         "exec_type" => "canceled",
-        //         "order_userref" => 0,
-        //         "order_id" => "OGAB7Y-BKX5F-PTK5RW",
-        //         "cum_qty" => 0,
-        //         "cum_cost" => 0,
-        //         "fee_usd_equiv" => 0,
-        //         "avg_price" => 0,
-        //         "cancel_reason" => "User requested",
-        //         "reason" => "User requested"
+        //         "timestamp": "2025-10-11T15:11:47.695226Z",
+        //         "order_status": "canceled",
+        //         "exec_type": "canceled",
+        //         "order_userref": 0,
+        //         "order_id": "OGAB7Y-BKX5F-PTK5RW",
+        //         "cum_qty": 0,
+        //         "cum_cost": 0,
+        //         "fee_usd_equiv": 0,
+        //         "avg_price": 0,
+        //         "cancel_reason": "User requested",
+        //         "reason": "User requested"
         //     }
         //
         $fee = array(
@@ -1524,13 +1524,13 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, mixed $subscriptionArgs = null, $params = array()) {
+    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
         return Async\async(self::do_watch_multi_helper(...))($unifiedName, $channelName, $symbols, $subscriptionArgs, $params);
     }
 
-    private function do_watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, mixed $subscriptionArgs = null, $params = array()) {
+    private function do_watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
         Async\await($this->load_markets());
-        // $symbols are required
+        // symbols are required
         $symbols = $this->market_symbols($symbols, null, false, true, false);
         if ($symbols === null) {
             return null;
@@ -1587,26 +1587,26 @@ class kraken extends \ccxt\async\kraken {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "balances",
-        //         "data" => array(
+        //         "channel": "balances",
+        //         "data": [
         //             {
-        //                 "asset" => "BTC",
-        //                 "asset_class" => "currency",
-        //                 "balance" => 1.2,
-        //                 "wallets" => array(
+        //                 "asset": "BTC",
+        //                 "asset_class": "currency",
+        //                 "balance": 1.2,
+        //                 "wallets": [
         //                     {
-        //                         "type" => "spot",
-        //                         "id" => "main",
-        //                         "balance" => 1.2
+        //                         "type": "spot",
+        //                         "id": "main",
+        //                         "balance": 1.2
         //                     }
-        //                 )
+        //                 ]
         //             }
-        //         ),
-        //         "type" => "snapshot",
-        //         "sequence" => 1
+        //         ],
+        //         "type": "snapshot",
+        //         "sequence": 1
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -1621,7 +1621,7 @@ class kraken extends \ccxt\async\kraken {
         }
         $type = 'spot';
         $balance = $this->safe_balance($result);
-        $oldBalance = $this->safe_value($this->balance, $type, array());
+        $oldBalance = $this->safe_dict($this->balance, $type, array());
         $newBalance = $this->deep_extend($oldBalance, $balance);
         $this->balance[$type] = $this->safe_balance($newBalance);
         $channel = $this->safe_string($message, 'channel');
@@ -1629,8 +1629,8 @@ class kraken extends \ccxt\async\kraken {
     }
 
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
-        // $unifiedElementName can be : orderbook, trade, ticker, bidask ...
-        // $subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         $withSymbol = $symbol !== null;
         $messageHash = $unifiedElementName;
         if (!$withSymbol) {
@@ -1644,58 +1644,58 @@ class kraken extends \ccxt\async\kraken {
         return $messageHash;
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         // public
         //
         //     {
-        //         "channelID" => 210,
-        //         "channelName" => "book-10",
-        //         "event" => "subscriptionStatus",
-        //         "reqid" => 1574146735269,
-        //         "pair" => "ETH/XBT",
-        //         "status" => "subscribed",
-        //         "subscription" => array( depth => 10, name => "book" )
+        //         "channelID": 210,
+        //         "channelName": "book-10",
+        //         "event": "subscriptionStatus",
+        //         "reqid": 1574146735269,
+        //         "pair": "ETH/XBT",
+        //         "status": "subscribed",
+        //         "subscription": { depth: 10, name: "book" }
         //     }
         //
         // private
         //
         //     {
-        //         "channelName" => "openOrders",
-        //         "event" => "subscriptionStatus",
-        //         "reqid" => 1,
-        //         "status" => "subscribed",
-        //         "subscription" => array( maxratecount => 125, name => "openOrders" )
+        //         "channelName": "openOrders",
+        //         "event": "subscriptionStatus",
+        //         "reqid": 1,
+        //         "status": "subscribed",
+        //         "subscription": { maxratecount: 125, name: "openOrders" }
         //     }
         //
         $channelId = $this->safe_string($message, 'channelID');
         if ($channelId !== null) {
             $client->subscriptions[$channelId] = $message;
         }
-        // $requestId = $this->safe_string($message, "reqid");
-        // if (is_array($client->futures) && array_key_exists($requestId ?? '', $client->futures)) {
-        //     unset($client->futures[$requestId]);
+        // const requestId = this.safeString (message, "reqid");
+        // if (requestId in client.futures) {
+        //     delete client.futures[requestId];
         // }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",
-        //         "event" => "subscriptionStatus",
-        //         "pair" => "foobar",
-        //         "reqid" => 1574146735269,
-        //         "status" => "error",
-        //         "subscription" => array( name => "ticker" )
+        //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
+        //         "event": "subscriptionStatus",
+        //         "pair": "foobar",
+        //         "reqid": 1574146735269,
+        //         "status": "error",
+        //         "subscription": { name: "ticker" }
         //     }
         //
         // v2
         //     {
-        //         "error" => "Unsupported field => 'price' for the given msg type => add order",
-        //         "method" => "add_order",
-        //         "success" => false,
-        //         "time_in" => "2025-05-13T08:59:44.803511Z",
-        //         "time_out" => "2025-05-13T08:59:44.803542Z'
+        //         "error": "Unsupported field: 'price' for the given msg type: add order",
+        //         "method": "add_order",
+        //         "success": false,
+        //         "time_in": "2025-05-13T08:59:44.803511Z",
+        //         "time_out": "2025-05-13T08:59:44.803542Z'
         //     }
         //
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
@@ -1705,7 +1705,7 @@ class kraken extends \ccxt\async\kraken {
             $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
             $exception = null;
             if ($broadKey === null) {
-                $exception = new ExchangeError($errorMessage); // c# requirement to convert the $errorMessage to string
+                $exception = new ExchangeError($errorMessage); // c# requirement to convert the errorMessage to string
             } else {
                 $exception = new $broad[$broadKey]($errorMessage);
             }
@@ -1717,7 +1717,7 @@ class kraken extends \ccxt\async\kraken {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         if ($channel !== null) {
             if ($channel === 'executions') {

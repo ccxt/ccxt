@@ -2932,7 +2932,7 @@ export default class binance extends Exchange {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (this.safeValue(market, defaultType) === true) {
+                    if (this.safeBool(market, defaultType) === true) {
                         return market;
                     }
                 }
@@ -4416,7 +4416,7 @@ export default class binance extends Exchange {
             response = await this.eapiPublicGetDepth(this.extend(request, params));
         }
         else if (market['linear'] === true) {
-            const rpi = this.safeValue(params, 'rpi', false);
+            const rpi = this.safeBool(params, 'rpi', false);
             params = this.omit(params, 'rpi');
             if (rpi === true) {
                 // rpi limit only supports 1000
@@ -4479,7 +4479,7 @@ export default class binance extends Exchange {
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104563", // mark price
+        //         "markPrice": "11793.63104565", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -5122,7 +5122,7 @@ export default class binance extends Exchange {
         //         "open": "32.2",
         //         "high": "32.2",
         //         "low": "32.2",
-        //         "close": "32.2",
+        //         "close": "32.3",
         //         "volume": "0",
         //         "interval": "5m",
         //         "tradeCount": 0,
@@ -5901,7 +5901,7 @@ export default class binance extends Exchange {
         else {
             request['newClientOrderId'] = clientOrderId;
         }
-        request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
@@ -7379,7 +7379,7 @@ export default class binance extends Exchange {
         if (uppercaseType === 'MARKET') {
             if (stock === true) {
                 if (upperCaseSide === 'BUY') {
-                    const precision = this.safeValue(market['precision'], 'price');
+                    const precision = this.safeNumber(market['precision'], 'price');
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     let notional = undefined;
                     if (quoteOrderQtyNew !== undefined) {
@@ -7417,7 +7417,7 @@ export default class binance extends Exchange {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
-                    const precision = this.safeValue(market['precision'], 'price');
+                    const precision = this.safeNumber(market['precision'], 'price');
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     }
@@ -10019,8 +10019,8 @@ export default class binance extends Exchange {
         const accountsById = this.safeDict(this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split('_');
-            fromAccount = this.safeValue(parts, 0);
-            toAccount = this.safeValue(parts, 1);
+            fromAccount = this.safeString(parts, 0);
+            toAccount = this.safeString(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
@@ -11452,7 +11452,7 @@ export default class binance extends Exchange {
         let percentage = undefined;
         let liquidationPriceStringRaw = undefined;
         let liquidationPrice = undefined;
-        const contractSize = this.safeValue(market, 'contractSize');
+        const contractSize = this.safeNumber(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, '0')) {
             entryPrice = undefined;
@@ -11667,7 +11667,7 @@ export default class binance extends Exchange {
         }
         const entryPriceString = this.safeString(position, 'entryPrice');
         const entryPrice = this.parseNumber(entryPriceString);
-        const contractSize = this.safeValue(market, 'contractSize');
+        const contractSize = this.safeNumber(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
@@ -13589,7 +13589,7 @@ export default class binance extends Exchange {
                 }
             }
         }
-        return this.safeValue(config, 'cost', 1);
+        return this.safeNumber(config, 'cost', 1);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);

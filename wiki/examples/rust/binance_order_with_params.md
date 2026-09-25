@@ -117,9 +117,9 @@ fn min_amount_at(m: &Market, price: f64) -> f64 {
 /// Where requests will actually go, read back off the constructed exchange
 /// rather than assumed. Worth doing for anything that places orders.
 fn api_host(ex: &Binance) -> String {
-    let api = ccxt::runtime::get_value(&ex.urls, &ccxt::Value::Str("api".to_string()));
-    match ccxt::runtime::get_value(&api, &ccxt::Value::Str("public".to_string())) {
-        ccxt::Value::Str(s) => s,
+    let api = ccxt::runtime::get_value(&ex.urls, &ccxt::Value::Str("api".to_string().into()));
+    match ccxt::runtime::get_value(&api, &ccxt::Value::Str("public".to_string().into())) {
+        ccxt::Value::Str(s) => s.into_owned(),
         _ => "?".to_string(),
     }
 }

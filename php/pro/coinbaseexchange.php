@@ -98,11 +98,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function subscribe_multiple(mixed $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
+    public function subscribe_multiple(string $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
         return Async\async(self::do_subscribe_multiple(...))($name, $symbols, $messageHashStart, $params);
     }
 
-    private function do_subscribe_multiple(mixed $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
+    private function do_subscribe_multiple(string $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -229,7 +229,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $name = 'matches';
         $trades = Async\await($this->subscribe_multiple($name, $symbols, $name, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -288,7 +288,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $authentication = $this->authenticate();
         $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -317,7 +317,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $authentication = $this->authenticate();
         $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
         if ($this->newUpdates) {
-            $first = $this->safe_value($orders, 0);
+            $first = $this->safe_dict($orders, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $orders->getLimit($tradeSymbol, $limit);
         }
@@ -442,26 +442,26 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $orderbook->limit();
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //     {
-        //         "type" => "match",
-        //         "trade_id" => 82047307,
-        //         "maker_order_id" => "0f358725-2134-435e-be11-753912a326e0",
-        //         "taker_order_id" => "252b7002-87a3-425c-ac73-f5b9e23f3caf",
-        //         "side" => "sell",
-        //         "size" => "0.00513192",
-        //         "price" => "9314.78",
-        //         "product_id" => "BTC-USD",
-        //         "sequence" => 12038915443,
-        //         "time" => "2020-01-31T20:03:41.158814Z"
+        //         "type": "match",
+        //         "trade_id": 82047307,
+        //         "maker_order_id": "0f358725-2134-435e-be11-753912a326e0",
+        //         "taker_order_id": "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        //         "side": "sell",
+        //         "size": "0.00513192",
+        //         "price": "9314.78",
+        //         "product_id": "BTC-USD",
+        //         "sequence": 12038915443,
+        //         "time": "2020-01-31T20:03:41.158814Z"
         //     }
         //
         $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $trade = $this->parse_ws_trade($message);
             $symbol = $trade['symbol'];
-            // the exchange sends $type = 'match'
+            // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
             $type = 'matches';
@@ -480,7 +480,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message): array {
         $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $trade = $this->parse_ws_trade($message);
@@ -498,56 +498,56 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // private trades
         // {
-        //     "type" => "match",
-        //     "trade_id" => 10,
-        //     "sequence" => 50,
-        //     "maker_order_id" => "ac928c66-ca53-498f-9c13-a110027a60e8",
-        //     "taker_order_id" => "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //     "time" => "2014-11-07T08:19:27.028459Z",
-        //     "product_id" => "BTC-USD",
-        //     "size" => "5.23512",
-        //     "price" => "400.23",
-        //     "side" => "sell",
-        //     "taker_user_id => "5844eceecf7e803e259d0365",
-        //     "user_id" => "5844eceecf7e803e259d0365",
-        //     "taker_profile_id" => "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "profile_id" => "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "taker_fee_rate" => "0.005"
+        //     "type": "match",
+        //     "trade_id": 10,
+        //     "sequence": 50,
+        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //     "time": "2014-11-07T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "size": "5.23512",
+        //     "price": "400.23",
+        //     "side": "sell",
+        //     "taker_user_id: "5844eceecf7e803e259d0365",
+        //     "user_id": "5844eceecf7e803e259d0365",
+        //     "taker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "taker_fee_rate": "0.005"
         // }
         //
         // {
-        //     "type" => "match",
-        //     "trade_id" => 10,
-        //     "sequence" => 50,
-        //     "maker_order_id" => "ac928c66-ca53-498f-9c13-a110027a60e8",
-        //     "taker_order_id" => "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //     "time" => "2014-11-07T08:19:27.028459Z",
-        //     "product_id" => "BTC-USD",
-        //     "size" => "5.23512",
-        //     "price" => "400.23",
-        //     "side" => "sell",
-        //     "maker_user_id => "5844eceecf7e803e259d0365",
-        //     "maker_id" => "5844eceecf7e803e259d0365",
-        //     "maker_profile_id" => "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "profile_id" => "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "maker_fee_rate" => "0.001"
+        //     "type": "match",
+        //     "trade_id": 10,
+        //     "sequence": 50,
+        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //     "time": "2014-11-07T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "size": "5.23512",
+        //     "price": "400.23",
+        //     "side": "sell",
+        //     "maker_user_id: "5844eceecf7e803e259d0365",
+        //     "maker_id": "5844eceecf7e803e259d0365",
+        //     "maker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "maker_fee_rate": "0.001"
         // }
         //
         // public trades
         // {
-        //     "type" => "received",
-        //     "time" => "2014-11-07T08:19:27.028459Z",
-        //     "product_id" => "BTC-USD",
-        //     "sequence" => 10,
-        //     "order_id" => "d50ec984-77a8-460a-b958-66f114b0de9b",
-        //     "size" => "1.34",
-        //     "price" => "502.1",
-        //     "side" => "buy",
-        //     "order_type" => "limit"
+        //     "type": "received",
+        //     "time": "2014-11-07T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "sequence": 10,
+        //     "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
+        //     "size": "1.34",
+        //     "price": "502.1",
+        //     "side": "buy",
+        //     "order_type": "limit"
         // }
         $parsed = parent::parse_trade($trade);
         $feeRate = null;
@@ -559,7 +559,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         } else {
             $parsed['takerOrMaker'] = 'taker';
             $feeRate = $this->safe_string($trade, 'taker_fee_rate');
-            // side always represents the maker side of the $trade
+            // side always represents the maker side of the trade
             // so if we're taker, we invert it
             $currentSide = $parsed['side'];
             $parsed['side'] = $this->safe_string(array(
@@ -584,7 +584,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $parsed;
     }
 
-    public function parse_ws_order_status(mixed $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             'filled' => 'closed',
             'canceled' => 'canceled',
@@ -592,83 +592,83 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $this->safe_string($statuses, $status, 'open');
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // Order is created
         //
         //     {
-        //         "type" => "received",
-        //         "side" => "sell",
-        //         "product_id" => "BTC-USDC",
-        //         "time" => "2021-03-05T16:42:21.878177Z",
-        //         "sequence" => 5641953814,
-        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
-        //         "user_id" => "54fc141576dcf32596000133",
-        //         "order_id" => "11838707-bf9c-4d65-8cec-b57c9a7cab42",
-        //         "order_type" => "limit",
-        //         "size" => "0.0001",
-        //         "price" => "50000",
-        //         "client_oid" => "a317abb9-2b30-4370-ebfe-0deecb300180"
+        //         "type": "received",
+        //         "side": "sell",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:42:21.878177Z",
+        //         "sequence": 5641953814,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "order_id": "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        //         "order_type": "limit",
+        //         "size": "0.0001",
+        //         "price": "50000",
+        //         "client_oid": "a317abb9-2b30-4370-ebfe-0deecb300180"
         //     }
         //
         //     {
-        //         "type" => "received",
-        //         "time" => "2014-11-09T08:19:27.028459Z",
-        //         "product_id" => "BTC-USD",
-        //         "sequence" => 12,
-        //         "order_id" => "dddec984-77a8-460a-b958-66f114b0de9b",
-        //         "funds" => "3000.234",
-        //         "side" => "buy",
-        //         "order_type" => "market"
+        //         "type": "received",
+        //         "time": "2014-11-09T08:19:27.028459Z",
+        //         "product_id": "BTC-USD",
+        //         "sequence": 12,
+        //         "order_id": "dddec984-77a8-460a-b958-66f114b0de9b",
+        //         "funds": "3000.234",
+        //         "side": "buy",
+        //         "order_type": "market"
         //     }
         //
-        // Order is on the $order book
+        // Order is on the order book
         //
         //     {
-        //         "type" => "open",
-        //         "side" => "sell",
-        //         "product_id" => "BTC-USDC",
-        //         "time" => "2021-03-05T16:42:21.878177Z",
-        //         "sequence" => 5641953815,
-        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
-        //         "user_id" => "54fc141576dcf32596000133",
-        //         "price" => "50000",
-        //         "order_id" => "11838707-bf9c-4d65-8cec-b57c9a7cab42",
-        //         "remaining_size" => "0.0001"
+        //         "type": "open",
+        //         "side": "sell",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:42:21.878177Z",
+        //         "sequence": 5641953815,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "price": "50000",
+        //         "order_id": "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        //         "remaining_size": "0.0001"
         //     }
         //
         // Order is partially or completely filled
         //
         //     {
-        //         "type" => "match",
-        //         "side" => "sell",
-        //         "product_id" => "BTC-USDC",
-        //         "time" => "2021-03-05T16:37:13.396107Z",
-        //         "sequence" => 5641897876,
-        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
-        //         "user_id" => "54fc141576dcf32596000133",
-        //         "trade_id" => 5455505,
-        //         "maker_order_id" => "e5f5754d-70a3-4346-95a6-209bcb503629",
-        //         "taker_order_id" => "88bf7086-7b15-40ff-8b19-ab4e08516d69",
-        //         "size" => "0.00021019",
-        //         "price" => "47338.46",
-        //         "taker_profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
-        //         "taker_user_id" => "54fc141576dcf32596000133",
-        //         "taker_fee_rate" => "0.005"
+        //         "type": "match",
+        //         "side": "sell",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:37:13.396107Z",
+        //         "sequence": 5641897876,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "trade_id": 5455505,
+        //         "maker_order_id": "e5f5754d-70a3-4346-95a6-209bcb503629",
+        //         "taker_order_id": "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        //         "size": "0.00021019",
+        //         "price": "47338.46",
+        //         "taker_profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "taker_user_id": "54fc141576dcf32596000133",
+        //         "taker_fee_rate": "0.005"
         //     }
         //
         // Order is canceled / closed
         //
         //     {
-        //         "type" => "done",
-        //         "side" => "buy",
-        //         "product_id" => "BTC-USDC",
-        //         "time" => "2021-03-05T16:37:13.396107Z",
-        //         "sequence" => 5641897877,
-        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
-        //         "user_id" => "54fc141576dcf32596000133",
-        //         "order_id" => "88bf7086-7b15-40ff-8b19-ab4e08516d69",
-        //         "reason" => "filled"
+        //         "type": "done",
+        //         "side": "buy",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:37:13.396107Z",
+        //         "sequence": 5641897877,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "order_id": "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        //         "reason": "filled"
         //     }
         //
         $currentOrders = $this->orders;
@@ -689,8 +689,8 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             if ($orders === null) {
                 return;
             }
-            $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
-            $previousOrder = $this->safe_value($previousOrders, $orderId);
+            $previousOrders = $this->safe_dict($orders->hashmap, $symbol, array());
+            $previousOrder = $this->safe_dict($previousOrders, $orderId);
             if ($previousOrder === null) {
                 $previousOrder = $this->safe_value_2($previousOrders, $makerOrderId, $takerOrderId);
             }
@@ -703,7 +703,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 if ($sequence === null) {
                     return;
                 }
-                $previousInfo = $this->safe_value($previousOrder, 'info', array());
+                $previousInfo = $this->safe_dict($previousOrder, 'info', array());
                 $previousSequence = $this->safe_integer($previousInfo, 'sequence');
                 if (($previousSequence === null) || ($sequence > $previousSequence)) {
                     if ($type === 'match') {
@@ -770,7 +770,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         $marketId = $this->safe_string($order, 'product_id');
@@ -820,24 +820,24 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         ));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
-        //         "type" => "ticker",
-        //         "sequence" => 12042642428,
-        //         "product_id" => "BTC-USD",
-        //         "price" => "9380.55",
-        //         "open_24h" => "9450.81000000",
-        //         "volume_24h" => "9611.79166047",
-        //         "low_24h" => "9195.49000000",
-        //         "high_24h" => "9475.19000000",
-        //         "volume_30d" => "327812.00311873",
-        //         "best_bid" => "9380.54",
-        //         "best_ask" => "9380.55",
-        //         "side" => "buy",
-        //         "time" => "2020-02-01T01:40:16.253563Z",
-        //         "trade_id" => 82062566,
-        //         "last_size" => "0.41969131"
+        //         "type": "ticker",
+        //         "sequence": 12042642428,
+        //         "product_id": "BTC-USD",
+        //         "price": "9380.55",
+        //         "open_24h": "9450.81000000",
+        //         "volume_24h": "9611.79166047",
+        //         "low_24h": "9195.49000000",
+        //         "high_24h": "9475.19000000",
+        //         "volume_30d": "327812.00311873",
+        //         "best_bid": "9380.54",
+        //         "best_ask": "9380.55",
+        //         "side": "buy",
+        //         "time": "2020-02-01T01:40:16.253563Z",
+        //         "trade_id": 82062566,
+        //         "last_size": "0.41969131"
         //     }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -855,26 +855,26 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "type" => "ticker",
-        //         "sequence" => 7388547310,
-        //         "product_id" => "BTC-USDT",
-        //         "price" => "22345.67",
-        //         "open_24h" => "22308.13",
-        //         "volume_24h" => "470.21123644",
-        //         "low_24h" => "22150",
-        //         "high_24h" => "22495.15",
-        //         "volume_30d" => "25713.98401605",
-        //         "best_bid" => "22345.67",
-        //         "best_bid_size" => "0.10647825",
-        //         "best_ask" => "22349.68",
-        //         "best_ask_size" => "0.03131702",
-        //         "side" => "sell",
-        //         "time" => "2023-03-04T03:37:20.799258Z",
-        //         "trade_id" => 11586478,
-        //         "last_size" => "0.00352175"
+        //         "type": "ticker",
+        //         "sequence": 7388547310,
+        //         "product_id": "BTC-USDT",
+        //         "price": "22345.67",
+        //         "open_24h": "22308.13",
+        //         "volume_24h": "470.21123644",
+        //         "low_24h": "22150",
+        //         "high_24h": "22495.15",
+        //         "volume_30d": "25713.98401605",
+        //         "best_bid": "22345.67",
+        //         "best_bid_size": "0.10647825",
+        //         "best_ask": "22349.68",
+        //         "best_ask_size": "0.03131702",
+        //         "side": "sell",
+        //         "time": "2023-03-04T03:37:20.799258Z",
+        //         "trade_id": 11586478,
+        //         "last_size": "0.00352175"
         //     }
         //
         $type = $this->safe_string($ticker, 'type');
@@ -921,30 +921,30 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
-        // first $message (snapshot)
+        // first message (snapshot)
         //
         //     {
-        //         "type" => "snapshot",
-        //         "product_id" => "BTC-USD",
-        //         "bids" => array(
+        //         "type": "snapshot",
+        //         "product_id": "BTC-USD",
+        //         "bids": [
         //             ["10101.10", "0.45054140"]
-        //         ),
-        //         "asks" => array(
+        //         ],
+        //         "asks": [
         //             ["10102.55", "0.57753524"]
-        //         )
+        //         ]
         //     }
         //
         // subsequent updates
         //
         //     {
-        //         "type" => "l2update",
-        //         "product_id" => "BTC-USD",
-        //         "time" => "2019-08-14T20:42:27.265Z",
-        //         "changes" => array(
-        //             array( "buy", "10101.80000000", "0.162567" )
-        //         )
+        //         "type": "l2update",
+        //         "product_id": "BTC-USD",
+        //         "time": "2019-08-14T20:42:27.265Z",
+        //         "changes": [
+        //             [ "buy", "10101.80000000", "0.162567" ]
+        //         ]
         //     }
         //
         $type = $this->safe_string($message, 'type');
@@ -953,13 +953,13 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $symbol = $market['symbol'];
         $name = 'level2';
         $messageHash = $name . ':' . $marketId;
-        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         if ($type === 'snapshot') {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
-            $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'asks', array()));
-            $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
+            $this->handle_deltas($orderbook['asks'], $this->safe_list($message, 'asks', array()));
+            $this->handle_deltas($orderbook['bids'], $this->safe_list($message, 'bids', array()));
             $orderbook['timestamp'] = null;
             $orderbook['datetime'] = null;
             $orderbook['symbol'] = $symbol;
@@ -967,7 +967,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->parse8601($this->safe_string($message, 'time'));
-            $changes = $this->safe_value($message, 'changes', array());
+            $changes = $this->safe_list($message, 'changes', array());
             $sides = array(
                 'sell' => 'asks',
                 'buy' => 'bids',
@@ -987,35 +987,35 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
-        //         "type" => "subscriptions",
-        //         "channels" => array(
+        //         "type": "subscriptions",
+        //         "channels": [
         //             {
-        //                 "name" => "level2",
-        //                 "product_ids" => array( "ETH-BTC" )
+        //                 "name": "level2",
+        //                 "product_ids": [ "ETH-BTC" ]
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         "type" => "error",
-        //         "message" => "error $message",
+        //         "type": "error",
+        //         "message": "error message",
         //         /* ... */
         //     }
         //
-        // auth $error
+        // auth error
         //
         //     {
-        //         "type" => "error",
-        //         "message" => "Authentication Failed",
-        //         "reason" => "array("message":"Invalid API Key")"
+        //         "type": "error",
+        //         "message": "Authentication Failed",
+        //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
         $errMsg = $this->safe_string($message, 'message');
@@ -1032,7 +1032,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $type = $this->safe_string($message, 'type');
         $methods = array(
             'snapshot' => array($this, 'handle_order_book'),

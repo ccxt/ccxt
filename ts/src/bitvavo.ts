@@ -432,7 +432,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //     { "time": 1590379519148 }
@@ -448,7 +448,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetMarkets (params);
         //
         //    {
@@ -547,7 +547,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetAssets (params);
         //
         //     [
@@ -692,7 +692,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -779,7 +779,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -818,7 +818,7 @@ export default class bitvavo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -922,7 +922,7 @@ export default class bitvavo extends Exchange {
         const id = this.safeString2 (trade, 'id', 'fillId');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const taker = this.safeValue (trade, 'taker');
+        const taker = this.safeBool (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
             takerOrMaker = (taker === true) ? 'taker' : 'maker';
@@ -963,7 +963,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -980,7 +980,7 @@ export default class bitvavo extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFees (fees: any, market: Market = undefined) {
+    parseTradingFees (fees: NullableDict, market: Market = undefined): Dict {
         //
         //     {
         //         "fees": {
@@ -990,7 +990,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     }
         //
-        const feesValue = this.safeValue (fees, 'fees');
+        const feesValue = this.safeDict (fees, 'fees');
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
@@ -1017,7 +1017,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1058,7 +1058,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1112,7 +1112,7 @@ export default class bitvavo extends Exchange {
         ];
     }
 
-    fetchOHLCVRequest (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchOHLCVRequest (symbol: Str, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         let request: Dict = {
             'market': market['id'],
@@ -1134,7 +1134,7 @@ export default class bitvavo extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 1440, max 1440
+            request['limit'] = Math.min (limit, 1440); // default 1440, max 1440
         }
         return this.extend (request, params);
     }
@@ -1153,7 +1153,7 @@ export default class bitvavo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1203,7 +1203,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1228,7 +1228,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1275,7 +1275,7 @@ export default class bitvavo extends Exchange {
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1336,7 +1336,7 @@ export default class bitvavo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1391,7 +1391,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
+    override async fetchTransfer (id: string, code: Str = undefined, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1467,7 +1467,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1494,7 +1494,7 @@ export default class bitvavo extends Exchange {
         } as DepositAddress;
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1512,8 +1512,8 @@ export default class bitvavo extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         let triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
+        const stopLossPrice = this.safeString (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isMarketOrder) {
             let cost: Num = undefined;
@@ -1603,7 +1603,7 @@ export default class bitvavo extends Exchange {
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1653,7 +1653,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    editOrderRequest (id: string, symbol: Str, type: any, side: any, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         let request: Dict = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
@@ -1704,7 +1704,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1714,7 +1714,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
+    cancelOrderRequest (id: Str, symbol: Str = undefined, params: Dict = {}): Dict {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1746,7 +1746,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1770,7 +1770,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1808,7 +1808,7 @@ export default class bitvavo extends Exchange {
      * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}) {
         if ((timeout as number) > 300000) {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds');
         }
@@ -1844,7 +1844,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1897,7 +1897,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    fetchOrdersRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchOrdersRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         let request: Dict = {
             'market': market['id'],
@@ -1930,7 +1930,7 @@ export default class bitvavo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -1995,7 +1995,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2140,7 +2140,7 @@ export default class bitvavo extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const rawTrades = this.safeValue (order, 'fills', []);
+        const rawTrades = this.safeList (order, 'fills', []);
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = this.safeValue (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
@@ -2169,7 +2169,7 @@ export default class bitvavo extends Exchange {
         }, market);
     }
 
-    fetchMyTradesRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchMyTradesRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         let request: Dict = {
             'market': market['id'],
@@ -2202,7 +2202,7 @@ export default class bitvavo extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -2250,7 +2250,7 @@ export default class bitvavo extends Exchange {
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2350,7 +2350,7 @@ export default class bitvavo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    withdrawRequest (code: Str, amount: any, address: any, tag: Str = undefined, params = {}) {
+    withdrawRequest (code: Str, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Dict {
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -2377,7 +2377,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
@@ -2396,7 +2396,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    fetchWithdrawalsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchWithdrawalsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const request: Dict = {
             // 'symbol': currency['id'],
             // 'limit': 500, // default 500, max 1000
@@ -2428,7 +2428,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2455,7 +2455,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    fetchDepositsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    fetchDepositsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const request: Dict = {
             // 'symbol': currency['id'],
             // 'limit': 500, // default 500, max 1000
@@ -2487,7 +2487,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2608,7 +2608,7 @@ export default class bitvavo extends Exchange {
         } as Transaction;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         //
         //   {
         //       "symbol": "1INCH",
@@ -2638,8 +2638,8 @@ export default class bitvavo extends Exchange {
             },
             'networks': {},
         };
-        const networks = this.safeValue (fee, 'networks');
-        let networkId = this.safeValue (networks, 0); // Bitvavo currently only supports one network per currency
+        const networks = this.safeList (fee, 'networks');
+        let networkId = this.safeString (networks, 0); // Bitvavo currently only supports one network per currency
         const currencyCode = this.safeString (currency, 'code');
         if (networkId === 'Mainnet') {
             networkId = currencyCode;
@@ -2663,7 +2663,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params: Dict = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2690,7 +2690,7 @@ export default class bitvavo extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'symbol');
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2746,10 +2746,10 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeValue (config, 'cost', 1);
+        return this.safeNumber (config, 'cost', 1);
     }
 }

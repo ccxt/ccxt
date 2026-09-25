@@ -17,20 +17,20 @@ public partial class testMainClass : BaseTest
         // a validated book is already a pass, so keep sampling only while updates
         // keep arriving quickly and stop once the book goes quiet.
         int maxIdleTime = 5000;
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
         bool idle = false;
-        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
             bool success = true;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = ((IOrderBook)(await exchange.WatchOrderBook(((string)symbol)))).Copy();
             } catch(Exception e)
             {
-                if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
+                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !(e is InvalidNonce))
                 {
                     throw e;
                 }
@@ -39,11 +39,11 @@ public partial class testMainClass : BaseTest
             // refresh the deadline on every path, otherwise a stream of temporary
             // failures would loop forever
             now = exchange.milliseconds();
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if (((success == true)) && ((response != null)))
             {
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
-                object elapsed = subtract(now, startTime);
-                if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
+                Int64 elapsed = (now - startTime);
+                if (elapsed > maxIdleTime)
                 {
                     // this market updates slower than the remaining test window, so
                     // awaiting another delta would only end in a harness timeout

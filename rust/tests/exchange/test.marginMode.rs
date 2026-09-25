@@ -16,10 +16,10 @@ pub fn testMarginMode(mut exchange: Value, mut skippedProperties: Value, mut met
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
-            m.insert("marginMode".to_string(), Value::Str("cross".to_string()));
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
+            m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("symbol".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("symbol".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
 }

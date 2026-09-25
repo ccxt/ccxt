@@ -16,30 +16,30 @@ fn helperStrToBinary5(mut exchange: ccxt::exchange::Exchange, mut str_val: Value
 pub fn testBinaryToBase58() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_number(Value::Null, &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&((exchange.parse_number(Value::Null, &[]) == Value::Null))));
     // @SKIP_START_GO
     // Test 1: Simple string
-    let mut binary1: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary1.clone(), &[]), &Value::Str("Cn8eVZg".to_string()))))));
+    let mut binary1: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary1.clone(), &[]).as_str() == Some("Cn8eVZg")))));
     // Test 2: String with space
-    let mut binary2: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello world".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary2.clone(), &[]), &Value::Str("StV1DL6CwTryKyV".to_string()))))));
+    let mut binary2: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello world".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary2.clone(), &[]).as_str() == Some("StV1DL6CwTryKyV")))));
     // Test 3: Short string
-    let mut binary3: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("test".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary3.clone(), &[]), &Value::Str("3yZe7d".to_string()))))));
+    let mut binary3: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("test".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary3.clone(), &[]).as_str() == Some("3yZe7d")))));
     // Test 4: Single byte
-    let mut binary4: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("a".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary4.clone(), &[]), &Value::Str("2g".to_string()))))));
+    let mut binary4: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("a".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary4.clone(), &[]).as_str() == Some("2g")))));
     // Test 5: Two bytes
-    let mut binary5: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("ab".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary5.clone(), &[]), &Value::Str("8Qq".to_string()))))));
+    let mut binary5: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("ab".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary5.clone(), &[]).as_str() == Some("8Qq")))));
     // Test 6: Three bytes
-    let mut binary6: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("abc".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary6.clone(), &[]), &Value::Str("ZiCa".to_string()))))));
+    let mut binary6: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("abc".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary6.clone(), &[]).as_str() == Some("ZiCa")))));
     // Test 7: JSON-like binary
-    let mut binary7: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("{\"key\":\"value\"}".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base58(binary7.clone(), &[]), &Value::Str("4SoiMiEYtTt5tPdi81Fik".to_string()))))));
+    let mut binary7: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("{\"key\":\"value\"}".into()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary7.clone(), &[]).as_str() == Some("4SoiMiEYtTt5tPdi81Fik")))));
 }

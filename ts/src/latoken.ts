@@ -356,7 +356,7 @@ export default class latoken extends Exchange {
         });
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
@@ -368,7 +368,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -386,7 +386,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetPair (params);
         //
         //     [
@@ -495,7 +495,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetCurrency (params);
         //
         //     [
@@ -571,7 +571,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -606,10 +606,10 @@ export default class latoken extends Exchange {
         let maxTimestamp: Int = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = this.safeValue (this.options, 'types', {});
+        const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeValue (balancesByType, accountType, []);
+        const balances = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -644,7 +644,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -760,7 +760,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -802,7 +802,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -870,7 +870,7 @@ export default class latoken extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'cost');
-        const makerBuyer = this.safeValue (trade, 'makerBuyer');
+        const makerBuyer = this.safeBool (trade, 'makerBuyer');
         let side = this.safeString (trade, 'direction');
         if (side === undefined) {
             side = (makerBuyer === true) ? 'sell' : 'buy';
@@ -930,7 +930,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -965,8 +965,8 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        const options = this.safeValue (this.options, 'fetchTradingFee', {});
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
+        const options = this.safeDict (this.options, 'fetchTradingFee', {});
         const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTradingFee');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
@@ -979,7 +979,7 @@ export default class latoken extends Exchange {
         }
     }
 
-    async fetchPublicTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    async fetchPublicTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1007,7 +1007,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    async fetchPrivateTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    async fetchPrivateTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1047,7 +1047,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1100,7 +1100,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: any) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
@@ -1235,7 +1235,7 @@ export default class latoken extends Exchange {
      * @param {boolean} [params.trigger] true if fetching trigger orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1243,7 +1243,7 @@ export default class latoken extends Exchange {
             await this.loadMarkets ();
         }
         let response: Dict;
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market (symbol);
@@ -1296,7 +1296,7 @@ export default class latoken extends Exchange {
      * @param {boolean} [params.trigger] true if fetching trigger orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1307,7 +1307,7 @@ export default class latoken extends Exchange {
             // 'limit': limit, // default '100'
         };
         let market: Market = undefined;
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
@@ -1366,14 +1366,14 @@ export default class latoken extends Exchange {
      * @param {boolean} [params.trigger] true if fetching a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request: Dict = {
             'id': id,
         };
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
         if (isTrigger === true) {
@@ -1423,7 +1423,7 @@ export default class latoken extends Exchange {
      * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1483,14 +1483,14 @@ export default class latoken extends Exchange {
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request: Dict = {
             'id': id,
         };
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
         if (isTrigger === true) {
@@ -1521,7 +1521,7 @@ export default class latoken extends Exchange {
      * @param {boolean} [params.trigger] true if cancelling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1530,7 +1530,7 @@ export default class latoken extends Exchange {
             // 'quote': market['quoteId'],
         };
         let market: Market = undefined;
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
         if (symbol !== undefined) {
@@ -1574,7 +1574,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1693,7 +1693,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str): Str {
         const types: Dict = {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
@@ -1712,7 +1712,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1767,7 +1767,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1860,7 +1860,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));

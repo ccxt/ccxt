@@ -15,33 +15,33 @@ public partial class testMainClass : BaseTest
         // loop has to be bounded by the deadline alone. waiting for every requested
         // symbol to be seen would hang forever whenever one of them stays idle.
         int maxIdleTime = 5000;
-        object currentTime = exchange.milliseconds();
-        object deadline = add(currentTime, 15000);
+        Int64 currentTime = exchange.milliseconds();
+        object deadline = (currentTime + 15000);
         bool idle = false;
-        while (isTrue((isLessThan(currentTime, deadline))) && !isTrue(idle))
+        while ((isLessThan(currentTime, deadline)) && !idle)
         {
             object response = null;
             bool succeeded = true;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = ((IOrderBook)(await exchange.WatchOrderBookForSymbols(symbols))).Copy();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime
-                if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
+                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !(e is InvalidNonce))
                 {
                     throw e;
                 }
                 succeeded = false;
             }
             currentTime = exchange.milliseconds();
-            if (isTrue(isTrue((isEqual(succeeded, true))) && isTrue((!isEqual(response, null)))))
+            if (((succeeded == true)) && ((response != null)))
             {
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-                object elapsed = subtract(currentTime, startTime);
-                if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
+                Int64 elapsed = (currentTime - startTime);
+                if (elapsed > maxIdleTime)
                 {
                     idle = true;
                 }

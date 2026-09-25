@@ -9,10 +9,10 @@ use crate::test_helpers::*;
 // sibling validators / method tests are re-exported from mod.rs
 use super::*;
 
-pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value) {
+pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value, mut isPublicTrade: Value) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("prediction".into()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));
@@ -26,43 +26,49 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("id".to_string(), Value::Str("12345-67890:09876/54321".to_string()));
+            m.insert("id".to_string(), Value::Str("12345-67890:09876/54321".into()));
             m.insert("timestamp".to_string(), Value::Int(1502962946216));
-            m.insert("datetime".to_string(), Value::Str("2017-08-17 12:42:48.000".to_string()));
-            m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
-            m.insert("order".to_string(), Value::Str("12345-67890:09876/54321".to_string()));
-            m.insert("side".to_string(), Value::Str("buy".to_string()));
-            m.insert("takerOrMaker".to_string(), Value::Str("taker".to_string()));
-            m.insert("price".to_string(), exchange.parse_number(Value::Str("0.06917684".to_string()), &[]));
-            m.insert("amount".to_string(), exchange.parse_number(Value::Str("1.5".to_string()), &[]));
-            m.insert("cost".to_string(), exchange.parse_number(Value::Str("0.10376526".to_string()), &[]));
-            m.insert("fees".to_string(), Value::List(vec![]));
+            m.insert("datetime".to_string(), Value::Str("2017-08-17 12:42:48.000".into()));
+            m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
+            m.insert("order".to_string(), Value::Str("12345-67890:09876/54321".into()));
+            m.insert("side".to_string(), Value::Str("buy".into()));
+            m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
+            m.insert("price".to_string(), exchange.parse_number(Value::Str("0.06917684".into()), &[]));
+            m.insert("amount".to_string(), exchange.parse_number(Value::Str("1.5".into()), &[]));
+            m.insert("cost".to_string(), exchange.parse_number(Value::Str("0.10376526".into()), &[]));
+            m.insert("fees".to_string(), Value::from(vec![]));
             m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), exchange.parse_number(Value::Str("0.001".to_string()), &[]));
-        m.insert("currency".to_string(), Value::Str("USDT".to_string()));
+        m.insert("cost".to_string(), exchange.parse_number(Value::Str("0.001".into()), &[]));
+        m.insert("currency".to_string(), Value::Str("USDT".into()));
     m
 }));
         m
     });
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("fees".to_string()), Value::Str("fee".to_string()), Value::Str("symbol".to_string()), Value::Str("order".to_string()), Value::Str("id".to_string()), Value::Str("takerOrMaker".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fees".into()), Value::Str("fee".into()), Value::Str("symbol".into()), Value::Str("order".into()), Value::Str("id".into()), Value::Str("takerOrMaker".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".to_string()).clone(), Value::List(vec![Value::Str("buy".to_string()), Value::Str("sell".to_string())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::List(vec![Value::Str("taker".to_string()), Value::Str("maker".to_string())]).clone()]);
-    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".to_string()).clone()]);
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("fees".to_string()))))) {
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())]).clone()]);
+    if is_true(&isPublicTrade) {
+        // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()).clone(), Value::from(vec![Value::Str("taker".into()), Value::Null]).clone()]);
+    }  else {
+        // for private trades (fetchMyTrades & watchMyTrades), it can be any
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()).clone(), Value::from(vec![Value::Str("taker".into()), Value::Str("maker".into()), Value::Null]).clone()]);
+    }
+    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()).clone()]);
+    if !(in_op(&skippedProperties, &Value::Str("fees".into()))) {
         // todo: remove undefined check and probably non-empty array check later
-        if !is_equal(&get_value(&entry, &Value::Str("fees".to_string())), &Value::Null) {
+        if (entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1435: bool = true;
-                while { if !__for_first_1435 { i = add(&i, &Value::Int(1)); } __for_first_1435 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("fees".to_string())))) } {
-                crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&entry, &Value::Str("fees".to_string())).clone(), i.clone()]);
+                let mut __for_first_1508: bool = true;
+                while { if !__for_first_1508 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1508 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("fees".into()))).as_f64().unwrap_or(f64::NAN) } {
+                crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null).clone(), i.clone()]);
             }
             }
         }

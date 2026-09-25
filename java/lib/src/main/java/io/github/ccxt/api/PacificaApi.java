@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class PacificaApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetInfo", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetInfoFees (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetInfoFees (Object... optionalArgs)
     {
         return this.callAsync ("publicGetInfoFees", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetInfoPrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetInfoPrices (Object... optionalArgs)
     {
         return this.callAsync ("publicGetInfoPrices", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetKline (Object... optionalArgs)
     {
         return this.callAsync ("publicGetKline", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetKlineMark (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetKlineMark (Object... optionalArgs)
     {
         return this.callAsync ("publicGetKlineMark", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetBook", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTrades", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetFundingRateHistory", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetLoanPool (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetLoanPool (Object... optionalArgs)
     {
         return this.callAsync ("publicGetLoanPool", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccount", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountLoan (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountLoan (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountLoan", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountSettings (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountSettings (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountSettings", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPositions", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTradesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTradesHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradesHistory", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetFundingHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetFundingHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetFundingHistory", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPortfolio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPortfolio (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPortfolio", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountBalanceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountBalanceHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountBalanceHistory", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountSpotBalanceHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountSpotBalanceHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountSpotBalanceHistory", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountSpotAssetDepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountSpotAssetDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountSpotAssetDepositHistory", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountSpotAssetWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountSpotAssetWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountSpotAssetWithdrawHistory", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAccountSpotAssetWithdrawPending (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAccountSpotAssetWithdrawPending (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountSpotAssetWithdrawPending", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrders", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrdersHistory", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersHistoryById (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrdersHistoryById (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrdersHistoryById", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersTwap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrdersTwap (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrdersTwap", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersTwapHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrdersTwapHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrdersTwapHistory", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersTwapHistoryById (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetOrdersTwapHistoryById (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrdersTwapHistoryById", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotAssets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotAssets", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotAssetsBridgeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotAssetsBridgeInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotAssetsBridgeInfo", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSpotAssetsBridgeParametersSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSpotAssetsBridgeParametersSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSpotAssetsBridgeParametersSymbol", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetLakeList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetLakeList (Object... optionalArgs)
     {
         return this.callAsync ("publicGetLakeList", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetAccountBuilderCodesApprovals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetAccountBuilderCodesApprovals (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountBuilderCodesApprovals", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetBuilderOverview (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetBuilderOverview (Object... optionalArgs)
     {
         return this.callAsync ("publicGetBuilderOverview", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetBuilderTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetBuilderTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetBuilderTrades", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetLeaderboardBuilderCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetLeaderboardBuilderCode (Object... optionalArgs)
     {
         return this.callAsync ("publicGetLeaderboardBuilderCode", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountLeverage", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountMargin", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountWithdraw", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSettingsAutoLendDisabled (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSettingsAutoLendDisabled (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSettingsAutoLendDisabled", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSettingsSpot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSettingsSpot (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSettingsSpot", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSpotAssetWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSpotAssetWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSpotAssetWithdraw", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSubaccountCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSubaccountCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSubaccountCreate", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSubaccountList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSubaccountList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSubaccountList", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSubaccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSubaccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSubaccountTransfer", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountSubaccountSpotAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountSubaccountSpotAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSubaccountSpotAssetTransfer", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPositionsAddIsolatedMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPositionsAddIsolatedMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPositionsAddIsolatedMargin", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCreate", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCreateMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCreateMarket (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCreateMarket", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersStopCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersStopCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersStopCreate", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPositionsTpsl (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPositionsTpsl (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPositionsTpsl", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCancel", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCancelAll", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersStopCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersStopCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersStopCancel", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersEdit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersEdit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersEdit", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersBatch", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersTwapCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersTwapCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersTwapCreate", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersTwapCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersTwapCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersTwapCancel", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountBuilderCodesApprove (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountBuilderCodesApprove (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountBuilderCodesApprove", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountBuilderCodesRevoke (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountBuilderCodesRevoke (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountBuilderCodesRevoke", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuilderUpdateFeeRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBuilderUpdateFeeRate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBuilderUpdateFeeRate", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReferralUserCodeClaim (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostReferralUserCodeClaim (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReferralUserCodeClaim", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentBind (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentBind (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentBind", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentList", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentRevoke (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentRevoke (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentRevoke", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentRevokeAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentRevokeAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentRevokeAll", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentIpWhitelistList (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentIpWhitelistList", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistAdd (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentIpWhitelistAdd (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentIpWhitelistAdd", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistRemove (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentIpWhitelistRemove (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentIpWhitelistRemove", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistToggle (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAgentIpWhitelistToggle (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentIpWhitelistToggle", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountApiKeysCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountApiKeysCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountApiKeysCreate", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountApiKeysRevoke (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountApiKeysRevoke (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountApiKeysRevoke", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountApiKeys (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostAccountApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountApiKeys", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeAddBlacklist (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeAddBlacklist (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeAddBlacklist", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeAddMaxLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeAddMaxLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeAddMaxLeverage", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeAddWhitelist (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeAddWhitelist (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeAddWhitelist", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeClaimManager (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeClaimManager (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeClaimManager", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeClaimReferralCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeClaimReferralCode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeClaimReferralCode", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeCreate", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeDeposit", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeRemoveBlacklist (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeRemoveBlacklist (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeRemoveBlacklist", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeRemoveMaxLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeRemoveMaxLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeRemoveMaxLeverage", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeRemoveWhitelist (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeRemoveWhitelist (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeRemoveWhitelist", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeUpdateDepositCap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeUpdateDepositCap (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeUpdateDepositCap", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class PacificaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLakeWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostLakeWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLakeWithdraw", optionalArgs);
     }

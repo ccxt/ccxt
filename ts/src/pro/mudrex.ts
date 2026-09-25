@@ -65,7 +65,7 @@ export default class mudrex extends mudrexRest {
         this.options['ws'] = wsOptions;
     }
 
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -87,7 +87,7 @@ export default class mudrex extends mudrexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -121,7 +121,7 @@ export default class mudrex extends mudrexRest {
         return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
     }
 
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -156,7 +156,7 @@ export default class mudrex extends mudrexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: any) {
         if (this.safeString (message, 'method') === 'PONG') {
             return;
         }
@@ -175,7 +175,7 @@ export default class mudrex extends mudrexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: Dict) {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeString (error, 'code');
         const msg = this.safeString (error, 'msg');
@@ -186,7 +186,7 @@ export default class mudrex extends mudrexRest {
         throw new ExchangeError (feedback);
     }
 
-    handleOHLCV (client: any, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         const stream = this.safeString (message, 'stream');
         if (stream === undefined) {
             return;
@@ -209,8 +209,8 @@ export default class mudrex extends mudrexRest {
             this.safeNumber (data, 'c'),
             this.safeNumber (data, 'v'),
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), tf);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), tf);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -223,7 +223,7 @@ export default class mudrex extends mudrexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTicker (client: any, message: any) {
+    handleTicker (client: Client, message: Dict) {
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const t = data[i];

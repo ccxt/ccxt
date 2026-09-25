@@ -362,7 +362,7 @@ class bitteam(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitteam
 
@@ -374,7 +374,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.publicGetTradeApiCcxtPairs(params)
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 28,
         #             "pairs": [
@@ -391,7 +391,7 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "change24": 1.41,
         #                     "volume24": 28.22627543,
         #                     "volume24USD": 55662.35636401598,
-        #                     "active": True,
+        #                     "active": true,
         #                     "baseStep": 8,
         #                     "quoteStep": 6,
         #                     "status": 1,
@@ -429,7 +429,7 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "change24": -6.72,
         #                     "volume24": 0,
         #                     "volume24USD": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "baseStep": 8,
         #                     "quoteStep": 6,
         #                     "status": 0,
@@ -458,8 +458,8 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        markets = self.safe_value(result, 'pairs', [])
+        result = self.safe_dict(response, 'result', {})
+        markets = self.safe_list(result, 'pairs', [])
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
@@ -470,14 +470,14 @@ class bitteam(Exchange, ImplicitAPI):
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        active = self.safe_value(market, 'active')
+        active = self.safe_bool(market, 'active')
         timeStart = self.safe_string(market, 'timeStart')
         created = self.parse8601(timeStart)
         minCost = None
         currenciesValuedInUsd = self.handle_option('fetchMarkets', 'currenciesValuedInUsd', {})
         quoteInUsd = self.safe_bool(currenciesValuedInUsd, quote, False)
         if quoteInUsd is True:
-            settings = self.safe_value(market, 'settings', {})
+            settings = self.safe_dict(market, 'settings', {})
             minCost = self.safe_number(settings, 'limit_usd')
         return self.safe_market_structure({
             'id': id,
@@ -530,7 +530,7 @@ class bitteam(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -542,7 +542,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.publicGetTradeApiCurrencies(params)
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 24,
         #             "currencies": [
@@ -559,14 +559,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "eth",
         #                     "title": "Ethereum",
         #                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://ethereum.org/",
         #                     "description": "Ethereum ETH",
         #                     "decimals": 18,
         #                     "blockChain": "Ethereum",
         #                     "precision": 8,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T08:57:41.719Z",
         #                     "type": "crypto",
         #                     "typeNetwork": "internalGW",
@@ -596,14 +596,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "usdt",
         #                     "title": "Tether USD",
         #                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://tether.to/",
         #                     "description": "Tether USD",
         #                     "decimals": 6,
         #                     "blockChain": "",
         #                     "precision": 6,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T09:04:17.170Z",
         #                     "type": "crypto",
         #                     "typeNetwork": "internalGW",
@@ -630,8 +630,8 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseResult = self.safe_value(response, 'result', {})
-        currencies = self.safe_value(responseResult, 'currencies', [])
+        responseResult = self.safe_dict(response, 'result', {})
+        currencies = self.safe_list(responseResult, 'currencies', [])
         # using another endpoint to fetch statuses of deposits and withdrawals
         statusesResponse = await self.publicGetTradeApiCmcAssets()
         #
@@ -639,16 +639,16 @@ class bitteam(Exchange, ImplicitAPI):
         #         "ZNX": {
         #             "name": "ZeNeX Coin",
         #             "unified_cryptoasset_id": 30,
-        #             "withdrawStatus": True,
-        #             "depositStatus": True,
+        #             "withdrawStatus": true,
+        #             "depositStatus": true,
         #             "min_withdraw": 0.00001,
         #             "max_withdraw": 10000
         #         },
         #         "USDT": {
         #             "name": "Tether USD",
         #             "unified_cryptoasset_id": 3,
-        #             "withdrawStatus": True,
-        #             "depositStatus": True,
+        #             "withdrawStatus": true,
+        #             "depositStatus": true,
         #             "min_withdraw": 1,
         #             "max_withdraw": 100000
         #         },
@@ -661,18 +661,18 @@ class bitteam(Exchange, ImplicitAPI):
         return result
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        statusesResponse = self.safe_value(self.options, '_temp_currencies_statuses', {})
+        statusesResponse = self.safe_dict(self.options, '_temp_currencies_statuses', {})
         id = self.safe_string(currency, 'symbol')
         numericId = self.safe_integer(currency, 'id')
         code = self.safe_currency_code(id)
         active = self.safe_bool(currency, 'active', False)
         precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'precision')))
-        txLimits = self.safe_value(currency, 'txLimits', {})
+        txLimits = self.safe_dict(currency, 'txLimits', {})
         minWithdraw = self.safe_string(txLimits, 'minWithdraw')
         maxWithdraw = self.safe_string(txLimits, 'maxWithdraw')
         minDeposit = self.safe_string(txLimits, 'minDeposit')
         fee = None
-        withdrawCommissionFixed = self.safe_value(txLimits, 'withdrawCommissionFixed', {})
+        withdrawCommissionFixed = self.safe_dict(txLimits, 'withdrawCommissionFixed', {})
         feesByNetworkId = {}
         blockChain = self.safe_string(currency, 'blockChain')
         # if only one blockChain
@@ -681,9 +681,9 @@ class bitteam(Exchange, ImplicitAPI):
             feesByNetworkId[blockChain] = fee
         else:
             feesByNetworkId = withdrawCommissionFixed
-        statuses = self.safe_value(statusesResponse, numericId, {})
-        deposit = self.safe_value(statuses, 'depositStatus')
-        withdraw = self.safe_value(statuses, 'withdrawStatus')
+        statuses = self.safe_dict(statusesResponse, numericId, {})
+        deposit = self.safe_bool(statuses, 'depositStatus')
+        withdraw = self.safe_bool(statuses, 'withdrawStatus')
         networkIds = list(feesByNetworkId.keys())
         networks = {}
         networkPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
@@ -746,7 +746,7 @@ class bitteam(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -767,7 +767,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.historyGetApiTwHistoryPairNameResolution(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 364,
         #             "data": [
@@ -792,7 +792,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
@@ -816,7 +816,7 @@ class bitteam(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -865,7 +865,7 @@ class bitteam(Exchange, ImplicitAPI):
         orderbook = self.parse_order_book(response, symbol, timestamp)
         return orderbook
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -893,7 +893,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privateGetTradeApiCcxtOrdersOfUser(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 3,
         #             "orders": [
@@ -973,11 +973,11 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         orders = self.safe_list(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order
 
@@ -999,7 +999,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privateGetTradeApiCcxtOrderId(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "id": 106494347,
         #             "orderId": "13214332",
@@ -1037,7 +1037,7 @@ class bitteam(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1056,7 +1056,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1075,7 +1075,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1094,7 +1094,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1125,7 +1125,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privatePostTradeApiCcxtOrdercreate(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "id": 106733308,
         #             "userId": 21639,
@@ -1149,7 +1149,7 @@ class bitteam(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1168,7 +1168,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privatePostTradeApiCcxtCancelorder(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "message": "The request to cancel your order was received"
         #         }
@@ -1177,7 +1177,7 @@ class bitteam(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel open orders of market
 
@@ -1199,13 +1199,13 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privatePostTradeApiCcxtCancelAllOrder(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "message":"The request to cancel all your orders was received"
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         orders = [result]
         return self.parse_orders(orders, market)
 
@@ -1310,7 +1310,7 @@ class bitteam(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'type'))
         side = self.safe_string(order, 'side')
-        feeRaw = self.safe_value(order, 'fee')
+        feeRaw = self.safe_dict(order, 'fee')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed')
@@ -1361,14 +1361,14 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: object):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             'market': 'market',
             'limit': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject: object, valueKey: object, preciseObject: object, precisionKey: object):
+    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: object, precisionKey: str):
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -1376,7 +1376,7 @@ class bitteam(Exchange, ImplicitAPI):
         precisionString = self.parse_precision(precisionRawString)
         return Precise.string_mul(valueRawString, precisionString)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
 
@@ -1430,7 +1430,7 @@ class bitteam(Exchange, ImplicitAPI):
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1449,7 +1449,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.publicGetTradeApiPairName(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "pair": {
         #                 "id": 2,
@@ -1464,7 +1464,7 @@ class bitteam(Exchange, ImplicitAPI):
         #                 "change24": "1.02",
         #                 "volume24": 24.0796457,
         #                 "volume24USD": 44282.347995912205,
-        #                 "active": True,
+        #                 "active": true,
         #                 "baseStep": 8,
         #                 "quoteStep": 6,
         #                 "status": 1,
@@ -1528,14 +1528,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "eth",
         #                     "title": "Ethereum",
         #                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://ethereum.org/",
         #                     "description": "Ethereum ETH",
         #                     "decimals": 18,
         #                     "blockChain": "Ethereum",
         #                     "precision": 8,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T08:57:41.719Z",
         #                     "txLimits": {
         #                         "minDeposit": "100000000000000",
@@ -1569,14 +1569,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "usdt",
         #                     "title": "Tether USD",
         #                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://tether.to/",
         #                     "description": "Tether USD",
         #                     "decimals": 6,
         #                     "blockChain": "",
         #                     "precision": 6,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T09:04:17.170Z",
         #                     "txLimits": {
         #                         "minDeposit": "1000",
@@ -1630,7 +1630,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         pair = self.safe_dict(result, 'pair', {})
         return self.parse_ticker(pair, market)
 
@@ -1650,7 +1650,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         "change24": "1.02",
         #         "volume24": 24.0796457,
         #         "volume24USD": 44282.347995912205,
-        #         "active": True,
+        #         "active": true,
         #         "baseStep": 8,
         #         "quoteStep": 6,
         #         "status": 1,
@@ -1720,13 +1720,13 @@ class bitteam(Exchange, ImplicitAPI):
         bestAskPrice = None
         bestBidVolume = None
         bestAskVolume = None
-        bids = self.safe_value(ticker, 'bids')
-        asks = self.safe_value(ticker, 'asks')
+        bids = self.safe_list(ticker, 'bids')
+        asks = self.safe_list(ticker, 'asks')
         if (bids is not None) and (isinstance(bids, list)) and (asks is not None) and (isinstance(asks, list)):
-            bestBid = self.safe_value(bids, 0, {})
+            bestBid = self.safe_dict(bids, 0, {})
             bestBidPrice = self.safe_string(bestBid, 'price')
             bestBidVolume = self.safe_string(bestBid, 'quantity')
-            bestAsk = self.safe_value(asks, 0, {})
+            bestAsk = self.safe_dict(asks, 0, {})
             bestAskPrice = self.safe_string(bestAsk, 'price')
             bestAskVolume = self.safe_string(bestAsk, 'quantity')
         else:
@@ -1760,7 +1760,7 @@ class bitteam(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1802,7 +1802,7 @@ class bitteam(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1826,7 +1826,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privateGetTradeApiCcxtTradesOfUser(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 3,
         #             "trades": [
@@ -1838,12 +1838,12 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "pairId": 2,
         #                     "quantity": "0.00955449",
         #                     "price": "1993.674994",
-        #                     "isBuyerMaker": True,
+        #                     "isBuyerMaker": true,
         #                     "baseDecimals": 18,
         #                     "quoteDecimals": 6,
         #                     "side": "sell",
         #                     "timestamp": 1700615250,
-        #                     "rewarded": True,
+        #                     "rewarded": true,
         #                     "makerUserId": 21639,
         #                     "takerUserId": 15913,
         #                     "baseCurrencyId": 2,
@@ -1879,12 +1879,12 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "pairId": 2,
         #                     "quantity": "0.0027193",
         #                     "price": "1993.674994",
-        #                     "isBuyerMaker": True,
+        #                     "isBuyerMaker": true,
         #                     "baseDecimals": 18,
         #                     "quoteDecimals": 6,
         #                     "side": "sell",
         #                     "timestamp": 1700602983,
-        #                     "rewarded": True,
+        #                     "rewarded": true,
         #                     "makerUserId": 21639,
         #                     "takerUserId": 15912,
         #                     "baseCurrencyId": 2,
@@ -1920,12 +1920,12 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "pairId": 22,
         #                     "quantity": "0.00001",
         #                     "price": "37017.495008",
-        #                     "isBuyerMaker": False,
+        #                     "isBuyerMaker": false,
         #                     "baseDecimals": 8,
         #                     "quoteDecimals": 6,
         #                     "side": "buy",
         #                     "timestamp": 1700594960,
-        #                     "rewarded": True,
+        #                     "rewarded": true,
         #                     "makerUserId": 15909,
         #                     "takerUserId": 21639,
         #                     "baseCurrencyId": 11,
@@ -1957,7 +1957,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -1982,12 +1982,12 @@ class bitteam(Exchange, ImplicitAPI):
         #         "pairId": 2,
         #         "quantity": "0.0027193",
         #         "price": "1993.674994",
-        #         "isBuyerMaker": True,
+        #         "isBuyerMaker": true,
         #         "baseDecimals": 18,
         #         "quoteDecimals": 6,
         #         "side": "sell",
         #         "timestamp": 1700602983,
-        #         "rewarded": True,
+        #         "rewarded": true,
         #         "makerUserId": 21639,
         #         "takerUserId": 15912,
         #         "baseCurrencyId": 2,
@@ -2037,10 +2037,10 @@ class bitteam(Exchange, ImplicitAPI):
             elif side == 'buy':
                 side = 'sell'
             order = self.safe_string(trade, 'makerOrderId')
-            feeInfo = self.safe_value(trade, 'feeMaker', {})
+            feeInfo = self.safe_dict(trade, 'feeMaker', {})
         elif takerOrMaker == 'taker':
             order = self.safe_string(trade, 'takerOrderId')
-            feeInfo = self.safe_value(trade, 'feeTaker', {})
+            feeInfo = self.safe_dict(trade, 'feeTaker', {})
         feeCurrencyId = self.safe_string(feeInfo, 'symbol')
         feeCost = self.safe_string(feeInfo, 'amount')
         fee = {
@@ -2064,7 +2064,7 @@ class bitteam(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2081,7 +2081,7 @@ class bitteam(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "free": {
         #                 "USDT": "0",
@@ -2120,18 +2120,17 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        timestamp = self.milliseconds()
         balance = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         balanceByCurrencies = self.omit(result, ['free', 'used', 'total'])
         rawCurrencyIds = list(balanceByCurrencies.keys())
         for i in range(0, len(rawCurrencyIds)):
             rawCurrencyId = rawCurrencyIds[i]
-            currencyBalance = self.safe_value(result, rawCurrencyId)
+            currencyBalance = self.safe_dict(result, rawCurrencyId)
             free = self.safe_string(currencyBalance, 'free')
             used = self.safe_string(currencyBalance, 'used')
             total = self.safe_string(currencyBalance, 'total')
@@ -2144,7 +2143,7 @@ class bitteam(Exchange, ImplicitAPI):
                 }
         return self.safe_balance(balance)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
 
@@ -2168,7 +2167,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = await self.privateGetTradeApiTransactionsOfUser(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 2,
         #             "transactions": [
@@ -2254,7 +2253,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         transactions = self.safe_list(result, 'transactions', [])
         return self.parse_transactions(transactions, currency, since, limit)
 
@@ -2306,24 +2305,24 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        currencyObject = self.safe_value(transaction, 'currency')
+        currencyObject = self.safe_dict(transaction, 'currency')
         currencyId = self.safe_string(currencyObject, 'symbol')
         code = self.safe_currency_code(currencyId, currency)
         id = self.safe_string(transaction, 'id')
-        params = self.safe_value(transaction, 'params')
+        params = self.safe_dict(transaction, 'params')
         txid = self.safe_string(params, 'tx_id')
         timestamp = self.safe_integer(transaction, 'timestamp')
         networkId = self.safe_string(transaction, 'blockChain')
         if networkId is None:
-            links = self.safe_value(currencyObject, 'links', [])
-            blockChain = self.safe_value(links, 0, {})
+            links = self.safe_list(currencyObject, 'links', [])
+            blockChain = self.safe_dict(links, 0, {})
             networkId = self.safe_string(blockChain, 'blockChain')
         addressFrom = self.safe_string(transaction, 'sender')
         addressTo = self.safe_string(transaction, 'recipient')
         tag = self.safe_string(transaction, 'message')
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         amount = self.parse_value_to_pricision(transaction, 'amount', currencyObject, 'decimals')
-        status = self.parse_transaction_status(self.safe_value(transaction, 'status'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         return {
             'info': transaction,
             'id': id,
@@ -2347,7 +2346,7 @@ class bitteam(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def parse_transaction_type(self, type: object):
+    def parse_transaction_type(self, type: Str) -> Str:
         types = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -2361,7 +2360,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint

@@ -18,7 +18,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bithumb#watchTickers
@@ -31,8 +31,8 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -46,8 +46,8 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(orderbook: any, deltas: any): void;
     /**
@@ -63,10 +63,10 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: any, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    handleErrorMessage(client: Client, message: any): Bool;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     /**
      * @method
      * @name bithumb#watchBalance
@@ -76,8 +76,8 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @ignore
      * @method
@@ -91,7 +91,7 @@ export default class bithumb extends bithumbRest {
      * @returns {object[]} the SUBSCRIBE frame to send
      */
     buildGen2SubscriptionRequest(subscriptionType: string, subscription: Dict): any[];
-    authenticate(params?: {}): Promise<import("../base/ws/WsClient.js").default>;
+    authenticate(params?: Dict): Promise<Client>;
     /**
      * @method
      * @name bithumb#watchOrders
@@ -105,8 +105,8 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrders(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleMessage(client: Client, message: any): void;
 }

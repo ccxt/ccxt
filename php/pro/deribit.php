@@ -63,7 +63,7 @@ class deribit extends \ccxt\async\deribit {
                     // watchOrderBook replacement
                     'watchOrderBookForSymbols' => array(
                         'interval' => '100ms', // 100ms, agg2, raw
-                        'useDepthEndpoint' => false, // if true, it will use the array(books.group.depth.interval) endpoint instead of the array(books.interval) endpoint
+                        'useDepthEndpoint' => false, // if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
                         'depth' => '20', // 1, 10, 20
                         'group' => 'none', // none, 1, 2, 5, 10, 25, 100, 250
                     ),
@@ -99,7 +99,7 @@ class deribit extends \ccxt\async\deribit {
         Async\await($this->authenticate($params));
         $messageHash = 'balance';
         $url = $this->urls['api']['ws'];
-        $currencies = $this->safe_value($this->options, 'currencies', array());
+        $currencies = $this->safe_list($this->options, 'currencies', array());
         $channels = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyCode = $currencies[$i];
@@ -117,52 +117,52 @@ class deribit extends \ccxt\async\deribit {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // subscription
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "user.portfolio.btc",
-        //             "data" => {
-        //                 "total_pl" => 0,
-        //                 "session_upl" => 0,
-        //                 "session_rpl" => 0,
-        //                 "projected_maintenance_margin" => 0,
-        //                 "projected_initial_margin" => 0,
-        //                 "projected_delta_total" => 0,
-        //                 "portfolio_margining_enabled" => false,
-        //                 "options_vega" => 0,
-        //                 "options_value" => 0,
-        //                 "options_theta" => 0,
-        //                 "options_session_upl" => 0,
-        //                 "options_session_rpl" => 0,
-        //                 "options_pl" => 0,
-        //                 "options_gamma" => 0,
-        //                 "options_delta" => 0,
-        //                 "margin_balance" => 0.0015,
-        //                 "maintenance_margin" => 0,
-        //                 "initial_margin" => 0,
-        //                 "futures_session_upl" => 0,
-        //                 "futures_session_rpl" => 0,
-        //                 "futures_pl" => 0,
-        //                 "fee_balance" => 0,
-        //                 "estimated_liquidation_ratio_map" => array(),
-        //                 "estimated_liquidation_ratio" => 0,
-        //                 "equity" => 0.0015,
-        //                 "delta_total_map" => array(),
-        //                 "delta_total" => 0,
-        //                 "currency" => "BTC",
-        //                 "balance" => 0.0015,
-        //                 "available_withdrawal_funds" => 0.0015,
-        //                 "available_funds" => 0.0015
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.portfolio.btc",
+        //             "data": {
+        //                 "total_pl": 0,
+        //                 "session_upl": 0,
+        //                 "session_rpl": 0,
+        //                 "projected_maintenance_margin": 0,
+        //                 "projected_initial_margin": 0,
+        //                 "projected_delta_total": 0,
+        //                 "portfolio_margining_enabled": false,
+        //                 "options_vega": 0,
+        //                 "options_value": 0,
+        //                 "options_theta": 0,
+        //                 "options_session_upl": 0,
+        //                 "options_session_rpl": 0,
+        //                 "options_pl": 0,
+        //                 "options_gamma": 0,
+        //                 "options_delta": 0,
+        //                 "margin_balance": 0.0015,
+        //                 "maintenance_margin": 0,
+        //                 "initial_margin": 0,
+        //                 "futures_session_upl": 0,
+        //                 "futures_session_rpl": 0,
+        //                 "futures_pl": 0,
+        //                 "fee_balance": 0,
+        //                 "estimated_liquidation_ratio_map": {},
+        //                 "estimated_liquidation_ratio": 0,
+        //                 "equity": 0.0015,
+        //                 "delta_total_map": {},
+        //                 "delta_total": 0,
+        //                 "currency": "BTC",
+        //                 "balance": 0.0015,
+        //                 "available_withdrawal_funds": 0.0015,
+        //                 "available_funds": 0.0015
         //             }
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -266,38 +266,38 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "ticker.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "timestamp" => 1655393725040,
-        //                 "stats" => [Object],
-        //                 "state" => "open",
-        //                 "settlement_price" => 21729.5891,
-        //                 "open_interest" => 164.501,
-        //                 "min_price" => 20792.9376,
-        //                 "max_price" => 21426.225,
-        //                 "mark_price" => 21109.555,
-        //                 "last_price" => 21132,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "index_price" => 21122.3937,
-        //                 "funding_8h" => -0.00022427,
-        //                 "estimated_delivery_price" => 21122.3937,
-        //                 "current_funding" => -0.00010782,
-        //                 "best_bid_price" => 21106,
-        //                 "best_bid_amount" => 1.143,
-        //                 "best_ask_price" => 21113,
-        //                 "best_ask_amount" => 0.327
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "timestamp": 1655393725040,
+        //                 "stats": [Object],
+        //                 "state": "open",
+        //                 "settlement_price": 21729.5891,
+        //                 "open_interest": 164.501,
+        //                 "min_price": 20792.9376,
+        //                 "max_price": 21426.225,
+        //                 "mark_price": 21109.555,
+        //                 "last_price": 21132,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21122.3937,
+        //                 "funding_8h": -0.00022427,
+        //                 "estimated_delivery_price": 21122.3937,
+        //                 "current_funding": -0.00010782,
+        //                 "best_bid_price": 21106,
+        //                 "best_bid_amount": 1.143,
+        //                 "best_ask_price": 21113,
+        //                 "best_ask_amount": 0.327
         //             }
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $ticker = $this->parse_ticker($data);
@@ -348,20 +348,20 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "quote.BTC_USDT",
-        //             "data" => {
-        //                 "best_bid_amount" => 0.026,
-        //                 "best_ask_amount" => 0.026,
-        //                 "best_bid_price" => 63908,
-        //                 "best_ask_price" => 63940,
-        //                 "instrument_name" => "BTC_USDT",
-        //                 "timestamp" => 1727765131750
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "quote.BTC_USDT",
+        //             "data": {
+        //                 "best_bid_amount": 0.026,
+        //                 "best_ask_amount": 0.026,
+        //                 "best_bid_price": 63908,
+        //                 "best_ask_price": 63940,
+        //                 "instrument_name": "BTC_USDT",
+        //                 "timestamp": 1727765131750
         //             }
         //         }
         //     }
@@ -375,7 +375,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -443,25 +443,25 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "trades.BTC_USDC-PERPETUAL.100ms",
-        //             "data" => [array(
-        //                 "trade_seq" => 501899,
-        //                 "trade_id" => "USDC-2436803",
-        //                 "timestamp" => 1655397355998,
-        //                 "tick_direction" => 2,
-        //                 "price" => 21026,
-        //                 "mark_price" => 21019.9719,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "index_price" => 21031.7847,
-        //                 "direction" => "buy",
-        //                 "amount" => 0.049
-        //             )]
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "trades.BTC_USDC-PERPETUAL.100ms",
+        //             "data": [{
+        //                 "trade_seq": 501899,
+        //                 "trade_id": "USDC-2436803",
+        //                 "timestamp": 1655397355998,
+        //                 "tick_direction": 2,
+        //                 "price": 21026,
+        //                 "mark_price": 21019.9719,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21031.7847,
+        //                 "direction": "buy",
+        //                 "amount": 0.049
+        //             }]
         //         }
         //     }
         //
@@ -473,7 +473,7 @@ class deribit extends \ccxt\async\deribit {
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($marketId);
         $trades = $this->safe_list($params, 'data', array());
-        if ($this->safe_value($this->trades, $symbol) === null) {
+        if ($this->safe_dict($this->trades, $symbol) === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -527,42 +527,42 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "user.trades.any.any.raw",
-        //             "data" => [array(
-        //                 "trade_seq" => 149546319,
-        //                 "trade_id" => "219381310",
-        //                 "timestamp" => 1655421193564,
-        //                 "tick_direction" => 0,
-        //                 "state" => "filled",
-        //                 "self_trade" => false,
-        //                 "reduce_only" => false,
-        //                 "profit_loss" => 0,
-        //                 "price" => 20236.5,
-        //                 "post_only" => false,
-        //                 "order_type" => "market",
-        //                 "order_id" => "46108941243",
-        //                 "matching_id" => null,
-        //                 "mark_price" => 20233.96,
-        //                 "liquidity" => "T",
-        //                 "instrument_name" => "BTC-PERPETUAL",
-        //                 "index_price" => 20253.31,
-        //                 "fee_currency" => "BTC",
-        //                 "fee" => 2.5e-7,
-        //                 "direction" => "buy",
-        //                 "amount" => 10
-        //             )]
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.trades.any.any.raw",
+        //             "data": [{
+        //                 "trade_seq": 149546319,
+        //                 "trade_id": "219381310",
+        //                 "timestamp": 1655421193564,
+        //                 "tick_direction": 0,
+        //                 "state": "filled",
+        //                 "self_trade": false,
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": 20236.5,
+        //                 "post_only": false,
+        //                 "order_type": "market",
+        //                 "order_id": "46108941243",
+        //                 "matching_id": null,
+        //                 "mark_price": 20233.96,
+        //                 "liquidity": "T",
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "index_price": 20253.31,
+        //                 "fee_currency": "BTC",
+        //                 "fee": 2.5e-7,
+        //                 "direction": "buy",
+        //                 "amount": 10
+        //             }]
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
-        $trades = $this->safe_value($params, 'data', array());
+        $trades = $this->safe_list($params, 'data', array());
         $cachedTrades = $this->myTrades;
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -635,54 +635,54 @@ class deribit extends \ccxt\async\deribit {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //  snapshot
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "book.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "type" => "snapshot",
-        //                 "timestamp" => 1655395057025,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "change_id" => 1550694837,
-        //                 "bids" => array(
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "book.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "type": "snapshot",
+        //                 "timestamp": 1655395057025,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "change_id": 1550694837,
+        //                 "bids": [
         //                     ["new", 20987, 0.487],
         //                     ["new", 20986, 0.238],
-        //                 ),
-        //                 "asks" => array(
+        //                 ],
+        //                 "asks": [
         //                     ["new", 20999, 0.092],
         //                     ["new", 21000, 1.238],
-        //                 )
+        //                 ]
         //             }
         //         }
         //     }
         //
         //  change
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "book.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "type" => "change",
-        //                 "timestamp" => 1655395168086,
-        //                 "prev_change_id" => 1550724481,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "change_id" => 1550724483,
-        //                 "bids" => array(
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "book.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "type": "change",
+        //                 "timestamp": 1655395168086,
+        //                 "prev_change_id": 1550724481,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "change_id": 1550724483,
+        //                 "bids": [
         //                     ["new", 20977, 0.109],
         //                     ["delete", 20975, 0]
-        //                 ),
-        //                 "asks" => array()
+        //                 ],
+        //                 "asks": []
         //             }
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $channel = $this->safe_string($params, 'channel');
         $parts = explode('.', $channel);
         $descriptor = '';
@@ -717,7 +717,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function clean_order_book(mixed $data) {
+    public function clean_order_book(array $data): array {
         $bids = $this->safe_list($data, 'bids', array());
         $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
@@ -794,37 +794,37 @@ class deribit extends \ccxt\async\deribit {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
-        // Does not return a snapshot of current $orders
+    public function handle_orders(Client $client, array $message) {
+        // Does not return a snapshot of current orders
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "user.orders.any.any.raw",
-        //             "data" => {
-        //                 "web" => true,
-        //                 "time_in_force" => "good_til_cancelled",
-        //                 "replaced" => false,
-        //                 "reduce_only" => false,
-        //                 "profit_loss" => 0,
-        //                 "price" => 50000,
-        //                 "post_only" => false,
-        //                 "order_type" => "limit",
-        //                 "order_state" => "open",
-        //                 "order_id" => "46094375191",
-        //                 "max_show" => 10,
-        //                 "last_update_timestamp" => 1655401625037,
-        //                 "label" => '',
-        //                 "is_liquidation" => false,
-        //                 "instrument_name" => "BTC-PERPETUAL",
-        //                 "filled_amount" => 0,
-        //                 "direction" => "sell",
-        //                 "creation_timestamp" => 1655401625037,
-        //                 "commission" => 0,
-        //                 "average_price" => 0,
-        //                 "api" => false,
-        //                 "amount" => 10
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.orders.any.any.raw",
+        //             "data": {
+        //                 "web": true,
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "replaced": false,
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": 50000,
+        //                 "post_only": false,
+        //                 "order_type": "limit",
+        //                 "order_state": "open",
+        //                 "order_id": "46094375191",
+        //                 "max_show": 10,
+        //                 "last_update_timestamp": 1655401625037,
+        //                 "label": '',
+        //                 "is_liquidation": false,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "filled_amount": 0,
+        //                 "direction": "sell",
+        //                 "creation_timestamp": 1655401625037,
+        //                 "commission": 0,
+        //                 "average_price": 0,
+        //                 "api": false,
+        //                 "amount": 10
         //             }
         //         }
         //     }
@@ -833,7 +833,7 @@ class deribit extends \ccxt\async\deribit {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
         $data = $this->safe_value($params, 'data', array());
         $orders = array();
@@ -903,21 +903,21 @@ class deribit extends \ccxt\async\deribit {
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "chart.trades.BTC_USDC-PERPETUAL.1",
-        //             "data" => {
-        //                 "volume" => 0,
-        //                 "tick" => 1655403420000,
-        //                 "open" => 20951,
-        //                 "low" => 20951,
-        //                 "high" => 20951,
-        //                 "cost" => 0,
-        //                 "close" => 20951
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "chart.trades.BTC_USDC-PERPETUAL.1",
+        //             "data": {
+        //                 "volume": 0,
+        //                 "tick": 1655403420000,
+        //                 "open": 20951,
+        //                 "low": 20951,
+        //                 "high": 20951,
+        //                 "cost": 0,
+        //                 "close": 20951
         //             }
         //         }
         //     }
@@ -933,7 +933,7 @@ class deribit extends \ccxt\async\deribit {
         $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
+        if ($this->safe_dict($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$unifiedTimeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -951,13 +951,13 @@ class deribit extends \ccxt\async\deribit {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "c" => "28909.0",
-        //        "o" => "28915.4",
-        //        "h" => "28915.4",
-        //        "l" => "28896.1",
-        //        "v" => "27.6919",
-        //        "T" => 1696687499999,
-        //        "t" => 1696687440000
+        //        "c": "28909.0",
+        //        "o": "28915.4",
+        //        "h": "28915.4",
+        //        "l": "28896.1",
+        //        "v": "27.6919",
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
         return array(
@@ -1014,7 +1014,7 @@ class deribit extends \ccxt\async\deribit {
             'id' => $this->request_id(),
         );
         $extendedRequest = $this->deep_extend($request, $params);
-        $maxMessageByteLimit = 32768 - 1; // 'Message Too Big => limit 32768B'
+        $maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
         $jsonedText = $this->json($extendedRequest);
         if (strlen($jsonedText) >= $maxMessageByteLimit) {
             throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce $symbols amount');
@@ -1022,62 +1022,62 @@ class deribit extends \ccxt\async\deribit {
         return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $rawSubscriptions));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
-        // $error
+        // error
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "error" => array(
-        //             "message" => "Invalid $params",
-        //             "data" => array(
-        //                 "reason" => "invalid format",
-        //                 "param" => "nonce"
-        //             ),
-        //             "code" => -32602
-        //         ),
-        //         "usIn" => "1655391709417993",
-        //         "usOut" => "1655391709418049",
-        //         "usDiff" => 56,
-        //         "testnet" => false
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "error": {
+        //             "message": "Invalid params",
+        //             "data": {
+        //                 "reason": "invalid format",
+        //                 "param": "nonce"
+        //             },
+        //             "code": -32602
+        //         },
+        //         "usIn": "1655391709417993",
+        //         "usOut": "1655391709418049",
+        //         "usDiff": 56,
+        //         "testnet": false
         //     }
         //
         // subscribe
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 2,
-        //         "result" => ["ticker.BTC_USDC-PERPETUAL.raw"],
-        //         "usIn" => "1655393625889396",
-        //         "usOut" => "1655393625889518",
-        //         "usDiff" => 122,
-        //         "testnet" => false
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": ["ticker.BTC_USDC-PERPETUAL.raw"],
+        //         "usIn": "1655393625889396",
+        //         "usOut": "1655393625889518",
+        //         "usDiff": 122,
+        //         "testnet": false
         //     }
         //
         // notification
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "ticker.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "timestamp" => 1655393724752,
-        //                 "stats" => [Object],
-        //                 "state" => "open",
-        //                 "settlement_price" => 21729.5891,
-        //                 "open_interest" => 164.501,
-        //                 "min_price" => 20792.9001,
-        //                 "max_price" => 21426.1864,
-        //                 "mark_price" => 21109.4757,
-        //                 "last_price" => 21132,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "index_price" => 21122.3937,
-        //                 "funding_8h" => -0.00022427,
-        //                 "estimated_delivery_price" => 21122.3937,
-        //                 "current_funding" => -0.00011158,
-        //                 "best_bid_price" => 21106,
-        //                 "best_bid_amount" => 1.143,
-        //                 "best_ask_price" => 21113,
-        //                 "best_ask_amount" => 0.402
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "timestamp": 1655393724752,
+        //                 "stats": [Object],
+        //                 "state": "open",
+        //                 "settlement_price": 21729.5891,
+        //                 "open_interest": 164.501,
+        //                 "min_price": 20792.9001,
+        //                 "max_price": 21426.1864,
+        //                 "mark_price": 21109.4757,
+        //                 "last_price": 21132,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21122.3937,
+        //                 "funding_8h": -0.00022427,
+        //                 "estimated_delivery_price": 21122.3937,
+        //                 "current_funding": -0.00011158,
+        //                 "best_bid_price": 21106,
+        //                 "best_bid_amount": 1.143,
+        //                 "best_ask_price": 21113,
+        //                 "best_ask_amount": 0.402
         //             }
         //         }
         //     }
@@ -1086,7 +1086,7 @@ class deribit extends \ccxt\async\deribit {
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($error));
         }
-        $params = $this->safe_value($message, 'params');
+        $params = $this->safe_dict($message, 'params');
         $channel = $this->safe_string($params, 'channel');
         if ($channel !== null) {
             $parts = explode('.', $channel);
@@ -1111,29 +1111,29 @@ class deribit extends \ccxt\async\deribit {
             }
             throw new NotSupported($this->id . ' no $handler found for this $message ' . $this->json($message));
         }
-        $result = $this->safe_value($message, 'result', array());
+        $result = $this->safe_dict($message, 'result', array());
         $accessToken = $this->safe_string($result, 'access_token');
         if ($accessToken !== null) {
             $this->handle_authentication_message($client, $message);
         }
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message): array {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "result" => array(
-        //             "token_type" => "bearer",
-        //             "scope" => "account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write",
-        //             "refresh_token" => "1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA",
-        //             "expires_in" => 31536000,
-        //             "access_token" => "1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3"
-        //         ),
-        //         "usIn" => "1655391872327712",
-        //         "usOut" => "1655391872328515",
-        //         "usDiff" => 803,
-        //         "testnet" => false
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "token_type": "bearer",
+        //             "scope": "account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write",
+        //             "refresh_token": "1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA",
+        //             "expires_in": 31536000,
+        //             "access_token": "1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3"
+        //         },
+        //         "usIn": "1655391872327712",
+        //         "usOut": "1655391872328515",
+        //         "usDiff": 803,
+        //         "testnet": false
         //     }
         //
         $messageHash = 'authenticated';

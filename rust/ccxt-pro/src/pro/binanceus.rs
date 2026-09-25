@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -192,36 +196,36 @@ impl BinanceusCore {
         let mut restInstance = crate::exchanges::binanceus::BinanceusCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
-        return self.deep_extend(extended.clone(), &[Value::Map({
+        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
+        return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("binanceus".to_string()));
-        m.insert("name".to_string(), Value::Str("Binance US".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("id".to_string(), Value::Str("binanceus".into()));
+        m.insert("name".to_string(), Value::Str("Binance US".into()));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".into())]));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("wss://stream.binance.us:9443/ws".to_string()));
+        m.insert("spot".to_string(), Value::Str("wss://stream.binance.us:9443/ws".into()));
     m
 }));
-        m.insert("web".to_string(), Value::Str("https://www.binance.us".to_string()));
-        m.insert("sapi".to_string(), Value::Str("https://api.binance.us/sapi/v1".to_string()));
-        m.insert("wapi".to_string(), Value::Str("https://api.binance.us/wapi/v3".to_string()));
-        m.insert("public".to_string(), Value::Str("https://api.binance.us/api/v3".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.binance.us/api/v3".to_string()));
-        m.insert("v3".to_string(), Value::Str("https://api.binance.us/api/v3".to_string()));
-        m.insert("v1".to_string(), Value::Str("https://api.binance.us/api/v1".to_string()));
+        m.insert("web".to_string(), Value::Str("https://www.binance.us".into()));
+        m.insert("sapi".to_string(), Value::Str("https://api.binance.us/sapi/v1".into()));
+        m.insert("wapi".to_string(), Value::Str("https://api.binance.us/wapi/v3".into()));
+        m.insert("public".to_string(), Value::Str("https://api.binance.us/api/v3".into()));
+        m.insert("private".to_string(), Value::Str("https://api.binance.us/api/v3".into()));
+        m.insert("v3".to_string(), Value::Str("https://api.binance.us/api/v3".into()));
+        m.insert("v1".to_string(), Value::Str("https://api.binance.us/api/v1".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.binance.us".to_string()));
-        m.insert("referral".to_string(), Value::Str("https://www.binance.us/?ref=35005074".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://github.com/binance-us/binance-official-api-docs".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://www.binance.us/en/fee/schedule".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.binance.us".into()));
+        m.insert("referral".to_string(), Value::Str("https://www.binance.us/?ref=35005074".into()));
+        m.insert("doc".to_string(), Value::Str("https://github.com/binance-us/binance-official-api-docs".into()));
+        m.insert("fees".to_string(), Value::Str("https://www.binance.us/en/fee/schedule".into()));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -248,10 +252,10 @@ impl BinanceusCore {
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("quoteOrderQty".to_string(), Value::Bool(false));
-        m.insert("defaultType".to_string(), Value::Str("spot".to_string()));
+        m.insert("defaultType".to_string(), Value::Str("spot".into()));
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".into())]));
     m
 }));
     m

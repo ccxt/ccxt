@@ -440,7 +440,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    override async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async watchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
         }
@@ -494,7 +494,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -529,7 +529,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -671,7 +671,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -816,7 +816,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

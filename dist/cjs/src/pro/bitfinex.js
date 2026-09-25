@@ -228,9 +228,9 @@ class bitfinex extends bitfinex$1["default"] {
         //       ]
         //   ]
         //
-        const data = this.safeValue(message, 1, []);
+        const data = this.safeList(message, 1, []);
         let ohlcvs = [];
-        const first = this.safeValue(data, 0);
+        const first = this.safeList(data, 0);
         if (Array.isArray(first)) {
             // snapshot
             ohlcvs = data;
@@ -239,7 +239,7 @@ class bitfinex extends bitfinex$1["default"] {
             // update
             ohlcvs = [data];
         }
-        const channel = this.safeValue(subscription, 'channel');
+        const channel = this.safeString(subscription, 'channel');
         const key = this.safeString(subscription, 'key', '');
         const keyParts = key.split(':');
         const interval = this.safeString(keyParts, 1);
@@ -250,7 +250,7 @@ class bitfinex extends bitfinex$1["default"] {
         const timeframe = this.findTimeframe(interval);
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -411,7 +411,7 @@ class bitfinex extends bitfinex$1["default"] {
         //    ]
         //
         //
-        const channel = this.safeValue(subscription, 'channel');
+        const channel = this.safeString(subscription, 'channel');
         const marketId = this.safeString(subscription, 'symbol');
         const market = this.safeMarket(marketId);
         const messageHash = channel + ':' + marketId;
@@ -442,7 +442,7 @@ class bitfinex extends bitfinex$1["default"] {
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
-            const trade = this.safeValue(message, 2, []);
+            const trade = this.safeList(message, 2, []);
             const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
@@ -560,7 +560,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -586,7 +586,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -613,7 +613,7 @@ class bitfinex extends bitfinex$1["default"] {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeString(ticker, 5),
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 5), '100'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 7),
             'quoteVolume': undefined,
@@ -635,7 +635,7 @@ class bitfinex extends bitfinex$1["default"] {
                 throw new errors.ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
@@ -760,7 +760,7 @@ class bitfinex extends bitfinex$1["default"] {
         const symbol = this.safeSymbol(marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
-        const book = this.safeValue(this.orderbooks, symbol);
+        const book = this.safeDict(this.orderbooks, symbol);
         if (book === undefined) {
             return;
         }
@@ -773,8 +773,8 @@ class bitfinex extends bitfinex$1["default"] {
         const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            const bid = this.safeValue(bids, i);
-            const ask = this.safeValue(asks, i);
+            const bid = this.safeList(bids, i);
+            const ask = this.safeList(asks, i);
             if (bid !== undefined) {
                 stringArray.push(this.numberToString(bids[i][idToCheck]));
                 stringArray.push(this.numberToString(bids[i][1]));
@@ -893,7 +893,7 @@ class bitfinex extends bitfinex$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             const balance = this.parseWsBalance(rawBalance);
             const balanceType = this.safeString(rawBalance, 0);
-            const oldBalance = this.safeValue(this.balance, balanceType, {});
+            const oldBalance = this.safeDict(this.balance, balanceType, {});
             if (code !== undefined) {
                 oldBalance[code] = balance;
             }
@@ -1016,7 +1016,8 @@ class bitfinex extends bitfinex$1["default"] {
         const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
-            const nonce = this.milliseconds();
+            // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+            const nonce = this.incrementingNonce();
             const payload = 'AUTH' + nonce.toString();
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384, 'hex');
             const event = 'auth';
@@ -1115,7 +1116,7 @@ class bitfinex extends bitfinex$1["default"] {
         //        ]
         //    ]
         //
-        const data = this.safeValue(message, 2, []);
+        const data = this.safeList(message, 2, []);
         const messageType = this.safeString(message, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -1279,7 +1280,7 @@ class bitfinex extends bitfinex$1["default"] {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue(client.subscriptions, channelId, {});
+            const subscription = this.safeDict(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
             const name = this.safeString(message, 1);
             const publicMethods = {

@@ -20,6 +20,7 @@ pub async fn baseTestsInit() {
     testNumberToBE();
     testDecimalToPrecision();
     testCapitalize();
+    testIncrementingNonce();
     testIsDictionary();
     testNumberToString();
     testPrecise();
@@ -42,6 +43,7 @@ pub async fn baseTestsInit() {
     testInArray();
     testFilterBy();
     testHandleMethods();
+    testHandleHttpStatusCode();
     testNetworkMethods();
     testRemoveRepeatedElementsFromArray();
     testIsEmpty();

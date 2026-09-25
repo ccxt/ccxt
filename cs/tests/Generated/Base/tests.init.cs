@@ -24,6 +24,7 @@ public partial class BaseTest
             testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
+            testIncrementingNonce();
             testIsDictionary();
             testNumberToString();
             testPrecise();
@@ -46,6 +47,7 @@ public partial class BaseTest
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testHandleHttpStatusCode();
             testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();

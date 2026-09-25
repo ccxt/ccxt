@@ -58,36 +58,36 @@ class grvt extends \ccxt\async\grvt {
         ));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // confirmation
         //
         //  {
-        //     jsonrpc => '2.0',
-        //     result => array(
-        //         stream => 'v1.mini.d',
-        //         subs => array( 'BTC_USDT_Perp@500' ),
-        //         unsubs => array(),
-        //         num_snapshots => array( 1 ),
-        //         first_sequence_number => array( '1061214' ),
-        //         latest_sequence_number => array( '1061213' )
-        //     ),
-        //     id => 1,
-        //     $method => 'subscribe'
+        //     jsonrpc: '2.0',
+        //     result: {
+        //         stream: 'v1.mini.d',
+        //         subs: [ 'BTC_USDT_Perp@500' ],
+        //         unsubs: [],
+        //         num_snapshots: [ 1 ],
+        //         first_sequence_number: [ '1061214' ],
+        //         latest_sequence_number: [ '1061213' ]
+        //     },
+        //     id: 1,
+        //     method: 'subscribe'
         //  }
         //
         // ticker
         //
         //  {
-        //     stream => "v1.mini.d",
-        //     selector => "BTC_USDT_Perp@500",
-        //     sequence_number => "0",
-        //     feed => array(
-        //         event_time => "1767198134519661154",
-        //         instrument => "BTC_USDT_Perp",
+        //     stream: "v1.mini.d",
+        //     selector: "BTC_USDT_Perp@500",
+        //     sequence_number: "0",
+        //     feed: {
+        //         event_time: "1767198134519661154",
+        //         instrument: "BTC_USDT_Perp",
         //         ...
-        //     ),
-        //     prev_sequence_number => "0",
+        //     },
+        //     prev_sequence_number: "0",
         //  }
         //
         if ($this->handle_error_message($client, $message) === true) {
@@ -133,7 +133,7 @@ class grvt extends \ccxt\async\grvt {
         return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $newValue = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $newValue;
@@ -210,81 +210,81 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // v1.ticker.s
         //
         //    {
-        //        "stream" => "v1.ticker.s",
-        //        "selector" => "BTC_USDT_Perp@500",
-        //        "sequence_number" => "0",
-        //        "feed" => array(
-        //            "event_time" => "1767199535382794823",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "mark_price" => "87439.392166151",
-        //            "index_price" => "87462.426721779",
-        //            "last_price" => "87467.5",
-        //            "last_size" => "0.001",
-        //            "mid_price" => "87474.35",
-        //            "best_bid_price" => "87474.3",
-        //            "best_bid_size" => "2.435",
-        //            "best_ask_price" => "87474.4",
-        //            "best_ask_size" => "3.825",
-        //            "funding_rate_8h_curr" => "0.01",
-        //            "funding_rate_8h_avg" => "0.01",
-        //            "interest_rate" => "0.0",
-        //            "forward_price" => "0.0",
-        //            "buy_volume_24h_b" => "3115.631",
-        //            "sell_volume_24h_b" => "3195.236",
-        //            "buy_volume_24h_q" => "275739265.1558",
-        //            "sell_volume_24h_q" => "282773286.2658",
-        //            "high_price" => "89187.2",
-        //            "low_price" => "87404.1",
-        //            "open_price" => "88667.1",
-        //            "open_interest" => "1914.093886738",
-        //            "long_short_ratio" => "1.472050",
-        //            "funding_rate" => "0.01",
-        //            "funding_interval_hours" => 8,
-        //            "next_funding_time" => "1767225600000000000"
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.ticker.s",
+        //        "selector": "BTC_USDT_Perp@500",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767199535382794823",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "87439.392166151",
+        //            "index_price": "87462.426721779",
+        //            "last_price": "87467.5",
+        //            "last_size": "0.001",
+        //            "mid_price": "87474.35",
+        //            "best_bid_price": "87474.3",
+        //            "best_bid_size": "2.435",
+        //            "best_ask_price": "87474.4",
+        //            "best_ask_size": "3.825",
+        //            "funding_rate_8h_curr": "0.01",
+        //            "funding_rate_8h_avg": "0.01",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "3115.631",
+        //            "sell_volume_24h_b": "3195.236",
+        //            "buy_volume_24h_q": "275739265.1558",
+        //            "sell_volume_24h_q": "282773286.2658",
+        //            "high_price": "89187.2",
+        //            "low_price": "87404.1",
+        //            "open_price": "88667.1",
+        //            "open_interest": "1914.093886738",
+        //            "long_short_ratio": "1.472050",
+        //            "funding_rate": "0.01",
+        //            "funding_interval_hours": 8,
+        //            "next_funding_time": "1767225600000000000"
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         // v1.mini.s
         //
         //    {
-        //        "stream" => "v1.mini.s",
-        //        "selector" => "BTC_USDT_Perp@500",
-        //        "sequence_number" => "0",
-        //        "feed" => array(
-        //            "event_time" => "1767198364309454192",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "mark_price" => "87792.25830235",
-        //            "index_price" => "87806.705713684",
-        //            "last_price" => "87800.0",
-        //            "last_size" => "0.032",
-        //            "mid_price" => "87799.95",
-        //            "best_bid_price" => "87799.9",
-        //            "best_bid_size" => "0.151",
-        //            "best_ask_price" => "87800.0",
-        //            "best_ask_size" => "5.733"
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.mini.s",
+        //        "selector": "BTC_USDT_Perp@500",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767198364309454192",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "87792.25830235",
+        //            "index_price": "87806.705713684",
+        //            "last_price": "87800.0",
+        //            "last_size": "0.032",
+        //            "mid_price": "87799.95",
+        //            "best_bid_price": "87799.9",
+        //            "best_bid_size": "0.151",
+        //            "best_ask_price": "87800.0",
+        //            "best_ask_size": "5.733"
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         //  v1.mini.d
         //
         //    {
-        //        "stream" => "v1.mini.d",
-        //        "selector" => "BTC_USDT_Perp@500",
-        //        "sequence_number" => "1061718",
-        //        "feed" => array(
-        //            "event_time" => "1767198266500017753",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "index_price" => "87820.929569614",
-        //            "best_ask_size" => "5.708"
-        //        ),
-        //        "prev_sequence_number" => "1061717"
+        //        "stream": "v1.mini.d",
+        //        "selector": "BTC_USDT_Perp@500",
+        //        "sequence_number": "1061718",
+        //        "feed": {
+        //            "event_time": "1767198266500017753",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "index_price": "87820.929569614",
+        //            "best_ask_size": "5.708"
+        //        },
+        //        "prev_sequence_number": "1061717"
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
@@ -298,8 +298,8 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($ticker, 'ticker::' . $symbol);
     }
 
-    public function parse_ws_ticker(mixed $message, ?array $market = null) {
-        // same dict api
+    public function parse_ws_ticker(array $message, ?array $market = null): array {
+        // same dict as REST api
         return $this->parse_ticker($message, $market);
     }
 
@@ -355,34 +355,34 @@ class grvt extends \ccxt\async\grvt {
         );
         $trades = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "v1.trade",
-        //        "selector" => "BTC_USDT_Perp@50",
-        //        "sequence_number" => "0",
-        //        "feed" => array(
-        //            "event_time" => "1767257046164798775",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "is_taker_buyer" => true,
-        //            "size" => "0.001",
-        //            "price" => "87700.1",
-        //            "mark_price" => "87700.817100682",
-        //            "index_price" => "87708.566729268",
-        //            "interest_rate" => "0.0",
-        //            "forward_price" => "0.0",
-        //            "trade_id" => "73808524-19",
-        //            "venue" => "ORDERBOOK",
-        //            "is_rpi" => false
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.trade",
+        //        "selector": "BTC_USDT_Perp@50",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767257046164798775",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "is_taker_buyer": true,
+        //            "size": "0.001",
+        //            "price": "87700.1",
+        //            "mark_price": "87700.817100682",
+        //            "index_price": "87708.566729268",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "trade_id": "73808524-19",
+        //            "venue": "ORDERBOOK",
+        //            "is_rpi": false
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
@@ -401,8 +401,8 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
-        // same api
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
+        // same as REST api
         return $this->parse_trade($trade, $market);
     }
 
@@ -475,25 +475,25 @@ class grvt extends \ccxt\async\grvt {
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "v1.candle",
-        //        "selector" => "BTC_USDT_Perp@CI_1_M-TRADE",
-        //        "sequence_number" => "0",
-        //        "feed" => array(
-        //            "open_time" => "1767263280000000000",
-        //            "close_time" => "1767263340000000000",
-        //            "open" => "87799.1",
-        //            "close" => "87799.1",
-        //            "high" => "87799.1",
-        //            "low" => "87799.1",
-        //            "volume_b" => "0.0",
-        //            "volume_q" => "0.0",
-        //            "trades" => 0,
-        //            "instrument" => "BTC_USDT_Perp"
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.candle",
+        //        "selector": "BTC_USDT_Perp@CI_1_M-TRADE",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "open_time": "1767263280000000000",
+        //            "close_time": "1767263340000000000",
+        //            "open": "87799.1",
+        //            "close": "87799.1",
+        //            "high": "87799.1",
+        //            "low": "87799.1",
+        //            "volume_b": "0.0",
+        //            "volume_q": "0.0",
+        //            "trades": 0,
+        //            "instrument": "BTC_USDT_Perp"
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
@@ -506,7 +506,7 @@ class grvt extends \ccxt\async\grvt {
         $timeframeId = str_replace('-TRADE', '', $secondPart);
         $timeframe = $this->find_timeframe($timeframeId);
         $messageHash = 'ohlcv::' . $symbol . '::' . $timeframe;
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->handle_option('watchOHLCV', 'limit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
@@ -519,7 +519,7 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
-        // same api
+        // same as REST api
         return $this->parse_ohlcv($ohlcv, $market);
     }
 
@@ -596,31 +596,31 @@ class grvt extends \ccxt\async\grvt {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "v1.book.s",
-        //        "selector" => "BTC_USDT_Perp@500-100",
-        //        "sequence_number" => "0",
-        //        "feed" => array(
-        //            "event_time" => "1767292408400000000",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "bids" => array(
-        //                array(
-        //                    "price" => "88107.3",
-        //                    "size" => "5.322",
-        //                    "num_orders" => 11
-        //                ),
-        //            ),
-        //            "asks" => array(
-        //                array(
-        //                    "price" => "88107.4",
-        //                    "size" => "5.273",
-        //                    "num_orders" => 37
-        //                ),
-        //            )
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.book.s",
+        //        "selector": "BTC_USDT_Perp@500-100",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767292408400000000",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "bids": [
+        //                {
+        //                    "price": "88107.3",
+        //                    "size": "5.322",
+        //                    "num_orders": 11
+        //                },
+        //            ],
+        //            "asks": [
+        //                {
+        //                    "price": "88107.4",
+        //                    "size": "5.273",
+        //                    "num_orders": 37
+        //                },
+        //            ]
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
@@ -650,9 +650,9 @@ class grvt extends \ccxt\async\grvt {
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
-        // $message is a delta, the freshly-created $orderbook has $symbol=null
-        // because no $snapshot has reset it yet. Set it unconditionally — we
-        // know the $symbol from the $selector regardless of channel. Java's
+        // message is a delta, the freshly-created orderbook has symbol=null
+        // because no snapshot has reset it yet. Set it unconditionally — we
+        // know the symbol from the selector regardless of channel. Java's
         // typed WsOrderBook surfaces this as `"symbol":null` in the output;
         // Python/JS dict-backed orderbooks happen to mask it but the
         // unconditional assignment is correct for every language.
@@ -736,40 +736,40 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "v1.fill",
-        //        "selector" => "2147050003876484-BTC_USDT_Perp",
-        //        "sequence_number" => "1",
-        //        "feed" => array(
-        //            "event_time" => "1767354369431470728",
-        //            "sub_account_id" => "2147050003876484",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "is_buyer" => true,
-        //            "is_taker" => true,
-        //            "size" => "0.001",
-        //            "price" => "89473.4",
-        //            "mark_price" => "89475.966335827",
-        //            "index_price" => "89515.016819765",
-        //            "interest_rate" => "0.0",
-        //            "forward_price" => "0.0",
-        //            "realized_pnl" => "0.0",
-        //            "fee" => "0.040263",
-        //            "fee_rate" => "0.045",
-        //            "trade_id" => "74150425-1",
-        //            "order_id" => "0x0101010503a12f6e000000007791f1bd",
-        //            "venue" => "ORDERBOOK",
-        //            "is_liquidation" => false,
-        //            "client_order_id" => "99191900",
-        //            "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //            "broker" => "UNSPECIFIED",
-        //            "is_rpi" => false,
-        //            "builder" => "0x00",
-        //            "builder_fee_rate" => "0.0",
-        //            "builder_fee" => "0"
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.fill",
+        //        "selector": "2147050003876484-BTC_USDT_Perp",
+        //        "sequence_number": "1",
+        //        "feed": {
+        //            "event_time": "1767354369431470728",
+        //            "sub_account_id": "2147050003876484",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "is_buyer": true,
+        //            "is_taker": true,
+        //            "size": "0.001",
+        //            "price": "89473.4",
+        //            "mark_price": "89475.966335827",
+        //            "index_price": "89515.016819765",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "realized_pnl": "0.0",
+        //            "fee": "0.040263",
+        //            "fee_rate": "0.045",
+        //            "trade_id": "74150425-1",
+        //            "order_id": "0x0101010503a12f6e000000007791f1bd",
+        //            "venue": "ORDERBOOK",
+        //            "is_liquidation": false,
+        //            "client_order_id": "99191900",
+        //            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //            "broker": "UNSPECIFIED",
+        //            "is_rpi": false,
+        //            "builder": "0x00",
+        //            "builder_fee_rate": "0.0",
+        //            "builder_fee": "0"
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
@@ -783,7 +783,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($this->myTrades, 'myTrades');
     }
 
-    public function parse_ws_my_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_my_trade(array $trade, ?array $market = null): array {
         return $this->parse_trade($trade, $market);
     }
 
@@ -833,33 +833,33 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_position(mixed $client, mixed $message) {
+    public function handle_position(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "v1.position",
-        //        "selector" => "2147050003876484-BTC_USDT_Perp",
-        //        "sequence_number" => "0",
-        //        "feed" => array(
-        //            "event_time" => "1767356959482262748",
-        //            "sub_account_id" => "2147050003876484",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "size" => "0.001",
-        //            "notional" => "89.430118",
-        //            "entry_price" => "89426.4",
-        //            "exit_price" => "0.0",
-        //            "mark_price" => "89430.118505969",
-        //            "unrealized_pnl" => "0.003718",
-        //            "realized_pnl" => "0.0",
-        //            "total_pnl" => "0.003718",
-        //            "roi" => "0.0041",
-        //            "quote_index_price" => "0.999101105",
-        //            "est_liquidation_price" => "74347.153505969",
-        //            "leverage" => "20.0",
-        //            "cumulative_fee" => "0.040241",
-        //            "cumulative_realized_funding_payment" => "0.0",
-        //            "margin_type" => "CROSS"
-        //        ),
-        //        "prev_sequence_number" => "0"
+        //        "stream": "v1.position",
+        //        "selector": "2147050003876484-BTC_USDT_Perp",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767356959482262748",
+        //            "sub_account_id": "2147050003876484",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "size": "0.001",
+        //            "notional": "89.430118",
+        //            "entry_price": "89426.4",
+        //            "exit_price": "0.0",
+        //            "mark_price": "89430.118505969",
+        //            "unrealized_pnl": "0.003718",
+        //            "realized_pnl": "0.0",
+        //            "total_pnl": "0.003718",
+        //            "roi": "0.0041",
+        //            "quote_index_price": "0.999101105",
+        //            "est_liquidation_price": "74347.153505969",
+        //            "leverage": "20.0",
+        //            "cumulative_fee": "0.040241",
+        //            "cumulative_realized_funding_payment": "0.0",
+        //            "margin_type": "CROSS"
+        //        },
+        //        "prev_sequence_number": "0"
         //    }
         //
         if ($this->positions === null) {
@@ -876,7 +876,7 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function parse_ws_position(mixed $position, ?array $market = null) {
-        // same api
+        // same as REST api
         return $this->parse_position($position, $market);
     }
 
@@ -922,69 +922,69 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "v1.order",
-        //        "selector" => "2147050003876484",
-        //        "sequence_number" => "17",
-        //        "feed" => {
-        //            "order_id" => "0x010101050390cd89000000007799a374",
-        //            "sub_account_id" => "2147050003876484",
-        //            "is_market" => false,
-        //            "time_in_force" => "GOOD_TILL_TIME",
-        //            "post_only" => false,
-        //            "reduce_only" => false,
-        //            "legs" => array(
+        //        "stream": "v1.order",
+        //        "selector": "2147050003876484",
+        //        "sequence_number": "17",
+        //        "feed": {
+        //            "order_id": "0x010101050390cd89000000007799a374",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
         //                {
-        //                    "instrument" => "BTC_USDT_Perp",
-        //                    "size" => "0.001",
-        //                    "limit_price" => "87443.0",
-        //                    "is_buying_asset" => true
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "87443.0",
+        //                    "is_buying_asset": true
         //                }
-        //            ),
-        //            "signature" => array(
-        //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "r" => "0x4d2b96fdf384f9d8f050e3d72327813a7308969d11dba179eaec514c3427f059",
-        //                "s" => "0x42717bf56091606691a569d612f302ac27e51d41df840ae217dcd0310790cd89",
-        //                "v" => 28,
-        //                "expiration" => "1769951360245000000",
-        //                "nonce" => 747860882,
-        //                "chain_id" => "0"
-        //            ),
-        //            "metadata" => array(
-        //                "client_order_id" => "747860882",
-        //                "create_time" => "1767359366686762920",
-        //                "trigger" => array(
-        //                    "trigger_type" => "UNSPECIFIED",
-        //                    "tpsl" => array(
-        //                        "trigger_by" => "UNSPECIFIED",
-        //                        "trigger_price" => "0.0",
-        //                        "close_position" => false
+        //            ],
+        //            "signature": {
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "r": "0x4d2b96fdf384f9d8f050e3d72327813a7308969d11dba179eaec514c3427f059",
+        //                "s": "0x42717bf56091606691a569d612f302ac27e51d41df840ae217dcd0310790cd89",
+        //                "v": 28,
+        //                "expiration": "1769951360245000000",
+        //                "nonce": 747860882,
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "747860882",
+        //                "create_time": "1767359366686762920",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
         //                    }
-        //                ),
-        //                "broker" => "UNSPECIFIED",
-        //                "is_position_transfer" => false,
-        //                "allow_crossing" => false
-        //            ),
-        //            "state" => array(
-        //                "status" => "OPEN",
-        //                "reject_reason" => "UNSPECIFIED",
-        //                "book_size" => array(
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "OPEN",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
         //                    "0.001"
-        //                ),
-        //                "traded_size" => array(
+        //                ],
+        //                "traded_size": [
         //                    "0.0"
-        //                ),
-        //                "update_time" => "1767359366686762920",
-        //                "avg_fill_price" => array(
+        //                ],
+        //                "update_time": "1767359366686762920",
+        //                "avg_fill_price": [
         //                    "0.0"
-        //                )
-        //            ),
-        //            "builder" => "0x00",
-        //            "builder_fee" => "0.0"
-        //        ),
-        //        "prev_sequence_number" => "16"
+        //                ]
+        //            },
+        //            "builder": "0x00",
+        //            "builder_fee": "0.0"
+        //        },
+        //        "prev_sequence_number": "16"
         //    }
         //
         $data = $this->safe_dict($message, 'feed');
@@ -999,20 +999,20 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function parse_ws_order(mixed $order, ?array $market = null): array {
-        // same api
+        // same as REST api
         return $this->parse_order($order, $market);
     }
 
     public function handle_error_message(Client $client, mixed $response): ?bool {
         //
         //    {
-        //        "jsonrpc" => "2.0",
-        //        "error" => array(
-        //            "code" => 3000,
-        //            "message" => "Instrument is invalid"
-        //        ),
-        //        "id" => 1,
-        //        "method" => "subscribe"
+        //        "jsonrpc": "2.0",
+        //        "error": {
+        //            "code": 3000,
+        //            "message": "Instrument is invalid"
+        //        },
+        //        "id": 1,
+        //        "method": "subscribe"
         //    }
         //
         $error = $this->safe_dict($response, 'error');

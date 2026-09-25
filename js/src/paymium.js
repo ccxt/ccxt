@@ -593,8 +593,8 @@ export default class paymium extends Exchange {
         const currencyId = this.safeString(transfer, 'currency');
         const updatedAt = this.safeString(transfer, 'updated_at');
         const timetstamp = this.parseDate(updatedAt);
-        const accountOperations = this.safeValue(transfer, 'account_operations');
-        const firstOperation = this.safeValue(accountOperations, 0, {});
+        const accountOperations = this.safeList(transfer, 'account_operations');
+        const firstOperation = this.safeDict(accountOperations, 0, {});
         const status = this.safeString(transfer, 'state');
         return {
             'info': transfer,
@@ -615,6 +615,10 @@ export default class paymium extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    nonce() {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
@@ -625,7 +629,8 @@ export default class paymium extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // paymium requires an increasing nonce
+            const nonce = this.incrementingNonce().toString();
             let auth = nonce + url;
             headers = {
                 'Api-Key': this.apiKey,

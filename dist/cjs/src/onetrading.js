@@ -613,7 +613,7 @@ class onetrading extends onetrading$1["default"] {
         let method = this.safeString(params, 'method');
         params = this.omit(params, 'method');
         if (method === undefined) {
-            const options = this.safeValue(this.options, 'fetchTradingFees', {});
+            const options = this.safeDict(this.options, 'fetchTradingFees', {});
             method = this.safeString(options, 'method', 'fetchPrivateTradingFees');
         }
         if (method === 'fetchPrivateTradingFees') {
@@ -1022,7 +1022,7 @@ class onetrading extends onetrading$1["default"] {
         //         "last_sequence":461123
         //     }
         //
-        const granularity = this.safeValue(ohlcv, 'granularity');
+        const granularity = this.safeDict(ohlcv, 'granularity');
         const unit = this.safeString(granularity, 'unit');
         const period = this.safeString(granularity, 'period');
         const units = {
@@ -1044,7 +1044,7 @@ class onetrading extends onetrading$1["default"] {
             throw new errors.ExchangeError(this.id + ' parseOHLCV() missing timestamp');
         }
         const alignedTimestamp = duration * this.parseToInt(timestamp / duration);
-        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString(options, 'volume', 'total_amount');
         return [
             alignedTimestamp,
@@ -1148,7 +1148,7 @@ class onetrading extends onetrading$1["default"] {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue(trade, 'fee', {});
+        const feeInfo = this.safeDict(trade, 'fee', {});
         trade = this.safeValue(trade, 'trade', trade);
         let timestamp = this.safeInteger(trade, 'trade_timestamp');
         if (timestamp === undefined) {
@@ -1191,7 +1191,7 @@ class onetrading extends onetrading$1["default"] {
         }, market);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
+        const balances = this.safeList(response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1333,8 +1333,8 @@ class onetrading extends onetrading$1["default"] {
         const side = this.safeStringLower(rawOrder, 'side');
         const type = this.safeStringLower(rawOrder, 'type');
         const timeInForce = this.parseTimeInForce(this.safeString(rawOrder, 'time_in_force'));
-        const postOnly = this.safeValue(rawOrder, 'is_post_only');
-        const rawTrades = this.safeValue(order, 'trades', []);
+        const postOnly = this.safeBool(rawOrder, 'is_post_only');
+        const rawTrades = this.safeList(order, 'trades', []);
         return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1798,7 +1798,7 @@ class onetrading extends onetrading$1["default"] {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue(response, 'trade_history', []);
+        const tradeHistory = this.safeList(response, 'trade_history', []);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);

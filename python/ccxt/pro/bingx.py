@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -52,7 +52,7 @@ class bingx(ccxt.async_support.bingx):
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1 min to renew the token)
+                'listenKeyRefreshRate': 3540000,  # 1 hour (59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': True,
                 },
@@ -85,7 +85,7 @@ class bingx(ccxt.async_support.bingx):
                     },
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': True,  # needed to be True to keep track of used and free balance
+                    'fetchBalanceSnapshot': True,  # needed to be true to keep track of used and free balance
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
                 },
                 'watchPositions': {
@@ -94,7 +94,7 @@ class bingx(ccxt.async_support.bingx):
                 },
                 'watchOrderBook': {
                     'depth': 100,  # 5, 10, 20, 50, 100
-                    # 'interval': 500,  # 100, 200, 500, 1000
+                    # 'interval': 500, // 100, 200, 500, 1000
                 },
                 'watchTrades': {
                     'ignoreDuplicates': True,
@@ -138,7 +138,7 @@ class bingx(ccxt.async_support.bingx):
             params = self.omit(params, 'symbolsAndTimeframes')
         return await self.watch(url, messageHash, self.extend(request, params), subscribeHash, subscription)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -199,7 +199,7 @@ class bingx(ccxt.async_support.bingx):
         methodName = 'unWatchTicker'
         return await self.un_watch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         # swap
         #
@@ -254,20 +254,24 @@ class bingx(ccxt.async_support.bingx):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
-        # marketId = messageHash.split('@')[0]
+        # const marketId = messageHash.split('@')[0];
         isSwap = client.url.find('swap') >= 0
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        ticker = self.parse_ws_ticker(data, market)
+        # the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        # ticker even when the market id could not be resolved
+        inverseUrl = self.safe_string(self.urls['api']['ws'], 'inverse')
+        isInverse = (inverseUrl is not None) and (client.url.find(inverseUrl) == 0)
+        ticker = self.parse_ws_ticker(data, market, isInverse)
         self.tickers[symbol] = ticker
         client.resolve(ticker, self.get_message_hash('ticker', symbol))
         if self.safe_string(message, 'dataType') == 'all@ticker':
             client.resolve(ticker, self.get_message_hash('ticker'))
 
-    def parse_ws_ticker(self, message: object, market: Market = None):
+    def parse_ws_ticker(self, message: dict, market: Market = None, isInverse: Bool = None) -> Ticker:
         #
         #     {
         #         "e": "24hTicker",
@@ -294,6 +298,11 @@ class bingx(ccxt.async_support.bingx):
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, market)
         close = self.safe_string(message, 'c')
+        # Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        # prefer the caller's stream-derived flag so an unresolved market id on
+        # the Coin-M endpoint does not silently fall back to the contract count
+        inverse = (market['inverse'] is True) if (isInverse is None) else isInverse
+        baseVolumeKey = 'm' if inverse else 'v'
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -312,7 +321,7 @@ class bingx(ccxt.async_support.bingx):
             'change': self.safe_string(message, 'p'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(message, 'v'),
+            'baseVolume': self.safe_string(message, baseVolumeKey),
             'quoteVolume': self.safe_string(message, 'q'),
             'info': message,
         }, market)
@@ -337,7 +346,7 @@ class bingx(ccxt.async_support.bingx):
             hash += '::' + extra
         return hash
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -410,7 +419,7 @@ class bingx(ccxt.async_support.bingx):
         methodName = 'unWatchTrades'
         return await self.un_watch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # spot: first snapshot
         #
@@ -429,14 +438,14 @@ class bingx(ccxt.async_support.bingx):
         #           "E": 1690214529432,
         #           "T": 1690214529386,
         #           "e": "trade",
-        #           "m": True,
+        #           "m": true,
         #           "p": "29110.19",
         #           "q": "0.1868",
         #           "s": "BTC-USDT",
         #           "t": "57903921"
         #         },
         #         "dataType": "BTC-USDT@trade",
-        #         "success": True
+        #         "success": true
         #     }
         #
         # linear swap: first snapshot
@@ -459,7 +468,7 @@ class bingx(ccxt.async_support.bingx):
         #                "q": "0.0421",
         #                "p": "29023.5",
         #                "T": 1690221401344,
-        #                "m": False,
+        #                "m": false,
         #                "s": "BTC-USDT"
         #            },
         #            ...
@@ -488,7 +497,7 @@ class bingx(ccxt.async_support.bingx):
         #             "p": "55360.0",
         #             "q": "1",
         #             "T": 1722920589582,
-        #             "m": False
+        #             "m": false
         #         }
         #     }
         #
@@ -514,7 +523,7 @@ class bingx(ccxt.async_support.bingx):
             stored.append(trades[j])
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -596,7 +605,7 @@ class bingx(ccxt.async_support.bingx):
         amount = self.safe_float_2(delta, 1, 'a')
         bookside.store(price, amount)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # spot
         #
@@ -676,10 +685,10 @@ class bingx(ccxt.async_support.bingx):
         symbol = market['symbol']
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
-            # limit = [5, 10, 20, 50, 100]
+            # const limit = [ 5, 10, 20, 50, 100 ]
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
-            # see handleOHLCV — subscription.limit may be missing for non-orderbook callers
+            # see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             # default to a reasonable depth instead of throwing NPE in the Java port.
             limit = self.safe_integer(subscription, 'limit', 100)
             self.orderbooks[symbol] = self.order_book({}, limit)
@@ -713,8 +722,8 @@ class bingx(ccxt.async_support.bingx):
         #        "t": 1696687440000
         #    }
         #
-        # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
-        # for linear swap,(T) is the opening time
+        # for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        # for linear swap, (T) is the opening time
         isSpot = (self.safe_bool(market, 'spot') is True)
         isInverse = (self.safe_bool(market, 'inverse') is True)
         timestamp = 't' if isSpot else 'T'
@@ -729,7 +738,7 @@ class bingx(ccxt.async_support.bingx):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         # spot:
         #
@@ -754,7 +763,7 @@ class bingx(ccxt.async_support.bingx):
         #         "s": "BTC-USDT"
         #       },
         #       "dataType": "BTC-USDT@kline_1min",
-        #       "success": True
+        #       "success": true
         #   }
         #
         # linear swap:
@@ -812,7 +821,7 @@ class bingx(ccxt.async_support.bingx):
             data = self.safe_dict(message, 'data', {})
             candles = [self.safe_dict(data, 'K', {})]
         symbol = market['symbol']
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         rawTimeframe = dataType.split('_')[1]
         marketOptions = self.safe_dict(self.options, marketType)
         timeframes = self.safe_dict(marketOptions, 'timeframes', {})
@@ -820,8 +829,8 @@ class bingx(ccxt.async_support.bingx):
         if self.safe_value(self.ohlcvs[symbol], rawTimeframe) is None:
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
-            # subscription.limit is only set when watchOHLCV registers the subscription
-            # when handleMessage routes a non-OHLCV-originated subscription here(or the
+            # subscription.limit is only set when watchOHLCV registers the subscription;
+            # when handleMessage routes a non-OHLCV-originated subscription here (or the
             # subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             limit = self.safe_integer(subscription, 'limit', self.safe_integer(self.options, 'OHLCVLimit', 1000))
             self.ohlcvs[symbol][unifiedTimeframe] = ArrayCacheByTimestamp(limit)
@@ -838,7 +847,7 @@ class bingx(ccxt.async_support.bingx):
             messageHashForAll = self.get_message_hash('ohlcv', None, unifiedTimeframe)
             client.resolve(resolveData, messageHashForAll)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -867,8 +876,8 @@ class bingx(ccxt.async_support.bingx):
             url = self.safe_string(self.urls['api']['ws'], marketType)
         if url is None:
             raise BadRequest(self.id + ' watchOHLCV is not supported for ' + marketType + ' markets.')
-        options = self.safe_value(self.options, marketType, {})
-        timeframes = self.safe_value(options, 'timeframes', {})
+        options = self.safe_dict(self.options, marketType, {})
+        timeframes = self.safe_dict(options, 'timeframes', {})
         rawTimeframe = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = self.get_message_hash('ohlcv', market['symbol'], timeframe)
         subscriptionHash = market['id'] + '@kline_' + rawTimeframe
@@ -907,8 +916,8 @@ class bingx(ccxt.async_support.bingx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        options = self.safe_value(self.options, market['type'], {})
-        timeframes = self.safe_value(options, 'timeframes', {})
+        options = self.safe_dict(self.options, market['type'], {})
+        timeframes = self.safe_dict(options, 'timeframes', {})
         rawTimeframe = self.safe_string(timeframes, timeframe, timeframe)
         subMessageHash = market['id'] + '@kline_' + rawTimeframe
         messageHash = 'unsubscribe::' + subMessageHash
@@ -918,7 +927,7 @@ class bingx(ccxt.async_support.bingx):
         params['symbolsAndTimeframes'] = symbolsAndTimeframes
         return await self.un_watch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -976,7 +985,7 @@ class bingx(ccxt.async_support.bingx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -1034,7 +1043,7 @@ class bingx(ccxt.async_support.bingx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1066,7 +1075,7 @@ class bingx(ccxt.async_support.bingx):
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchBalance is not supported for inverse swap markets yet')
             # swap balance updates are pushed automatically over the listenKey connection,
-            # so we must not send a subscription message(an empty one is rejected with 80014)
+            # so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = self.safe_string(self.urls['api']['ws'], subType)
         else:
             baseUrl = self.safe_string(self.urls['api']['ws'], type)
@@ -1089,7 +1098,7 @@ class bingx(ccxt.async_support.bingx):
         }
         return await self.watch(url, messageHash, request, subscriptionHash, subscription)
 
-    def set_balance_cache(self, client: Client, type: object, subType: object, subscriptionHash: object, params: object):
+    def set_balance_cache(self, client: Client, type: object, subType: Str, subscriptionHash: str, params: dict):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = False
@@ -1102,16 +1111,16 @@ class bingx(ccxt.async_support.bingx):
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client: Client, messageHash: object, type: object, subType: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: object, subType: Str):
         response = await self.fetch_balance({'type': type, 'subType': subType})
-        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
             future = client.futures[messageHash]
             future.resolve()
             client.resolve(self.balance[type], type + ':balance')
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watch all open positions
 
@@ -1163,7 +1172,7 @@ class bingx(ccxt.async_support.bingx):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: Str, symbols: Strings = None):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
@@ -1175,7 +1184,7 @@ class bingx(ccxt.async_support.bingx):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: object, type: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, type: Str):
         positions = await self.fetch_positions(None, {'type': type, 'subType': 'linear'})
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1190,16 +1199,16 @@ class bingx(ccxt.async_support.bingx):
             future.resolve(cache)
             client.resolve(cache, 'swap:positions')
 
-    def parse_ws_position(self, position: object, market: Market = None):
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
-        #         "s": "LINK-USDT",     # Symbol
-        #         "pa": "5.000",        # Position Amount
-        #         "ep": "11.2345",      # Entry Price
-        #         "up": "0.5000",       # Unrealized PnL
-        #         "mt": "isolated",     # Margin Type
-        #         "iw": "50.00000000",  # Isolated Wallet
-        #         "ps": "LONG"          # Position Side
+        #         "s": "LINK-USDT",     // Symbol
+        #         "pa": "5.000",        // Position Amount
+        #         "ep": "11.2345",      // Entry Price
+        #         "up": "0.5000",       // Unrealized PnL
+        #         "mt": "isolated",     // Margin Type
+        #         "iw": "50.00000000",  // Isolated Wallet
+        #         "ps": "LONG"          // Position Side
         #     }
         #
         marketId = self.safe_string(position, 's')
@@ -1242,7 +1251,7 @@ class bingx(ccxt.async_support.bingx):
             'marginRatio': None,
         })
 
-    def handle_positions(self, client: Client, message: object):
+    def handle_positions(self, client: Client, message: dict):
         #
         #     {
         #         "e": "ACCOUNT_UPDATE",
@@ -1294,9 +1303,9 @@ class bingx(ccxt.async_support.bingx):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'swap:positions')
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
-        # {code: 100400, msg: '', timestamp: 1696245808833}
+        # { code: 100400, msg: '', timestamp: 1696245808833 }
         #
         # {
         #     "code": 100500,
@@ -1313,13 +1322,13 @@ class bingx(ccxt.async_support.bingx):
             client.reject(e)
         return True
 
-    async def keep_alive_listen_key(self, params={}):
+    async def keep_alive_listen_key(self, params: dict = {}):
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is None:
             # A network error happened: we can't renew a listen key that does not exist.
             return
         try:
-            await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+            await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # extend the expiry
         except Exception as error:
             types = ['spot', 'linear', 'inverse']
             for i in range(0, len(types)):
@@ -1340,7 +1349,7 @@ class bingx(ccxt.async_support.bingx):
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         time = self.milliseconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
@@ -1349,8 +1358,8 @@ class bingx(ccxt.async_support.bingx):
             # https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             # different keys and the key rides the private url, so losers
             # connect their watchers to an orphaned stream. client.futures is
-            # the registry: client.future() is the atomic check-and-insert
-            # and client.resolve() / client.reject() settle and remove the
+            # the registry: client.future () is the atomic check-and-insert
+            # and client.resolve () / client.reject () settle and remove the
             # entry under the same lock in every port
             messageHash = 'authenticate'
             client = self.client('authenticationFlights')
@@ -1359,8 +1368,8 @@ class bingx(ccxt.async_support.bingx):
                 # settles it: the listenKey is then in the bucket
                 await client.future(messageHash)
                 return
-            # reusableFuture(), not future() - the two match in
-            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # reusableFuture (), not future () - the two match in
+            # js/py/php/cs/java, but go's Client.Future () yields a channel
             # that the trailing suspension point below would panic on
             future = client.reusableFuture(messageHash)
             try:
@@ -1373,12 +1382,12 @@ class bingx(ccxt.async_support.bingx):
                 self.options['listenKey'] = listenKey
                 self.options['lastAuthenticatedTime'] = time
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                # settle the flight: client.resolve() removes the future from
+                # settle the flight: client.resolve () removes the future from
                 # client.futures and wakes every waiter
                 client.resolve(listenKey, messageHash)
             except Exception as e:
-                # reject the flight - waiters raise and the next caller re-leads.
-                # no reraise here, the trailing suspension point rethrows to self
+                # reject the flight - waiters throw and the next caller re-leads.
+                # no rethrow here, the trailing suspension point rethrows to this
                 # caller AND attaches the handler an alone leader needs
                 client.reject(e, messageHash)
             await future
@@ -1407,7 +1416,7 @@ class bingx(ccxt.async_support.bingx):
             error = NetworkError(self.id + ' pong failed with error ' + self.exception_message(e))
             client.reset(error)
 
-    def handle_order(self, client: object, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "code": 0,
@@ -1434,7 +1443,7 @@ class bingx(ccxt.async_support.bingx):
         #            "Z": 0,
         #            "Y": 0,
         #            "Q": 0,
-        #            "m": False
+        #            "m": false
         #         }
         #      }
         #
@@ -1463,7 +1472,7 @@ class bingx(ccxt.async_support.bingx):
         #           "Z": 4.9971016,
         #           "Y": 4.9971016,
         #           "Q": 5,
-        #           "m": False
+        #           "m": false
         #         }
         #       }
         # swap
@@ -1492,12 +1501,28 @@ class bingx(ccxt.async_support.bingx):
         #    }
         #
         isSpot = ('dataType' in message)
-        data = self.safe_value_2(message, 'data', 'o', {})
+        data = self.safe_dict_2(message, 'data', 'o', {})
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
         parsedOrder = self.parse_order(data)
+        if not isSpot:
+            # The envelope T is the order update time; o.T is the trade time.
+            updateTimestamp = self.safe_integer(message, 'T')
+            if (updateTimestamp is not None) and (updateTimestamp > 0):
+                orderId = self.safe_string(parsedOrder, 'id')
+                if orderId is not None:
+                    # Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    # Match both id and symbol: several cached orders can share a symbol.
+                    for i in range(0, len(stored)):
+                        previousOrder = stored[i]
+                        if (previousOrder['id'] == orderId) and (previousOrder['symbol'] == parsedOrder['symbol']):
+                            previousTimestamp = self.safe_integer(previousOrder, 'lastUpdateTimestamp')
+                            if (previousTimestamp is not None) and (updateTimestamp < previousTimestamp):
+                                return
+                            break
+                parsedOrder['lastUpdateTimestamp'] = updateTimestamp
         stored.append(parsedOrder)
         symbol = parsedOrder['symbol']
         spotHash = 'spot:order'
@@ -1506,7 +1531,7 @@ class bingx(ccxt.async_support.bingx):
         client.resolve(stored, messageHash)
         client.resolve(stored, messageHash + ':' + symbol)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #
         #      {
@@ -1534,7 +1559,7 @@ class bingx(ccxt.async_support.bingx):
         #           "Z": 4.9971016,
         #           "Y": 4.9971016,
         #           "Q": 5,
-        #           "m": False
+        #           "m": false
         #         }
         #       }
         #
@@ -1582,7 +1607,7 @@ class bingx(ccxt.async_support.bingx):
         client.resolve(cachedTrades, messageHash)
         client.resolve(cachedTrades, messageHash + ':' + symbol)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         # spot
         #     {
         #         "e":"ACCOUNT_UPDATE",
@@ -1664,7 +1689,7 @@ class bingx(ccxt.async_support.bingx):
             self.handle_ohlcv(client, message)
             return
         if dataType.find('executionReport') >= 0:
-            data = self.safe_value(message, 'data', {})
+            data = self.safe_dict(message, 'data', {})
             type = self.safe_string(data, 'x')
             if type == 'TRADE':
                 self.handle_my_trades(client, message)
@@ -1676,19 +1701,19 @@ class bingx(ccxt.async_support.bingx):
             self.handle_positions(client, message)
         if e == 'ORDER_TRADE_UPDATE':
             self.handle_order(client, message)
-            data = self.safe_value(message, 'o', {})
+            data = self.safe_dict(message, 'o', {})
             type = self.safe_string(data, 'x')
             status = self.safe_string(data, 'X')
             if (type == 'TRADE') and (status == 'FILLED'):
                 self.handle_my_trades(client, message)
-        msgData = self.safe_value(message, 'data')
+        msgData = self.safe_dict(message, 'data')
         msgEvent = self.safe_string(msgData, 'e')
         if msgEvent == '24hTicker':
             self.handle_ticker(client, message)
         if dataType == '' and msgEvent is None and e is None:
             self.handle_subscription_status(client, message)
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "code": 0,

@@ -53,7 +53,7 @@ class upbit extends upbit$1["default"] {
         const client = this.client(url);
         const subscriptionsKey = 'upbitPublicSubscriptions';
         if (!(subscriptionsKey in client.subscriptions)) {
-            client.subscriptions[subscriptionsKey] = {};
+            client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
         const messageHashes = [];
@@ -139,7 +139,7 @@ class upbit extends upbit$1["default"] {
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublicMultiple(symbols, 'trade');
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -247,7 +247,7 @@ class upbit extends upbit$1["default"] {
         const marketId = this.safeString(message, 'code');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const type = this.safeString(message, 'stream_type');
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const limit = this.safeInteger(options, 'limit', 15);
         if (type === 'SNAPSHOT') {
             this.orderbooks[symbol] = this.orderBook({}, limit);
@@ -261,7 +261,7 @@ class upbit extends upbit$1["default"] {
         orderbook['symbol'] = symbol;
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
-        const data = this.safeValue(message, 'orderbook_units', []);
+        const data = this.safeList(message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const ask_price = this.safeFloat(entry, 'ask_price');
@@ -373,7 +373,7 @@ class upbit extends upbit$1["default"] {
         // Track private channel subscriptions to support multiple concurrent watches
         const subscriptionsKey = 'upbitPrivateSubscriptions';
         if (!(subscriptionsKey in client.subscriptions)) {
-            client.subscriptions[subscriptionsKey] = {};
+            client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
         }
         let channelKey = channel;
         if (symbol !== undefined) {
@@ -597,8 +597,8 @@ class upbit extends upbit$1["default"] {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const cachedOrders = this.orders;
-        const orders = (symbol === undefined) ? {} : this.safeValue(cachedOrders.hashmap, symbol, {});
-        const order = (orderId === undefined) ? undefined : this.safeValue(orders, orderId);
+        const orders = (symbol === undefined) ? {} : this.safeDict(cachedOrders.hashmap, symbol, {});
+        const order = (orderId === undefined) ? undefined : this.safeDict(orders, orderId);
         if (order !== undefined) {
             const fee = this.safeValue(order, 'fee');
             if (fee !== undefined) {

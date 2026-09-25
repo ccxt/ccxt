@@ -325,14 +325,14 @@ export default class zaif extends Exchange {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
-        const deposit = this.safeValue(balances, 'deposit');
+        const balances = this.safeDict(response, 'return', {});
+        const deposit = this.safeDict(balances, 'deposit');
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue(balances, 'funds', {});
+        const funds = this.safeDict(balances, 'funds', {});
         const currencyIds = Object.keys(funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -717,6 +717,12 @@ export default class zaif extends Exchange {
             market = this.market(symbol);
             request['currency_pair'] = market['id'];
         }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt(since / 1000);
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min(limit, 1000);
+        }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
         return this.parseOrders(data, market, since, limit);
@@ -789,7 +795,7 @@ export default class zaif extends Exchange {
         //
         currency = this.safeCurrency(undefined, currency);
         let fee = undefined;
-        const feeCost = this.safeValue(transaction, 'fee');
+        const feeCost = this.safeNumber(transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

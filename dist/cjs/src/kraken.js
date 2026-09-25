@@ -684,7 +684,7 @@ class kraken extends kraken$1["default"] {
                 throw new errors.ExchangeError(this.id + ' method() missing base');
             }
             if ((base in cachedCurrencies)) {
-                const currency = this.safeValue(cachedCurrencies, base);
+                const currency = this.safeDict(cachedCurrencies, base);
                 const currencyPrecision = this.safeNumber(currency, 'precision');
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision === undefined) {
@@ -976,14 +976,14 @@ class kraken extends kraken$1["default"] {
         //        }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTradingFee(result, market);
     }
     parseTradingFee(response, market) {
-        const makerFees = this.safeValue(response, 'fees_maker', {});
-        const takerFees = this.safeValue(response, 'fees', {});
-        const symbolMakerFee = this.safeValue(makerFees, market['id'], {});
-        const symbolTakerFee = this.safeValue(takerFees, market['id'], {});
+        const makerFees = this.safeDict(response, 'fees_maker', {});
+        const takerFees = this.safeDict(response, 'fees', {});
+        const symbolMakerFee = this.safeDict(makerFees, market['id'], {});
+        const symbolTakerFee = this.safeDict(takerFees, market['id'], {});
         return {
             'info': response,
             'symbol': market['symbol'],
@@ -1040,12 +1040,12 @@ class kraken extends kraken$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         let orderbook = this.safeValue(result, market['id']);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        const marketInfo = this.safeValue(market, 'info', {});
-        const wsName = this.safeValue(marketInfo, 'wsname');
+        const marketInfo = this.safeDict(market, 'info', {});
+        const wsName = this.safeString(marketInfo, 'wsname');
         if (wsName !== undefined) {
             orderbook = this.safeValue(result, wsName, orderbook);
         }
@@ -1066,17 +1066,17 @@ class kraken extends kraken$1["default"] {
         //     }
         //
         const symbol = this.safeSymbol(undefined, market);
-        const v = this.safeValue(ticker, 'v', []);
+        const v = this.safeList(ticker, 'v', []);
         const baseVolume = this.safeString(v, 1);
-        const p = this.safeValue(ticker, 'p', []);
+        const p = this.safeList(ticker, 'p', []);
         const vwap = this.safeString(p, 1);
         const quoteVolume = Precise["default"].stringMul(baseVolume, vwap);
-        const c = this.safeValue(ticker, 'c', []);
+        const c = this.safeList(ticker, 'c', []);
         const last = this.safeString(c, 0);
-        const high = this.safeValue(ticker, 'h', []);
-        const low = this.safeValue(ticker, 'l', []);
-        const bid = this.safeValue(ticker, 'b', []);
-        const ask = this.safeValue(ticker, 'a', []);
+        const high = this.safeList(ticker, 'h', []);
+        const low = this.safeList(ticker, 'l', []);
+        const bid = this.safeList(ticker, 'b', []);
+        const ask = this.safeList(ticker, 'a', []);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1238,7 +1238,7 @@ class kraken extends kraken$1["default"] {
         //             "last":1591517580
         //         }
         //     }
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const ohlcvs = this.safeList(result, market['id'], []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
@@ -1350,8 +1350,8 @@ class kraken extends kraken$1["default"] {
         //                                                 "amount": "-0.2805800000",
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
-        const result = this.safeValue(response, 'result', {});
-        const ledger = this.safeValue(result, 'ledger', {});
+        const result = this.safeDict(response, 'result', {});
+        const ledger = this.safeDict(result, 'ledger', {});
         const keys = Object.keys(ledger);
         const items = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1605,7 +1605,7 @@ class kraken extends kraken$1["default"] {
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'result', {});
+        const balances = this.safeDict(response, 'result', {});
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1615,7 +1615,7 @@ class kraken extends kraken$1["default"] {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode(currencyId);
-            const balance = this.safeValue(balances, currencyId, {});
+            const balance = this.safeDict(balances, currencyId, {});
             const account = this.account();
             account['used'] = this.safeString(balance, 'hold_trade');
             account['total'] = this.safeString(balance, 'balance');
@@ -1823,7 +1823,7 @@ class kraken extends kraken$1["default"] {
         return this.parseOrders(this.safeList(result, 'orders'));
     }
     findMarketByAltnameOrId(id) {
-        const marketsByAltname = this.safeValue(this.options, 'marketsByAltname', {});
+        const marketsByAltname = this.safeDict(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
             return marketsByAltname[id];
         }
@@ -2090,7 +2090,7 @@ class kraken extends kraken$1["default"] {
         }
         const userref = this.safeString(order, 'userref');
         const clientOrderId = this.safeString(order, 'cl_ord_id', userref);
-        const rawTrades = this.safeValue(order, 'trades', []);
+        const rawTrades = this.safeList(order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -2432,7 +2432,7 @@ class kraken extends kraken$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeDict(response, 'result', []);
         if (!(id in result)) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
@@ -2473,7 +2473,7 @@ class kraken extends kraken$1["default"] {
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
         }
-        const options = this.safeValue(this.options, 'fetchOrderTrades', {});
+        const options = this.safeDict(this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger(options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
         let numBatches = this.parseToInt(numTradeIds / batchSize);
@@ -2541,7 +2541,7 @@ class kraken extends kraken$1["default"] {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join(','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const orders = [];
         const orderIds = Object.keys(result);
         for (let i = 0; i < orderIds.length; i++) {
@@ -2957,7 +2957,7 @@ class kraken extends kraken$1["default"] {
         return this.safeString(statuses, status, status);
     }
     parseNetwork(network) {
-        const withdrawMethods = this.safeValue(this.options, 'withdrawMethods', {});
+        const withdrawMethods = this.safeDict(this.options, 'withdrawMethods', {});
         return this.safeString(withdrawMethods, network, network);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -3149,7 +3149,7 @@ class kraken extends kraken$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.safeTimestamp(result, 'unixtime');
     }
     /**
@@ -3324,13 +3324,13 @@ class kraken extends kraken$1["default"] {
         }
         const currency = this.currency(code);
         let network = this.safeStringUpper(params, 'network');
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
         params = this.omit(params, 'network');
         if ((code === 'USDT') && (network === 'TRC20')) {
             code = code + '-' + network;
         }
-        const defaultDepositMethods = this.safeValue(this.options, 'depositMethods', {});
+        const defaultDepositMethods = this.safeDict(this.options, 'depositMethods', {});
         const defaultDepositMethod = this.safeString(defaultDepositMethods, code);
         let depositMethod = this.safeString(params, 'method', defaultDepositMethod);
         // if the user has specified an exchange-specific method in params
@@ -3352,7 +3352,7 @@ class kraken extends kraken$1["default"] {
             }
             // if depositMethod was not specified, fallback to the first available deposit method
             if (depositMethod === undefined) {
-                const firstDepositMethod = this.safeValue(depositMethods, 0, {});
+                const firstDepositMethod = this.safeDict(depositMethods, 0, {});
                 depositMethod = this.safeString(firstDepositMethod, 'method');
             }
         }
@@ -3369,8 +3369,8 @@ class kraken extends kraken$1["default"] {
         //         ]
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
-        const firstResult = this.safeValue(result, 0, {});
+        const result = this.safeList(response, 'result', []);
+        const firstResult = this.safeDict(result, 0, {});
         if (firstResult === undefined) {
             throw new errors.InvalidAddress(this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);
         }
@@ -3631,7 +3631,7 @@ class kraken extends kraken$1["default"] {
         //        }
         //    }
         //
-        const result = this.safeValue(transfer, 'result', {});
+        const result = this.safeDict(transfer, 'result', {});
         const refid = this.safeString(result, 'refid');
         return {
             'info': transfer,
@@ -3662,7 +3662,8 @@ class kraken extends kraken$1["default"] {
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            const nonce = this.incrementingNonce().toString();
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json(this.extend({ 'nonce': nonce }, params));
             }

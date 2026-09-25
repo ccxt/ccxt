@@ -276,7 +276,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.marketsGetSpotPairs (params);
         //
         //     {
@@ -305,12 +305,12 @@ export default class bitbank extends Exchange {
         //       }
         //     }
         //
-        const data = this.safeValue (response, 'data');
-        const pairs = this.safeValue (data, 'pairs', []);
+        const data = this.safeDict (response, 'data');
+        const pairs = this.safeList (data, 'pairs', []);
         return this.parseMarkets (pairs);
     }
 
-    override parseMarket (entry: any): Market {
+    override parseMarket (entry: Dict): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'base_asset');
         const quoteId = this.safeString (entry, 'quote_asset');
@@ -331,7 +331,7 @@ export default class bitbank extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': this.safeValue (entry, 'is_enabled'),
+            'active': this.safeBool (entry, 'is_enabled'),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -406,7 +406,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -429,7 +429,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -438,7 +438,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairDepth (this.extend (request, params));
-        const orderbook = this.safeValue (response, 'data', {});
+        const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
@@ -500,7 +500,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -509,7 +509,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTransactions (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'transactions', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -522,7 +522,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -555,8 +555,8 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const pairs = this.safeValue (data, 'pairs', []);
+        const data = this.safeDict (response, 'data', {});
+        const pairs = this.safeList (data, 'pairs', []);
         const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -608,7 +608,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (since === undefined) {
             if (limit === undefined) {
                 limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
@@ -644,9 +644,9 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const candlestick = this.safeValue (data, 'candlestick', []);
-        const first = this.safeValue (candlestick, 0, {});
+        const data = this.safeDict (response, 'data', {});
+        const candlestick = this.safeList (data, 'candlestick', []);
+        const first = this.safeDict (candlestick, 0, {});
         const ohlcv = this.safeList (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
@@ -657,8 +657,8 @@ export default class bitbank extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue (response, 'data', {});
-        const assets = this.safeValue (data, 'assets', []);
+        const data = this.safeDict (response, 'data', {});
+        const assets = this.safeList (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -682,7 +682,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -785,7 +785,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -814,7 +814,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -861,7 +861,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -908,7 +908,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -923,7 +923,7 @@ export default class bitbank extends Exchange {
             request['since'] = this.parseToInt (since / 1000);
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -939,7 +939,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -956,7 +956,7 @@ export default class bitbank extends Exchange {
             request['since'] = this.parseToInt (since / 1000);
         }
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -970,7 +970,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -979,10 +979,10 @@ export default class bitbank extends Exchange {
             'asset': currency['id'],
         };
         const response = await this.privateGetUserWithdrawalAccount (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         // Not sure about this if there could be more than one account...
-        const accounts = this.safeValue (data, 'accounts', []);
-        const firstAccount = this.safeValue (accounts, 0, {});
+        const accounts = this.safeList (data, 'accounts', []);
+        const firstAccount = this.safeDict (accounts, 0, {});
         const address = this.safeString (firstAccount, 'address');
         return {
             'info': response,
@@ -1005,7 +1005,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (!('uuid' in params)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
@@ -1083,11 +1083,11 @@ export default class bitbank extends Exchange {
         } as Transaction;
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
@@ -1105,7 +1105,7 @@ export default class bitbank extends Exchange {
             const isTimeWindow = (authMethod === 'timeWindow');
             const requestTime = this.milliseconds ().toString ();
             const timeWindow = this.safeString (this.options, 'timeWindow', '5000');
-            const nonce = this.nonce ().toString ();
+            const nonce = this.incrementingNonce ().toString ();
             let auth: Str = undefined;
             if (isTimeWindow) {
                 auth = requestTime + timeWindow;
@@ -1145,7 +1145,7 @@ export default class bitbank extends Exchange {
         }
         const success = this.safeInteger (response, 'success');
         const data = this.safeValue (response, 'data');
-        if ((success === undefined || success === null || success === 0) || (data === undefined)) {
+        if ((success === undefined || success === 0) || (data === undefined)) {
             const errorMessages: Dict = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

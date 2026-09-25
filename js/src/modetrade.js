@@ -1397,29 +1397,29 @@ export default class modetrade extends Exchange {
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        let status = this.safeValue2(order, 'status', 'algoStatus');
+        let status = this.safeString2(order, 'status', 'algoStatus');
         const success = this.safeBool(order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
         }
         const side = this.safeStringLower(order, 'side');
-        const filled = this.omitZero(this.safeValue2(order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.omitZero(this.safeString2(order, 'executed', 'totalExecutedQuantity'));
         const average = this.omitZero(this.safeString2(order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise.stringSub(cost, filled);
-        const fee = this.safeValue2(order, 'total_fee', 'totalFee');
+        const fee = this.safeNumber2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue(order, 'Transactions');
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
-        const childOrders = this.safeValue(order, 'childOrders');
+        const childOrders = this.safeList(order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue(childOrders, 0);
-            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const first = this.safeDict(childOrders, 0);
+            const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                const stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
             }
@@ -1712,8 +1712,8 @@ export default class modetrade extends Exchange {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new NotSupported(this.id + ' createOrders() only support non-stop order');
@@ -2176,7 +2176,7 @@ export default class modetrade extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', response);
+        const data = this.safeDict(response, 'data', response);
         const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2402,13 +2402,13 @@ export default class modetrade extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['balance_token'] = currency['id'];
+            request['token'] = currency['id'];
         }
         if (since !== undefined) {
             request['start_t'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['size'] = limit;
         }
         const transactionType = this.safeString(params, 'type');
         params = this.omit(params, 'type');
@@ -2445,21 +2445,45 @@ export default class modetrade extends Exchange {
         return [currency, this.safeList(data, 'rows', [])];
     }
     parseLedgerEntry(item, currency = undefined) {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         const currencyId = this.safeString(item, 'token');
         const code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         const amount = this.safeNumber(item, 'amount');
-        const side = this.safeString(item, 'token_side');
-        const direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        const side = this.safeString(item, 'side');
+        let direction = undefined;
+        if (side !== undefined) {
+            direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        }
         const timestamp = this.safeInteger(item, 'created_time');
-        const fee = this.parseTokenAndFeeTemp(item, 'fee_token', 'fee_amount');
+        const feeCost = this.parseNumber(this.safeString(item, 'fee'));
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        }
         return this.safeLedgerEntry({
             'id': this.safeString(item, 'id'),
             'currency': code,
-            'account': this.safeString(item, 'account'),
+            'account': undefined,
             'referenceAccount': undefined,
             'referenceId': this.safeString(item, 'tx_id'),
-            'status': this.parseTransactionStatus(this.safeString(item, 'status')),
+            'status': this.parseTransactionStatus(this.safeString(item, 'trans_status')),
             'amount': amount,
             'before': undefined,
             'after': undefined,
@@ -2467,7 +2491,7 @@ export default class modetrade extends Exchange {
             'direction': direction,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
+            'type': this.parseLedgerEntryType(this.safeString2(item, 'type', 'side')),
             'info': item,
         }, currency);
     }
@@ -2475,6 +2499,8 @@ export default class modetrade extends Exchange {
         const types = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
+            'DEPOSIT': 'transaction', // Funds deposited from the chain
+            'WITHDRAW': 'transaction', // Funds withdrawn to the chain
         };
         return this.safeString(types, type, type);
     }
@@ -2496,15 +2522,34 @@ export default class modetrade extends Exchange {
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
-        // example in fetchLedger
-        const code = this.safeString(transaction, 'token');
-        let movementDirection = this.safeStringLower(transaction, 'token_side');
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        const currencyId = this.safeString(transaction, 'token');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        let movementDirection = this.safeStringLower(transaction, 'side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const fee = this.parseTokenAndFeeTemp(transaction, 'fee_token', 'fee_amount');
-        const addressTo = this.safeString(transaction, 'target_address');
-        const addressFrom = this.safeString(transaction, 'source_address');
+        const feeCost = this.parseNumber(this.safeString(transaction, 'fee'));
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        }
         const timestamp = this.safeInteger(transaction, 'created_time');
         return {
             'info': transaction,
@@ -2513,28 +2558,31 @@ export default class modetrade extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'address': undefined,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
-            'tag': this.safeString(transaction, 'extra'),
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
             'type': movementDirection,
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'trans_status')),
             'updated': this.safeInteger(transaction, 'updated_time'),
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': undefined,
+            'network': undefined, // raw rows carry only a chain id, no mapping to unified network codes exists yet
         };
     }
     parseTransactionStatus(status) {
         const statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
+            'PENDING': 'pending',
+            'PENDING_REBALANCE': 'pending',
             'PROCESSING': 'pending',
             'COMPLETED': 'ok',
+            'FAILED': 'failed',
             'CANCELED': 'canceled',
         };
         if (status === undefined) {
@@ -2603,6 +2651,7 @@ export default class modetrade extends Exchange {
         //         "success":true
         //     }
         //
+        params = this.omit(params, 'side'); // request-side filter, not a unified transaction field
         return this.parseTransactions(rows, currency, since, limit, params);
     }
     async getWithdrawNonce(params = {}) {

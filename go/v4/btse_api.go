@@ -8,641 +8,641 @@
 package ccxt
 
 // PublicGetSpotApiV33MarketSummary returns a channel that yields a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33MarketSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33MarketSummary", args...)
+func (this *Btse) PublicGetSpotApiV33MarketSummary(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/market_summary", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV33Ohlcv returns a channel that yields a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33Ohlcv(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33Ohlcv", args...)
+func (this *Btse) PublicGetSpotApiV33Ohlcv(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/ohlcv", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV33Price returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33Price(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33Price", args...)
+func (this *Btse) PublicGetSpotApiV33Price(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV33Orderbook returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33Orderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33Orderbook", args...)
+func (this *Btse) PublicGetSpotApiV33Orderbook(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV33OrderbookL2 returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33OrderbookL2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33OrderbookL2", args...)
+func (this *Btse) PublicGetSpotApiV33OrderbookL2(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/orderbook/L2", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV33Trades returns a channel that yields a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33Trades", args...)
+func (this *Btse) PublicGetSpotApiV33Trades(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV33Time returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetSpotApiV33Time(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV33Time", args...)
+func (this *Btse) PublicGetSpotApiV33Time(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23MarketSummary returns a channel that yields a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23MarketSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23MarketSummary", args...)
+func (this *Btse) PublicGetFuturesApiV23MarketSummary(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/market_summary", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23Ohlcv returns a channel that yields a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23Ohlcv(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23Ohlcv", args...)
+func (this *Btse) PublicGetFuturesApiV23Ohlcv(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/ohlcv", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23Price returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23Price(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23Price", args...)
+func (this *Btse) PublicGetFuturesApiV23Price(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23Orderbook returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23Orderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23Orderbook", args...)
+func (this *Btse) PublicGetFuturesApiV23Orderbook(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23OrderbookL2 returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23OrderbookL2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23OrderbookL2", args...)
+func (this *Btse) PublicGetFuturesApiV23OrderbookL2(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/orderbook/L2", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23Trades returns a channel that yields a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23Trades", args...)
+func (this *Btse) PublicGetFuturesApiV23Trades(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23FundingHistory returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23FundingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23FundingHistory", args...)
+func (this *Btse) PublicGetFuturesApiV23FundingHistory(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/funding_history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23MarketRiskLimit returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetFuturesApiV23MarketRiskLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFuturesApiV23MarketRiskLimit", args...)
+func (this *Btse) PublicGetFuturesApiV23MarketRiskLimit(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/market/risk_limit", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetSpotApiV32AvailableCurrencyNetworks returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetSpotApiV32AvailableCurrencyNetworks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV32AvailableCurrencyNetworks", args...)
+func (this *Btse) PublicGetSpotApiV32AvailableCurrencyNetworks(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/availableCurrencyNetworks", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PublicGetSpotApiV32ExchangeRate returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetSpotApiV32ExchangeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotApiV32ExchangeRate", args...)
+func (this *Btse) PublicGetSpotApiV32ExchangeRate(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/exchangeRate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PublicGetPublicApiWalletV1CryptoNetworks returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiWalletV1CryptoNetworks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiWalletV1CryptoNetworks", args...)
+func (this *Btse) PublicGetPublicApiWalletV1CryptoNetworks(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/crypto/networks", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PublicGetPublicApiWalletV1AssetsExchangeRate returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiWalletV1AssetsExchangeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiWalletV1AssetsExchangeRate", args...)
+func (this *Btse) PublicGetPublicApiWalletV1AssetsExchangeRate(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/assets/exchangeRate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PublicGetPublicApiMarketV1Markets returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1Markets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1Markets", args...)
+func (this *Btse) PublicGetPublicApiMarketV1Markets(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1ExchangeInfo returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiMarketV1ExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1ExchangeInfo", args...)
+func (this *Btse) PublicGetPublicApiMarketV1ExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/exchangeInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1Orderbook returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1Orderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1Orderbook", args...)
+func (this *Btse) PublicGetPublicApiMarketV1Orderbook(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1Trades returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1Trades", args...)
+func (this *Btse) PublicGetPublicApiMarketV1Trades(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1Klines returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1Klines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1Klines", args...)
+func (this *Btse) PublicGetPublicApiMarketV1Klines(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1Ticker24hr returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1Ticker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1Ticker24hr", args...)
+func (this *Btse) PublicGetPublicApiMarketV1Ticker24hr(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/ticker/24hr", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1TickerPrice returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiMarketV1TickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1TickerPrice", args...)
+func (this *Btse) PublicGetPublicApiMarketV1TickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/ticker/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1TickerIndices returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiMarketV1TickerIndices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1TickerIndices", args...)
+func (this *Btse) PublicGetPublicApiMarketV1TickerIndices(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/ticker/indices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1TickerL1 returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiMarketV1TickerL1(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1TickerL1", args...)
+func (this *Btse) PublicGetPublicApiMarketV1TickerL1(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/ticker/l1", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1RecentFundingHistory returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1RecentFundingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1RecentFundingHistory", args...)
+func (this *Btse) PublicGetPublicApiMarketV1RecentFundingHistory(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/recentFundingHistory", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiMarketV1RiskLimits returns a channel that yields a JSON object.
-func (this *BtseCore) PublicGetPublicApiMarketV1RiskLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiMarketV1RiskLimits", args...)
+func (this *Btse) PublicGetPublicApiMarketV1RiskLimits(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/market/v1/riskLimits", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PublicGetPublicApiWalletV1CryptoList returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiWalletV1CryptoList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiWalletV1CryptoList", args...)
+func (this *Btse) PublicGetPublicApiWalletV1CryptoList(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/crypto/list", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PublicGetPublicApiOtcV1Markets returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PublicGetPublicApiOtcV1Markets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicApiOtcV1Markets", args...)
+func (this *Btse) PublicGetPublicApiOtcV1Markets(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/otc/v1/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSpotApiV33Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33Order", args...)
+func (this *Btse) PrivateGetSpotApiV33Order(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSpotApiV33UserOpenOrders returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33UserOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33UserOpenOrders", args...)
+func (this *Btse) PrivateGetSpotApiV33UserOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/open_orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV33UserTradeHistory returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33UserTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33UserTradeHistory", args...)
+func (this *Btse) PrivateGetSpotApiV33UserTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/trade_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV33UserFees returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33UserFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33UserFees", args...)
+func (this *Btse) PrivateGetSpotApiV33UserFees(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/fees", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV33InvestProducts returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33InvestProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33InvestProducts", args...)
+func (this *Btse) PrivateGetSpotApiV33InvestProducts(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/invest/products", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV33InvestOrders returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33InvestOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33InvestOrders", args...)
+func (this *Btse) PrivateGetSpotApiV33InvestOrders(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/invest/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV33InvestHistory returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33InvestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33InvestHistory", args...)
+func (this *Btse) PrivateGetSpotApiV33InvestHistory(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/invest/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23Order", args...)
+func (this *Btse) PrivateGetFuturesApiV23Order(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesApiV23UserOpenOrders returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserOpenOrders", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/open_orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFuturesApiV23UserTradeHistory returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserTradeHistory", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/trade_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserPositions returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserPositions", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserPositions(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23RiskLimit returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23RiskLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23RiskLimit", args...)
+func (this *Btse) PrivateGetFuturesApiV23RiskLimit(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/risk_limit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23Leverage returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23Leverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23Leverage", args...)
+func (this *Btse) PrivateGetFuturesApiV23Leverage(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/leverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserFees returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserFees", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserFees(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/fees", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23PositionMode returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23PositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23PositionMode", args...)
+func (this *Btse) PrivateGetFuturesApiV23PositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/position_mode", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserMarginSetting returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserMarginSetting(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserMarginSetting", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserMarginSetting(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/margin_setting", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserWallet returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserWallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserWallet", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserWallet(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/wallet", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserWalletHistory returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserWalletHistory", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserWalletHistory(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/wallet_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserUnifiedWalletMargin returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserUnifiedWalletMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserUnifiedWalletMargin", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserUnifiedWalletMargin(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/unifiedWallet/margin", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV23UserMargin returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV23UserMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV23UserMargin", args...)
+func (this *Btse) PrivateGetFuturesApiV23UserMargin(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/margin", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetOtcApiV1GetMarket returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetOtcApiV1GetMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOtcApiV1GetMarket", args...)
+func (this *Btse) PrivateGetOtcApiV1GetMarket(args ...any) <-chan any {
+	return this.Fetch2Async("otc/api/v1/getMarket", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSpotApiV32UserWallet returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV32UserWallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV32UserWallet", args...)
+func (this *Btse) PrivateGetSpotApiV32UserWallet(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/user/wallet", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetSpotApiV32UserWalletHistory returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV32UserWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV32UserWalletHistory", args...)
+func (this *Btse) PrivateGetSpotApiV32UserWalletHistory(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/user/wallet_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetSpotApiV33UserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV33UserWalletAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV33UserWalletAddress", args...)
+func (this *Btse) PrivateGetSpotApiV33UserWalletAddress(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/wallet/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetSpotApiV32AvailableCurrencies returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV32AvailableCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV32AvailableCurrencies", args...)
+func (this *Btse) PrivateGetSpotApiV32AvailableCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/availableCurrencies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetSpotApiV32SubaccountWalletHistory returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV32SubaccountWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV32SubaccountWalletHistory", args...)
+func (this *Btse) PrivateGetSpotApiV32SubaccountWalletHistory(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/subaccount/wallet/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetSpotApiV4TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV4TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV4TradeOrders", args...)
+func (this *Btse) PrivateGetSpotApiV4TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV4TradeOrder returns a channel that yields a JSON object.
-func (this *BtseCore) PrivateGetSpotApiV4TradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV4TradeOrder", args...)
+func (this *Btse) PrivateGetSpotApiV4TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV4TradeTradeHistory returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV4TradeTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV4TradeTradeHistory", args...)
+func (this *Btse) PrivateGetSpotApiV4TradeTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/trade_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSpotApiV4TradeFees returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetSpotApiV4TradeFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotApiV4TradeFees", args...)
+func (this *Btse) PrivateGetSpotApiV4TradeFees(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/fees", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradeOrders", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradeRiskLimit returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradeRiskLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradeRiskLimit", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradeRiskLimit(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/risk_limit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradePositionMode returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradePositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradePositionMode", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradePositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/position_mode", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradeLeverage returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradeLeverage", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradeLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/leverage", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradeTradeHistory returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradeTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradeTradeHistory", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradeTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/trade_history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradePositions returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradePositions", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradePositions(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetFuturesApiV3TradeMarginSetting returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetFuturesApiV3TradeMarginSetting(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFuturesApiV3TradeMarginSetting", args...)
+func (this *Btse) PrivateGetFuturesApiV3TradeMarginSetting(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/margin_setting", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetPublicApiWalletV1Assets returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetPublicApiWalletV1Assets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPublicApiWalletV1Assets", args...)
+func (this *Btse) PrivateGetPublicApiWalletV1Assets(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/assets", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetPublicApiWalletV1UserAssets returns a channel that yields a JSON object.
-func (this *BtseCore) PrivateGetPublicApiWalletV1UserAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPublicApiWalletV1UserAssets", args...)
+func (this *Btse) PrivateGetPublicApiWalletV1UserAssets(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/assets", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetPublicApiWalletV1UserWalletHistory returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetPublicApiWalletV1UserWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPublicApiWalletV1UserWalletHistory", args...)
+func (this *Btse) PrivateGetPublicApiWalletV1UserWalletHistory(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/walletHistory", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetPublicApiWalletV1UserCryptoAddress returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetPublicApiWalletV1UserCryptoAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPublicApiWalletV1UserCryptoAddress", args...)
+func (this *Btse) PrivateGetPublicApiWalletV1UserCryptoAddress(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/crypto/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetPublicApiOtcV1Quotes returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateGetPublicApiOtcV1Quotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPublicApiOtcV1Quotes", args...)
+func (this *Btse) PrivateGetPublicApiOtcV1Quotes(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/otc/v1/quotes", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV33Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33Order", args...)
+func (this *Btse) PrivatePostSpotApiV33Order(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV33OrderPeg returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33OrderPeg(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33OrderPeg", args...)
+func (this *Btse) PrivatePostSpotApiV33OrderPeg(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/order/peg", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV33OrderCancelAllAfter returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostSpotApiV33OrderCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33OrderCancelAllAfter", args...)
+func (this *Btse) PrivatePostSpotApiV33OrderCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/order/cancelAllAfter", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV33InvestDeposit returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33InvestDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33InvestDeposit", args...)
+func (this *Btse) PrivatePostSpotApiV33InvestDeposit(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/invest/deposit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostSpotApiV33InvestRenew returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33InvestRenew(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33InvestRenew", args...)
+func (this *Btse) PrivatePostSpotApiV33InvestRenew(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/invest/renew", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostSpotApiV33InvestRedeem returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33InvestRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33InvestRedeem", args...)
+func (this *Btse) PrivatePostSpotApiV33InvestRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/invest/redeem", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV23Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23Order", args...)
+func (this *Btse) PrivatePostFuturesApiV23Order(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV23OrderPeg returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23OrderPeg(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23OrderPeg", args...)
+func (this *Btse) PrivatePostFuturesApiV23OrderPeg(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order/peg", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV23OrderCancelAllAfter returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV23OrderCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23OrderCancelAllAfter", args...)
+func (this *Btse) PrivatePostFuturesApiV23OrderCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order/cancelAllAfter", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV23OrderClosePosition returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23OrderClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23OrderClosePosition", args...)
+func (this *Btse) PrivatePostFuturesApiV23OrderClosePosition(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order/close_position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV23RiskLimit returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23RiskLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23RiskLimit", args...)
+func (this *Btse) PrivatePostFuturesApiV23RiskLimit(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/risk_limit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV23Leverage returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23Leverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23Leverage", args...)
+func (this *Btse) PrivatePostFuturesApiV23Leverage(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV23SettleIn returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23SettleIn(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23SettleIn", args...)
+func (this *Btse) PrivatePostFuturesApiV23SettleIn(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/settle_in", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV23OrderBindTpsl returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23OrderBindTpsl(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23OrderBindTpsl", args...)
+func (this *Btse) PrivatePostFuturesApiV23OrderBindTpsl(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order/bind/tpsl", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV23PositionMode returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV23PositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23PositionMode", args...)
+func (this *Btse) PrivatePostFuturesApiV23PositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/position_mode", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV23UserWalletTransfer returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23UserWalletTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23UserWalletTransfer", args...)
+func (this *Btse) PrivatePostFuturesApiV23UserWalletTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/user/wallet/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV23SubaccountWalletTransfer returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV23SubaccountWalletTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV23SubaccountWalletTransfer", args...)
+func (this *Btse) PrivatePostFuturesApiV23SubaccountWalletTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/subaccount/wallet/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostOtcApiV1Quote returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostOtcApiV1Quote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOtcApiV1Quote", args...)
+func (this *Btse) PrivatePostOtcApiV1Quote(args ...any) <-chan any {
+	return this.Fetch2Async("otc/api/v1/quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOtcApiV1AcceptQuoteId returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostOtcApiV1AcceptQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOtcApiV1AcceptQuoteId", args...)
+func (this *Btse) PrivatePostOtcApiV1AcceptQuoteId(args ...any) <-chan any {
+	return this.Fetch2Async("otc/api/v1/accept/{quoteId}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOtcApiV1RejectQuoteId returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostOtcApiV1RejectQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOtcApiV1RejectQuoteId", args...)
+func (this *Btse) PrivatePostOtcApiV1RejectQuoteId(args ...any) <-chan any {
+	return this.Fetch2Async("otc/api/v1/reject/{quoteId}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOtcApiV1QueryOrderQuoteId returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostOtcApiV1QueryOrderQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOtcApiV1QueryOrderQuoteId", args...)
+func (this *Btse) PrivatePostOtcApiV1QueryOrderQuoteId(args ...any) <-chan any {
+	return this.Fetch2Async("otc/api/v1/queryOrder/{quoteId}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV33UserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33UserWalletAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33UserWalletAddress", args...)
+func (this *Btse) PrivatePostSpotApiV33UserWalletAddress(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/wallet/address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostSpotApiV33UserWalletWithdraw returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33UserWalletWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33UserWalletWithdraw", args...)
+func (this *Btse) PrivatePostSpotApiV33UserWalletWithdraw(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/wallet/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostSpotApiV32UserWalletConvert returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV32UserWalletConvert(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV32UserWalletConvert", args...)
+func (this *Btse) PrivatePostSpotApiV32UserWalletConvert(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.2/user/wallet/convert", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostSpotApiV33UserWalletTransfer returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV33UserWalletTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV33UserWalletTransfer", args...)
+func (this *Btse) PrivatePostSpotApiV33UserWalletTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/wallet/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostSpotApiV4TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV4TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV4TradeOrders", args...)
+func (this *Btse) PrivatePostSpotApiV4TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV4TradeOrdersCancelAllAfter returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostSpotApiV4TradeOrdersCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV4TradeOrdersCancelAllAfter", args...)
+func (this *Btse) PrivatePostSpotApiV4TradeOrdersCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders/cancel_all_after", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSpotApiV4TradeOrdersAlgo returns a channel that yields a JSON array.
-func (this *BtseCore) PrivatePostSpotApiV4TradeOrdersAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotApiV4TradeOrdersAlgo", args...)
+func (this *Btse) PrivatePostSpotApiV4TradeOrdersAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders/algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV3TradeOrders returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV3TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradeOrders", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV3TradeOrdersCancelAllAfter returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV3TradeOrdersCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradeOrdersCancelAllAfter", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradeOrdersCancelAllAfter(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/orders/cancel_all_after", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV3TradeOrdersAlgo returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV3TradeOrdersAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradeOrdersAlgo", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradeOrdersAlgo(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/orders/algo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV3TradeSettleIn returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV3TradeSettleIn(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradeSettleIn", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradeSettleIn(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/settle_in", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV3TradeRiskLimit returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV3TradeRiskLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradeRiskLimit", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradeRiskLimit(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/risk_limit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostFuturesApiV3TradePositionsTpsl returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostFuturesApiV3TradePositionsTpsl(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradePositionsTpsl", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradePositionsTpsl(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/positions/tpsl", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV3TradePositionMode returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV3TradePositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradePositionMode", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradePositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/position_mode", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostFuturesApiV3TradeLeverage returns a channel that yields a JSON object.
-func (this *BtseCore) PrivatePostFuturesApiV3TradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFuturesApiV3TradeLeverage", args...)
+func (this *Btse) PrivatePostFuturesApiV3TradeLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPublicApiWalletV1UserCryptoAddress returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostPublicApiWalletV1UserCryptoAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPublicApiWalletV1UserCryptoAddress", args...)
+func (this *Btse) PrivatePostPublicApiWalletV1UserCryptoAddress(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/crypto/address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostPublicApiWalletV1UserCryptoWithdraw returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostPublicApiWalletV1UserCryptoWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPublicApiWalletV1UserCryptoWithdraw", args...)
+func (this *Btse) PrivatePostPublicApiWalletV1UserCryptoWithdraw(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/crypto/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostPublicApiWalletV1UserAssetsSendTo returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostPublicApiWalletV1UserAssetsSendTo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPublicApiWalletV1UserAssetsSendTo", args...)
+func (this *Btse) PrivatePostPublicApiWalletV1UserAssetsSendTo(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/assets/sendTo", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostPublicApiWalletV1UserAssetsConvert returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostPublicApiWalletV1UserAssetsConvert(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPublicApiWalletV1UserAssetsConvert", args...)
+func (this *Btse) PrivatePostPublicApiWalletV1UserAssetsConvert(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/assets/convert", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivatePostPublicApiOtcV1Quotes returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostPublicApiOtcV1Quotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPublicApiOtcV1Quotes", args...)
+func (this *Btse) PrivatePostPublicApiOtcV1Quotes(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/otc/v1/quotes", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPublicApiOtcV1QuotesAccept returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePostPublicApiOtcV1QuotesAccept(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPublicApiOtcV1QuotesAccept", args...)
+func (this *Btse) PrivatePostPublicApiOtcV1QuotesAccept(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/otc/v1/quotes/accept", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutSpotApiV33Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePutSpotApiV33Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutSpotApiV33Order", args...)
+func (this *Btse) PrivatePutSpotApiV33Order(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/order", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutFuturesApiV23Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivatePutFuturesApiV23Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutFuturesApiV23Order", args...)
+func (this *Btse) PrivatePutFuturesApiV23Order(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutSpotApiV4TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivatePutSpotApiV4TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutSpotApiV4TradeOrders", args...)
+func (this *Btse) PrivatePutSpotApiV4TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePutFuturesApiV3TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivatePutFuturesApiV3TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutFuturesApiV3TradeOrders", args...)
+func (this *Btse) PrivatePutFuturesApiV3TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/orders", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteSpotApiV33Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateDeleteSpotApiV33Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSpotApiV33Order", args...)
+func (this *Btse) PrivateDeleteSpotApiV33Order(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteFuturesApiV23Order returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateDeleteFuturesApiV23Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteFuturesApiV23Order", args...)
+func (this *Btse) PrivateDeleteFuturesApiV23Order(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v2.3/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteSpotApiV33UserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateDeleteSpotApiV33UserWalletAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSpotApiV33UserWalletAddress", args...)
+func (this *Btse) PrivateDeleteSpotApiV33UserWalletAddress(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v3.3/user/wallet/address", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateDeleteSpotApiV4TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateDeleteSpotApiV4TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSpotApiV4TradeOrders", args...)
+func (this *Btse) PrivateDeleteSpotApiV4TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteSpotApiV4TradeOrdersAll returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateDeleteSpotApiV4TradeOrdersAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSpotApiV4TradeOrdersAll", args...)
+func (this *Btse) PrivateDeleteSpotApiV4TradeOrdersAll(args ...any) <-chan any {
+	return this.Fetch2Async("spot/api/v4/trade/orders/all", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteFuturesApiV3TradeOrders returns a channel that yields a JSON array.
-func (this *BtseCore) PrivateDeleteFuturesApiV3TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteFuturesApiV3TradeOrders", args...)
+func (this *Btse) PrivateDeleteFuturesApiV3TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteFuturesApiV3TradePositions returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateDeleteFuturesApiV3TradePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteFuturesApiV3TradePositions", args...)
+func (this *Btse) PrivateDeleteFuturesApiV3TradePositions(args ...any) <-chan any {
+	return this.Fetch2Async("futures/api/v3/trade/positions", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeletePublicApiWalletV1UserCryptoAddress returns a channel that yields a JSON object or a JSON array.
-func (this *BtseCore) PrivateDeletePublicApiWalletV1UserCryptoAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeletePublicApiWalletV1UserCryptoAddress", args...)
+func (this *Btse) PrivateDeletePublicApiWalletV1UserCryptoAddress(args ...any) <-chan any {
+	return this.Fetch2Async("public-api/wallet/v1/user/crypto/address", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }

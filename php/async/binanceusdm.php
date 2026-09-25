@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\binanceusdm as binance;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class binanceusdm extends binance {
     public function describe(): mixed {
@@ -47,28 +48,28 @@ class binanceusdm extends binance {
             // https://developers.binance.com/docs/derivatives/usds-margined-futures/error-code
             'exceptions' => array(
                 'exact' => array(
-                    '-5021' => '\\ccxt\\InvalidOrder', // array("code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected.")
-                    '-5022' => '\\ccxt\\InvalidOrder', // array("code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected.")
-                    '-5028' => '\\ccxt\\InvalidOrder', // array("code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow.")
+                    '-5021' => '\\ccxt\\InvalidOrder', // {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
+                    '-5022' => '\\ccxt\\InvalidOrder', // {"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}
+                    '-5028' => '\\ccxt\\InvalidOrder', // {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
                 ),
             ),
         ));
     }
 
-    public function transfer_in(string $code, mixed $amount, $params = array()) {
+    public function transfer_in(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_transfer_in(...))($code, $amount, $params);
     }
 
-    private function do_transfer_in(string $code, mixed $amount, $params = array()) {
+    private function do_transfer_in(string $code, float $amount, $params = array()) {
         // transfer from spot wallet to usdm futures wallet
         return Async\await($this->futuresTransfer($code, $amount, 1, $params));
     }
 
-    public function transfer_out(string $code, mixed $amount, $params = array()) {
+    public function transfer_out(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_transfer_out(...))($code, $amount, $params);
     }
 
-    private function do_transfer_out(string $code, mixed $amount, $params = array()) {
+    private function do_transfer_out(string $code, float $amount, $params = array()) {
         // transfer from usdm futures wallet to spot wallet
         return Async\await($this->futuresTransfer($code, $amount, 2, $params));
     }

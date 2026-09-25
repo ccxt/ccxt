@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\pacifica as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -264,7 +265,7 @@ class pacifica extends Exchange {
             //
             // Reminder:
             // If you're using an agent wallet, its private key must also be in the privateKey field in requiredCredentials.
-            // However, walletAddress must ALWAYS be equal to the main address. For the agent wallet address, there's a field in options => agentAddress
+            // However, walletAddress must ALWAYS be equal to the main address. For the agent wallet address, there's a field in options: agentAddress
             //
             'requiredCredentials' => array(
                 'apiKey' => false,
@@ -395,17 +396,24 @@ class pacifica extends Exchange {
                     '400' => '\\ccxt\\BadRequest', // Bad Request; INVALID_REQUEST_CODE
                     '401' => '\\ccxt\\AuthenticationError', // INVALID_SIGNATURE_CODE
                     '402' => '\\ccxt\\AuthenticationError', // INVALID_SIGNER_CODE
-                    '403' => '\\ccxt\\PermissionDenied', // Forbidden => restricted region; UNAUTHORIZED_REQUEST_CODE
+                    '403' => '\\ccxt\\PermissionDenied', // Forbidden: restricted region; UNAUTHORIZED_REQUEST_CODE
                     '404' => '\\ccxt\\BadRequest', // Not Found
                     '409' => '\\ccxt\\ExchangeError', // Conflict
                     '420' => '\\ccxt\\ExchangeError', // ENGINE_ERROR_CODE
                     '422' => '\\ccxt\\ExchangeError', // Business Logic Error - See below
                     '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500' => '\\ccxt\\ExchangeError', // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable
                     '504' => '\\ccxt\\RequestTimeout', // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed' => '\\ccxt\\AuthenticationError',
+                    'invalid_amount' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Invalid public key' => '\\ccxt\\AuthenticationError',
+                    'Verification failed' => '\\ccxt\\AuthenticationError',
+                    'Invalid message' => '\\ccxt\\BadRequest', // expired or malformed signed message
                     'UNKNOWN' => '\\ccxt\\ExchangeError',
                     'ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'BOOK_NOT_FOUND' => '\\ccxt\\ExchangeError',
@@ -580,11 +588,11 @@ class pacifica extends Exchange {
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
         if ($buildFee !== true) {
-            return false; // skip if $builder fee is not enabled
+            return false; // skip if builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
         if ($approvedBuilderFee === true) {
-            return true; // skip if $builder fee is already approved
+            return true; // skip if builder fee is already approved
         }
         try {
             $builder = $this->safe_string($this->options, 'builderCode', 'CCXT'); // case sensitive
@@ -592,7 +600,7 @@ class pacifica extends Exchange {
             Async\await($this->approve_builder_code($builder, $maxFeeRate));
             $this->options['approvedBuilderFee'] = true;
         } catch (Exception $e) {
-            $this->options['builderFee'] = false; // disable $builder fee if an error occurs
+            $this->options['builderFee'] = false; // disable builder fee if an error occurs
         }
         return true;
     }
@@ -612,43 +620,43 @@ class pacifica extends Exchange {
          */
         $response = Async\await($this->publicGetInfo($params)); // meta
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "symbol" => "BTC",
-        //       "tick_size" => "1",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.00001",
-        //       "max_leverage" => 50,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "5000000",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1748881333944,
-        //       "instrument_type" => "perpetual",
-        //       "base_asset" => "BTC"
-        //     ),
-        //     array(
-        //       "symbol" => "SOL-USDC",
-        //       "tick_size" => "0.01",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.001",
-        //       "max_leverage" => 1,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "1000000",
-        //       "funding_rate" => "0",
-        //       "next_funding_rate" => "0",
-        //       "created_at" => 1776615970246,
-        //       "instrument_type" => "spot",
-        //       "base_asset" => "SOL"
-        //     ),
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "symbol": "BTC",
+        //       "tick_size": "1",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.00001",
+        //       "max_leverage": 50,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "5000000",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
+        //     },
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         $markets = $this->safe_list($response, 'data', array());
         return $this->parse_markets($markets);
@@ -672,38 +680,38 @@ class pacifica extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        //     array(
-        //       "symbol" => "BTC",
-        //       "tick_size" => "1",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.00001",
-        //       "max_leverage" => 50,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "5000000",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1748881333944,
-        //       "instrument_type" => "perpetual",
-        //       "base_asset" => "BTC"
-        //     ),
-        //     array(
-        //       "symbol" => "SOL-USDC",
-        //       "tick_size" => "0.01",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.001",
-        //       "max_leverage" => 1,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "1000000",
-        //       "funding_rate" => "0",
-        //       "next_funding_rate" => "0",
-        //       "created_at" => 1776615970246,
-        //       "instrument_type" => "spot",
-        //       "base_asset" => "SOL"
-        //     ),
+        //     {
+        //       "symbol": "BTC",
+        //       "tick_size": "1",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.00001",
+        //       "max_leverage": 50,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "5000000",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
+        //     },
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'base_asset', $id);
         $instrumentType = $this->safe_string($market, 'instrument_type');
@@ -750,7 +758,7 @@ class pacifica extends Exchange {
         $maker = $this->safe_number($fees, 'maker');
         $amountPrecision = $this->safe_number($market, 'lot_size');
         $pricePrecision = $this->safe_number($market, 'tick_size');
-        $active = true; // there is no non-$active markets comes from endpoint $market info
+        $active = true; // there is no non-active markets comes from endpoint market info
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -814,13 +822,13 @@ class pacifica extends Exchange {
 
     private function do_fetch_balance($params = array()) {
         /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-$account-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
-         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $userAccount = null;
         list($userAccount, $params) = $this->handle_origin_and_single_address('fetchBalance', $params);
@@ -829,40 +837,62 @@ class pacifica extends Exchange {
         );
         $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "balance" => "2000.000000",
-        //     "fee_level" => 0,
-        //     "maker_fee" => "0.00015",
-        //     "taker_fee" => "0.0004",
-        //     "account_equity" => "2150.250000",
-        //     "available_to_spend" => "1800.750000",
-        //     "available_to_withdraw" => "1500.850000",
-        //     "pending_balance" => "0.000000",
-        //     "total_margin_used" => "349.500000",
-        //     "cross_mmr" => "420.690000",
-        //     "positions_count" => 2,
-        //     "orders_count" => 3,
-        //     "stop_orders_count" => 1,
-        //     "updated_at" => 1716200000000,
-        //     "use_ltp_for_stop_orders" => false
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
+        //     "fee_level": 0,
+        //     "maker_fee": "0.00015",
+        //     "taker_fee": "0.0004",
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         $data = $this->safe_dict($response, 'data', array());
         $result = array(
             'info' => $data,
         );
-        $result['free'] = array();
-        $result['used'] = array();
-        $result['total'] = array();
-        $totalBalance = $this->safe_number($data, 'account_equity');
-        $usedMargin = $this->safe_number($data, 'total_margin_used');
-        $freeBalance = $this->safe_number($data, 'available_to_spend');
-        $result['total']['USDC'] = $totalBalance;
-        $result['used']['USDC'] = $usedMargin;
-        $result['free']['USDC'] = $freeBalance;
+        $usdcAccount = $this->account();
+        $usdcAccount['total'] = $this->safe_string($data, 'balance');
+        $usdcAccount['used'] = $this->safe_string($data, 'total_margin_used');
+        $result['USDC'] = $usdcAccount;
+        $spotBalances = $this->safe_list($data, 'spot_balances', array());
+        for ($i = 0; $i < count($spotBalances); $i++) {
+            $balance = $spotBalances[$i];
+            $currencyId = $this->safe_string($balance, 'symbol');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if (($code !== null) && !(is_array($result) && array_key_exists($code ?? '', $result))) {
+                $result[$code] = $account;
+            }
+        }
         $timestamp = $this->safe_integer($data, 'updated_at');
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
@@ -903,8 +933,8 @@ class pacifica extends Exchange {
         }
         $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
-            // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
-            // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
+            // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
+            // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return $this->parse_leverage_from_market($market);
         } else {
             return $this->parse_leverage_from_setting($symbol, $setting);
@@ -913,13 +943,13 @@ class pacifica extends Exchange {
 
     public function parse_leverage_from_setting(?string $symbol, array $setting): array {
         // {
-        //   "WLFI/USDC:USDC" => array(
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
-        //    ),
+        //   "WLFI/USDC:USDC": {
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
+        //    },
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
@@ -966,18 +996,18 @@ class pacifica extends Exchange {
         );
         $response = Async\await($this->publicGetAccountSettings($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         return $this->parse_account_settings($this->safe_list($response, 'data', array()));
     }
@@ -1039,18 +1069,18 @@ class pacifica extends Exchange {
             $settings = Async\await($this->fetch_account_settings($this->extend($request, $params)));
         }
         // {
-        //   "WLFI/USDC:USDC" => array(
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
-        //    ),
+        //   "WLFI/USDC:USDC": {
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
+        //    },
         // }
         $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
-            // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
-            // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
+            // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
+            // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return array(
                 'symbol' => $symbol,
                 'marginMode' => $this->handle_option('fetchMarginMode', 'defaultMarginMode', 'cross'),
@@ -1062,11 +1092,11 @@ class pacifica extends Exchange {
 
     public function parse_margin_mode_from_setting(?string $symbol, array $setting): array {
         // {
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
         //
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
@@ -1106,39 +1136,39 @@ class pacifica extends Exchange {
         );
         $response = Async\await($this->publicGetBook($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => {
-        //     "s" => "BTC",
-        //     "l" => array(
-        //       array(
-        //         array(
-        //           "p" => "106504",
-        //           "a" => "0.26203",
-        //           "n" => 1
-        //         ),
-        //         array(
-        //           "p" => "106498",
-        //           "a" => "0.29281",
-        //           "n" => 1
+        //   "success": true,
+        //   "data": {
+        //     "s": "BTC",
+        //     "l": [
+        //       [
+        //         {
+        //           "p": "106504",
+        //           "a": "0.26203",
+        //           "n": 1
+        //         },
+        //         {
+        //           "p": "106498",
+        //           "a": "0.29281",
+        //           "n": 1
         //         }
-        //       ),
-        //       array(
-        //         array(
-        //           "p" => "106559",
-        //           "a" => "0.26802",
-        //           "n" => 1
-        //         ),
-        //         array(
-        //           "p" => "106564",
-        //           "a" => "0.3002",
-        //           "n" => 1
-        //         ),
-        //       )
-        //     ),
-        //     "t" => 1751370536325
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //       ],
+        //       [
+        //         {
+        //           "p": "106559",
+        //           "a": "0.26802",
+        //           "n": 1
+        //         },
+        //         {
+        //           "p": "106564",
+        //           "a": "0.3002",
+        //           "n": 1
+        //         },
+        //       ]
+        //     ],
+        //     "t": 1751370536325
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         $data = $this->safe_dict($response, 'data', array());
         $levels = $this->safe_list($data, 'l', array());
@@ -1167,23 +1197,23 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetInfoPrices($params));
         //
         //  {
-        //     "success" => true,
-        //     "data" => array(
+        //     "success": true,
+        //     "data": [
         //         {
-        //         "funding" => "0.00010529",
-        //         "mark" => "1.084819",
-        //         "mid" => "1.08615",
-        //         "next_funding" => "0.00011096",
-        //         "open_interest" => "3634796",
-        //         "oracle" => "1.084524",
-        //         "symbol" => "XPL",
-        //         "timestamp" => 1759222967974,
-        //         "volume_24h" => "20896698.0672",
-        //         "yesterday_price" => "1.3412"
+        //         "funding": "0.00010529",
+        //         "mark": "1.084819",
+        //         "mid": "1.08615",
+        //         "next_funding": "0.00011096",
+        //         "open_interest": "3634796",
+        //         "oracle": "1.084524",
+        //         "symbol": "XPL",
+        //         "timestamp": 1759222967974,
+        //         "volume_24h": "20896698.0672",
+        //         "yesterday_price": "1.3412"
         //         }
-        //     ),
-        //     "error" => null,
-        //     "code" => null
+        //     ],
+        //     "error": null,
+        //     "code": null
         //   }
         //
         $result = $this->safe_list($response, 'data', array());
@@ -1193,16 +1223,16 @@ class pacifica extends Exchange {
     public function parse_funding_rate(mixed $info, ?array $market = null): array {
         //
         //      {
-        //         "funding" => "0.00010529",
-        //         "mark" => "1.084819",
-        //         "mid" => "1.08615",
-        //         "next_funding" => "0.00011096",
-        //         "open_interest" => "3634796",
-        //         "oracle" => "1.084524",
-        //         "symbol" => "XPL",
-        //         "timestamp" => 1759222967974,
-        //         "volume_24h" => "20896698.0672",
-        //         "yesterday_price" => "1.3412"
+        //         "funding": "0.00010529",
+        //         "mark": "1.084819",
+        //         "mid": "1.08615",
+        //         "next_funding": "0.00011096",
+        //         "open_interest": "3634796",
+        //         "oracle": "1.084524",
+        //         "symbol": "XPL",
+        //         "timestamp": 1759222967974,
+        //         "volume_24h": "20896698.0672",
+        //         "yesterday_price": "1.3412"
         //       }
         //
         $marketId = $this->safe_string($info, 'symbol');
@@ -1295,23 +1325,23 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetKline($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "t" => 1748954160000,
-        //       "T" => 1748954220000,
-        //       "s" => "BTC",
-        //       "i" => "1m",
-        //       "o" => "105376",
-        //       "c" => "105376",
-        //       "h" => "105376",
-        //       "l" => "105376",
-        //       "v" => "0.00022",
-        //       "n" => 2
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         //
         $candles = $this->safe_list($response, 'data', array());
@@ -1321,16 +1351,16 @@ class pacifica extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //       "t" => 1748954160000,
-        //       "T" => 1748954220000,
-        //       "s" => "BTC",
-        //       "i" => "1m",
-        //       "o" => "105376",
-        //       "c" => "105376",
-        //       "h" => "105376",
-        //       "l" => "105376",
-        //       "v" => "0.00022",
-        //       "n" => 2
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
         //     }
         //
         return array(
@@ -1343,7 +1373,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1369,20 +1399,20 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "event_type" => "fulfill_taker",
-        //       "price" => "104721",
-        //       "amount" => "0.0001",
-        //       "side" => "close_long",
-        //       "cause" => "normal",
-        //       "created_at" => 1765006315306
+        //       "event_type": "fulfill_taker",
+        //       "price": "104721",
+        //       "amount": "0.0001",
+        //       "side": "close_long",
+        //       "cause": "normal",
+        //       "created_at": 1765006315306
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null,
-        //   "last_order_id" => 1557404170
+        //   ],
+        //   "error": null,
+        //   "code": null,
+        //   "last_order_id": 1557404170
         // }
         //
         $recentTrades = $this->safe_list($response, 'data', array());
@@ -1420,7 +1450,7 @@ class pacifica extends Exchange {
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchMyTrades', $params);
-        $defaultLimit = 100;  // Default max $limit
+        $defaultLimit = 100;  // Default max limit
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
         }
@@ -1439,27 +1469,27 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetTradesHistory($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "history_id" => 19329801,
-        //       "order_id" => 315293920,
-        //       "client_order_id" => "acf...",
-        //       "symbol" => "LDO",
-        //       "amount" => "0.1",
-        //       "price" => "1.1904",
-        //       "entry_price" => "1.176247",
-        //       "fee" => "0",
-        //       "pnl" => "-0.001415",
-        //       "event_type" => "fulfill_maker",
-        //       "side" => "close_short",
-        //       "created_at" => 1759215599188,
-        //       "cause" => "normal"
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "history_id": 19329801,
+        //       "order_id": 315293920,
+        //       "client_order_id": "acf...",
+        //       "symbol": "LDO",
+        //       "amount": "0.1",
+        //       "price": "1.1904",
+        //       "entry_price": "1.176247",
+        //       "fee": "0",
+        //       "pnl": "-0.001415",
+        //       "event_type": "fulfill_maker",
+        //       "side": "close_short",
+        //       "created_at": 1759215599188,
+        //       "cause": "normal"
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "11111Z5RK", // not included to info!
-        //   "has_more" => true   // not included to info!
+        //   ],
+        //   "next_cursor": "11111Z5RK", // not included to info!
+        //   "has_more": true   // not included to info!
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
@@ -1469,29 +1499,29 @@ class pacifica extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // user trades:
-        //     array(
-        //       "history_id" => 19329801,
-        //       "order_id" => 315293920,
-        //       "client_order_id" => "acf...",
-        //       "symbol" => "LDO",
-        //       "amount" => "0.1",
-        //       "price" => "1.1904",
-        //       "entry_price" => "1.176247",
-        //       "fee" => "0",
-        //       "pnl" => "-0.001415",
-        //       "event_type" => "fulfill_maker",
-        //       "side" => "close_short",
-        //       "created_at" => 1759215599188,
-        //       "cause" => "normal"
-        //     ),
+        //     {
+        //       "history_id": 19329801,
+        //       "order_id": 315293920,
+        //       "client_order_id": "acf...",
+        //       "symbol": "LDO",
+        //       "amount": "0.1",
+        //       "price": "1.1904",
+        //       "entry_price": "1.176247",
+        //       "fee": "0",
+        //       "pnl": "-0.001415",
+        //       "event_type": "fulfill_maker",
+        //       "side": "close_short",
+        //       "created_at": 1759215599188,
+        //       "cause": "normal"
+        //     },
         // recent public trades:
         //     {
-        //       "event_type" => "fulfill_taker",
-        //       "price" => "104721",
-        //       "amount" => "0.0001",
-        //       "side" => "close_long",
-        //       "cause" => "normal",
-        //       "created_at" => 1765006315306
+        //       "event_type": "fulfill_taker",
+        //       "price": "104721",
+        //       "amount": "0.0001",
+        //       "side": "close_long",
+        //       "cause": "normal",
+        //       "created_at": 1765006315306
         //     }
         //
         $eventType = $this->safe_string($trade, 'event_type');
@@ -1518,7 +1548,7 @@ class pacifica extends Exchange {
         if ($eventType !== null) {
             $takerOrMaker = ($eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
-        // public trades have no $orderId
+        // public trades have no orderId
         if ($orderId === null) {
             $takerOrMaker = null;
         }
@@ -1543,7 +1573,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1567,6 +1597,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {string} [$params->slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
@@ -1577,8 +1608,9 @@ class pacifica extends Exchange {
         Async\await($this->initialize_client());
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $params = $this->omit($params, array(
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ));
         $response = null;
         if ($operationType === 'create_market_order') {
@@ -1592,10 +1624,10 @@ class pacifica extends Exchange {
         }
         //
         // {
-        //   'success' => true,
-        //   'data' => array(
-        //    "order_id" => 12345
-        //    ),
+        //   'success': true,
+        //   'data': {
+        //    "order_id": 12345
+        //    },
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
@@ -1635,6 +1667,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->slippage] the $slippage for $market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an [order structure]
@@ -1723,10 +1756,10 @@ class pacifica extends Exchange {
 
     public function batch_orders_request(array $actions) {
         //
-        // array(
+        // [
         //     {
         //         "type":"Create",
-        //         "data":array(
+        //         "data":{
         //             "account":"42trU9A5...",
         //             "signature":"5UpRZ14Q...",
         //             "timestamp":1749190500355,
@@ -1739,7 +1772,7 @@ class pacifica extends Exchange {
         //             "tif":"GTC",
         //             "client_order_id":"57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e"
         //         }
-        //     ),
+        //     },
         //     {
         //         "type":"Cancel",
         //         "data":{
@@ -1751,7 +1784,7 @@ class pacifica extends Exchange {
         //             "order_id":42069
         //         }
         //     }
-        // )
+        // ]
         //
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
@@ -1768,7 +1801,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function create_orders_request(array $orders, $params = array()) {
+    public function create_orders_request(array $orders, $params = array()): array {
         $actions = array();
         $timestamp = $this->milliseconds(); // unified sequence
         for ($i = 0; $i < count($orders); $i++) {
@@ -1795,7 +1828,7 @@ class pacifica extends Exchange {
         return $this->batch_orders_request($actions);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1816,21 +1849,21 @@ class pacifica extends Exchange {
         $request = $this->create_orders_request($orders);
         $response = Async\await($this->privatePostOrdersBatch($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => {
-        //     "results" => array(
-        //       array(
-        //         "success" => true,
-        //         "order_id" => 470506,
-        //         "error" => null
-        //       ),
-        //       array(
-        //         "success" => true,
+        //   "success": true,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 470506,
+        //         "error": null
+        //       },
+        //       {
+        //         "success": true,
         //       }
-        //     )
-        //   ),
-        //     "error" => null,
-        //     "code" => null
+        //     ]
+        //   },
+        //     "error": null,
+        //     "code": null
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1852,7 +1885,7 @@ class pacifica extends Exchange {
         return $ordersToReturn;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1881,21 +1914,21 @@ class pacifica extends Exchange {
         $response = Async\await($this->privatePostOrdersBatch($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => {
-        //     "results" => array(
-        //       array(
-        //         "success" => true,
-        //         "order_id" => 470506,
-        //         "error" => null
-        //       ),
-        //       array(
-        //         "success" => true,
+        //   "success": true,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 470506,
+        //         "error": null
+        //       },
+        //       {
+        //         "success": true,
         //       }
-        //     )
-        //   ),
-        //     "error" => null,
-        //     "code" => null
+        //     ]
+        //   },
+        //     "error": null,
+        //     "code": null
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1916,7 +1949,7 @@ class pacifica extends Exchange {
         return $ordersToReturn;
     }
 
-    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()): array {
         $actions = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -1944,7 +1977,7 @@ class pacifica extends Exchange {
         return $this->batch_orders_request($actions);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1969,12 +2002,12 @@ class pacifica extends Exchange {
         $response = Async\await($this->privatePostOrdersCancelAll($this->extend($request, $params)));
         //
         // {
-        //   success => true,
-        //   data => array(
-        //     "cancelled_count" => 5,
-        //   ),
-        //   code => null,
-        //   error => null
+        //   success: true,
+        //   data: {
+        //     "cancelled_count": 5,
+        //   },
+        //   code: null,
+        //   error: null
         // }
         //
         return array(
@@ -1984,7 +2017,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function cancel_all_orders_request(?string $symbol, $params = array()) {
+    public function cancel_all_orders_request(?string $symbol, $params = array()): array {
         $operationType = 'cancel_all_orders';
         $sigPayload = array( );
         $excludeReduceOnly = $this->safe_bool($params, 'excludeReduceOnly', false);
@@ -2000,7 +2033,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2036,10 +2069,10 @@ class pacifica extends Exchange {
             $response = Async\await($this->privatePostOrdersCancel($this->extend($request, $params)));
         }
         //
-        // $response:
+        // response:
         // {
-        //   "success" => true,
-        //   "data" => null
+        //   "success": true,
+        //   "data": null
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
@@ -2047,7 +2080,7 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_order_request(?string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_request(mixed $id, ?string $symbol = null, $params = array()): array {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
@@ -2069,7 +2102,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2100,8 +2133,8 @@ class pacifica extends Exchange {
         $response = Async\await($this->privatePostOrdersEdit($this->extend($request, $params)));
         //
         // {
-        //     'data' => {
-        //         "order_id" => 123498765
+        //     'data': {
+        //         "order_id": 123498765
         //     }
         // }
         //
@@ -2110,7 +2143,7 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $orderId, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()): array {
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' requires a $side argument');
         }
@@ -2141,7 +2174,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2168,7 +2201,7 @@ class pacifica extends Exchange {
         $market = $this->market($symbol);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
-        $defaultLimit = 100;  // Default max $limit
+        $defaultLimit = 100;  // Default max limit
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
         }
@@ -2181,20 +2214,20 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetFundingRateHistory($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "oracle_price" => "117170.410304",
-        //       "bid_impact_price" => "117126",
-        //       "ask_impact_price" => "117142",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1753806934249
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "oracle_price": "117170.410304",
+        //       "bid_impact_price": "117126",
+        //       "ask_impact_price": "117142",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1753806934249
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "11114Lz77",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
@@ -2235,23 +2268,23 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetInfoPrices($params));
         //
         //  {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "funding" => "0.00010529",
-        //       "mark" => "1.084819",
-        //       "mid" => "1.08615",
-        //       "next_funding" => "0.00011096",
-        //       "open_interest" => "3634796",
-        //       "oracle" => "1.084524",
-        //       "symbol" => "XPL",
-        //       "timestamp" => 1759222967974,
-        //       "volume_24h" => "20896698.0672",
-        //       "yesterday_price" => "1.3412"
+        //       "funding": "0.00010529",
+        //       "mark": "1.084819",
+        //       "mid": "1.08615",
+        //       "next_funding": "0.00011096",
+        //       "open_interest": "3634796",
+        //       "oracle": "1.084524",
+        //       "symbol": "XPL",
+        //       "timestamp": 1759222967974,
+        //       "volume_24h": "20896698.0672",
+        //       "yesterday_price": "1.3412"
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2270,16 +2303,16 @@ class pacifica extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //       "funding" => "0.00010529",
-        //       "mark" => "1.084819",
-        //       "mid" => "1.08615",
-        //       "next_funding" => "0.00011096",
-        //       "open_interest" => "3634796",
-        //       "oracle" => "1.084524",
-        //       "symbol" => "XPL",
-        //       "timestamp" => 1759222967974,
-        //       "volume_24h" => "20896698.0672",
-        //       "yesterday_price" => "1.3412"
+        //       "funding": "0.00010529",
+        //       "mark": "1.084819",
+        //       "mid": "1.08615",
+        //       "next_funding": "0.00011096",
+        //       "open_interest": "3634796",
+        //       "oracle": "1.084524",
+        //       "symbol": "XPL",
+        //       "timestamp": 1759222967974,
+        //       "volume_24h": "20896698.0672",
+        //       "yesterday_price": "1.3412"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -2319,7 +2352,7 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
+        $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open orders
         $closedOrders = $this->filter_by_array($orders, 'status', array( 'closed' ), false);
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
@@ -2344,7 +2377,7 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
+        $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open orders
         $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled' ), false);
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
@@ -2369,7 +2402,7 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
+        $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open orders
         $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled', 'closed', 'rejected' ), false);
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
@@ -2406,28 +2439,28 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetOrders($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "order_id" => 315979358,
-        //       "client_order_id" => "add9a4b5-c7f7-4124-b57f-86982d86d479",
-        //       "symbol" => "ASTER",
-        //       "side" => "ask",
-        //       "price" => "1.836",
-        //       "initial_amount" => "85.33",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "0",
-        //       "stop_price" => null,
-        //       "order_type" => "limit",
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224706737,
-        //       "updated_at" => 1759224706737
+        //       "order_id": 315979358,
+        //       "client_order_id": "add9a4b5-c7f7-4124-b57f-86982d86d479",
+        //       "symbol": "ASTER",
+        //       "side": "ask",
+        //       "price": "1.836",
+        //       "initial_amount": "85.33",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "0",
+        //       "stop_price": null,
+        //       "order_type": "limit",
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224706737,
+        //       "updated_at": 1759224706737
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null,
-        //   "last_order_id" => 1557370337
+        //   ],
+        //   "error": null,
+        //   "code": null,
+        //   "last_order_id": 1557370337
         // }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2477,30 +2510,30 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetOrdersHistory($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "initial_price" => "1.0865",
-        //       "average_filled_price" => "0",
-        //       "amount" => "984",
-        //       "filled_amount" => "0",
-        //       "order_status" => "open",
-        //       "order_type" => "limit",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "reason" => null,
-        //       "created_at" => 1759224893638,
-        //       "updated_at" => 1759224893638
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "initial_price": "1.0865",
+        //       "average_filled_price": "0",
+        //       "amount": "984",
+        //       "filled_amount": "0",
+        //       "order_status": "open",
+        //       "order_type": "limit",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "reason": null,
+        //       "created_at": 1759224893638,
+        //       "updated_at": 1759224893638
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "1111Hyd74",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "1111Hyd74",
+        //   "has_more": true
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
@@ -2508,7 +2541,7 @@ class pacifica extends Exchange {
         return $orders;
     }
 
-    public function add_pagination_cursor_to_result(mixed $response) {
+    public function add_pagination_cursor_to_result(array $response): array {
         $data = $this->safe_list($response, 'data', array());
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
@@ -2524,7 +2557,7 @@ class pacifica extends Exchange {
         return $data;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2552,52 +2585,52 @@ class pacifica extends Exchange {
         $response = Async\await($this->publicGetOrdersHistoryById($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "history_id" => 641452639,
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade1aa6...",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "price" => "1.0865",
-        //       "initial_amount" => "984",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "984",
-        //       "event_type" => "cancel",
-        //       "order_type" => "limit",
-        //       "order_status" => "cancelled",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224895038
-        //     ),
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "history_id" => 641452513,
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade1aa6...",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "price" => "1.0865",
-        //       "initial_amount" => "984",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "0",
-        //       "event_type" => "make",
-        //       "order_type" => "limit",
-        //       "order_status" => "open",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224893638
+        //       "history_id": 641452639,
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade1aa6...",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "price": "1.0865",
+        //       "initial_amount": "984",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "984",
+        //       "event_type": "cancel",
+        //       "order_type": "limit",
+        //       "order_status": "cancelled",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224895038
+        //     },
+        //     {
+        //       "history_id": 641452513,
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade1aa6...",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "price": "1.0865",
+        //       "initial_amount": "984",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "0",
+        //       "event_type": "make",
+        //       "order_type": "limit",
+        //       "order_status": "open",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224893638
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         //
         $data = $this->safe_list($response, 'data', array());
-        // return last state
-        $sorted = $this->sort_by($data, 'created_at', true);
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
         $lastInfo = array();
         if ($lastIdx > 0) {
@@ -2657,88 +2690,88 @@ class pacifica extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOpenOrders
-        //   array(
+        //   [
         //     {
-        //       "order_id" => 315979358,
-        //       "client_order_id" => "add9a4b5-c7f7-4124-b57f-86982d86d479",
-        //       "symbol" => "ASTER",
-        //       "side" => "ask",
-        //       "price" => "1.836",
-        //       "initial_amount" => "85.33",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "0",
-        //       "stop_price" => null,
-        //       "order_type" => "limit",
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224706737,
-        //       "updated_at" => 1759224706737
+        //       "order_id": 315979358,
+        //       "client_order_id": "add9a4b5-c7f7-4124-b57f-86982d86d479",
+        //       "symbol": "ASTER",
+        //       "side": "ask",
+        //       "price": "1.836",
+        //       "initial_amount": "85.33",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "0",
+        //       "stop_price": null,
+        //       "order_type": "limit",
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224706737,
+        //       "updated_at": 1759224706737
         //     }
-        //   ),
+        //   ],
         //
         // fetchOrders
-        //  array(
-        //     array(
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "initial_price" => "1.0865",
-        //       "average_filled_price" => "0",
-        //       "amount" => "984",
-        //       "filled_amount" => "0",
-        //       "order_status" => "open",
-        //       "order_type" => "limit",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "reason" => null,
-        //       "created_at" => 1759224893638,
-        //       "updated_at" => 1759224893638
-        //     ),
-        //  )
+        //  [
+        //     {
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "initial_price": "1.0865",
+        //       "average_filled_price": "0",
+        //       "amount": "984",
+        //       "filled_amount": "0",
+        //       "order_status": "open",
+        //       "order_type": "limit",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "reason": null,
+        //       "created_at": 1759224893638,
+        //       "updated_at": 1759224893638
+        //     },
+        //  ]
         //
         // fetchOrder
         //     {
-        //       "history_id" => 641452639,
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade1aa6...",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "price" => "1.0865",
-        //       "initial_amount" => "984",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "984",
-        //       "event_type" => "cancel",
-        //       "order_type" => "limit",
-        //       "order_status" => "cancelled",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224895038
+        //       "history_id": 641452639,
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade1aa6...",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "price": "1.0865",
+        //       "initial_amount": "984",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "984",
+        //       "event_type": "cancel",
+        //       "order_type": "limit",
+        //       "order_status": "cancelled",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224895038
         //     }
         //
         // websocket watchOrders
         //     {
-        //       "i" => 1559665358,
-        //       "I" => null,
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
-        //       "s" => "BTC",
-        //       "d" => "bid",
-        //       "p" => "89501",
-        //       "ip" => "89501",
-        //       "lp" => "89501",
-        //       "a" => "0.00012",
-        //       "f" => "0.00012",
-        //       "oe" => "fulfill_limit",
-        //       "os" => "filled",
-        //       "ot" => "limit",
-        //       "sp" => null,
-        //       "si" => null,
-        //       "r" => false,
-        //       "ct" => 1765017049008,
-        //       "ut" => 1765017219639,
-        //       "li" => 1559696133
+        //       "i": 1559665358,
+        //       "I": null,
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
+        //       "s": "BTC",
+        //       "d": "bid",
+        //       "p": "89501",
+        //       "ip": "89501",
+        //       "lp": "89501",
+        //       "a": "0.00012",
+        //       "f": "0.00012",
+        //       "oe": "fulfill_limit",
+        //       "os": "filled",
+        //       "ot": "limit",
+        //       "sp": null,
+        //       "si": null,
+        //       "r": false,
+        //       "ct": 1765017049008,
+        //       "ut": 1765017219639,
+        //       "li": 1559696133
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
@@ -2753,6 +2786,12 @@ class pacifica extends Exchange {
         $totalAmount = $this->safe_string_2($order, 'initial_amount', 'a');
         $filledAmount = $this->safe_string_2($order, 'filled_amount', 'f');
         $remaining = Precise::string_sub($totalAmount, $filledAmount);
+        $average = $this->safe_string_2($order, 'average_filled_price', 'p');
+        $eventType = $this->safe_string($order, 'event_type');
+        $isFillEvent = $this->in_array($eventType, array( 'fulfill_market', 'fulfill_limit' ));
+        if (($average === null) && $isFillEvent) {
+            $average = $this->safe_string($order, 'price'); // on a matching event price is the fill price
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_2($order, 'order_id', 'i'),
@@ -2771,7 +2810,7 @@ class pacifica extends Exchange {
             'triggerPrice' => $this->safe_number_2($order, 'stop_price', 'sp'),
             'amount' => $totalAmount,
             'cost' => null,
-            'average' => $this->safe_string_2($order, 'average_filled_price', 'p'),
+            'average' => $average,
             'filled' => $filledAmount,
             'remaining' => $remaining,
             'status' => $this->parse_order_status($status),
@@ -2780,7 +2819,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -2825,23 +2864,23 @@ class pacifica extends Exchange {
         );
         $response = Async\await($this->publicGetPositions($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "symbol" => "AAVE",
-        //       "side" => "ask",
-        //       "amount" => "223.72",
-        //       "entry_price" => "279.283134",
-        //       "margin" => "0", // only shown for isolated margin
-        //       "funding" => "13.159593",
-        //       "isolated" => false,
-        //       "created_at" => 1754928414996,
-        //       "updated_at" => 1759223365538
+        //       "symbol": "AAVE",
+        //       "side": "ask",
+        //       "amount": "223.72",
+        //       "entry_price": "279.283134",
+        //       "margin": "0", // only shown for isolated margin
+        //       "funding": "13.159593",
+        //       "isolated": false,
+        //       "created_at": 1754928414996,
+        //       "updated_at": 1759223365538
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null,
-        //   "last_order_id" => 1557431179
+        //   ],
+        //   "error": null,
+        //   "code": null,
+        //   "last_order_id": 1557431179
         // }
         $data = $this->safe_list($response, 'data', array());
         $result = array();
@@ -2851,18 +2890,18 @@ class pacifica extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
-        //       "symbol" => "AAVE",
-        //       "side" => "ask",
-        //       "amount" => "223.72",
-        //       "entry_price" => "279.283134",
-        //       "margin" => "0", // only shown for isolated $margin
-        //       "funding" => "13.159593",
-        //       "isolated" => false,
-        //       "created_at" => 1754928414996,
-        //       "updated_at" => 1759223365538
+        //       "symbol": "AAVE",
+        //       "side": "ask",
+        //       "amount": "223.72",
+        //       "entry_price": "279.283134",
+        //       "margin": "0", // only shown for isolated margin
+        //       "funding": "13.159593",
+        //       "isolated": false,
+        //       "created_at": 1754928414996,
+        //       "updated_at": 1759223365538
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -2936,7 +2975,7 @@ class pacifica extends Exchange {
         $params = $this->omit($params, array( 'expiryWindow' ));
         $response = Async\await($this->privatePostAccountMargin($request));
         // {
-        //     "success" => true
+        //     "success": true
         // }
         return $response;
     }
@@ -2973,7 +3012,7 @@ class pacifica extends Exchange {
         $params = $this->omit($params, array( 'expiryWindow' ));
         $response = Async\await($this->privatePostAccountLeverage($request));
         // {
-        //     "success" => true
+        //     "success": true
         // }
         return $response;
     }
@@ -3036,26 +3075,26 @@ class pacifica extends Exchange {
         );
         $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "balance" => "2000.000000",
-        //     "fee_level" => 0,
-        //     "maker_fee" => "0.00015",
-        //     "taker_fee" => "0.0004",
-        //     "account_equity" => "2150.250000",
-        //     "available_to_spend" => "1800.750000",
-        //     "available_to_withdraw" => "1500.850000",
-        //     "pending_balance" => "0.000000",
-        //     "total_margin_used" => "349.500000",
-        //     "cross_mmr" => "420.690000",
-        //     "positions_count" => 2,
-        //     "orders_count" => 3,
-        //     "stop_orders_count" => 1,
-        //     "updated_at" => 1716200000000,
-        //     "use_ltp_for_stop_orders" => false
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "balance": "2000.000000",
+        //     "fee_level": 0,
+        //     "maker_fee": "0.00015",
+        //     "taker_fee": "0.0004",
+        //     "account_equity": "2150.250000",
+        //     "available_to_spend": "1800.750000",
+        //     "available_to_withdraw": "1500.850000",
+        //     "pending_balance": "0.000000",
+        //     "total_margin_used": "349.500000",
+        //     "cross_mmr": "420.690000",
+        //     "positions_count": 2,
+        //     "orders_count": 3,
+        //     "stop_orders_count": 1,
+        //     "updated_at": 1716200000000,
+        //     "use_ltp_for_stop_orders": false
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_trading_fee($data, $market);
@@ -3064,21 +3103,21 @@ class pacifica extends Exchange {
     public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //   {
-        //     "balance" => "2000.000000",
-        //     "fee_level" => 0,
-        //     "maker_fee" => "0.00015",
-        //     "taker_fee" => "0.0004",
-        //     "account_equity" => "2150.250000",
-        //     "available_to_spend" => "1800.750000",
-        //     "available_to_withdraw" => "1500.850000",
-        //     "pending_balance" => "0.000000",
-        //     "total_margin_used" => "349.500000",
-        //     "cross_mmr" => "420.690000",
-        //     "positions_count" => 2,
-        //     "orders_count" => 3,
-        //     "stop_orders_count" => 1,
-        //     "updated_at" => 1716200000000,
-        //     "use_ltp_for_stop_orders" => false
+        //     "balance": "2000.000000",
+        //     "fee_level": 0,
+        //     "maker_fee": "0.00015",
+        //     "taker_fee": "0.0004",
+        //     "account_equity": "2150.250000",
+        //     "available_to_spend": "1800.750000",
+        //     "available_to_withdraw": "1500.850000",
+        //     "pending_balance": "0.000000",
+        //     "total_margin_used": "349.500000",
+        //     "cross_mmr": "420.690000",
+        //     "positions_count": 2,
+        //     "orders_count": 3,
+        //     "stop_orders_count": 1,
+        //     "updated_at": 1716200000000,
+        //     "use_ltp_for_stop_orders": false
         //   }
         //
         //
@@ -3093,7 +3132,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -3111,11 +3150,12 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = Async\await($this->fetch_swap_markets());
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = Async\await($this->publicGetInfoPrices($params));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -3129,27 +3169,31 @@ class pacifica extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $symbol = $this->symbol($symbol);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbol = $this->symbol($symbol);
         $ois = Async\await($this->fetch_open_interests(array( $symbol ), $params));
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
-        //       "funding" => "0.00010529",
-        //       "mark" => "1.084819",
-        //       "mid" => "1.08615",
-        //       "next_funding" => "0.00011096",
-        //       "open_interest" => "3634796",
-        //       "oracle" => "1.084524",
-        //       "symbol" => "XPL",
-        //       "timestamp" => 1759222967974,
-        //       "volume_24h" => "20896698.0672",
-        //       "yesterday_price" => "1.3412"
+        //       "funding": "0.00010529",
+        //       "mark": "1.084819",
+        //       "mid": "1.08615",
+        //       "next_funding": "0.00011096",
+        //       "open_interest": "3634796",
+        //       "oracle": "1.084524",
+        //       "symbol": "XPL",
+        //       "timestamp": 1759222967974,
+        //       "volume_24h": "20896698.0672",
+        //       "yesterday_price": "1.3412"
         //     }
         //
         $marketId = $this->safe_string($interest, 'symbol');
@@ -3201,7 +3245,7 @@ class pacifica extends Exchange {
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchLedger', $params);
-        $defaultLimit = 100; // Default max $limit
+        $defaultLimit = 100; // Default max limit
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
         }
@@ -3213,19 +3257,19 @@ class pacifica extends Exchange {
         }
         $response = Async\await($this->publicGetAccountBalanceHistory($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "amount" => "100.000000",
-        //       "balance" => "1200.000000",
-        //       "pending_balance" => "0.000000",
-        //       "event_type" => "deposit",
-        //       "created_at" => 1716200000000
+        //       "amount": "100.000000",
+        //       "balance": "1200.000000",
+        //       "pending_balance": "0.000000",
+        //       "event_type": "deposit",
+        //       "created_at": 1716200000000
         //     }
         //     ...
-        //   ),
-        //   "next_cursor" => "11114Lz77",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
         $data = $this->add_pagination_cursor_to_result($response);
         return $this->parse_ledger($data, null, $since, $limit);
@@ -3234,11 +3278,11 @@ class pacifica extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //       "amount" => "100.000000",
-        //       "balance" => "1200.000000",
-        //       "pending_balance" => "0.000000",
-        //       "event_type" => "deposit",
-        //       "created_at" => 1716200000000
+        //       "amount": "100.000000",
+        //       "balance": "1200.000000",
+        //       "pending_balance": "0.000000",
+        //       "event_type": "deposit",
+        //       "created_at": 1716200000000
         //     }
         //
         $timestamp = $this->safe_integer($item, 'created_at');
@@ -3264,7 +3308,7 @@ class pacifica extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'subaccount_transfer' => 'transfer',
             'deposit' => 'transaction',
@@ -3285,7 +3329,7 @@ class pacifica extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3327,36 +3371,36 @@ class pacifica extends Exchange {
         }
         $response = Async\await($this->publicGetFundingHistory($this->extend($request, $params)));
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "history_id" => 2287920,
-        //       "symbol" => "PUMP",
-        //       "side" => "ask",
-        //       "amount" => "39033804",
-        //       "payout" => "2.617479",
-        //       "rate" => "0.0000125",
-        //       "created_at" => 1759222804122
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "history_id": 2287920,
+        //       "symbol": "PUMP",
+        //       "side": "ask",
+        //       "amount": "39033804",
+        //       "payout": "2.617479",
+        //       "rate": "0.0000125",
+        //       "created_at": 1759222804122
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "11114Lz77",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
         $data = $this->add_pagination_cursor_to_result($response);
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         //     {
-        //       "history_id" => 2287920,
-        //       "symbol" => "PUMP",
-        //       "side" => "ask",
-        //       "amount" => "39033804",
-        //       "payout" => "2.617479",
-        //       "rate" => "0.0000125",
-        //       "created_at" => 1759222804122
+        //       "history_id": 2287920,
+        //       "symbol": "PUMP",
+        //       "side": "ask",
+        //       "amount": "39033804",
+        //       "payout": "2.617479",
+        //       "rate": "0.0000125",
+        //       "created_at": 1759222804122
         //     }
         //
         $id = $this->safe_string($income, 'history_id');
@@ -3380,12 +3424,16 @@ class pacifica extends Exchange {
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
         /**
-         * transfer currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
          *
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from *spot, swap*
          * @param {string} $toAccount account to transfer to *swap, spot or address*
@@ -3393,51 +3441,64 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
         $operationType = 'transfer_funds';
         $sigPayload = array(
             'to_account' => $toAccount,
-            'amount' => $amount,
+            'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = $this->privatePostAccountSubaccountTransfer($this->extend($request, $params));
+        $response = Async\await($this->privatePostAccountSubaccountTransfer($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "success" => true,
-        //     "error" => null
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "success": true,
+        //     "error": null
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_transfer($data);
+        return $this->extend($this->parse_transfer($data, $currency), array(
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($request, 'account'),
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "success" => true,
-        //     "error" => null
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "success": true,
+        //     "error": null
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         //
+        $success = $this->safe_bool($transfer, 'success');
+        $status = null;
+        if ($success !== null) {
+            $status = ($success === true) ? 'ok' : 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $status,
         );
     }
 
@@ -3460,7 +3521,7 @@ class pacifica extends Exchange {
          */
         $finalHeaders = array( );
         $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress');
+        list($agentAddress, $params) = $this->handle_option_and_params($params, 'createSubAccount', 'agentAddress');
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
         if ($originAddress === null) {
@@ -3479,7 +3540,8 @@ class pacifica extends Exchange {
         if ($subAccountPrivateKey === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        $timestamp = $this->milliseconds();
+        $timestamp = null;
+        list($timestamp, $params) = $this->handle_param_integer($params, 'timestamp', $this->milliseconds());
         $expiryWindow = null;
         list($expiryWindow, $params) = $this->handle_option_and_params_2($params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
@@ -3507,19 +3569,19 @@ class pacifica extends Exchange {
         $finalHeaders['timestamp'] = $timestamp;
         $finalHeaders['expiry_window'] = $expiryWindow;
         $request = $finalHeaders;
-        $response = Async\await($this->privatePostAccountSubaccountCreate($request));
+        $response = Async\await($this->privatePostAccountSubaccountCreate($this->extend($request, $params)));
         //
         // {
-        //   "success" => true,
-        //   "data" => null,
-        //   "error" => null,
-        //   "code" => null,
+        //   "success": true,
+        //   "data": null,
+        //   "error": null,
+        //   "code": null,
         // }
         //
         return $response;
     }
 
-    public function bind_agent_wallet(string $agentAddress, $params = array()) {
+    public function bind_agent_wallet(string $agentAddress, $params = array()): PromiseInterface {
         return Async\async(self::do_bind_agent_wallet(...))($agentAddress, $params);
     }
 
@@ -3532,7 +3594,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAgentBind($this->extend($request, $params)));
     }
 
-    public function create_api_key($params = array()) {
+    public function create_api_key($params = array()): PromiseInterface {
         return Async\async(self::do_create_api_key(...))($params);
     }
 
@@ -3543,7 +3605,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountApiKeysCreate($this->extend($request, $params)));
     }
 
-    public function revoke_api_key(string $apiKey, $params = array()) {
+    public function revoke_api_key(string $apiKey, $params = array()): PromiseInterface {
         return Async\async(self::do_revoke_api_key(...))($apiKey, $params);
     }
 
@@ -3556,7 +3618,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountApiKeysRevoke($this->extend($request, $params)));
     }
 
-    public function fetch_api_keys($params = array()) {
+    public function fetch_api_keys($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_api_keys(...))($params);
     }
 
@@ -3567,7 +3629,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountApiKeys($this->extend($request, $params)));
     }
 
-    public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array()) {
+    public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array()): PromiseInterface {
         return Async\async(self::do_approve_builder_code(...))($builderCode, $maxFeeRate, $params);
     }
 
@@ -3592,7 +3654,7 @@ class pacifica extends Exchange {
         return Async\await($this->publicGetAccountBuilderCodesApprovals($this->extend($request)));
     }
 
-    public function revoke_builder_code(string $builderCode, $params = array()) {
+    public function revoke_builder_code(string $builderCode, $params = array()): PromiseInterface {
         return Async\async(self::do_revoke_builder_code(...))($builderCode, $params);
     }
 
@@ -3607,7 +3669,7 @@ class pacifica extends Exchange {
 
     public function handle_origin_and_single_address(string $methodName, array $params): array {
         $address = null;
-        list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or $address
+        list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or address
         if ($address !== null) {
             return array( $address, $params );
         }
@@ -3620,17 +3682,23 @@ class pacifica extends Exchange {
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
-        //     array("success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta $code->","code":403)
-        //     array("success":false,"data":null,"error":"Agent not authorized for account","code":400)
-        //     array("success":false,"data":null,"error":"Internal server $error","code":500)
+        //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
+        //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
+        //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        $inCode = $this->safe_integer($response, 'code'); // actually if all ok -> $code = null or $code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        $errorCode = $this->safe_string($response, 'code');
+        $errorId = $this->safe_string($response, 'error_id'); // undocumented, present on live errors and more specific than code
         $message = $this->safe_string($response, 'error');
         $error = null;
-        if ($inCode === null || $inCode === 200) {
+        if ($errorCode === null || $errorCode === '200') {
             $error = false;
         } else {
             $error = true;
@@ -3638,15 +3706,18 @@ class pacifica extends Exchange {
         $nonEmptyMessage = (($message !== null) && ($message !== ''));
         if ($error || $nonEmptyMessage) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // Try deeper catch first
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $inCode, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorId, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // documented message prefixes are more specific than the http-status echo
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                throw new ExchangeError($feedback); // unknown message
+            }
         }
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
@@ -3669,7 +3740,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

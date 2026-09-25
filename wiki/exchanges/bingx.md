@@ -559,7 +559,7 @@ bingx.fetchPosition (symbol, params?)
 <a name="createMarketOrderWithCost" id="createmarketorderwithcost"></a>
 
 ### createMarketOrderWithCost{docsify-ignore}
-create a market order by providing the symbol, side and cost
+create a spot market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -581,7 +581,7 @@ bingx.createMarketOrderWithCost (symbol, side, cost, params?)
 <a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
 ### createMarketBuyOrderWithCost{docsify-ignore}
-create a market buy order by providing the symbol and cost
+create a spot market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -602,7 +602,7 @@ bingx.createMarketBuyOrderWithCost (symbol, cost, params?)
 <a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
 
 ### createMarketSellOrderWithCost{docsify-ignore}
-create a market sell order by providing the symbol and cost
+create a spot market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -651,14 +651,15 @@ create a trade order
 | params.triggerPrice | <code>float</code> | No | triggerPrice at which the attached take profit / stop loss order will be triggered |
 | params.stopLossPrice | <code>float</code> | No | stop loss trigger price |
 | params.takeProfitPrice | <code>float</code> | No | take profit trigger price |
-| params.cost | <code>float</code> | No | the quote quantity that can be used as an alternative for the amount |
+| params.cost | <code>float</code> | No | *spot only* the quote quantity that can be used as an alternative for the amount |
+| params.quoteOrderQty | <code>float</code> | No | *spot only* the quote quantity, an alternative to params.cost |
 | params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the current market price |
 | params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the current market price |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
-| params.test | <code>boolean</code> | No | *swap only* whether to use the test endpoint or not, default is false |
+| params.test | <code>boolean</code> | No | *linear swap only* whether to use the test endpoint or not, default is false |
 | params.positionSide | <code>string</code> | No | *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>boolean</code> | No | *swap only* whether the order is in hedged mode or one way mode |
 | params.closePosition | <code>bool</code> | No | *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent |
@@ -769,7 +770,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | unified market symbol, default is undefined |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
 
@@ -851,7 +852,7 @@ fetches information on multiple orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -860,7 +861,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bingx.fetchOrders (symbol, since?, limit?, params?)
+bingx.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -912,7 +913,7 @@ fetches information on multiple closed orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the closed orders |
+| symbol | <code>string</code> | No | unified market symbol of the closed orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of closed orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -921,7 +922,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchClosedOrders (symbol, since?, limit?, params?)
+bingx.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -943,7 +944,7 @@ fetches information on multiple canceled orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the canceled orders |
+| symbol | <code>string</code> | No | unified market symbol of the canceled orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of canceled orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -952,7 +953,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledOrders (symbol, since?, limit?, params?)
+bingx.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1425,7 +1426,7 @@ cancels an order and places a new order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |

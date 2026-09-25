@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -345,7 +345,7 @@ export default class delta extends Exchange {
         });
     }
 
-    override createExpiredOptionMarket (symbol: string) {
+    override createExpiredOptionMarket (symbol: string): MarketInterface {
         // support expired option contracts
         const quote = 'USDT';
         const optionParts = symbol.split ('-');
@@ -432,7 +432,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeDict (response, 'result', {});
@@ -446,7 +446,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetSettings (params);
         //
         //     {
@@ -522,7 +522,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetAssets (params);
         //
         //    {
@@ -645,7 +645,7 @@ export default class delta extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: any) {
+    indexByStringifiedNumericId (input: NullableDict) {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -671,7 +671,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetProducts (params);
         //
         //     {
@@ -1138,7 +1138,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1282,7 +1282,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
@@ -1444,7 +1444,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1587,7 +1587,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1647,7 +1647,7 @@ export default class delta extends Exchange {
      * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1721,7 +1721,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
         //
@@ -1757,7 +1757,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1787,7 +1787,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.privateGetPositionsMargined (params);
         //
@@ -1815,7 +1815,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // fetchPosition
         //
@@ -2028,7 +2028,7 @@ export default class delta extends Exchange {
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const orderType = type + '_order';
         const market = this.market (symbol);
@@ -2111,7 +2111,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2162,7 +2162,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2222,7 +2222,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -2259,7 +2259,7 @@ export default class delta extends Exchange {
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2315,7 +2315,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
@@ -2330,11 +2330,11 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
@@ -2401,7 +2401,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
@@ -2484,7 +2484,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'asset_id': currency['numericId'],
@@ -2609,7 +2609,7 @@ export default class delta extends Exchange {
      * @param {string} [params.network] unified network code
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2748,7 +2748,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
@@ -2885,7 +2885,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
@@ -2899,11 +2899,11 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = amount.toString ();
@@ -2988,7 +2988,7 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract'] !== true) {
@@ -3054,7 +3054,7 @@ export default class delta extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "close": 894.0,
@@ -3127,7 +3127,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3173,7 +3173,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3208,7 +3208,7 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3285,7 +3285,7 @@ export default class delta extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: any): Dict {
         //
         //     {
         //         "contract_value": "0.001",
@@ -3350,7 +3350,7 @@ export default class delta extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: any[], market: any): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -3367,7 +3367,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    override async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+    override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3517,7 +3517,7 @@ export default class delta extends Exchange {
      * @param {int} [params.user_id] the users id
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closeAllPositions (params = {}): Promise<Position[]> {
+    override async closeAllPositions (params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request: Dict = {
             'close_all_portfolio': true,
@@ -3541,7 +3541,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3638,7 +3638,7 @@ export default class delta extends Exchange {
      * @param {string} params.subaccount_user_id the user id of the subaccount
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'isolated', 'portfolio' ]);
         const subaccountUserId = this.safeString (params, 'subaccount_user_id');
         this.checkRequiredArgument ('setMarginMode', subaccountUserId, 'params["subaccount_user_id"]');
@@ -3657,7 +3657,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    override async fetchOption (symbol: string, params = {}): Promise<Option> {
+    override async fetchOption (symbol: string, params: Dict = {}): Promise<Option> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3804,7 +3804,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+    override async fetchPositionsADLRank (symbols: Strings = undefined, params: Dict = {}): Promise<ADL[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.privateGetPositionsMargined (params);
@@ -4162,7 +4162,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = {}, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));

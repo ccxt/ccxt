@@ -75,7 +75,7 @@ class kucoin extends kucoin$1["default"] {
                 'fetchFundingInterval': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true, // uta only
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -141,6 +141,7 @@ class kucoin extends kucoin$1["default"] {
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaV2': 'https://api.kucoin.com',
                     'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
@@ -564,6 +565,11 @@ class kucoin extends kucoin$1["default"] {
                         'market/borrowable-currency': { 'cost': 30 },
                         'user/my-ip': { 'cost': 20 },
                         'market/fiat-price': { 'cost': 6 },
+                    },
+                },
+                'utaV2': {
+                    'get': {
+                        'market/funding-rate': { 'cost': 6 }, // 3PW
                     },
                 },
                 'utaPrivate': {
@@ -2735,18 +2741,24 @@ class kucoin extends kucoin$1["default"] {
         //         "markPrice": "1572.68"
         //     }
         //
+        let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
+        last = this.safeString(ticker, 'price', last);
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = market['symbol'];
         let percentage = this.safeString(ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = Precise["default"].stringMul(percentage, '100');
         }
         else {
             percentage = this.safeString(ticker, 'priceChangePercent');
+            // uta spot sends a ratio under this name and uta swap sends a percentage.
+            // An unresolved market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if (this.safeBool(market, 'spot', false)) {
+                percentage = Precise["default"].stringMul(percentage, '100');
+            }
         }
-        let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
-        last = this.safeString(ticker, 'price', last);
-        const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
         const baseVolume = this.safeString2(ticker, 'vol', 'baseVolume');
         const quoteVolume = this.safeString2(ticker, 'volValue', 'quoteVolume');
         const timestamp = this.safeIntegerN(ticker, ['time', 'datetime', 'timePoint']);
@@ -2871,6 +2883,12 @@ class kucoin extends kucoin$1["default"] {
         market = this.safeMarket(marketId, market, '-');
         const last = this.safeString2(ticker, 'price', 'lastTradePrice');
         const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const change = this.safeString(ticker, 'priceChg');
+        let percentage = undefined;
+        if ((last === undefined) || (change === undefined)) {
+            percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100');
+        }
+        // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -2886,10 +2904,8 @@ class kucoin extends kucoin$1["default"] {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'priceChg'),
-            // priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
-            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
-            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
@@ -3636,7 +3652,7 @@ class kucoin extends kucoin$1["default"] {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         if (data === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
         }
@@ -3948,9 +3964,9 @@ class kucoin extends kucoin$1["default"] {
         return orderbook;
     }
     handleTriggerPrices(params) {
-        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         if ((isStopLoss && isTakeProfit) || ((triggerPrice !== undefined) && (stopLossPrice !== undefined)) || ((triggerPrice !== undefined) && isTakeProfit)) {
@@ -4768,7 +4784,7 @@ class kucoin extends kucoin$1["default"] {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
@@ -4852,7 +4868,7 @@ class kucoin extends kucoin$1["default"] {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
@@ -6414,7 +6430,7 @@ class kucoin extends kucoin$1["default"] {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue(order, 'isActive');
+        const isActive = this.safeBool(order, 'isActive');
         const cancelExist = this.safeBool(order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
@@ -6430,8 +6446,8 @@ class kucoin extends kucoin$1["default"] {
         }
         const clientOrderId = this.safeString(order, 'clientOid');
         const timeInForce = this.safeString(order, 'timeInForce');
-        const postOnly = this.safeValue(order, 'postOnly');
-        const reduceOnly = this.safeValue(order, 'reduceOnly');
+        const postOnly = this.safeBool(order, 'postOnly');
+        const reduceOnly = this.safeBool(order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger(order, 'updatedAt');
         return this.safeOrder({
             'id': orderId,
@@ -8398,7 +8414,7 @@ class kucoin extends kucoin$1["default"] {
         }
         // only fetches one balance at a time
         let defaultCode = this.safeString(this.options, 'code');
-        const fetchBalanceOptions = this.safeValue(this.options, 'fetchBalance', {});
+        const fetchBalanceOptions = this.safeDict(this.options, 'fetchBalance', {});
         defaultCode = this.safeString(fetchBalanceOptions, 'code', defaultCode);
         const code = this.safeString(params, 'code', defaultCode);
         if (code === undefined) {
@@ -8429,7 +8445,7 @@ class kucoin extends kucoin$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         const currencyId = this.safeString(data, 'currency');
         const currencyCode = this.safeCurrencyCode(currencyId, currency);
         const account = this.account();
@@ -9322,7 +9338,7 @@ class kucoin extends kucoin$1["default"] {
         //     }
         //
         const timestampId = this.safeString2(info, 'createdAt', 'timestamp');
-        let timestamp = this.milliseconds();
+        let timestamp = undefined;
         if (timestampId !== undefined) {
             timestamp = this.parseToInt(timestampId.slice(0, 13));
         }
@@ -9863,15 +9879,14 @@ class kucoin extends kucoin$1["default"] {
         //         "actualSize": 10
         //     }
         //
-        const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
             'id': this.safeString(info, 'orderNo'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'actualSize'),
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
@@ -10149,6 +10164,53 @@ class kucoin extends kucoin$1["default"] {
         const data = this.safeDict(response, 'data', {});
         return this.parseFundingRate(data, market);
     }
+    /**
+     * @method
+     * @name kucoin#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+     * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+     * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        const response = await this.utaV2GetMarketFundingRate(params);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "nextFundingRate": "-0.000004",
+        //                 "fundingTime": 1789315200000,
+        //                 "fundingRateCap": "0.003",
+        //                 "fundingRateFloor": "-0.003",
+        //                 "currentGranularity": 28800000,
+        //                 "newGranularity": 28800000,
+        //                 "newGranularityStartTime": 1750147200000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString(entry, 'symbol');
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            const isFundingIndex = (marketId !== undefined) && (marketId.startsWith('.'));
+            if (!isFundingIndex) {
+                rates.push(entry);
+            }
+        }
+        return this.parseFundingRates(rates, symbols);
+    }
     parseFundingRate(data, market = undefined) {
         // uta
         //     {
@@ -10404,7 +10466,7 @@ class kucoin extends kucoin$1["default"] {
             //        }
             //    }
             //
-            const data = this.safeValue(response, 'data');
+            const data = this.safeDict(response, 'data');
             dataList = this.safeList(data, 'dataList', []);
         }
         const fees = [];
@@ -10873,7 +10935,7 @@ class kucoin extends kucoin$1["default"] {
         const initialMarginPercentage = Precise["default"].stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString2(position, 'unrealisedPnl', 'unrealizedPnL');
-        const crossMode = this.safeValue(position, 'crossMode');
+        const crossMode = this.safeBool(position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
         let marginMode = this.safeStringLower(position, 'marginMode');
         if (crossMode !== undefined) {
@@ -11094,7 +11156,7 @@ class kucoin extends kucoin$1["default"] {
         //        "msg":"Position does not exist"
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.extend(this.parseMarginModification(data, market), {
             'amount': this.amountToPrecision(symbol, amount),
             'direction': 'in',
@@ -11192,7 +11254,7 @@ class kucoin extends kucoin$1["default"] {
         const id = this.safeString(info, 'id');
         market = this.safeMarket(id, market);
         const currencyId = this.safeString(info, 'settleCurrency');
-        const crossMode = this.safeValue(info, 'crossMode');
+        const crossMode = this.safeBool(info, 'crossMode');
         const mode = (crossMode === true) ? 'cross' : 'isolated';
         const marketId = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(info, 'currentTimestamp');
@@ -11691,6 +11753,9 @@ class kucoin extends kucoin$1["default"] {
         const version = this.safeString(params, 'version', defaultVersion);
         params = this.omit(params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams(path, params);
+        if (api === 'utaV2') {
+            endpoint = '/api/ua/v2/' + this.implodeParams(path, params);
+        }
         if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams(path, params);
         }

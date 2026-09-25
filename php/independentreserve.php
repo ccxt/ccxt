@@ -329,10 +329,10 @@ class independentreserve extends Exchange {
         list($baseCurrencies, $quoteCurrencies, $limits) = array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise );
         //
         //     {
-        //         "Xbt" => 0.0001,
-        //         "Eth" => 0.001,
-        //         "Ltc" => 0.01,
-        //         "Xrp" => 1.0,
+        //         "Xbt": 0.0001,
+        //         "Eth": 0.001,
+        //         "Ltc": 0.01,
+        //         "Xrp": 1.0,
         //     }
         //
         $result = array();
@@ -535,50 +535,50 @@ class independentreserve extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "OrderGuid" => "c7347e4c-b865-4c94-8f74-d934d4b0b177",
-        //         "CreatedTimestampUtc" => "2014-09-23T12:39:34.3817763Z",
-        //         "Type" => "MarketBid",
-        //         "VolumeOrdered" => 5.0,
-        //         "VolumeFilled" => 5.0,
-        //         "Price" => null,
-        //         "AvgPrice" => 100.0,
-        //         "ReservedAmount" => 0.0,
-        //         "Status" => "Filled",
-        //         "PrimaryCurrencyCode" => "Xbt",
-        //         "SecondaryCurrencyCode" => "Usd"
+        //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        //         "Type": "MarketBid",
+        //         "VolumeOrdered": 5.0,
+        //         "VolumeFilled": 5.0,
+        //         "Price": null,
+        //         "AvgPrice": 100.0,
+        //         "ReservedAmount": 0.0,
+        //         "Status": "Filled",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd"
         //     }
         //
         // fetchOpenOrders & fetchClosedOrders
         //
         //     {
-        //         "OrderGuid" => "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
-        //         "CreatedTimestampUtc" => "2020-09-08T03:04:18.616367Z",
-        //         "OrderType" => "LimitOffer",
-        //         "Volume" => 0.0005,
-        //         "Outstanding" => 0.0005,
-        //         "Price" => 113885.83,
-        //         "AvgPrice" => 113885.83,
-        //         "Value" => 56.94,
-        //         "Status" => "Open",
-        //         "PrimaryCurrencyCode" => "Xbt",
-        //         "SecondaryCurrencyCode" => "Usd",
-        //         "FeePercent" => 0.005,
+        //         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
+        //         "OrderType": "LimitOffer",
+        //         "Volume": 0.0005,
+        //         "Outstanding": 0.0005,
+        //         "Price": 113885.83,
+        //         "AvgPrice": 113885.83,
+        //         "Value": 56.94,
+        //         "Status": "Open",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd",
+        //         "FeePercent": 0.005,
         //     }
         //
         // cancelOrder
         //
         //    {
-        //        "AvgPrice" => 455.48,
-        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
-        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
-        //        "Price" => 485.76,
-        //        "PrimaryCurrencyCode" => "Xbt",
-        //        "ReservedAmount" => 0.358,
-        //        "SecondaryCurrencyCode" => "Usd",
-        //        "Status" => "Cancelled",
-        //        "Type" => "LimitOffer",
-        //        "VolumeFilled" => 0,
-        //        "VolumeOrdered" => 0.358
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
         //    }
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
@@ -668,7 +668,7 @@ class independentreserve extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          * @param {string} $id order $id
@@ -747,7 +747,7 @@ class independentreserve extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()): array {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -851,13 +851,13 @@ class independentreserve extends Exchange {
         }
         $response = $this->privatePostGetBrokerageFees($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "CurrencyCode" => "Xbt",
-        //             "Fee" => 0.005
+        //             "CurrencyCode": "Xbt",
+        //             "Fee": 0.005
         //         }
         //         ...
-        //     )
+        //     ]
         //
         $fees = array();
         $rows = $this->to_array($response);
@@ -878,9 +878,9 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($fees, $market['base'], array());
+            $fee = $this->safe_dict($fees, $market['base'], array());
             $result[$symbol] = array(
-                'info' => $this->safe_value($fee, 'info'),
+                'info' => $this->safe_dict($fee, 'info'),
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($fee, 'fee'),
                 'taker' => $this->safe_number($fee, 'fee'),
@@ -891,7 +891,7 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -926,7 +926,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -946,17 +946,17 @@ class independentreserve extends Exchange {
         $response = $this->privatePostCancelOrder($this->extend($request, $params));
         //
         //    {
-        //        "AvgPrice" => 455.48,
-        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
-        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
-        //        "Price" => 485.76,
-        //        "PrimaryCurrencyCode" => "Xbt",
-        //        "ReservedAmount" => 0.358,
-        //        "SecondaryCurrencyCode" => "Usd",
-        //        "Status" => "Cancelled",
-        //        "Type" => "LimitOffer",
-        //        "VolumeFilled" => 0,
-        //        "VolumeOrdered" => 0.358
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
         //    }
         //
         return $this->parse_order($response);
@@ -982,10 +982,10 @@ class independentreserve extends Exchange {
         $response = $this->privatePostGetDigitalCurrencyDepositAddress($this->extend($request, $params));
         //
         //    {
-        //        Tag => '3307446684',
-        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
-        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
-        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
         return $this->parse_deposit_address($response);
@@ -994,10 +994,10 @@ class independentreserve extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        Tag => '3307446684',
-        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
-        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
-        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
         $address = $this->safe_string($depositAddress, 'DepositAddress');
@@ -1048,19 +1048,19 @@ class independentreserve extends Exchange {
         $response = $this->privatePostWithdrawDigitalCurrency($this->extend($request, $params));
         //
         //    {
-        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
-        //        "PrimaryCurrencyCode" => "Bch",
-        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
-        //        "Amount" => array(
-        //            "Total" => 0.1231,
-        //            "Fee" => 0.0001
-        //        ),
-        //        "Destination" => array(
-        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
-        //            "Tag" => null
-        //        ),
-        //        "Status" => "Pending",
-        //        "Transaction" => null
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
         //    }
         //
         return $this->parse_transaction($response, $currency);
@@ -1069,19 +1069,19 @@ class independentreserve extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
-        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
-        //        "PrimaryCurrencyCode" => "Bch",
-        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
-        //        "Amount" => array(
-        //            "Total" => 0.1231,
-        //            "Fee" => 0.0001
-        //        ),
-        //        "Destination" => array(
-        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
-        //            "Tag" => null
-        //        ),
-        //        "Status" => "Pending",
-        //        "Transaction" => null
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
         //    }
         //
         $amount = $this->safe_dict($transaction, 'Amount');
@@ -1119,7 +1119,12 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
@@ -1127,7 +1132,8 @@ class independentreserve extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            // independentreserve requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
             $auth = array(
                 $url,
                 'apiKey=' . $this->apiKey,

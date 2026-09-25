@@ -8,361 +8,361 @@
 package ccxt
 
 // PublicGetApiV1Assets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Assets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Assets", args...)
+func (this *Backpack) PublicGetApiV1Assets(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Collateral returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Collateral(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Collateral", args...)
+func (this *Backpack) PublicGetApiV1Collateral(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/collateral", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1BorrowLendMarkets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1BorrowLendMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1BorrowLendMarkets", args...)
+func (this *Backpack) PublicGetApiV1BorrowLendMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/borrowLend/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1BorrowLendMarketsHistory returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1BorrowLendMarketsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1BorrowLendMarketsHistory", args...)
+func (this *Backpack) PublicGetApiV1BorrowLendMarketsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/borrowLend/markets/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1BorrowLendApy returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1BorrowLendApy(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1BorrowLendApy", args...)
+func (this *Backpack) PublicGetApiV1BorrowLendApy(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/borrowLend/apy", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Markets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Markets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Markets", args...)
+func (this *Backpack) PublicGetApiV1Markets(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Market returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Market(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Market", args...)
+func (this *Backpack) PublicGetApiV1Market(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/market", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Ticker returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Ticker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Ticker", args...)
+func (this *Backpack) PublicGetApiV1Ticker(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Tickers returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Tickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Tickers", args...)
+func (this *Backpack) PublicGetApiV1Tickers(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Depth returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Depth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Depth", args...)
+func (this *Backpack) PublicGetApiV1Depth(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Prediction returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Prediction(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Prediction", args...)
+func (this *Backpack) PublicGetApiV1Prediction(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/prediction", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1PredictionTags returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1PredictionTags(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1PredictionTags", args...)
+func (this *Backpack) PublicGetApiV1PredictionTags(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/prediction/tags", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1MarketSessions returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1MarketSessions(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1MarketSessions", args...)
+func (this *Backpack) PublicGetApiV1MarketSessions(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/market-sessions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1MarketHolidays returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1MarketHolidays(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1MarketHolidays", args...)
+func (this *Backpack) PublicGetApiV1MarketHolidays(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/market-holidays", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Securities returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Securities(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Securities", args...)
+func (this *Backpack) PublicGetApiV1Securities(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/securities", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Klines returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Klines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Klines", args...)
+func (this *Backpack) PublicGetApiV1Klines(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1MarkPrices returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1MarkPrices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1MarkPrices", args...)
+func (this *Backpack) PublicGetApiV1MarkPrices(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/markPrices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1OpenInterest returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1OpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1OpenInterest", args...)
+func (this *Backpack) PublicGetApiV1OpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/openInterest", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1FundingRates returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1FundingRates(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1FundingRates", args...)
+func (this *Backpack) PublicGetApiV1FundingRates(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/fundingRates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Status returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Status(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Status", args...)
+func (this *Backpack) PublicGetApiV1Status(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Ping returns a channel that yields a JSON scalar.
-func (this *BackpackCore) PublicGetApiV1Ping(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Ping", args...)
+func (this *Backpack) PublicGetApiV1Ping(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/ping", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Time returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Time(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Time", args...)
+func (this *Backpack) PublicGetApiV1Time(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Wallets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Wallets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Wallets", args...)
+func (this *Backpack) PublicGetApiV1Wallets(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/wallets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1Trades returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1Trades", args...)
+func (this *Backpack) PublicGetApiV1Trades(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApiV1TradesHistory returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1TradesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV1TradesHistory", args...)
+func (this *Backpack) PublicGetApiV1TradesHistory(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/trades/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Account returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Account(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Account", args...)
+func (this *Backpack) PrivateGetApiV1Account(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AccountLimitsBorrow returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsBorrow(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1AccountLimitsBorrow", args...)
+func (this *Backpack) PrivateGetApiV1AccountLimitsBorrow(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/account/limits/borrow", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AccountLimitsOrder returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1AccountLimitsOrder", args...)
+func (this *Backpack) PrivateGetApiV1AccountLimitsOrder(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/account/limits/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1AccountLimitsWithdrawal returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1AccountLimitsWithdrawal", args...)
+func (this *Backpack) PrivateGetApiV1AccountLimitsWithdrawal(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/account/limits/withdrawal", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1BorrowLendPositions returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1BorrowLendPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1BorrowLendPositions", args...)
+func (this *Backpack) PrivateGetApiV1BorrowLendPositions(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/borrowLend/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1BorrowLendPositionLiquidationPrice returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1BorrowLendPositionLiquidationPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1BorrowLendPositionLiquidationPrice", args...)
+func (this *Backpack) PrivateGetApiV1BorrowLendPositionLiquidationPrice(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/borrowLend/position/liquidationPrice", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Capital returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Capital(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Capital", args...)
+func (this *Backpack) PrivateGetApiV1Capital(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/capital", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1CapitalCollateral returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1CapitalCollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1CapitalCollateral", args...)
+func (this *Backpack) PrivateGetApiV1CapitalCollateral(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/capital/collateral", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1CapitalDeposits returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1CapitalDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1CapitalDeposits", args...)
+func (this *Backpack) PrivateGetWapiV1CapitalDeposits(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/capital/deposits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1CapitalDepositAddress returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetWapiV1CapitalDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1CapitalDepositAddress", args...)
+func (this *Backpack) PrivateGetWapiV1CapitalDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/capital/deposit/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1CapitalWithdrawals returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1CapitalWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1CapitalWithdrawals", args...)
+func (this *Backpack) PrivateGetWapiV1CapitalWithdrawals(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/capital/withdrawals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Position returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Position(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Position", args...)
+func (this *Backpack) PrivateGetApiV1Position(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryBorrowLend returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLend(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLend", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryBorrowLend(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/borrowLend", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryInterest returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryInterest", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryInterest(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/interest", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryBorrowLendPositions returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLendPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLendPositions", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryBorrowLendPositions(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/borrowLend/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryDust returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryDust(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryDust", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryDust(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/dust", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryFills returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryFills", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryFills(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryFunding returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryFunding(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryFunding", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryFunding(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/funding", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryPosition returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryPosition", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryPosition(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryOrders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryOrders", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryOrders(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Rfqs returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Rfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Rfqs", args...)
+func (this *Backpack) PrivateGetApiV1Rfqs(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/rfqs", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryRfq returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryRfq(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryRfq", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryRfq(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/rfq", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryQuote returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryQuote", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryQuote(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/quote", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryRfqFill returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryRfqFill(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryRfqFill", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryRfqFill(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/rfq/fill", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryQuoteFill returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryQuoteFill(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryQuoteFill", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryQuoteFill(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/quote/fill", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistorySettlement returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistorySettlement(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistorySettlement", args...)
+func (this *Backpack) PrivateGetWapiV1HistorySettlement(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/settlement", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWapiV1HistoryStrategies returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryStrategies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWapiV1HistoryStrategies", args...)
+func (this *Backpack) PrivateGetWapiV1HistoryStrategies(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/history/strategies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Strategy returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Strategy(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Strategy", args...)
+func (this *Backpack) PrivateGetApiV1Strategy(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/strategy", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Strategies returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Strategies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Strategies", args...)
+func (this *Backpack) PrivateGetApiV1Strategies(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/strategies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Order returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Order", args...)
+func (this *Backpack) PrivateGetApiV1Order(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV1Orders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV1Orders", args...)
+func (this *Backpack) PrivateGetApiV1Orders(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1AccountConvertDust returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1AccountConvertDust(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1AccountConvertDust", args...)
+func (this *Backpack) PrivatePostApiV1AccountConvertDust(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/account/convertDust", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1BorrowLend returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1BorrowLend(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1BorrowLend", args...)
+func (this *Backpack) PrivatePostApiV1BorrowLend(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/borrowLend", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostWapiV1CapitalWithdrawals returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostWapiV1CapitalWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWapiV1CapitalWithdrawals", args...)
+func (this *Backpack) PrivatePostWapiV1CapitalWithdrawals(args ...any) <-chan any {
+	return this.Fetch2Async("wapi/v1/capital/withdrawals", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1Order returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1Order", args...)
+func (this *Backpack) PrivatePostApiV1Order(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1Orders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivatePostApiV1Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1Orders", args...)
+func (this *Backpack) PrivatePostApiV1Orders(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1Rfq returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1Rfq(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1Rfq", args...)
+func (this *Backpack) PrivatePostApiV1Rfq(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1RfqAccept returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqAccept(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1RfqAccept", args...)
+func (this *Backpack) PrivatePostApiV1RfqAccept(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/rfq/accept", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1RfqRefresh returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqRefresh(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1RfqRefresh", args...)
+func (this *Backpack) PrivatePostApiV1RfqRefresh(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/rfq/refresh", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1RfqCancel returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1RfqCancel", args...)
+func (this *Backpack) PrivatePostApiV1RfqCancel(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/rfq/cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1RfqQuote returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1RfqQuote", args...)
+func (this *Backpack) PrivatePostApiV1RfqQuote(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/rfq/quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1Strategy returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1Strategy(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV1Strategy", args...)
+func (this *Backpack) PrivatePostApiV1Strategy(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/strategy", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV1Order returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateDeleteApiV1Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV1Order", args...)
+func (this *Backpack) PrivateDeleteApiV1Order(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV1Orders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateDeleteApiV1Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV1Orders", args...)
+func (this *Backpack) PrivateDeleteApiV1Orders(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV1Strategy returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateDeleteApiV1Strategy(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV1Strategy", args...)
+func (this *Backpack) PrivateDeleteApiV1Strategy(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/strategy", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV1Strategies returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateDeleteApiV1Strategies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV1Strategies", args...)
+func (this *Backpack) PrivateDeleteApiV1Strategies(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/strategies", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePatchApiV1Account returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePatchApiV1Account(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePatchApiV1Account", args...)
+func (this *Backpack) PrivatePatchApiV1Account(args ...any) <-chan any {
+	return this.Fetch2Async("api/v1/account", "private", "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

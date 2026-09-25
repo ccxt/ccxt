@@ -982,7 +982,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const accountsByType = this.safeValue(this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString(params, 'type', 'exchange');
         const accountType = this.safeString(accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
@@ -1036,7 +1036,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const accountsByType = this.safeValue(this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'v2AccountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys(accountsByType);
@@ -1116,7 +1116,7 @@ export default class bitfinex extends Exchange {
         //
         const result = this.safeList(transfer, 'result');
         const timestamp = this.safeInteger(result, 0);
-        const info = this.safeValue(result, 4);
+        const info = this.safeList(result, 4);
         const fromAccount = this.safeString(info, 1);
         const toAccount = this.safeString(info, 2);
         const currencyId = this.safeString(info, 5);
@@ -1147,9 +1147,9 @@ export default class bitfinex extends Exchange {
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        const info = this.safeValue(currency, 'info');
+        const info = this.safeList(currency, 'info');
         const transferId = this.safeString(info, 0);
-        const underlying = this.safeValue(info, 4, []);
+        const underlying = this.safeList(info, 4, []);
         let currencyId = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString(underlying, 0, transferId);
@@ -1257,8 +1257,13 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const length = ticker.length;
-        const firstValue = this.safeNumber(ticker, 0);
-        const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        const firstValue = this.safeString(ticker, 0);
+        const hasMarketId = (firstValue !== undefined) && (firstValue.startsWith('t') || firstValue.startsWith('f'));
+        const isFetchTicker = !hasMarketId;
         let symbol = undefined;
         let minusIndex = 0;
         if (isFetchTicker) {
@@ -1284,7 +1289,9 @@ export default class bitfinex extends Exchange {
             bid = this.safeString(ticker, 2 - minusIndex);
             ask = this.safeString(ticker, 5 - minusIndex);
             change = this.safeString(ticker, 8 - minusIndex);
-            percentage = this.safeString(ticker, 9 - minusIndex);
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = Precise.stringMul(this.safeString(ticker, 9 - minusIndex), '100');
             volume = this.safeString(ticker, 11 - minusIndex);
             high = this.safeString(ticker, 12 - minusIndex);
             low = this.safeString(ticker, 13 - minusIndex);
@@ -1648,7 +1655,7 @@ export default class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeValue(flagValues, flags, undefined);
+        return this.safeList(flagValues, flags, undefined);
     }
     parseTimeInForce(orderType) {
         const orderTypes = {
@@ -1672,7 +1679,7 @@ export default class bitfinex extends Exchange {
         const amount = Precise.stringAbs(signedAmount);
         const side = Precise.stringLt(signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString(orderList, 8);
-        const type = this.safeString(this.safeValue(this.options, 'exchangeTypes'), orderType);
+        const type = this.safeString(this.safeDict(this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce(orderType);
         const rawFlags = this.safeString(orderList, 12);
         const flags = this.parseOrderFlags(rawFlags);
@@ -2434,8 +2441,8 @@ export default class bitfinex extends Exchange {
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString(params, 'network', code);
-        const currencyNetworks = this.safeValue(currency, 'networks', {});
-        const currencyNetwork = this.safeValue(currencyNetworks, network);
+        const currencyNetworks = this.safeDict(currency, 'networks', {});
+        const currencyNetwork = this.safeDict(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired(this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2467,7 +2474,7 @@ export default class bitfinex extends Exchange {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        const result = this.safeValue(response, 4, []);
+        const result = this.safeList(response, 4, []);
         const poolAddress = this.safeString(result, 5);
         const address = (poolAddress === undefined) ? this.safeString(result, 4) : poolAddress;
         const tag = (poolAddress === undefined) ? undefined : this.safeString(result, 4);
@@ -2563,7 +2570,7 @@ export default class bitfinex extends Exchange {
         let network = undefined;
         let comment = undefined;
         if (transactionLength === 8) {
-            const data = this.safeValue(transaction, 4, []);
+            const data = this.safeList(transaction, 4, []);
             timestamp = this.safeInteger(transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
@@ -2719,10 +2726,10 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const result = {};
-        const fiat = this.safeValue(this.options, 'fiat', {});
-        const feeData = this.safeValue(response, 4, []);
-        const makerData = this.safeValue(feeData, 0, []);
-        const takerData = this.safeValue(feeData, 1, []);
+        const fiat = this.safeDict(this.options, 'fiat', {});
+        const feeData = this.safeList(response, 4, []);
+        const makerData = this.safeList(feeData, 0, []);
+        const takerData = this.safeList(feeData, 1, []);
         const makerFee = this.safeNumber(makerData, 0);
         const makerFeeFiat = this.safeNumber(makerData, 2);
         const makerFeeDeriv = this.safeNumber(makerData, 5);
@@ -2840,8 +2847,8 @@ export default class bitfinex extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString(params, 'network', code);
         params = this.omit(params, 'network');
-        const currencyNetworks = this.safeValue(currency, 'networks', {});
-        const currencyNetwork = this.safeValue(currencyNetworks, network);
+        const currencyNetworks = this.safeDict(currency, 'networks', {});
+        const currencyNetwork = this.safeDict(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired(this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2857,7 +2864,7 @@ export default class bitfinex extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
         if (includeFee === true) {
             request['fee_deduct'] = 1;
@@ -3054,7 +3061,8 @@ export default class bitfinex extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+            const nonce = this.incrementingNonce().toString();
             body = this.json(query);
             const auth = '/api/' + request + nonce + body;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384);

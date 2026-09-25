@@ -418,7 +418,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -437,7 +437,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetCurrencies (params);
         //
         //     [
@@ -482,7 +482,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetInstruments (params);
         //
         //     [
@@ -615,11 +615,11 @@ export default class onetrading extends Exchange {
      * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            const options = this.safeDict (this.options, 'fetchTradingFees', {});
             method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
         }
         if (method === 'fetchPrivateTradingFees') {
@@ -631,7 +631,7 @@ export default class onetrading extends Exchange {
         }
     }
 
-    async fetchPublicTradingFees (params = {}) {
+    async fetchPublicTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -705,7 +705,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    async fetchPrivateTradingFees (params = {}) {
+    async fetchPrivateTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -774,7 +774,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any, market: Market = undefined) {
+    parseFeeTiers (feeTiers: any[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -855,7 +855,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -894,7 +894,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -942,7 +942,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1034,7 +1034,7 @@ export default class onetrading extends Exchange {
         //         "last_sequence":461123
         //     }
         //
-        const granularity = this.safeValue (ohlcv, 'granularity');
+        const granularity = this.safeDict (ohlcv, 'granularity');
         const unit = this.safeString (granularity, 'unit');
         const period = this.safeString (granularity, 'period');
         const units: Dict = {
@@ -1056,7 +1056,7 @@ export default class onetrading extends Exchange {
             throw new ExchangeError (this.id + ' parseOHLCV() missing timestamp');
         }
         const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
             alignedTimestamp,
@@ -1080,7 +1080,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1161,7 +1161,7 @@ export default class onetrading extends Exchange {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue (trade, 'fee', {});
+        const feeInfo = this.safeDict (trade, 'fee', {});
         trade = this.safeValue (trade, 'trade', trade);
         let timestamp = this.safeInteger (trade, 'trade_timestamp');
         if (timestamp === undefined) {
@@ -1205,7 +1205,7 @@ export default class onetrading extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1229,7 +1229,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1350,8 +1350,8 @@ export default class onetrading extends Exchange {
         const side = this.safeStringLower (rawOrder, 'side');
         const type = this.safeStringLower (rawOrder, 'type');
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
-        const postOnly = this.safeValue (rawOrder, 'is_post_only');
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const postOnly = this.safeBool (rawOrder, 'is_post_only');
+        const rawTrades = this.safeList (order, 'trades', []);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1402,7 +1402,7 @@ export default class onetrading extends Exchange {
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1479,7 +1479,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1514,7 +1514,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1542,7 +1542,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1569,7 +1569,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1633,7 +1633,7 @@ export default class onetrading extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1759,7 +1759,7 @@ export default class onetrading extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         };
@@ -1778,7 +1778,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1821,7 +1821,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        const tradeHistory = this.safeList (response, 'trade_history', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1841,7 +1841,7 @@ export default class onetrading extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1903,7 +1903,7 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

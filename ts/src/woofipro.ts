@@ -505,7 +505,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -543,7 +543,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -658,7 +658,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.v1PublicGetPublicInfo (params);
         //
         //   {
@@ -709,7 +709,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const result: Dict = {};
         const tokenPromise = this.v1PublicGetPublicToken (params);
         //
@@ -812,7 +812,7 @@ export default class woofipro extends Exchange {
         });
     }
 
-    parseTokenAndFeeTemp (item: any, feeTokenKey: any, feeAmountKey: any) {
+    parseTokenAndFeeTemp (item: Dict, feeTokenKey: string, feeAmountKey: string) {
         const feeCost = this.safeString (item, feeAmountKey);
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {
@@ -903,7 +903,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -977,7 +977,7 @@ export default class woofipro extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval: any) {
+    parseFundingInterval (interval: Str): Str {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -997,7 +997,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
     }
 
@@ -1047,7 +1047,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1132,7 +1132,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1177,7 +1177,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1261,7 +1261,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1298,7 +1298,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1349,7 +1349,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1407,7 +1407,7 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined): object {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1452,7 +1452,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1515,7 +1515,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1576,7 +1576,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1634,7 +1634,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1728,7 +1728,7 @@ export default class woofipro extends Exchange {
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        let status = this.safeValue2 (order, 'status', 'algoStatus');
+        let status = this.safeString2 (order, 'status', 'algoStatus');
         const success = this.safeBool (order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
@@ -1743,14 +1743,14 @@ export default class woofipro extends Exchange {
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         let takeProfitPrice: Num = undefined;
         let stopLossPrice: Num = undefined;
-        const childOrders = this.safeValue (order, 'childOrders');
+        const childOrders = this.safeList (order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue (childOrders, 0);
-            const innerChildOrders = this.safeValue (first, 'childOrders', []);
+            const first = this.safeDict (childOrders, 0);
+            const innerChildOrders = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue (innerChildOrders, 0);
-                const stopLossOrder = this.safeValue (innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict (innerChildOrders, 0);
+                const stopLossOrder = this.safeDict (innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber (takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
             }
@@ -1824,7 +1824,7 @@ export default class woofipro extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1856,8 +1856,8 @@ export default class woofipro extends Exchange {
             'side': orderSide,
         };
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString (params, 'algoType');
@@ -1956,16 +1956,16 @@ export default class woofipro extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList (params, 'childOrders') !== undefined);
         let response: NullableDict = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
@@ -2015,7 +2015,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2029,9 +2029,9 @@ export default class woofipro extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue (orderParams, 'stopLoss');
-            const takeProfit = this.safeValue (orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
+            const stopLoss = this.safeDict (orderParams, 'stopLoss');
+            const takeProfit = this.safeDict (orderParams, 'takeProfit');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList (orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
             }
@@ -2082,7 +2082,7 @@ export default class woofipro extends Exchange {
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2164,7 +2164,7 @@ export default class woofipro extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if ((trigger !== true) && (symbol === undefined)) {
@@ -2244,7 +2244,7 @@ export default class woofipro extends Exchange {
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids:string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2284,7 +2284,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2338,7 +2338,7 @@ export default class woofipro extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2417,7 +2417,7 @@ export default class woofipro extends Exchange {
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2487,7 +2487,7 @@ export default class woofipro extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', response);
+        const data = this.safeDict (response, 'data', response);
         const orders = this.safeList (data, 'rows');
         return this.parseOrders (orders, market, since, limit);
     }
@@ -2509,7 +2509,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2534,7 +2534,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2554,7 +2554,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2605,7 +2605,7 @@ export default class woofipro extends Exchange {
      * @param {int} params.until timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2687,7 +2687,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2790,7 +2790,7 @@ export default class woofipro extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
@@ -2809,7 +2809,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
         const currency = this.safeValue (currencyRows, 0);
         const rows = this.safeList (currencyRows, 1);
@@ -2873,7 +2873,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {
             'side': 'DEPOSIT',
         };
@@ -2891,7 +2891,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {
             'side': 'WITHDRAW',
         };
@@ -2909,7 +2909,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {};
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
@@ -2932,7 +2932,7 @@ export default class woofipro extends Exchange {
         return this.parseTransactions (rowsList, currency, since, limit, params);
     }
 
-    async getWithdrawNonce (params = {}) {
+    async getWithdrawNonce (params: Dict = {}): Promise<Num> {
         const response = await this.v1PrivateGetWithdrawNonce (params);
         //
         //     {
@@ -2951,7 +2951,7 @@ export default class woofipro extends Exchange {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2959,7 +2959,7 @@ export default class woofipro extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: string): string {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2975,7 +2975,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3071,7 +3071,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
+    override async fetchMarginModes (symbols: Strings = undefined, params: Dict = {}): Promise<MarginModes> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3103,7 +3103,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3126,7 +3126,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -3186,7 +3186,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    async modifyMarginHelper (symbol: string, amount: any, type: string, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, type: string, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3219,7 +3219,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
@@ -3233,7 +3233,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'REDUCE', params);
     }
 
@@ -3257,7 +3257,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3304,7 +3304,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3317,7 +3317,7 @@ export default class woofipro extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // {
         //     "IMR_withdraw_orders": 0.1,
@@ -3397,7 +3397,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3445,7 +3445,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3493,11 +3493,11 @@ export default class woofipro extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);

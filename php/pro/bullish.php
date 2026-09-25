@@ -60,7 +60,7 @@ class bullish extends \ccxt\async\bullish {
         return $requestId;
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         $id = (string) $this->request_id();
@@ -73,15 +73,15 @@ class bullish extends \ccxt\async\bullish {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //     {
-        //         "id" => "7",
-        //         "jsonrpc" => "2.0",
-        //         "result" => {
-        //             "responseCodeName" => "OK",
-        //             "responseCode" => "200",
-        //             "message" => "Keep alive pong"
+        //         "id": "7",
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "responseCodeName": "OK",
+        //             "responseCode": "200",
+        //             "message": "Keep alive pong"
         //         }
         //     }
         //
@@ -162,28 +162,28 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "type" => "snapshot",
-        //         "dataType" => "V1TAAnonymousTradeUpdate",
-        //         "data" => {
-        //             "trades" => array(
+        //         "type": "snapshot",
+        //         "dataType": "V1TAAnonymousTradeUpdate",
+        //         "data": {
+        //             "trades": [
         //                 {
-        //                     "tradeId" => "100086000000609304",
-        //                     "isTaker" => true,
-        //                     "price" => "104889.2063",
-        //                     "createdAtTimestamp" => "1749124509118",
-        //                     "quantity" => "0.01000000",
-        //                     "publishedAtTimestamp" => "1749124531466",
-        //                     "side" => "BUY",
-        //                     "createdAtDatetime" => "2025-06-05T11:55:09.118Z",
-        //                     "symbol" => "BTCUSDC"
+        //                     "tradeId": "100086000000609304",
+        //                     "isTaker": true,
+        //                     "price": "104889.2063",
+        //                     "createdAtTimestamp": "1749124509118",
+        //                     "quantity": "0.01000000",
+        //                     "publishedAtTimestamp": "1749124531466",
+        //                     "side": "BUY",
+        //                     "createdAtDatetime": "2025-06-05T11:55:09.118Z",
+        //                     "symbol": "BTCUSDC"
         //                 }
-        //             ),
-        //             "createdAtTimestamp" => "1749124509118",
-        //             "publishedAtTimestamp" => "1749124531466",
-        //             "symbol" => "BTCUSDC"
+        //             ],
+        //             "createdAtTimestamp": "1749124509118",
+        //             "publishedAtTimestamp": "1749124531466",
+        //             "symbol": "BTCUSDC"
         //         }
         //     }
         //
@@ -231,48 +231,48 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($url, $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "type" => "update",
-        //         "dataType" => "V1TATickerResponse",
-        //         "data" => {
-        //             "askVolume" => "0.00100822",
-        //             "average" => "104423.1806",
-        //             "baseVolume" => "472.83799258",
-        //             "bestAsk" => "104324.6000",
-        //             "bestBid" => "104324.5000",
-        //             "bidVolume" => "0.00020146",
-        //             "change" => "-198.4864",
-        //             "close" => "104323.9374",
-        //             "createdAtTimestamp" => "1749132838951",
-        //             "publishedAtTimestamp" => "1749132838955",
-        //             "high" => "105966.6577",
-        //             "last" => "104323.9374",
-        //             "lastTradeDatetime" => "2025-06-05T14:13:56.111Z",
-        //             "lastTradeSize" => "0.02396100",
-        //             "low" => "104246.6662",
-        //             "open" => "104522.4238",
-        //             "percentage" => "-0.19",
-        //             "quoteVolume" => "49662592.6712",
-        //             "symbol" => "BTC-USDC-PERP",
-        //             "type" => "ticker",
-        //             "vwap" => "105030.6996",
-        //             "currentPrice" => "104324.7747",
-        //             "ammData" => array(
+        //         "type": "update",
+        //         "dataType": "V1TATickerResponse",
+        //         "data": {
+        //             "askVolume": "0.00100822",
+        //             "average": "104423.1806",
+        //             "baseVolume": "472.83799258",
+        //             "bestAsk": "104324.6000",
+        //             "bestBid": "104324.5000",
+        //             "bidVolume": "0.00020146",
+        //             "change": "-198.4864",
+        //             "close": "104323.9374",
+        //             "createdAtTimestamp": "1749132838951",
+        //             "publishedAtTimestamp": "1749132838955",
+        //             "high": "105966.6577",
+        //             "last": "104323.9374",
+        //             "lastTradeDatetime": "2025-06-05T14:13:56.111Z",
+        //             "lastTradeSize": "0.02396100",
+        //             "low": "104246.6662",
+        //             "open": "104522.4238",
+        //             "percentage": "-0.19",
+        //             "quoteVolume": "49662592.6712",
+        //             "symbol": "BTC-USDC-PERP",
+        //             "type": "ticker",
+        //             "vwap": "105030.6996",
+        //             "currentPrice": "104324.7747",
+        //             "ammData": [
         //                 {
-        //                     "feeTierId" => "1",
-        //                     "currentPrice" => "104324.7747",
-        //                     "baseReservesQuantity" => "8.27911366",
-        //                     "quoteReservesQuantity" => "1067283.0234",
-        //                     "bidSpreadFee" => "0.00000000",
-        //                     "askSpreadFee" => "0.00000000"
+        //                     "feeTierId": "1",
+        //                     "currentPrice": "104324.7747",
+        //                     "baseReservesQuantity": "8.27911366",
+        //                     "quoteReservesQuantity": "1067283.0234",
+        //                     "bidSpreadFee": "0.00000000",
+        //                     "askSpreadFee": "0.00000000"
         //                 }
-        //             ),
-        //             "createdAtDatetime" => "2025-06-05T14:13:58.951Z",
-        //             "markPrice" => "104289.6884",
-        //             "fundingRate" => "-0.000192",
-        //             "openInterest" => "92.24146651"
+        //             ],
+        //             "createdAtDatetime": "2025-06-05T14:13:58.951Z",
+        //             "markPrice": "104289.6884",
+        //             "fundingRate": "-0.000192",
+        //             "openInterest": "92.24146651"
         //         }
         //     }
         //
@@ -322,25 +322,25 @@ class bullish extends \ccxt\async\bullish {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "type" => "snapshot",
-        //         "dataType" => "V1TALevel2",
-        //         "data" => {
-        //             "timestamp" => "1749372632028",
-        //             "bids" => array(
+        //         "type": "snapshot",
+        //         "dataType": "V1TALevel2",
+        //         "data": {
+        //             "timestamp": "1749372632028",
+        //             "bids": [
         //                 "105523.3000",
         //                 "0.00046045",
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 "105523.4000",
         //                 "0.00117112",
-        //             ),
-        //             "publishedAtTimestamp" => "1749372632073",
-        //             "datetime" => "2025-06-08T08:50:32.028Z",
-        //             "sequenceNumberRange" => array( 1967862061, 1967862062 ),
-        //             "symbol" => "BTCUSDC"
+        //             ],
+        //             "publishedAtTimestamp": "1749372632073",
+        //             "datetime": "2025-06-08T08:50:32.028Z",
+        //             "sequenceNumberRange": [ 1967862061, 1967862062 ],
+        //             "symbol": "BTCUSDC"
         //         }
         //     }
         //
@@ -371,7 +371,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function separate_bids_or_asks(mixed $entry) {
+    public function separate_bids_or_asks(array $entry): array {
         $result = array();
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -428,48 +428,48 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         // snapshot
         //     {
-        //         "type" => "snapshot",
-        //         "tradingAccountId" => "111309424211255",
-        //         "dataType" => "V1TAOrder",
-        //         "data" => array( ... ) // could be an empty list or a list of $orders
+        //         "type": "snapshot",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAOrder",
+        //         "data": [ ... ] // could be an empty list or a list of orders
         //     }
         //
         // update
         //     {
-        //         "type" => "update",
-        //         "tradingAccountId" => "111309424211255",
-        //         "dataType" => "V1TAOrder",
-        //         "data" => {
-        //             "status" => "OPEN",
-        //             "createdAtTimestamp" => "1751893427971",
-        //             "quoteFee" => "0.000000",
-        //             "stopPrice" => null,
-        //             "quantityFilled" => "0.00000000",
-        //             "handle" => null,
-        //             "clientOrderId" => null,
-        //             "quantity" => "0.10000000",
-        //             "margin" => false,
-        //             "side" => "BUY",
-        //             "createdAtDatetime" => "2025-07-07T13:03:47.971Z",
-        //             "isLiquidation" => false,
-        //             "borrowedQuoteQuantity" => null,
-        //             "borrowedBaseQuantity" => null,
-        //             "timeInForce" => "GTC",
-        //             "borrowedQuantity" => null,
-        //             "baseFee" => "0.000000",
-        //             "quoteAmount" => "0.0000000",
-        //             "price" => "0.0000000",
-        //             "statusReason" => "Order accepted",
-        //             "type" => "MKT",
-        //             "statusReasonCode" => 6014,
-        //             "allowBorrow" => false,
-        //             "orderId" => "862317981870850049",
-        //             "publishedAtTimestamp" => "1751893427975",
-        //             "symbol" => "ETHUSDT",
-        //             "averageFillPrice" => null
+        //         "type": "update",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAOrder",
+        //         "data": {
+        //             "status": "OPEN",
+        //             "createdAtTimestamp": "1751893427971",
+        //             "quoteFee": "0.000000",
+        //             "stopPrice": null,
+        //             "quantityFilled": "0.00000000",
+        //             "handle": null,
+        //             "clientOrderId": null,
+        //             "quantity": "0.10000000",
+        //             "margin": false,
+        //             "side": "BUY",
+        //             "createdAtDatetime": "2025-07-07T13:03:47.971Z",
+        //             "isLiquidation": false,
+        //             "borrowedQuoteQuantity": null,
+        //             "borrowedBaseQuantity": null,
+        //             "timeInForce": "GTC",
+        //             "borrowedQuantity": null,
+        //             "baseFee": "0.000000",
+        //             "quoteAmount": "0.0000000",
+        //             "price": "0.0000000",
+        //             "statusReason": "Order accepted",
+        //             "type": "MKT",
+        //             "statusReasonCode": 6014,
+        //             "allowBorrow": false,
+        //             "orderId": "862317981870850049",
+        //             "publishedAtTimestamp": "1751893427975",
+        //             "symbol": "ETHUSDT",
+        //             "averageFillPrice": null
         //         }
         //     }
         //
@@ -479,7 +479,7 @@ class bullish extends \ccxt\async\bullish {
             $data = $this->safe_dict($message, 'data', array());
             $rawOrders[] = $data; // update is a single order
         } else {
-            $rawOrders = $this->safe_list($message, 'data', array()); // snapshot is a list of $orders
+            $rawOrders = $this->safe_list($message, 'data', array()); // snapshot is a list of orders
         }
         $numRawOrders = count($rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if ($numRawOrders > 0) {
@@ -550,41 +550,41 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // snapshot
         //     {
-        //         "type" => "snapshot",
-        //         "tradingAccountId" => "111309424211255",
-        //         "dataType" => "V1TATrade",
-        //         "data" => array( ... ) // could be an empty list or a list of $trades
+        //         "type": "snapshot",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TATrade",
+        //         "data": [ ... ] // could be an empty list or a list of trades
         //     }
         //
         // update
         //     {
-        //         "type" => "update",
-        //         "tradingAccountId" => "111309424211255",
-        //         "dataType" => "V1TATrade",
-        //         "data" => {
-        //             "clientOtcTradeId" => null,
-        //             "tradeId" => "100203000003940164",
-        //             "baseFee" => "0.00000000",
-        //             "isTaker" => true,
-        //             "quoteAmount" => "253.6012195",
-        //             "price" => "2536.0121950",
-        //             "createdAtTimestamp" => "1751914859840",
-        //             "quoteFee" => "0.0000000",
-        //             "tradeRebateAmount" => null,
-        //             "tradeRebateAssetSymbol" => null,
-        //             "handle" => null,
-        //             "otcTradeId" => null,
-        //             "otcMatchId" => null,
-        //             "orderId" => "862407873644725249",
-        //             "quantity" => "0.10000000",
-        //             "publishedAtTimestamp" => "1751914859843",
-        //             "side" => "SELL",
-        //             "createdAtDatetime" => "2025-07-07T19:00:59.840Z",
-        //             "symbol" => "ETHUSDT"
+        //         "type": "update",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TATrade",
+        //         "data": {
+        //             "clientOtcTradeId": null,
+        //             "tradeId": "100203000003940164",
+        //             "baseFee": "0.00000000",
+        //             "isTaker": true,
+        //             "quoteAmount": "253.6012195",
+        //             "price": "2536.0121950",
+        //             "createdAtTimestamp": "1751914859840",
+        //             "quoteFee": "0.0000000",
+        //             "tradeRebateAmount": null,
+        //             "tradeRebateAssetSymbol": null,
+        //             "handle": null,
+        //             "otcTradeId": null,
+        //             "otcMatchId": null,
+        //             "orderId": "862407873644725249",
+        //             "quantity": "0.10000000",
+        //             "publishedAtTimestamp": "1751914859843",
+        //             "side": "SELL",
+        //             "createdAtDatetime": "2025-07-07T19:00:59.840Z",
+        //             "symbol": "ETHUSDT"
         //         }
         //     }
         //
@@ -594,7 +594,7 @@ class bullish extends \ccxt\async\bullish {
             $data = $this->safe_dict($message, 'data', array());
             $rawTrades[] = $data; // update is a single trade
         } else {
-            $rawTrades = $this->safe_list($message, 'data', array()); // snapshot is a list of $trades
+            $rawTrades = $this->safe_list($message, 'data', array()); // snapshot is a list of trades
         }
         $numRawTrades = count($rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if ($numRawTrades > 0) {
@@ -654,45 +654,45 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch_private($messageHash, $messageHash, $request, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // snapshot
         //     {
-        //         "type" => "snapshot",
-        //         "tradingAccountId" => "111309424211255",
-        //         "dataType" => "V1TAAssetAccount",
-        //         "data" => array(
+        //         "type": "snapshot",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAAssetAccount",
+        //         "data": [
         //             {
-        //                 "updatedAtTimestamp" => "1751989627509",
-        //                 "borrowedQuantity" => "0.0000",
-        //                 "tradingAccountId" => "111309424211255",
-        //                 "loanedQuantity" => "0.0000",
-        //                 "lockedQuantity" => "0.0000",
-        //                 "assetId" => "5",
-        //                 "assetSymbol" => "USDC",
-        //                 "publishedAtTimestamp" => "1751989627512",
-        //                 "availableQuantity" => "999672939.8767",
-        //                 "updatedAtDatetime" => "2025-07-08T15:47:07.509Z"
+        //                 "updatedAtTimestamp": "1751989627509",
+        //                 "borrowedQuantity": "0.0000",
+        //                 "tradingAccountId": "111309424211255",
+        //                 "loanedQuantity": "0.0000",
+        //                 "lockedQuantity": "0.0000",
+        //                 "assetId": "5",
+        //                 "assetSymbol": "USDC",
+        //                 "publishedAtTimestamp": "1751989627512",
+        //                 "availableQuantity": "999672939.8767",
+        //                 "updatedAtDatetime": "2025-07-08T15:47:07.509Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         // update
         //     {
-        //         "type" => "update",
-        //         "tradingAccountId" => "111309424211255",
-        //         "dataType" => "V1TAAssetAccount",
-        //         "data" => {
-        //             "updatedAtTimestamp" => "1751989627509",
-        //             "borrowedQuantity" => "0.0000",
-        //             "tradingAccountId" => "111309424211255",
-        //             "loanedQuantity" => "0.0000",
-        //             "lockedQuantity" => "0.0000",
-        //             "assetId" => "5",
-        //             "assetSymbol" => "USDC",
-        //             "publishedAtTimestamp" => "1751989627512",
-        //             "availableQuantity" => "999672939.8767",
-        //             "updatedAtDatetime" => "2025-07-08T15:47:07.509Z"
+        //         "type": "update",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAAssetAccount",
+        //         "data": {
+        //             "updatedAtTimestamp": "1751989627509",
+        //             "borrowedQuantity": "0.0000",
+        //             "tradingAccountId": "111309424211255",
+        //             "loanedQuantity": "0.0000",
+        //             "lockedQuantity": "0.0000",
+        //             "assetId": "5",
+        //             "assetSymbol": "USDC",
+        //             "publishedAtTimestamp": "1751989627512",
+        //             "availableQuantity": "999672939.8767",
+        //             "updatedAtDatetime": "2025-07-08T15:47:07.509Z"
         //         }
         //     }
         //
@@ -706,7 +706,13 @@ class bullish extends \ccxt\async\bullish {
         $messageType = $this->safe_string($message, 'type');
         if ($messageType === 'snapshot') {
             $data = $this->safe_list($message, 'data', array());
-            $this->balance[$tradingAccountId] = $this->parse_balance($data);
+            $parsed = $this->parse_balance($data);
+            $parsedKeys = is_array($parsed) ? array_keys($parsed) : array();
+            for ($i = 0; $i < count($parsedKeys); $i++) {
+                $parsedKey = $parsedKeys[$i];
+                $this->balance[$tradingAccountId][$parsedKey] = $parsed[$parsedKey];
+            }
+            $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
         } else {
             $data = $this->safe_dict($message, 'data', array());
             $assetId = $this->safe_string($data, 'assetSymbol');
@@ -761,10 +767,10 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_symbols_since_limit($positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
-        // todo => check if this works with not-sandbox mode
+        // todo: check if this works with not-sandbox mode
         $messageType = $this->safe_string($message, 'type');
         $rawPositions = array();
         if ($messageType === 'update') {
@@ -798,16 +804,16 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($positions, 'positions');
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //     {
-        //         "data" => array(
-        //             "errorCode" => 401,
-        //             "errorCodeName" => "UNAUTHORIZED",
-        //             "message" => "Unable to authenticate; JWT is missing/invalid or unauthorised to access account"
-        //         ),
-        //         "dataType" => "V1TAErrorResponse",
-        //         "type" => "error"
+        //         "data": {
+        //             "errorCode": 401,
+        //             "errorCodeName": "UNAUTHORIZED",
+        //             "message": "Unable to authenticate; JWT is missing/invalid or unauthorised to access account"
+        //         },
+        //         "dataType": "V1TAErrorResponse",
+        //         "type": "error"
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -817,7 +823,7 @@ class bullish extends \ccxt\async\bullish {
             $errorCodeName = $this->safe_string($data, 'errorCodeName');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCodeName, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         } catch (Exception $e) {
             $client->reject($e);
         }
