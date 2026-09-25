@@ -1163,7 +1163,7 @@ func (this *Gemini) ParseMarket(response any) any {
 			for i := 0; i < GetArrayLength(quoteCurrencies); i++ {
 				var quoteCurrency any = GetValue(quoteCurrencies, i)
 				if EndsWith(marketIdWithoutPerp, quoteCurrency) {
-					var quoteLength int64 = this.ParseToInt(Multiply(OpNeg(1), GetArrayLength(quoteCurrency)))
+					var quoteLength int64 = this.ParseToInt(Multiply(-1, GetArrayLength(quoteCurrency)))
 					baseId = Slice(marketIdWithoutPerp, 0, quoteLength)
 					quoteId = quoteCurrency
 					if isPerp {

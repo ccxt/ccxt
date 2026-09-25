@@ -813,7 +813,7 @@ func (this *Lighter) HashMessage(message any) any {
 }
 func (this *Lighter) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -1640,7 +1640,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return typeVar
 		}()
 		var baseId any = DerefScalar(this.SafeString(market, "symbol"))
-		if !IsEqual(baseId, nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
+		if !IsEqual(baseId, nil) && (GetIndexOf(baseId, "/") != -1) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
 		var quoteId string = "USDC"

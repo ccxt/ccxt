@@ -9643,7 +9643,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				var options any = this.SafeDict(this.Options, "broker", map[string]any{})
 				var id *string = this.SafeString(options, "id", "AA03022abc")
 				if !isArrayParams {
-					if (GetIndexOf(pathString, "cancel") == OpNeg(1)) && EndsWith(pathString, "order") {
+					if (GetIndexOf(pathString, "cancel") == -1) && EndsWith(pathString, "order") {
 						// swap order placement
 						var channelCode *string = this.SafeString(params, "channel_code")
 						if channelCode == nil {

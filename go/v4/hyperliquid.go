@@ -1735,7 +1735,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		if limit != nil {
 			// optimization if limit is provided
 			var timeframeInMilliseconds any = Multiply(this.ParseTimeframe(timeframe), 1000)
-			since = this.Sum(until, Multiply(Multiply(timeframeInMilliseconds, limit), OpNeg(1)))
+			since = this.Sum(until, Multiply(Multiply(timeframeInMilliseconds, limit), -1))
 			if IsLessThan(since, 0) {
 				since = 0
 			}
@@ -1924,7 +1924,7 @@ func (this *Hyperliquid) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
 func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	return map[string]any{
 		"r": Add("0x", signature["r"]),
 		"s": Add("0x", signature["s"]),
@@ -1932,7 +1932,7 @@ func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
 	}
 }
 func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), Slice(privateKey, -64, nil))
 }
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
 	isTestnet := GetArg(optionalArgs, 0, true)

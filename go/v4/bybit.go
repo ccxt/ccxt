@@ -3704,7 +3704,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			var symbol any = GetValue(symbols, i)
 			// using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
 			// infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-			var isExchangeSpecificSymbol bool = (GetIndexOf(symbol, "/") == OpNeg(1))
+			var isExchangeSpecificSymbol bool = (GetIndexOf(symbol, "/") == -1)
 			if isExchangeSpecificSymbol {
 				market = this.SafeMarket(symbol, nil, nil, defaultType)
 			} else {

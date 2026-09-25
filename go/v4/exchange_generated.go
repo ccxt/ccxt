@@ -1859,7 +1859,7 @@ func (this *BaseExchange) AfterConstruct() {
 	}
 }
 func (this *BaseExchange) InitRestRateLimiter() {
-	if IsEqual(this.RateLimit, nil) || (!IsEqual(this.Id, nil) && (this.RateLimit == OpNeg(1))) {
+	if IsEqual(this.RateLimit, nil) || (!IsEqual(this.Id, nil) && (this.RateLimit == -1)) {
 		panic(ExchangeError(this.Id + ".rateLimit property is not configured"))
 	}
 	var refillRate any = this.MAX_VALUE
@@ -5037,7 +5037,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if (skipZeroPrices != nil && *skipZeroPrices == true) && !(IsGreaterThan(price, 0)) && !(IsLessThan(price, 0)) {
 			continue
 		}
-		var isFirstCandle bool = (candle == OpNeg(1))
+		var isFirstCandle bool = (candle == -1)
 		if isFirstCandle || IsGreaterThanOrEqual(openingTime, this.Sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms)) {
 			// moved to a new timeframe -> create a new candle from opening trade
 			ohlcvs = append(ohlcvs, []any{openingTime, price, price, price, price, GetValue(trade, "amount"), 1})
@@ -6627,7 +6627,7 @@ func (this *BaseExchange) ParsePrecision(precision any) any {
 		return Add(parsedPrecision, "1")
 	} else {
 		var parsedPrecision any = "1"
-		for i := 0; IsLessThan(i, Subtract(Multiply(precisionNumber, OpNeg(1)), 1)); i++ {
+		for i := 0; IsLessThan(i, Subtract(Multiply(precisionNumber, -1), 1)); i++ {
 			parsedPrecision = Add(parsedPrecision, "0")
 		}
 		return Add(parsedPrecision, "0")
