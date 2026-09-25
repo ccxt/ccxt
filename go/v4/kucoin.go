@@ -4820,7 +4820,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	if timestamp == nil {
 		var nanoseconds *int64 = this.SafeInteger(data, "ts")
 		if nanoseconds != nil {
-			timestamp = this.ParseToInt(Divide(nanoseconds, 1000000))
+			timestamp = this.ParseToInt(float64(*nanoseconds) / 1000000)
 		}
 	}
 	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", Subtract(level, 2), Subtract(level, 1))
@@ -9612,7 +9612,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if (since != nil) && IsLessThan(since, 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
-		request["startAt"] = this.ParseToInt(Divide(since, 1000))
+		request["startAt"] = this.ParseToInt(float64(*since) / 1000)
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetHistDeposits(this.Extend(request, paramsRequest))).Raw))
 	} else {
@@ -9819,7 +9819,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if (since != nil) && IsLessThan(since, 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
-		request["startAt"] = this.ParseToInt(Divide(since, 1000))
+		request["startAt"] = this.ParseToInt(float64(*since) / 1000)
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetHistWithdrawals(this.Extend(request, paramsRequest))).Raw))
 	} else {

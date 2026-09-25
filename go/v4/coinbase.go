@@ -4911,14 +4911,14 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	var requestedDuration any = Multiply(limitValue, duration)
 	var sinceString *string = nil
 	if since != nil {
-		sinceString = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
+		sinceString = this.NumberToString(this.ParseToInt(float64(*since) / 1000))
 	} else {
 		var now string = strconv.FormatInt(this.Seconds(), 10)
 		sinceString = Precise.StringSub(now, ToString(requestedDuration))
 	}
 	request["start"] = sinceString
 	if until != nil {
-		request["end"] = this.NumberToString(this.ParseToInt(Divide(until, 1000)))
+		request["end"] = this.NumberToString(this.ParseToInt(float64(*until) / 1000))
 	} else {
 		// 300 candles max
 		request["end"] = Precise.StringAdd(sinceString, ToString(requestedDuration))
@@ -5005,7 +5005,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"product_id": market["id"],
 	}
 	if since != nil {
-		request["start"] = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
+		request["start"] = this.NumberToString(this.ParseToInt(float64(*since) / 1000))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)

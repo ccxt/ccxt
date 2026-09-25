@@ -1849,7 +1849,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var startS any = nil
 	var endS any = nowS
 	if since != nil {
-		startS = this.ParseToInt(ccxt.Divide(since, 1000))
+		startS = this.ParseToInt(float64(*since) / 1000)
 		if limit != nil {
 			var endBound any = this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60))
 			endS = func() any {

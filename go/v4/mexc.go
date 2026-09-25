@@ -2400,7 +2400,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 			request["start"] = this.ParseToInt(Divide(since, 1000))
 		}
 		if until != nil {
-			request["end"] = this.ParseToInt(Divide(until, 1000))
+			request["end"] = this.ParseToInt(float64(*until) / 1000)
 			if since == nil {
 				request["start"] = this.ParseToInt(Divide(start, 1000))
 			}

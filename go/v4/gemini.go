@@ -2370,7 +2370,7 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit_trades"] = limit
 	}
 	if since != nil {
-		request["timestamp"] = this.ParseToInt(Divide(since, 1000))
+		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Mytrades(this.Extend(request, params))).Raw))

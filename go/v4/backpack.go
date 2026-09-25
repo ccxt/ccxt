@@ -1168,7 +1168,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	if microseconds == nil {
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microseconds"))
 	}
-	var timestamp int64 = this.ParseToInt(Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(float64(*microseconds) / 1000)
 	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
 
@@ -1242,7 +1242,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		var startTime any = Subtract(endTime, (Multiply(windowLimit, duration)))
 		request["startTime"] = startTime
 	} else {
-		request["startTime"] = this.ParseToInt(Divide(since, 1000)) // convert milliseconds to seconds
+		request["startTime"] = this.ParseToInt(float64(*since) / 1000) // convert milliseconds to seconds
 	}
 	var price *string = this.SafeString(paramsUntil, "price")
 	var paramsOmitted any = func() any {

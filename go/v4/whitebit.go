@@ -2491,7 +2491,7 @@ func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		return limit
 	}()
 	if since != nil {
-		var start int64 = this.ParseToInt(Divide(since, 1000))
+		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start"] = start
 	}
 	if !IsEqual(limitResolved, nil) {
@@ -3610,7 +3610,7 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["startDate"] = this.ParseToInt(Divide(since, 1000))
+		request["startDate"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var limitResolved any = limit
 	if (limit == nil) || (limit != nil && *limit > 100) {
@@ -3683,7 +3683,7 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["startDate"] = this.ParseToInt(Divide(since, 1000))
+		request["startDate"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var limitResolved any = limit
 	if (limit == nil) || (limit != nil && *limit > 100) {
@@ -5024,7 +5024,7 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 		request["fromTicker"] = code
 	}
 	if since != nil {
-		var start int64 = this.ParseToInt(Divide(since, 1000))
+		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = this.NumberToString(start)
 	}
 	if limit != nil {
@@ -5441,7 +5441,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		"market": market["id"],
 	}
 	if since != nil {
-		request["startDate"] = MathRound(Divide(since, 1000))
+		request["startDate"] = MathRound(float64(*since) / 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
 	if limit != nil {

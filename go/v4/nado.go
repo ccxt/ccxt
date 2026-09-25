@@ -2827,7 +2827,7 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		AddElementToObject(request["candlesticks"], "limit", mathMin(limit, 500))
 	}
 	if until != nil {
-		AddElementToObject(request["candlesticks"], "max_time", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request["candlesticks"], "max_time", this.ParseToInt(float64(*until)/1000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ArchivePost(this.DeepExtend(request, paramsOmitted))).Raw))

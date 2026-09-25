@@ -1671,7 +1671,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...
 	var now int64 = this.Seconds()
 	var tf int64 = this.ParseTimeframe(timeframe)
 	if since != nil {
-		var sinceS int64 = this.ParseToInt(ccxt.Divide(since, 1000))
+		var sinceS int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start_ts"] = sinceS
 		if limit != nil {
 			var end any = this.Sum(sinceS, ccxt.Multiply(limit, tf))

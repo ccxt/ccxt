@@ -393,7 +393,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var now int64 = this.Seconds()
 	var startTime any = nil
 	if since != nil {
-		startTime = this.ParseToInt(Divide(since, 1000))
+		startTime = this.ParseToInt(float64(*since) / 1000)
 	} else {
 		startTime = Subtract(now, Multiply(duration, requestLimit))
 	}
@@ -404,7 +404,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
 	if until != nil {
-		endTime = this.ParseToInt(Divide(until, 1000))
+		endTime = this.ParseToInt(float64(*until) / 1000)
 	} else if IsGreaterThan(endTime, now) {
 		endTime = now
 	}

@@ -3617,7 +3617,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 	var now int64 = this.Seconds()
 	var start any = func() any {
 		if since != nil {
-			return this.ParseToInt(Divide(since, 1000))
+			return this.ParseToInt(float64(*since) / 1000)
 		}
 		return Subtract(now, 10*year)
 	}()

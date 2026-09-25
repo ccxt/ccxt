@@ -1160,7 +1160,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params))).Raw))
@@ -1212,7 +1212,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params))).Raw))

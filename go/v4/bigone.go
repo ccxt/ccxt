@@ -1150,7 +1150,7 @@ func (this *Bigone) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
 
-	ch <- this.ParseToInt(Divide(timestamp, 1000000))
+	ch <- this.ParseToInt(float64(*timestamp) / 1000000)
 	return nil
 }
 

@@ -988,7 +988,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	}
 	if since != nil {
 		// the endpoint accepts timestamps in seconds
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
@@ -1855,7 +1855,7 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// interval: a caller annualising a rate divides by it. anything under an
 	// hour rounds to the same string, and the vocabulary has no minutes
 	if (fundingIntervalMinutes != nil) && (*fundingIntervalMinutes >= 60) {
-		var hours int64 = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
+		var hours int64 = this.ParseToInt(float64(*fundingIntervalMinutes) / 60)
 		interval = SafeStringPtr(strconv.FormatInt(hours, 10) + "h")
 	}
 	return map[string]any{

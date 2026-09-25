@@ -943,7 +943,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["currency_pair"] = market["id"]
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["count"] = mathMin(limit, 1000)

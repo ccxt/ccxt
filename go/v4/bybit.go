@@ -4009,7 +4009,7 @@ func (this *Bybit) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	var fundingInterval *int64 = this.SafeInteger(info, "fundingInterval")
 	var intervalString *string = nil
 	if fundingInterval != nil {
-		var interval int64 = this.ParseToInt(Divide(fundingInterval, 60))
+		var interval int64 = this.ParseToInt(float64(*fundingInterval) / 60)
 		intervalString = SafeStringPtr(strconv.FormatInt(interval, 10) + "h")
 	}
 	return map[string]any{

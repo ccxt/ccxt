@@ -4729,7 +4729,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsRequest, "until"))
 	if since != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
-		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 		var distance any = Multiply((Subtract(limitValue, 1)), duration)
 		var toTimestamp any = this.Sum(GetValue(request, "from"), distance)
 		var currentTimestamp int64 = this.Seconds()
@@ -4861,11 +4861,11 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(request, "limit", limit)
 	}
 	if since != nil {
-		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 	}
 	var until *int64 = this.SafeInteger(paramsRequest, "until")
 	if until != nil {
-		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleFundingRate(this.Extend(request, this.Omit(paramsRequest, "until")))).Raw))
@@ -4995,13 +4995,13 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	var until *int64 = this.SafeInteger2(paramsPaginate, "to", "until")
 	if until != nil {
-		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 	}
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // default 100, max 1000
 	}
 	if (since != nil) && (market["contract"] == true) {
-		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 	}
 	var response []any = nil
 	if (market["type"] == "spot") || (market["type"] == "margin") {
@@ -5222,10 +5222,10 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "limit", limit) // default 100, max 1000
 	}
 	if since != nil {
-		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 	}
 	if until != nil {
-		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 	}
 	var response any = nil
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
@@ -5546,7 +5546,7 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	if since != nil {
-		var start int64 = this.ParseToInt(Divide(since, 1000))
+		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = start
 		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
@@ -5608,7 +5608,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	if since != nil {
-		var start int64 = this.ParseToInt(Divide(since, 1000))
+		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = start
 		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
@@ -7183,10 +7183,10 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = MapTyped(GetValue(requestparamsRequestVariable, 0))
 	var paramsRequest map[string]any = MapTyped(GetValue(requestparamsRequestVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 	}
 	if until != nil {
-		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 	}
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
@@ -7239,12 +7239,12 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	}
 	if spot {
 		if since != nil {
-			AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+			AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 		}
 		var until *int64 = this.SafeInteger(query, "until")
 		if until != nil {
 			query = this.Omit(query, "until")
-			AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
+			AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 		}
 	}
 	var lastIdfinalParamsVariable []any = this.HandleParamString2(query, "lastId", "last_id")
@@ -9511,7 +9511,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol string, optio
 		request["limit"] = limit
 	}
 	if since != nil {
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))).Raw))
@@ -11021,10 +11021,10 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 		AddElementToObject(request, "limit", limit)
 	}
 	if since != nil {
-		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
 	}
 	if until != nil {
-		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 	}
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {

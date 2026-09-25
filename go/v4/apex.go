@@ -1032,7 +1032,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	request["limit"] = limitResolved
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params, 0.001)
 	if since != nil {
-		AddElementToObject(requestUntil, "start", MathFloor(Divide(since, 1000)))
+		AddElementToObject(requestUntil, "start", MathFloor(float64(*since)/1000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Klines(this.Extend(requestUntil, paramsUntil))).Raw))

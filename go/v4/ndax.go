@@ -2223,7 +2223,7 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["InstrumentId"] = market["id"]
 	}
 	if since != nil {
-		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
+		request["StartTimeStamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["Depth"] = limit
@@ -2542,7 +2542,7 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["InstrumentId"] = market["id"]
 	}
 	if since != nil {
-		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
+		request["StartTimeStamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["Depth"] = limit
