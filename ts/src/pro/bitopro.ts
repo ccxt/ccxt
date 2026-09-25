@@ -117,10 +117,6 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
-        if (event === undefined) {
-            return;
-        }
-        const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
@@ -128,7 +124,10 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
         orderbook.reset (snapshot);
-        client.resolve (orderbook, messageHash);
+        if (event !== undefined) {
+            const messageHash = event + ':' + symbol;
+            client.resolve (orderbook, messageHash);
+        }
     }
 
     /**
@@ -181,10 +180,6 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
-        if (event === undefined) {
-            return;
-        }
-        const messageHash = event + ':' + symbol;
         const rawData = this.safeList (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
         let tradesCache = this.safeValue (this.trades, symbol);
@@ -196,7 +191,10 @@ export default class bitopro extends bitoproRest {
             tradesCache.append (trades[i]);
         }
         this.trades[symbol] = tradesCache;
-        client.resolve (tradesCache, messageHash);
+        if (event !== undefined) {
+            const messageHash = event + ':' + symbol;
+            client.resolve (tradesCache, messageHash);
+        }
     }
 
     /**
@@ -276,10 +274,9 @@ export default class bitopro extends bitoproRest {
         const parsed = this.parseWsTrade (data);
         trades.append (parsed);
         client.resolve (trades, messageHash);
-        if (messageHash === undefined) {
-            return;
+        if (messageHash !== undefined) {
+            client.resolve (trades, messageHash + ':' + symbol);
         }
-        client.resolve (trades, messageHash + ':' + symbol);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -406,17 +403,16 @@ export default class bitopro extends bitoproRest {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
-        if (event === undefined) {
-            return;
-        }
-        const messageHash = event + ':' + symbol;
         const result = this.parseTicker (message, market);
         result['symbol'] = this.safeString (market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         const timestamp = this.safeInteger (message, 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+        if (event !== undefined) {
+            const messageHash = event + ':' + symbol;
+            client.resolve (result, messageHash);
+        }
     }
 
     authenticate (url: string) {

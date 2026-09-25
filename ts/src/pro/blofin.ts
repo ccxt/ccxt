@@ -137,9 +137,6 @@ export default class blofin extends blofinRest {
         //
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        if (channelName === undefined) {
-            return;
-        }
         const data = this.safeList (message, 'data') as List;
         if (data === undefined) {
             return;
@@ -155,8 +152,10 @@ export default class blofin extends blofinRest {
                 this.trades[symbol as IndexType] = stored;
             }
             stored.append (trade);
-            const messageHash = channelName + ':' + symbol;
-            client.resolve (stored, messageHash);
+            if (channelName !== undefined) {
+                const messageHash = channelName + ':' + symbol;
+                client.resolve (stored, messageHash);
+            }
         }
     }
 
@@ -227,10 +226,6 @@ export default class blofin extends blofinRest {
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        if (channelName === undefined) {
-            return;
-        }
-        const messageHash = channelName + ':' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
@@ -250,7 +245,10 @@ export default class blofin extends blofinRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
         this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
+        if (channelName !== undefined) {
+            const messageHash = channelName + ':' + symbol;
+            client.resolve (orderbook, messageHash);
+        }
     }
 
     /**
@@ -309,16 +307,15 @@ export default class blofin extends blofinRest {
         this.handleBidAsk (client, message);
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        if (channelName === undefined) {
-            return;
-        }
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsTicker (data[i]);
             const symbol = ticker['symbol'];
-            const messageHash = channelName + ':' + symbol;
             this.tickers[(symbol as string)] = ticker;
-            client.resolve (this.tickers[(symbol as string)], messageHash);
+            if (channelName !== undefined) {
+                const messageHash = channelName + ':' + symbol;
+                client.resolve (this.tickers[(symbol as string)], messageHash);
+            }
         }
     }
 
@@ -595,16 +592,15 @@ export default class blofin extends blofinRest {
         const orders = this.orders;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        if (channelName === undefined) {
-            return;
-        }
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const order = this.parseWsOrder (data[i]);
             const symbol = order['symbol'];
-            const messageHash = channelName + ':' + symbol;
             orders.append (order);
-            client.resolve (orders, messageHash);
+            if (channelName !== undefined) {
+                const messageHash = channelName + ':' + symbol;
+                client.resolve (orders, messageHash);
+            }
             client.resolve (orders, channelName);
         }
     }
@@ -651,17 +647,16 @@ export default class blofin extends blofinRest {
         const cache: ArrayCacheBySymbolBySide = this.positions;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        if (channelName === undefined) {
-            return;
-        }
         const data = this.safeList (message, 'data') as List;
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const position = this.parseWsPosition (data[i]);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = channelName + ':' + position['symbol'];
-            client.resolve (position, messageHash);
+            if (channelName !== undefined) {
+                const messageHash = channelName + ':' + position['symbol'];
+                client.resolve (position, messageHash);
+            }
         }
     }
 

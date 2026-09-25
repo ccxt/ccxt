@@ -741,11 +741,10 @@ export default class xt extends xtRest {
             const symbol = fundingRate['symbol'];
             this.fundingRates[(symbol as string)] = fundingRate;
             const event = this.safeString (message, 'event');
-            if (event === undefined) {
-                return message;
+            if (event !== undefined) {
+                const messageHash = event + '::contract';
+                client.resolve (fundingRate, messageHash);
             }
-            const messageHash = event + '::contract';
-            client.resolve (fundingRate, messageHash);
         }
         return message;
     }
@@ -911,11 +910,10 @@ export default class xt extends xtRest {
             if (isSpot) {
                 messageHashTail = 'spot';
             }
-            if (event === undefined) {
-                return message;
+            if (event !== undefined) {
+                const messageHash = event + '::' + messageHashTail;
+                client.resolve (ticker, messageHash);
             }
-            const messageHash = event + '::' + messageHashTail;
-            client.resolve (ticker, messageHash);
         }
         return message;
     }
@@ -1081,11 +1079,10 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
-            if (event === undefined) {
-                return message;
+            if (event !== undefined) {
+                const messageHash = event + '::' + tradeType;
+                client.resolve (stored, messageHash);
             }
-            const messageHash = event + '::' + tradeType;
-            client.resolve (stored, messageHash);
         }
         return message;
     }
@@ -1140,11 +1137,10 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
-            if (event === undefined) {
-                return message;
+            if (event !== undefined) {
+                const messageHash = event + '::' + tradeType;
+                client.resolve (tradesArray, messageHash);
             }
-            const messageHash = event + '::' + tradeType;
-            client.resolve (tradesArray, messageHash);
         }
         return message;
     }

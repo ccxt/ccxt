@@ -819,9 +819,6 @@ export default class extended extends extendedRest {
         }
         const symbol = this.safeString (subscription, 'symbol');
         const timeframe = this.safeString (subscription, 'timeframe');
-        if (timeframe === undefined) {
-            return;
-        }
         const candleType = this.safeString (subscription, 'candleType');
         let cacheKey: Str = undefined;
         if (candleType === 'trades') {

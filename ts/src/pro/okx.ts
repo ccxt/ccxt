@@ -344,23 +344,22 @@ export default class okx extends okxRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        if (channel === undefined) {
-            return;
-        }
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
         const data: Dict[] = this.safeList (message, 'data', []);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
-            const messageHash = channel + ':' + symbol;
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache (tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
-            client.resolve (stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + symbol;
+                client.resolve (stored, messageHash);
+            }
         }
     }
 
@@ -635,11 +634,10 @@ export default class okx extends okxRest {
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
         }
-        if (channel === undefined) {
-            return;
+        if (channel !== undefined) {
+            const messageHash = channel + '::' + symbol;
+            client.resolve (newTickers, messageHash);
         }
-        const messageHash = channel + '::' + symbol;
-        client.resolve (newTickers, messageHash);
     }
 
     /**
@@ -1561,9 +1559,6 @@ export default class okx extends okxRest {
             'books50-l2-tbt': 50,
         };
         const limit = this.safeInteger (depths, channel);
-        if (channel === undefined) {
-            return message;
-        }
         const messageHash = channel + ':' + symbol;
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
@@ -2121,9 +2116,6 @@ export default class okx extends okxRest {
         this.handleMyTrades (client, message);
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        if (channel === undefined) {
-            return;
-        }
         const orders = this.safeList (message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
@@ -2144,8 +2136,10 @@ export default class okx extends okxRest {
             }
             client.resolve (stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
-                const messageHash = channel + ':' + marketIds[i];
-                client.resolve (stored, messageHash);
+                if (channel !== undefined) {
+                    const messageHash = channel + ':' + marketIds[i];
+                    client.resolve (stored, messageHash);
+                }
             }
         }
     }
@@ -2237,15 +2231,14 @@ export default class okx extends okxRest {
                 symbols[symbol] = true;
             }
         }
-        if (channel === undefined) {
-            return;
-        }
-        const messageHash = channel + '::myTrades';
-        client.resolve (this.myTrades, messageHash);
-        const tradeSymbols = Object.keys (symbols);
-        for (let i = 0; i < tradeSymbols.length; i++) {
-            const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-            client.resolve (this.myTrades, symbolMessageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '::myTrades';
+            client.resolve (this.myTrades, messageHash);
+            const tradeSymbols = Object.keys (symbols);
+            for (let i = 0; i < tradeSymbols.length; i++) {
+                const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
+                client.resolve (this.myTrades, symbolMessageHash);
+            }
         }
     }
 

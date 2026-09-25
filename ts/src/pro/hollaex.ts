@@ -120,11 +120,10 @@ export default class hollaex extends hollaexRest {
             }
             orderbook.reset (snapshot);
         }
-        if (channel === undefined) {
-            return;
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve (orderbook, messageHash);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orderbook, messageHash);
     }
 
     /**
@@ -184,11 +183,10 @@ export default class hollaex extends hollaexRest {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
-        if (channel === undefined) {
-            return;
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve (stored, messageHash);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve (stored, messageHash);
         client.resolve (stored, channel);
     }
 
@@ -273,14 +271,13 @@ export default class hollaex extends hollaexRest {
         }
         // non-symbol specific
         client.resolve (this.myTrades, channel);
-        if (channel === undefined) {
-            return;
-        }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve (this.myTrades, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketId;
+                client.resolve (this.myTrades, messageHash);
+            }
         }
     }
 
@@ -405,14 +402,13 @@ export default class hollaex extends hollaexRest {
         }
         // non-symbol specific
         client.resolve (this.orders, channel);
-        if (channel === undefined) {
-            return;
-        }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve (this.orders, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketId;
+                client.resolve (this.orders, messageHash);
+            }
         }
     }
 
