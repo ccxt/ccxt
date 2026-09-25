@@ -2949,7 +2949,7 @@ public partial class cryptocom : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, cancelOrder

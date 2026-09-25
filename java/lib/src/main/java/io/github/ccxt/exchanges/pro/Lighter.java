@@ -1803,11 +1803,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String requestId = this.requestId(url);
             String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfoordermarketVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfoordermarketVariable).get(1);
-            var order = ((List<Object>) txTypetxInfoordermarketVariable).get(2);
-            var market = ((List<Object>) txTypetxInfoordermarketVariable).get(3);
+            var txTypetxInfoorderVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
+            var txType = ((List<Object>) txTypetxInfoorderVariable).get(0);
+            var txInfo = ((List<Object>) txTypetxInfoorderVariable).get(1);
+            var order = ((List<Object>) txTypetxInfoorderVariable).get(2);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object parsedTx = this.parseJson(txInfo);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "type", "jsonapi/sendtx" );
@@ -1871,10 +1871,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String requestId = this.requestId(url);
             String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfomarketVariable = (this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfomarketVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfomarketVariable).get(1);
-            var market = ((List<Object>) txTypetxInfomarketVariable).get(2);
+            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters)).join();
+            var txType = ((List<Object>) txTypetxInfoVariable).get(0);
+            var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object parsedTx = this.parseJson(txInfo);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "type", "jsonapi/sendtx" );

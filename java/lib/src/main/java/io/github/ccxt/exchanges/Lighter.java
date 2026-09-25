@@ -1286,7 +1286,6 @@ public class Lighter extends LighterApi
             accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             ((Map<String, Object>)parameters).put("accountIndex", accountIndex);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long groupingType = null;
             List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "groupingType", 3);
             groupingType = (Long) ((List<Object>) groupingTypeparametersVariable).get(0);
@@ -1338,7 +1337,7 @@ public class Lighter extends LighterApi
                 txType = ((List<Object>) txTypetxInfoVariable).get(0);
                 txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             }
-            return new ArrayList<Object>(Arrays.asList(txType, txInfo, order, market));
+            return new ArrayList<Object>(Arrays.asList(txType, txInfo, order));
         });
 
     }
@@ -1372,11 +1371,11 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrder", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfoordermarketVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfoordermarketVariable).get(1);
-            var order = ((List<Object>) txTypetxInfoordermarketVariable).get(2);
-            var market = ((List<Object>) txTypetxInfoordermarketVariable).get(3);
+            var txTypetxInfoorderVariable = (this.signAndCreateOrder("createOrder", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
+            var txType = ((List<Object>) txTypetxInfoorderVariable).get(0);
+            var txInfo = ((List<Object>) txTypetxInfoorderVariable).get(1);
+            var order = ((List<Object>) txTypetxInfoorderVariable).get(2);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
@@ -4455,7 +4454,7 @@ public class Lighter extends LighterApi
             var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
-            return new ArrayList<Object>(Arrays.asList(txType, txInfo, market));
+            return new ArrayList<Object>(Arrays.asList(txType, txInfo));
         });
 
     }
@@ -4480,10 +4479,10 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var txTypetxInfomarketVariable = (this.signAndCancelOrder("cancelOrder", id, symbol, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfomarketVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfomarketVariable).get(1);
-            var market = ((List<Object>) txTypetxInfomarketVariable).get(2);
+            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrder", id, symbol, parameters)).join();
+            var txType = ((List<Object>) txTypetxInfoVariable).get(0);
+            var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );

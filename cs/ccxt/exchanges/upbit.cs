@@ -2030,7 +2030,7 @@ public partial class upbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         // {
         //   "market": "KRW-USDT",
@@ -2171,7 +2171,7 @@ public partial class upbit : Exchange
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
-                { "currency", getValue(market, "quote") },
+                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
                 { "cost", feeCost },
             };
         }
@@ -2182,7 +2182,7 @@ public partial class upbit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", this.safeStringUpper(order, "time_in_force") },
             { "postOnly", null },

@@ -654,7 +654,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder
@@ -720,8 +720,8 @@ public partial class independentreserve : Exchange
             }
         } else if ((market != null))
         {
-            symbol = getValue(market, "symbol");
-            bs = getValue(market, "base");
+            symbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+            bs = (market != null && market.ContainsKey("base") ? market["base"] : null);
             quote = this.safeString(market, "quote");
         }
         string? orderType = this.safeString2(order, "Type", "OrderType");

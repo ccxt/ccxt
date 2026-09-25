@@ -1223,7 +1223,8 @@ export default class lighter extends lighterRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
+        const [ txType, txInfo, order ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
+        const market = this.market (symbol);
         const parsedTx = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
@@ -1256,7 +1257,8 @@ export default class lighter extends lighterRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
+        const [ txType, txInfo ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
+        const market = this.market (symbol);
         const parsedTx = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',

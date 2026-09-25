@@ -836,7 +836,7 @@ public partial class luno : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -880,13 +880,13 @@ public partial class luno : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", quoteFee },
-                { "currency", getValue(market, "quote") },
+                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
             };
         } else if ((baseFee != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", baseFee },
-                { "currency", getValue(market, "base") },
+                { "currency", (market != null && market.ContainsKey("base") ? market["base"] : null) },
             };
         }
         string? id = this.safeString(order, "order_id");
@@ -897,7 +897,7 @@ public partial class luno : Exchange
             { "timestamp", timestamp },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },

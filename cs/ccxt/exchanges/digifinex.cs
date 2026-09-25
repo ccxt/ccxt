@@ -2493,7 +2493,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot: createOrder
@@ -2566,7 +2566,7 @@ public partial class digifinex : Exchange
         string? marketId = this.safeString2(order, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market);
         market = this.market(symbol);
-        if (isEqual(getValue(market, "type"), "swap"))
+        if (isEqual((market != null && market.ContainsKey("type") ? market["type"] : null), "swap"))
         {
             Int64? orderType = this.safeInteger(order, "order_type");
             if ((orderType != null))

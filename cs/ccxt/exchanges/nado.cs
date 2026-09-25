@@ -2904,7 +2904,7 @@ public partial class nado : Exchange
         return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // create order
@@ -3027,7 +3027,7 @@ public partial class nado : Exchange
             {
                 fee = new Dictionary<string, object>() {
                     { "cost", feeCost },
-                    { "currency", getValue(market, "quote") },
+                    { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
                 };
             }
         } else if ((cancelOrderDigest != null))
@@ -3101,7 +3101,7 @@ public partial class nado : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", "limit" },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },

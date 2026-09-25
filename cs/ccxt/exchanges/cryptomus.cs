@@ -1063,7 +1063,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, null, null));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1156,7 +1156,7 @@ public partial class cryptomus : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", null },
             { "postOnly", null },

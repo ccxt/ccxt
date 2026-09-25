@@ -4964,7 +4964,7 @@ public partial class bybit : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // v1 for usdc normal account
@@ -5092,13 +5092,13 @@ public partial class bybit : Exchange
         object marketType = null;
         if ((market != null))
         {
-            marketType = getValue(market, "type");
+            marketType = (market != null && market.ContainsKey("type") ? market["type"] : null);
         } else
         {
             marketType = isContract ? "contract" : "spot";
         }
         market = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -5109,7 +5109,7 @@ public partial class bybit : Exchange
         string? side = this.safeStringLower(order, "side");
         string? amount = null;
         string? cost = null;
-        bool qtyIsQuote = (isEqual(getValue(market, "spot"), true)) && (type == "market") && ((marketUnit == "quoteCoin") || (((marketUnit == null)) && (side == "buy")));
+        bool qtyIsQuote = (isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true)) && (type == "market") && ((marketUnit == "quoteCoin") || (((marketUnit == null)) && (side == "buy")));
         if ((qtyIsQuote == true))
         {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining

@@ -1331,7 +1331,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders
@@ -1459,7 +1459,7 @@ public partial class bitteam : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "status", status },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", "GTC" },
             { "side", side },

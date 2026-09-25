@@ -1364,11 +1364,11 @@ public partial class lighter : ccxt.lighter
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string requestId = ((string)this.requestId(url));
         string messageHash = ("jsonapi/sendtx:" + requestId);
-        var txTypetxInfoordermarketVariable = await this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters);
-        var txType = ((IList<object>) txTypetxInfoordermarketVariable)[0];
-        var txInfo = ((IList<object>) txTypetxInfoordermarketVariable)[1];
-        var order = ((IList<object>) txTypetxInfoordermarketVariable)[2];
-        var market = ((IList<object>) txTypetxInfoordermarketVariable)[3];
+        var txTypetxInfoorderVariable = await this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters);
+        var txType = ((IList<object>) txTypetxInfoorderVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoorderVariable)[1];
+        var order = ((IList<object>) txTypetxInfoorderVariable)[2];
+        Dictionary<string, object> market = this.market(symbol);
         object parsedTx = this.parseJson(txInfo);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "jsonapi/sendtx" },
@@ -1403,10 +1403,10 @@ public partial class lighter : ccxt.lighter
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string requestId = ((string)this.requestId(url));
         string messageHash = ("jsonapi/sendtx:" + requestId);
-        var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters);
-        var txType = ((IList<object>) txTypetxInfomarketVariable)[0];
-        var txInfo = ((IList<object>) txTypetxInfomarketVariable)[1];
-        var market = ((IList<object>) txTypetxInfomarketVariable)[2];
+        var txTypetxInfoVariable = await this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters);
+        var txType = ((IList<object>) txTypetxInfoVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
+        Dictionary<string, object> market = this.market(symbol);
         object parsedTx = this.parseJson(txInfo);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "jsonapi/sendtx" },

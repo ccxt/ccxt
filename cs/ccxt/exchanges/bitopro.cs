@@ -1137,7 +1137,7 @@ public partial class bitopro : Exchange
         return ((status == null)) ? null : this.safeString(statuses, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder

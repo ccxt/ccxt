@@ -1359,7 +1359,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder
@@ -1408,7 +1408,7 @@ public partial class p2b : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", this.safeString(order, "type") },
             { "timeInForce", null },
             { "postOnly", null },
@@ -1422,7 +1422,7 @@ public partial class p2b : Exchange
             { "remaining", this.safeString(order, "left") },
             { "status", null },
             { "fee", new Dictionary<string, object>() {
-                { "currency", getValue(market, "quote") },
+                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
                 { "cost", this.safeString(order, "dealFee") },
             } },
             { "trades", null },

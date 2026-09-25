@@ -4039,7 +4039,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object market = ((Map<String, Object>)extendedOrderRequest).get("market");
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             data.put("timestamp", now);
             data.put("status", "NEW");
@@ -4181,7 +4181,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(editResponse, "data", new HashMap<String, Object>() {{}});
-            Object market = ((Map<String, Object>)extendedOrderRequest).get("market");
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             responseData.put("timestamp", now);
             responseData.put("status", "NEW");

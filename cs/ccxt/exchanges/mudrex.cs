@@ -984,7 +984,7 @@ public partial class mudrex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? oms = this.safeString(order, "symbol");
         market = this.safeMarket(oms, market);
@@ -1028,7 +1028,7 @@ public partial class mudrex : Exchange
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_at"));
         string? status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        string? sym = ((string)getValue(market, "symbol"));
+        string? sym = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", oid },

@@ -2949,7 +2949,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder - spot
@@ -3039,7 +3039,7 @@ public partial class btse : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", null },
             { "status", status },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", orderType },
             { "timeInForce", this.parseTimeInForce(rawTimeInForce) },
             { "postOnly", this.safeBool(order, "postOnly") },

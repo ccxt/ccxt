@@ -914,7 +914,6 @@ class lighter extends Exchange {
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
         $params['accountIndex'] = $accountIndex;
-        $market = $this->market($symbol);
         $groupingType = null;
         list($groupingType, $params) = $this->handle_option_integer_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -950,7 +949,7 @@ class lighter extends Exchange {
             }
             list($txType, $txInfo) = $this->lighter_sign_create_grouped_orders($signer, $signingPayload);
         }
-        return array( $txType, $txInfo, $order, $market );
+        return array( $txType, $txInfo, $order );
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -972,7 +971,8 @@ class lighter extends Exchange {
          * @param {int} [$params->orderExpiry] orderExpiry
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        list($txType, $txInfo, $order, $market) = $this->sign_and_create_order('createOrder', $symbol, $type, $side, $amount, $price, $params);
+        list($txType, $txInfo, $order) = $this->sign_and_create_order('createOrder', $symbol, $type, $side, $amount, $price, $params);
+        $market = $this->market($symbol);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
@@ -3161,7 +3161,7 @@ class lighter extends Exchange {
             throw new ArgumentsRequired($this->id . ' ' . $method . ' requires order $id or client order id');
         }
         list($txType, $txInfo) = $this->lighter_sign_cancel_order($signer, $this->extend($signRaw, $params));
-        return array( $txType, $txInfo, $market );
+        return array( $txType, $txInfo );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3174,7 +3174,8 @@ class lighter extends Exchange {
          * @param {string} [$params->apiKeyIndex] api key index
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        list($txType, $txInfo, $market) = $this->sign_and_cancel_order('cancelOrder', $id, $symbol, $params);
+        list($txType, $txInfo) = $this->sign_and_cancel_order('cancelOrder', $id, $symbol, $params);
+        $market = $this->market($symbol);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,

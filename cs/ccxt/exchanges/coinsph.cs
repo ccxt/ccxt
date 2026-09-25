@@ -1885,7 +1885,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder POST /openapi/v1/order
@@ -1972,7 +1972,7 @@ public partial class coinsph : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(this.safeString(order, "status")) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", this.parseOrderType(this.safeString(order, "type")) },
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },

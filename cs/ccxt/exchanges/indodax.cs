@@ -835,7 +835,7 @@ public partial class indodax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -894,14 +894,14 @@ public partial class indodax : Exchange
         market = this.safeMarket(marketId, market);
         if ((market != null))
         {
-            symbol = ((string)getValue(market, "symbol"));
-            string? quoteId = ((string)getValue(market, "quoteId"));
-            string? baseId = ((string)getValue(market, "baseId"));
-            if ((isEqual(getValue(market, "quoteId"), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_rp"))))
+            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? quoteId = ((string)(market != null && market.ContainsKey("quoteId") ? market["quoteId"] : null));
+            string? baseId = ((string)(market != null && market.ContainsKey("baseId") ? market["baseId"] : null));
+            if ((isEqual((market != null && market.ContainsKey("quoteId") ? market["quoteId"] : null), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_rp"))))
             {
                 quoteId = "rp";
             }
-            if ((isEqual(getValue(market, "baseId"), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("remain_rp"))))
+            if ((isEqual((market != null && market.ContainsKey("baseId") ? market["baseId"] : null), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("remain_rp"))))
             {
                 baseId = "rp";
             }

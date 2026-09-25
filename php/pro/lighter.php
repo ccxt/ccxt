@@ -1304,7 +1304,8 @@ class lighter extends \ccxt\async\lighter {
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
         $messageHash = 'jsonapi/sendtx:' . $requestId;
-        list($txType, $txInfo, $order, $market) = Async\await($this->signAndCreateOrder('createOrderWs', $symbol, $type, $side, $amount, $price, $params));
+        list($txType, $txInfo, $order) = Async\await($this->signAndCreateOrder('createOrderWs', $symbol, $type, $side, $amount, $price, $params));
+        $market = $this->market($symbol);
         $parsedTx = $this->parse_json($txInfo);
         $message = array(
             'type' => 'jsonapi/sendtx',
@@ -1341,7 +1342,8 @@ class lighter extends \ccxt\async\lighter {
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id($url);
         $messageHash = 'jsonapi/sendtx:' . $requestId;
-        list($txType, $txInfo, $market) = Async\await($this->signAndCancelOrder('cancelOrderWs', $id, $symbol, $params));
+        list($txType, $txInfo) = Async\await($this->signAndCancelOrder('cancelOrderWs', $id, $symbol, $params));
+        $market = $this->market($symbol);
         $parsedTx = $this->parse_json($txInfo);
         $message = array(
             'type' => 'jsonapi/sendtx',

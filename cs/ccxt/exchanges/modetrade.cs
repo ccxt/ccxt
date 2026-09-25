@@ -1697,7 +1697,7 @@ public partial class modetrade : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,timeframeVar, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // Possible input functions:
@@ -1749,7 +1749,7 @@ public partial class modetrade : Exchange
         string? clientOrderId = ((string)this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId"))); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? price = this.safeString2(order, "order_price", "price");
         string? amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         string? cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount

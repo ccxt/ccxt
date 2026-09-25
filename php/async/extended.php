@@ -3010,7 +3010,7 @@ class extended extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $market = $extendedOrderRequest['market'];
+        $market = $this->market($symbol);
         $now = $this->safe_integer($extendedOrderRequest, 'timestamp');
         $data['timestamp'] = $now;
         $data['status'] = 'NEW';
@@ -3092,7 +3092,7 @@ class extended extends Exchange {
         //     }
         //
         $responseData = $this->safe_dict($editResponse, 'data', array());
-        $market = $extendedOrderRequest['market'];
+        $market = $this->market($symbol);
         $now = $this->safe_integer($extendedOrderRequest, 'timestamp');
         $responseData['timestamp'] = $now;
         $responseData['status'] = 'NEW';
