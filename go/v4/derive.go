@@ -1748,7 +1748,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var paramsMaxFee map[string]any = map[string]any{}
 	var maxFeeparamsMaxFeeVariable []any = this.HandleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee")
 	maxFee = GetValue(maxFeeparamsMaxFeeVariable, 0)
-	paramsMaxFee = MapTyped(GetValue(maxFeeparamsMaxFeeVariable, 1))
+	paramsMaxFee = MapTyped(maxFeeparamsMaxFeeVariable[1])
 	if IsEqual(maxFee, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a max_fee argument in params"))
 	}

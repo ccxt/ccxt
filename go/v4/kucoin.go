@@ -2102,7 +2102,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchStatus", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchStatus", nil, paramsUta)
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
@@ -2856,7 +2856,7 @@ func (this *Kucoin) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchCurrencies", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
 
@@ -2993,7 +2993,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchAccounts", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var data []any = []any{}
 	if EvalTruthy(utaOption) {
@@ -3099,8 +3099,8 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code string, optionalAr
 		"currency": currency["id"],
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
@@ -3151,8 +3151,8 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code string, option
 		"currency": currency["id"],
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
@@ -3602,7 +3602,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTickers", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var tradeType *string = this.SafeString(paramsUta, "tradeType")
 	var firstMarket map[string]any = nil
 	if symbolsNormalized != nil {
@@ -3806,7 +3806,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTicker", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var result any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTicker", market, paramsUta)
@@ -4373,8 +4373,8 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code string, optionalA
 		"currency": currency["id"],
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
 	}
@@ -4461,7 +4461,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	}
 	var networkCode *string = nil
 	var networkCodeparamsRequestVariable []any = this.HandleNetworkCodeAndParams(paramsRequest)
-	networkCode = SafeStringPtr(GetValue(networkCodeparamsRequestVariable, 0))
+	networkCode = SafeStringPtr(networkCodeparamsRequestVariable[0])
 	paramsRequest = GetValue(networkCodeparamsRequestVariable, 1)
 	if networkCode != nil {
 		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
@@ -4607,7 +4607,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 	if uta == true {
 		var networkCode *string = nil
 		var networkCodeparamsRequestVariable []any = this.HandleNetworkCodeAndParams(paramsRequest)
-		networkCode = SafeStringPtr(GetValue(networkCodeparamsRequestVariable, 0))
+		networkCode = SafeStringPtr(networkCodeparamsRequestVariable[0])
 		paramsRequest = GetValue(networkCodeparamsRequestVariable, 1)
 		if networkCode != nil {
 			var _netIdTmp any = this.NetworkCodeToId(networkCode, code)
@@ -4705,7 +4705,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOrderBook", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderBook", market, paramsUta)
 	if EvalTruthy(utaOption) {
@@ -4888,7 +4888,7 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol string, typeVar string, 
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "createOrder", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
 		var retRes402219 map[string]any = MapTyped(PanicOnError((<-this.CreateUtaOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
@@ -6095,7 +6095,7 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "cancelOrder", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
 		var retRes497319 map[string]any = MapTyped(PanicOnError((<-this.CancelUtaOrderAsync(id, symbol, paramsUta))))
@@ -6480,7 +6480,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "cancelAllOrders", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
 		var retRes526819 []any = ListTyped(PanicOnError((<-this.CancelAllUtaOrdersAsync(symbol, paramsUta))))
@@ -6686,7 +6686,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
 	var trigger bool = false
 	var triggerOptionparamsTriggerVariable []any = this.HandleParamBool(params, "trigger", trigger)
 	triggerOption := GetValue(triggerOptionparamsTriggerVariable, 0)
-	var paramsTrigger map[string]any = MapTyped(GetValue(triggerOptionparamsTriggerVariable, 1))
+	var paramsTrigger map[string]any = MapTyped(triggerOptionparamsTriggerVariable[1])
 	var orderFilter string = "NORMAL"
 	if IsEqual(triggerOption, true) {
 		orderFilter = "ADVANCED"
@@ -8792,7 +8792,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTrades", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var trades any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTrades", market, paramsUta)
@@ -9252,7 +9252,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTradingFee", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var entry map[string]any = nil
@@ -9356,8 +9356,8 @@ func (this *Kucoin) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -9374,7 +9374,7 @@ func (this *Kucoin) withdrawBody(ch chan any, code string, amount any, address a
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	networkCode := GetValue(networkCodeparamsNetworkCodeVariable, 0)
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if !IsEqual(networkCode, nil) {
 		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
@@ -10003,7 +10003,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchBalance", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
 		var retRes818119 map[string]any = MapTyped(PanicOnError((<-this.FetchUtaBalanceAsync(paramsUta))))
@@ -10450,7 +10450,7 @@ func (this *Kucoin) transferBody(ch chan any, code string, amount any, fromAccou
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "transfer", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
 		var retRes856419 map[string]any = MapTyped(PanicOnError((<-this.TransferUtaAsync(code, amount, fromAccount, toAccount, paramsUta))))
@@ -10501,15 +10501,15 @@ func (this *Kucoin) transferUtaBody(ch chan any, code string, amount any, fromAc
 	var transferType string = "INTERNAL"
 	var transferTypeOptionparamsTransferTypeVariable []any = this.HandleParamString2(params, "transferType", "type", transferType)
 	transferTypeOption := GetValue(transferTypeOptionparamsTransferTypeVariable, 0)
-	var paramsTransferType map[string]any = MapTyped(GetValue(transferTypeOptionparamsTransferTypeVariable, 1))
+	var paramsTransferType map[string]any = MapTyped(transferTypeOptionparamsTransferTypeVariable[1])
 	var fromUserId any = nil
 	var fromUserIdOptionparamsFromUserIdVariable []any = this.HandleParamString2(paramsTransferType, "fromUserId", "fromUid", fromUserId)
-	var fromUserIdOption *string = SafeStringPtr(GetValue(fromUserIdOptionparamsFromUserIdVariable, 0))
-	var paramsFromUserId map[string]any = MapTyped(GetValue(fromUserIdOptionparamsFromUserIdVariable, 1))
+	var fromUserIdOption *string = SafeStringPtr(fromUserIdOptionparamsFromUserIdVariable[0])
+	var paramsFromUserId map[string]any = MapTyped(fromUserIdOptionparamsFromUserIdVariable[1])
 	var toUserId any = nil
 	var toUserIdOptionparamsToUserIdVariable []any = this.HandleParamString2(paramsFromUserId, "toUserId", "toUid", toUserId)
-	var toUserIdOption *string = SafeStringPtr(GetValue(toUserIdOptionparamsToUserIdVariable, 0))
-	var paramsToUserId map[string]any = MapTyped(GetValue(toUserIdOptionparamsToUserIdVariable, 1))
+	var toUserIdOption *string = SafeStringPtr(toUserIdOptionparamsToUserIdVariable[0])
+	var paramsToUserId map[string]any = MapTyped(toUserIdOptionparamsToUserIdVariable[1])
 	if (transferTypeOption == "PARENT_TO_SUB") || (transferTypeOption == "SUB_TO_SUB") {
 		if toUserIdOption == nil {
 			panic(ExchangeError(this.Id + " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers"))
@@ -10525,8 +10525,8 @@ func (this *Kucoin) transferUtaBody(ch chan any, code string, amount any, fromAc
 	}
 	var clientOid string = this.Uuid()
 	var clientOidOptionparamsClientOidVariable []any = this.HandleParamString2(paramsToUserId, "clientOid", "clientOrderId", clientOid)
-	var clientOidOption *string = SafeStringPtr(GetValue(clientOidOptionparamsClientOidVariable, 0))
-	var paramsClientOid map[string]any = MapTyped(GetValue(clientOidOptionparamsClientOidVariable, 1))
+	var clientOidOption *string = SafeStringPtr(clientOidOptionparamsClientOidVariable[0])
+	var paramsClientOid map[string]any = MapTyped(clientOidOptionparamsClientOidVariable[1])
 	request["clientOid"] = clientOidOption
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
 	var toId any = this.ConvertTypeToAccount(toAccount)
@@ -10614,18 +10614,18 @@ func (this *Kucoin) transferClassicBody(ch chan any, code string, amount any, fr
 	}
 	var transferType string = "INTERNAL"
 	var transferTypeOptionparamsTransferTypeVariable []any = this.HandleParamString2(params, "transferType", "type", transferType)
-	var transferTypeOption *string = SafeStringPtr(GetValue(transferTypeOptionparamsTransferTypeVariable, 0))
-	var paramsTransferType map[string]any = MapTyped(GetValue(transferTypeOptionparamsTransferTypeVariable, 1))
+	var transferTypeOption *string = SafeStringPtr(transferTypeOptionparamsTransferTypeVariable[0])
+	var paramsTransferType map[string]any = MapTyped(transferTypeOptionparamsTransferTypeVariable[1])
 	if transferTypeOption != nil && *transferTypeOption == "PARENT_TO_SUB" {
-		if _, ok := paramsTransferType["toUserId"]; !ok {
+		if !(InOp(paramsTransferType, "toUserId")) {
 			panic(ExchangeError(this.Id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers"))
 		}
 	} else if transferTypeOption != nil && *transferTypeOption == "SUB_TO_PARENT" {
-		if _, ok := paramsTransferType["fromUserId"]; !ok {
+		if !(InOp(paramsTransferType, "fromUserId")) {
 			panic(ExchangeError(this.Id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers"))
 		}
 	}
-	if _, ok := paramsTransferType["clientOid"]; !ok {
+	if !(InOp(paramsTransferType, "clientOid")) {
 		request["clientOid"] = this.Uuid()
 	}
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
@@ -12227,7 +12227,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(paramsMarginMode, "setLeverage", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
 		request["accountMode"] = "unified"
@@ -12314,7 +12314,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchFundingRate", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
 		//
@@ -12537,7 +12537,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchFundingRateHistory", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUta, "until"))
 	var start any = since
 	var end any = until
@@ -12800,7 +12800,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchPosition", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var position any = nil
 	if EvalTruthy(utaOption) {
@@ -12921,7 +12921,7 @@ func (this *Kucoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchPositions", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
 
@@ -13924,7 +13924,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol string, opt
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchMarketLeverageTiers", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
-	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
+	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
 		var result map[string]any = MapTyped(PanicOnError((<-this.FetchLeverageTiersAsync([]any{symbol}, paramsUta))))
@@ -14250,7 +14250,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol string, opt
 	var paginate bool = false
 	var paginateOptionparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOpenInterestHistory", "paginate", paginate)
 	paginateOption := GetValue(paginateOptionparamsPaginateVariable, 0)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateOptionparamsPaginateVariable, 1))
+	var paramsPaginate map[string]any = MapTyped(paginateOptionparamsPaginateVariable[1])
 	if EvalTruthy(paginateOption) {
 
 		var retRes1168119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))

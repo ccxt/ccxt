@@ -2872,8 +2872,8 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	}
 	var currency map[string]any = this.Currency(code)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
 	}
@@ -2978,8 +2978,8 @@ func (this *Upbit) withdrawBody(ch chan any, code string, amount any, address an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagResolvedparamsTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagResolved *string = SafeStringPtr(GetValue(tagResolvedparamsTagVariable, 0))
-	var paramsTag map[string]any = MapTyped(GetValue(tagResolvedparamsTagVariable, 1))
+	var tagResolved *string = SafeStringPtr(tagResolvedparamsTagVariable[0])
+	var paramsTag map[string]any = MapTyped(tagResolvedparamsTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))

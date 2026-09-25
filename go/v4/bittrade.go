@@ -2789,7 +2789,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code string, amount any, address
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))

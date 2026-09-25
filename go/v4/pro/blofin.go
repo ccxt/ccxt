@@ -262,7 +262,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	}
 	var callerMethodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	callerMethodName := ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 0)
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 1))
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameparamsCallerMethodNameVariable[1])
 	channelName, paramsChannel := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodName, "channel", "books")
 	// due to some problem, temporarily disable other channels
 	if !ccxt.IsEqual(channelName, "books") {
@@ -994,7 +994,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	}
 	var callerMethodNameOptionparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodNameOption := ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 0)
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 1))
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameOptionparamsCallerMethodNameVariable[1])
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
 	var isOHLCV bool = (ccxt.IsEqual(channelName, "candle"))
 	var symbols any = func() any {

@@ -1951,7 +1951,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	}()
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsTimeInForce)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var isPostOnly bool = postOnly || ((timeInForce == "PO"))
 	var paramsOrder any = paramsPostOnly
 	if isPostOnly {
@@ -3122,7 +3122,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, paramsGeneration)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
 	paramsWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1)
 	this.CheckAddress(address)
 	var network *string = this.SafeString2(paramsWithdrawTag, "network", "net_type")

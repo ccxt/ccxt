@@ -1144,7 +1144,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var maxLimit int = 500
 	var paginateOptionparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOHLCV", "paginate", paginate)
 	paginateOption := GetValue(paginateOptionparamsPaginateVariable, 0)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateOptionparamsPaginateVariable, 1))
+	var paramsPaginate map[string]any = MapTyped(paginateOptionparamsPaginateVariable[1])
 	if EvalTruthy(paginateOption) {
 
 		var retRes95219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
@@ -2327,8 +2327,8 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
 

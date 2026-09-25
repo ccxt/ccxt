@@ -4935,7 +4935,7 @@ func (this *Bitget) withdrawBody(ch chan any, code string, amount any, address a
 	this.CheckAddress(address)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsNetworkCodeVariable, 0)
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if IsEqual(networkCode, nil) {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a \"network\" parameter"))
 	}
@@ -5321,8 +5321,8 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsUTA)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"coin": currency["id"],
@@ -6880,8 +6880,8 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	// make request
 	var response any = nil
 	var priceTypeparamsPriceVariable []any = this.HandleParamString(paramsOmitted, "price")
-	var priceType *string = SafeStringPtr(GetValue(priceTypeparamsPriceVariable, 0))
-	var paramsPrice map[string]any = MapTyped(GetValue(priceTypeparamsPriceVariable, 1))
+	var priceType *string = SafeStringPtr(priceTypeparamsPriceVariable[0])
+	var paramsPrice map[string]any = MapTyped(priceTypeparamsPriceVariable[1])
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, paramsPrice)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))

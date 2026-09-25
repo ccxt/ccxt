@@ -2648,8 +2648,8 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 	var currency map[string]any = this.Currency(code)
 	var codeValue *string = SafeStringPtr(currency["code"])
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
 	}

@@ -1984,7 +1984,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger bool = false
 	var triggerOptionparamsTriggerVariable []any = this.HandleOptionBoolAndParamsNullable(paramsWallet, "fetchOpenOrders", "trigger", trigger)
 	triggerOption := GetValue(triggerOptionparamsTriggerVariable, 0)
-	var paramsTrigger map[string]any = MapTyped(GetValue(triggerOptionparamsTriggerVariable, 1))
+	var paramsTrigger map[string]any = MapTyped(triggerOptionparamsTriggerVariable[1])
 	if !EvalTruthy(triggerOption) {
 		//
 		//     {
@@ -2080,7 +2080,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var trigger bool = false
 	var triggerOptionparamsTriggerVariable []any = this.HandleOptionBoolAndParamsNullable(paramsWallet, "fetchOpenOrder", "trigger", trigger)
 	triggerOption := GetValue(triggerOptionparamsTriggerVariable, 0)
-	var paramsTrigger map[string]any = MapTyped(GetValue(triggerOptionparamsTriggerVariable, 1))
+	var paramsTrigger map[string]any = MapTyped(triggerOptionparamsTriggerVariable[1])
 	if !EvalTruthy(triggerOption) {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, paramsTrigger))).Raw))

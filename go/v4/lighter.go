@@ -3943,7 +3943,7 @@ func (this *Lighter) setMarginModeBody(ch chan any, marginMode string, optionalA
 	}
 	var leverageparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage")
 	leverage := GetValue(leverageparamsLeverageVariable, 0)
-	var paramsLeverage map[string]any = MapTyped(GetValue(leverageparamsLeverageVariable, 1))
+	var paramsLeverage map[string]any = MapTyped(leverageparamsLeverageVariable[1])
 	if IsEqual(leverage, nil) {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an leverage parameter"))
 	}

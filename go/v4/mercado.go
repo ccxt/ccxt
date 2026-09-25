@@ -986,8 +986,8 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1000,18 +1000,18 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 		"address":  address,
 	}
 	if code == "BRL" {
-		var account_ref bool = (func() bool { _, ok := paramsWithdrawTag["account_ref"]; return ok }())
+		var account_ref bool = (InOp(paramsWithdrawTag, "account_ref"))
 		if !account_ref {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires account_ref parameter to withdraw " + code))
 		}
 	} else if code != "LTC" {
-		var tx_fee bool = (func() bool { _, ok := paramsWithdrawTag["tx_fee"]; return ok }())
+		var tx_fee bool = (InOp(paramsWithdrawTag, "tx_fee"))
 		if !tx_fee {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}
 		if code == "XRP" {
 			if tagWithdrawTag == nil {
-				if _, ok := paramsWithdrawTag["destination_tag"]; !ok {
+				if !(InOp(paramsWithdrawTag, "destination_tag")) {
 					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw " + code))
 				}
 			} else {

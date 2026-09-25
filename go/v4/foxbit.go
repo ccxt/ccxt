@@ -1705,8 +1705,8 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		"currency_symbol": currency["id"],
 	}
 	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsOmitedVariable, 0))
-	var paramsOmited map[string]any = MapTyped(GetValue(networkCodeparamsOmitedVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsOmitedVariable[0])
+	var paramsOmited map[string]any = MapTyped(networkCodeparamsOmitedVariable[1])
 	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -2079,8 +2079,8 @@ func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2095,8 +2095,8 @@ func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address a
 		request["destination_tag"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}

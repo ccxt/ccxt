@@ -3426,7 +3426,7 @@ func (this *Gate) fetchDepositAddressBody(ch chan any, code string, optionalArgs
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsNetworkCodeVariable, 0)
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 
 	chainsIndexedByIdRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsNetworkCode))
 	PanicOnError(chainsIndexedByIdRaw)
@@ -5645,8 +5645,8 @@ func (this *Gate) withdrawBody(ch chan any, code string, amount any, address any
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -5662,8 +5662,8 @@ func (this *Gate) withdrawBody(ch chan any, code string, amount any, address any
 		request["memo"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -6103,7 +6103,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var exchangeSpecificTimeInForce *string = this.SafeStringLowerN(params, []any{"timeInForce", "tif", "time_in_force"})
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
 	if postOnly == true {
 		timeInForce = "poc"
@@ -7212,7 +7212,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	}
 	var triggerparamsTriggerVariable []any = this.HandleParamBool2(params, "trigger", "stop")
 	trigger := GetValue(triggerparamsTriggerVariable, 0)
-	var paramsTrigger map[string]any = MapTyped(GetValue(triggerparamsTriggerVariable, 1))
+	var paramsTrigger map[string]any = MapTyped(triggerparamsTriggerVariable[1])
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsTrigger)
 	var spot bool = ((typeVar != nil && *typeVar == "spot")) || ((typeVar != nil && *typeVar == "margin"))
 	var request any = map[string]any{}
@@ -7248,7 +7248,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 		}
 	}
 	var lastIdfinalParamsVariable []any = this.HandleParamString2(query, "lastId", "last_id")
-	var lastId *string = SafeStringPtr(GetValue(lastIdfinalParamsVariable, 0))
+	var lastId *string = SafeStringPtr(lastIdfinalParamsVariable[0])
 	finalParams := GetValue(lastIdfinalParamsVariable, 1)
 	if lastId != nil {
 		AddElementToObject(request, "last_id", lastId)

@@ -2183,7 +2183,7 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar string, side string, 
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
 	cost := GetValue(costparamsCostVariable, 0)
-	var paramsCost map[string]any = MapTyped(GetValue(costparamsCostVariable, 1))
+	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
 	if (typeVar == "market") && (side == "buy") {
 		if IsEqual(cost, nil) {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires params[\"cost\"] for market buy order"))
@@ -2194,7 +2194,7 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar string, side string, 
 	}
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsCost)
 	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(isPostOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
 	if isPostOnly == true {
 		request["type"] = "LIMIT_MAKER"
 	} else {
@@ -2220,7 +2220,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar string, side 
 	}
 	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly")
 	reduceOnly := GetValue(reduceOnlyparamsReduceOnlyVariable, 0)
-	var paramsReduceOnly map[string]any = MapTyped(GetValue(reduceOnlyparamsReduceOnlyVariable, 1))
+	var paramsReduceOnly map[string]any = MapTyped(reduceOnlyparamsReduceOnlyVariable[1])
 	if side == "buy" {
 		request["side"] = func() string {
 			if IsEqual(reduceOnly, true) {
@@ -2250,7 +2250,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar string, side 
 	}
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
 	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(isPostOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
 	if isPostOnly == true {
 		request["timeInForce"] = "LIMIT_MAKER"
 	}
@@ -3151,7 +3151,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
 		var symbolparamsSymbolVariable []any = this.HandleParamString(paramsMarketType, "symbol")
 		symbol := GetValue(symbolparamsSymbolVariable, 0)
-		var paramsSymbol map[string]any = MapTyped(GetValue(symbolparamsSymbolVariable, 1))
+		var paramsSymbol map[string]any = MapTyped(symbolparamsSymbolVariable[1])
 		if IsEqual(symbol, nil) {
 			panic(BadRequest(this.Id + " fetchTradingFees requires a params[\"symbol\"]"))
 		}
@@ -3431,8 +3431,8 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		"coin": currency["id"],
 	}
 	var networkCodeparamsOmittedVariable []any = this.HandleNetworkCodeAndParams(this.Extend(request, params))
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsOmittedVariable, 0))
-	var paramsOmitted map[string]any = MapTyped(GetValue(networkCodeparamsOmittedVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsOmittedVariable[0])
+	var paramsOmitted map[string]any = MapTyped(networkCodeparamsOmittedVariable[1])
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : param[\"network\"] is required"))
 	}
@@ -3495,8 +3495,8 @@ func (this *Toobit) withdrawBody(ch chan any, code string, amount any, address a
 	_ = params
 	this.CheckAddress(address)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() : param[\"network\"] is required"))
 	}

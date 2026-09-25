@@ -2706,7 +2706,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol string, typeVar string
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
 	cost := GetValue(costparamsCostVariable, 0)
-	var paramsCost map[string]any = MapTyped(GetValue(costparamsCostVariable, 1))
+	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
 	if !IsEqual(cost, nil) {
 		if (side != "buy") || (typeVar != "market") {
 			panic(InvalidOrder(this.Id + " createOrder() cost is only supported for market buy orders"))
