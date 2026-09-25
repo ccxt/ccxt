@@ -4461,20 +4461,20 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageData: Value = Value::Null;
         if (structureType.as_str() == Some("EIP712_TRANSFER_TYPE")) {
             let mut amountMultiplier: Value = self.convert_to_big_int_custom(Value::Str("1000000".into()));
-            let mut amountInt: Value = multiply(&crate::value::get_value_k(&request, "num_tokens"), &amountMultiplier);
+            let mut amountInt: Value = multiply(&request.as_map().and_then(|__m| __m.get("num_tokens")).cloned().unwrap_or(Value::Null), &amountMultiplier);
             if (currencyObj == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createSignedRequest() missing currencyObj".into()))));
             }
             messageData = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("fromAccount".to_string(), crate::value::get_value_k(&request, "from_account_id"));
-                    m.insert("fromSubAccount".to_string(), crate::value::get_value_k(&request, "from_sub_account_id"));
-                    m.insert("toAccount".to_string(), crate::value::get_value_k(&request, "to_account_id"));
-                    m.insert("toSubAccount".to_string(), crate::value::get_value_k(&request, "to_sub_account_id"));
+                    m.insert("fromAccount".to_string(), request.as_map().and_then(|__m| __m.get("from_account_id")).cloned().unwrap_or(Value::Null));
+                    m.insert("fromSubAccount".to_string(), request.as_map().and_then(|__m| __m.get("from_sub_account_id")).cloned().unwrap_or(Value::Null));
+                    m.insert("toAccount".to_string(), request.as_map().and_then(|__m| __m.get("to_account_id")).cloned().unwrap_or(Value::Null));
+                    m.insert("toSubAccount".to_string(), request.as_map().and_then(|__m| __m.get("to_sub_account_id")).cloned().unwrap_or(Value::Null));
                     m.insert("tokenCurrency".to_string(), currencyObj.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
                     m.insert("numTokens".to_string(), self.parse_to_int(amountInt));
-                    m.insert("nonce".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "nonce"));
-                    m.insert("expiration".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "expiration"));
+                    m.insert("nonce".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "nonce"));
+                    m.insert("expiration".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "expiration"));
                 m
             });
         }  else if (structureType.as_str() == Some("EIP712_WITHDRAWAL_TYPE")) {
@@ -4484,12 +4484,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             messageData = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("fromAccount".to_string(), crate::value::get_value_k(&request, "from_account_id"));
-                    m.insert("toEthAddress".to_string(), crate::value::get_value_k(&request, "to_eth_address"));
+                    m.insert("fromAccount".to_string(), request.as_map().and_then(|__m| __m.get("from_account_id")).cloned().unwrap_or(Value::Null));
+                    m.insert("toEthAddress".to_string(), request.as_map().and_then(|__m| __m.get("to_eth_address")).cloned().unwrap_or(Value::Null));
                     m.insert("tokenCurrency".to_string(), currencyObj.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
-                    m.insert("numTokens".to_string(), self.parse_to_int(multiply(&crate::value::get_value_k(&request, "num_tokens"), &amountMultiplier)));
-                    m.insert("nonce".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "nonce"));
-                    m.insert("expiration".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "expiration"));
+                    m.insert("numTokens".to_string(), self.parse_to_int(multiply(&request.as_map().and_then(|__m| __m.get("num_tokens")).cloned().unwrap_or(Value::Null), &amountMultiplier)));
+                    m.insert("nonce".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "nonce"));
+                    m.insert("expiration".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "expiration"));
                 m
             });
         }  else if (structureType.as_str() == Some("EIP712_ORDER_TYPE")) || (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) {
@@ -4498,20 +4498,20 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut amountMultiplier: Value = self.convert_to_big_int_custom(self.fee_amount_multiplier());
             messageData = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("mainAccountID".to_string(), crate::value::get_value_k(&request, "main_account_id"));
-                    m.insert("builderAccountID".to_string(), crate::value::get_value_k(&request, "builder_account_id"));
-                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&crate::value::get_value_k(&request, "max_futures_fee_rate"))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&crate::value::get_value_k(&request, "max_spot_fee_rate"))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-                    m.insert("nonce".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "nonce"));
-                    m.insert("expiration".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "expiration"));
+                    m.insert("mainAccountID".to_string(), request.as_map().and_then(|__m| __m.get("main_account_id")).cloned().unwrap_or(Value::Null));
+                    m.insert("builderAccountID".to_string(), request.as_map().and_then(|__m| __m.get("builder_account_id")).cloned().unwrap_or(Value::Null));
+                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&request.as_map().and_then(|__m| __m.get("max_futures_fee_rate")).cloned().unwrap_or(Value::Null))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&request.as_map().and_then(|__m| __m.get("max_spot_fee_rate")).cloned().unwrap_or(Value::Null))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("nonce".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "nonce"));
+                    m.insert("expiration".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "expiration"));
                 m
             });
         }  else if (structureType.as_str() == Some("EIP712_WALLETLOGIN_TYPE")) {
             messageData = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("signer".to_string(), crate::value::get_value_k(&request, "address"));
-                    m.insert("nonce".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "nonce"));
-                    m.insert("expiration".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&request, "signature"), "expiration"));
+                    m.insert("signer".to_string(), request.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null));
+                    m.insert("nonce".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "nonce"));
+                    m.insert("expiration".to_string(), crate::value::get_value_k(&request.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null), "expiration"));
                 m
             });
         }
