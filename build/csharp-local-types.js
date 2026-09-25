@@ -6996,6 +6996,7 @@ function indexScope (csharp, scope) {
     const bindingCounts = new Map ();
     // printed names bound by a destructuring element (`const [ a, b ] = ...`)
     const patternBindingCounts = new Map ();
+    const bindingElements = [];
     const bindings = new Map ();
     // every binding node per name (parameters, identifier variable declarations, catch
     // variables) — the scope-aware classifier below resolves same-name uses against it.
@@ -7038,6 +7039,7 @@ function indexScope (csharp, scope) {
         if (n.kind === ts.SyntaxKind.BindingElement && n.name?.kind === ts.SyntaxKind.Identifier) {
             const printed = csharp.printNode (n.name, 0);
             patternBindingCounts.set (printed, (patternBindingCounts.get (printed) ?? 0) + 1);
+            bindingElements.push (n);
         }
         if (n.kind === ts.SyntaxKind.Parameter) {
             if (n.name?.kind === ts.SyntaxKind.Identifier) {
@@ -7066,7 +7068,7 @@ function indexScope (csharp, scope) {
         ts.forEachChild (n, visit);
     };
     ts.forEachChild (scope, visit);
-    index = { identifiers, bindingNames, bindingCounts, patternBindingCounts, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
+    index = { identifiers, bindingNames, bindingCounts, patternBindingCounts, bindingElements, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
     scopeIndexCache.set (scope, index);
     return index;
 }
@@ -7273,6 +7275,22 @@ function declarationCsharpType (csharp, declaration, context) {
     }
 }
 
+// a read of the only binding of its name, a slot of a `const [ ... ] = this.<helper> (...)` declaration the
+// destructured declaration hook types, declared before the read
+function destructuredElementReadType (csharp, context, identifier) {
+    const index = indexScope (csharp, context.scope);
+    const printedName = csharp.printNode (identifier, 0);
+    if ((index.bindingCounts.get (printedName) ?? 0) !== 0 || (index.patternBindingCounts.get (printedName) ?? 0) !== 1 || index.parameterNames.has (identifier.escapedText)) {
+        return undefined;
+    }
+    const element = (index.bindingElements ?? []).find ((candidate) => candidate.name.escapedText === identifier.escapedText);
+    const declaration = element?.parent?.parent;
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () >= identifier.getStart () || context.depth >= MAX_RESOLVE_DEPTH) {
+        return undefined;
+    }
+    return destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
+}
+
 function resolveLocalReadType (csharp, context, identifier) {
     if (!context || !context.scope) {
         return undefined;
@@ -7281,7 +7299,7 @@ function resolveLocalReadType (csharp, context, identifier) {
     const name = identifier.escapedText;
     const declarations = index.declarations.get (name);
     if (!declarations || declarations.length === 0) {
-        return undefined; // not a local
+        return destructuredElementReadType (csharp, context, identifier); // not a plain local
     }
     // The read must provably refer to a plain local declaration of this function. The
     // common case is a name bound exactly once; a name with several local bindings (two
@@ -12548,6 +12566,36 @@ function handleTupleElement0ReadType (csharp, initializer) {
     return DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (call, helper);
 }
 
+// the C# type retypeDestructuredElement0 declares slot `slot` of `const [ ... ] = this.<helper> (...)` with
+function destructuredSlotType (csharp, scope, declaration, slot, context) {
+    const helper = destructuredHandleCallName (declaration.initializer);
+    if (helper === undefined || scope === undefined) {
+        return undefined;
+    }
+    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (declaration.initializer, helper);
+    const slots = (DESTRUCTURED_DECLARATION_ELEMENT0[helper] === undefined) ? stringElementIndexes (helper) : [ 0 ];
+    const element = declaration.name.elements?.[slot];
+    const target = element?.name;
+    if (type === undefined || !slots.includes (slot) || target?.kind !== ts.SyntaxKind.Identifier || context.stack.has (element)) {
+        return undefined;
+    }
+    // the printer reads the slot as `var x = holder[i]` only when it typed the holder
+    if (typeof csharp.csharpDestructuringTempType !== 'function' || !csharp.csharpDestructuringTempType (declaration.initializer)) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const printedName = csharp.printNode (target, 0);
+    if ((index.bindingCounts.get (printedName) ?? 0) + (index.patternBindingCounts.get (printedName) ?? 0) !== 1) {
+        return undefined;
+    }
+    context.stack.add (element);
+    try {
+        return csharpLocalIsSafeToRetype (csharp, scope, element, target.escapedText, type, { scope, stack: context.stack, depth: context.depth + 1 }) ? type : undefined;
+    } finally {
+        context.stack.delete (element);
+    }
+}
+
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
     const helper = destructuredHandleCallName (declaration.initializer);
     if (helper === undefined || scope === undefined) {
@@ -12572,7 +12620,7 @@ function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
         if (match === null || match[2] !== csharp.printNode (target, 0) || bindingCount !== 1) {
             continue;
         }
-        if (!csharpLocalIsSafeToRetype (csharp, scope, target.parent, target.escapedText, type, { scope, stack: new Set (), depth: 0 })) {
+        if (destructuredSlotType (csharp, scope, declaration, slot, { scope, stack: new Set (), depth: 0 }) === undefined) {
             continue;
         }
         const cast = (type === 'string?') ? 'string' : type;
