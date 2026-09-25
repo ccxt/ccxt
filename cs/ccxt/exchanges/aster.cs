@@ -2550,11 +2550,11 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string strValue = "false";
-        if (isTrue(hedged))
+        if (hedged)
         {
             strValue = "true";
         }
@@ -4360,7 +4360,7 @@ public partial class aster : Exchange
         }
     }
 
-    public virtual List<object> parseAccountPositions(IDictionary<string, object> account, object filterClosed = null)
+    public virtual List<object> parseAccountPositions(IDictionary<string, object> account, bool? filterClosed = null)
     {
         filterClosed ??= false;
         List<object> positions = this.safeList(account, "positions", new List<object>() {});
@@ -4391,7 +4391,7 @@ public partial class aster : Exchange
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = (maintenanceMargin != "0") && (maintenanceMargin != "0.00000000");
-            if (!isTrue(filterClosed) || isPositionOpen)
+            if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
                 if (inOp(balances, code))
@@ -4626,7 +4626,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
     }
 
-    public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)
+    public async virtual Task<object> loadLeverageBrackets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();

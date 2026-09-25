@@ -2362,12 +2362,12 @@ public partial class sxbet : PredictionExchange
      * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
-    public virtual object parseSxbetV3BookSides(object snapshot, object isOutcomeOne)
+    public virtual object parseSxbetV3BookSides(object snapshot, bool isOutcomeOne)
     {
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
-        List<object> ownLevels = isTrue((isOutcomeOne)) ? this.safeList(snapshot, "outcomeOne", new List<object>() {}) : this.safeList(snapshot, "outcomeTwo", new List<object>() {});
-        List<object> oppositeLevels = isTrue((isOutcomeOne)) ? this.safeList(snapshot, "outcomeTwo", new List<object>() {}) : this.safeList(snapshot, "outcomeOne", new List<object>() {});
+        List<object> ownLevels = isOutcomeOne ? this.safeList(snapshot, "outcomeOne", new List<object>() {}) : this.safeList(snapshot, "outcomeTwo", new List<object>() {});
+        List<object> oppositeLevels = isOutcomeOne ? this.safeList(snapshot, "outcomeTwo", new List<object>() {}) : this.safeList(snapshot, "outcomeOne", new List<object>() {});
         List<object> bids = new List<object>() {};
         int ownLevelsLength = (ownLevels?.Count ?? 0);
         for (int i = 0; i < ownLevelsLength; i++)

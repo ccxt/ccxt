@@ -71,16 +71,16 @@ public partial class xt : ccxt.xt
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    public async virtual Task<string?> getListenKey(object isContract)
+    public async virtual Task<string?> getListenKey(bool isContract)
     {
         this.checkRequiredCredentials();
         string tradeType = "spot";
-        if (isTrue(isContract))
+        if (isContract)
         {
             tradeType = "contract";
         }
         object url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
-        if (!isTrue(isContract))
+        if (!isContract)
         {
             url = add(url, "/private");
         }
@@ -105,7 +105,7 @@ public partial class xt : ccxt.xt
             try
             {
                 string? listenKey = null;
-                if (isTrue(isContract))
+                if (isContract)
                 {
                     Dictionary<string, object> response = await this.privateLinearGetFutureUserV1UserListenKey();
                     //

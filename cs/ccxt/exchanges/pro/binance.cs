@@ -2621,7 +2621,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null, object isUnsubscribe = null)
+    public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null, bool? isUnsubscribe = null)
     {
         parameters ??= new Dictionary<string, object>();
         isUnsubscribe ??= false;
@@ -2706,7 +2706,7 @@ public partial class binance : ccxt.binance
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
                 messageHashes.Add(add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol));
-                if (isTrue(isUnsubscribe))
+                if (isUnsubscribe == true)
                 {
                     unsubscribeMessageHashes.Add(((((("unsubscribe::" + (unifiedPrefix)) + ":") + (channelName)) + "@") + symbol));
                 }
@@ -2797,7 +2797,7 @@ public partial class binance : ccxt.binance
         string? url = ((string)add(add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", isTrue(isUnsubscribe) ? "UNSUBSCRIBE" : "SUBSCRIBE" },
+            { "method", isUnsubscribe == true ? "UNSUBSCRIBE" : "SUBSCRIBE" },
             { "params", subscriptionArgs },
             { "id", requestId },
         };
@@ -2805,7 +2805,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        if (isTrue(isUnsubscribe))
+        if (isUnsubscribe == true)
         {
             subscription = new Dictionary<string, object>() {
                 { "unsubscribe", true },
@@ -2820,12 +2820,12 @@ public partial class binance : ccxt.binance
         // for option mark prices, the underlying stream delivers all contracts in one array message
         // wait on the batch hash so the resolved value is the full dict of new tickers
         List<object> waitHashes = hashes;
-        if (isOptionMarkPrice && !isTrue(isUnsubscribe))
+        if (isOptionMarkPrice && isUnsubscribe != true)
         {
             waitHashes = new List<object>() {add(add(unifiedPrefix, "s:"), channelName)};
         }
         object result = await this.watchMultiple(url, waitHashes, this.deepExtend(request, paramsSubType), hashes, subscription);
-        if (isTrue(isUnsubscribe))
+        if (isUnsubscribe == true)
         {
             return result;
         }

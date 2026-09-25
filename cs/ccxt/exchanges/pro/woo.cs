@@ -1013,12 +1013,12 @@ public partial class woo : ccxt.woo
         }, marketResolved);
     }
 
-    public virtual bool checkRequiredUid(object error = null)
+    public virtual bool checkRequiredUid(bool? error = null)
     {
         error ??= true;
         if (((this.uid == null)) || (isEqual(this.uid, "")))
         {
-            if (isTrue(error))
+            if (error == true)
             {
                 throw new AuthenticationError ((this.id + " requires `uid` credential (woox calls it `application_id`)")) ;
             } else

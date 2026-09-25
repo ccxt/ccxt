@@ -1778,11 +1778,11 @@ public partial class paradex : Exchange
         return this.safeDict(this.options, "systemConfig", new Dictionary<string, object>() {});
     }
 
-    public async virtual Task<Dictionary<string, object>> prepareParadexDomain(object l1 = null)
+    public async virtual Task<Dictionary<string, object>> prepareParadexDomain(bool? l1 = null)
     {
         l1 ??= false;
         IDictionary<string, object> systemConfig = await this.getSystemConfig();
-        if (isEqual(l1, true))
+        if ((l1 == true))
         {
             Dictionary<string, object> l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },

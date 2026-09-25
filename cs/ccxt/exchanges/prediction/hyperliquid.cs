@@ -139,7 +139,7 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public override void setSandboxMode(object enabled)
+    public override void setSandboxMode(bool? enabled)
     {
         base.setSandboxMode(enabled);
         this.options["sandboxMode"] = enabled;
@@ -2394,11 +2394,11 @@ public partial class hyperliquid : PredictionExchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual Dictionary<string, object> constructPhantomAgent(object hash, object isTestnet = null)
+    public virtual Dictionary<string, object> constructPhantomAgent(object hash, bool? isTestnet = null)
     {
         isTestnet ??= true;
         string source = "a";
-        if (isTrue(isTestnet))
+        if (isTestnet == true)
         {
             source = "b";
         }

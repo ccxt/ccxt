@@ -1175,12 +1175,12 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToDict(this.parseAccountSettings(this.safeList(response, "data", new List<object>() {})));
     }
 
-    public async virtual Task loadAccountSettings(object refresh = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task loadAccountSettings(bool? refresh = null, IDictionary<string, object>? parameters = null)
     {
         refresh ??= false;
         parameters ??= new Dictionary<string, object>();
         object settings = this.handleOption("loadAccountSettings", "settings");
-        if (((settings == null)) || (isEqual(refresh, true)))
+        if (((settings == null)) || ((refresh == true)))
         {
             this.options["settings"] = this.createSafeDictionary();
             settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(parameters));

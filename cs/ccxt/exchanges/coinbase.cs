@@ -5869,7 +5869,7 @@ public partial class coinbase : Exchange
         return parsedPositions;
     }
 
-    public virtual string createAuthToken(object seconds, object method = null, object url = null, object useEddsa = null)
+    public virtual string createAuthToken(object seconds, object method = null, object url = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -5889,12 +5889,12 @@ public partial class coinbase : Exchange
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         object nonce = this.randomBytes(16);
         string aud = "retail_rest_api_proxy";
-        if (isTrue(useEddsa))
+        if (useEddsa == true)
         {
             aud = "cdp_service";
         }
         string iss = "coinbase-cloud";
-        if (isTrue(useEddsa))
+        if (useEddsa == true)
         {
             iss = "cdp";
         }
@@ -5908,7 +5908,7 @@ public partial class coinbase : Exchange
         };
         if ((uri != null))
         {
-            if (!isTrue(useEddsa))
+            if (useEddsa != true)
             {
                 request["uri"] = uri;
             } else
@@ -5916,7 +5916,7 @@ public partial class coinbase : Exchange
                 request["uris"] = new List<object>() {uri};
             }
         }
-        if (isTrue(useEddsa))
+        if (useEddsa == true)
         {
             byte[] byteArray = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(byteArray, 0, 32);

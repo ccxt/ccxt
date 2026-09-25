@@ -1835,7 +1835,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} enable whether to use the testnet
      * @returns {undefined}
      */
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
@@ -1844,14 +1844,14 @@ public partial class predictfun : PredictionExchange
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         this.options["sandboxMode"] = enable;
-        this.options["chainId"] = isTrue((enable)) ? 97 : 56;
-        ((IDictionary<string,object>)this.requiredCredentials)["apiKey"] = !isTrue(enable);
+        this.options["chainId"] = enable == true ? 97 : 56;
+        ((IDictionary<string,object>)this.requiredCredentials)["apiKey"] = enable != true;
         if (!isEqual(wasSandbox, enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch
-            if (isTrue(enable))
+            if (enable == true)
             {
                 this.options["backupJwtToken"] = this.safeString(this.options, "jwtToken");
                 this.options["backupJwtTokenExpiresAt"] = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
@@ -1979,7 +1979,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {object} a dictionary with the order hash and the signature
      */
-    public virtual object signPredictfunOrder(IDictionary<string, object> order, object isNegRisk, object isYieldBearing)
+    public virtual object signPredictfunOrder(IDictionary<string, object> order, bool? isNegRisk, bool? isYieldBearing)
     {
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
@@ -2911,19 +2911,19 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public virtual object exchangeAddress(object isNegRisk, object isYieldBearing)
+    public virtual object exchangeAddress(bool? isNegRisk, bool? isYieldBearing)
     {
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
         IDictionary<string, object> exchanges = this.safeDict(this.options, "exchanges", new Dictionary<string, object>() {});
         IDictionary<string, object> byChain = this.safeDict(exchanges, this.numberToString(chainIdValue), new Dictionary<string, object>() {});
         string identifier = "CTF_EXCHANGE";
-        if (isTrue(isNegRisk) && isTrue(isYieldBearing))
+        if (isNegRisk == true && isYieldBearing == true)
         {
             identifier = "YIELD_BEARING_NEG_RISK_CTF_EXCHANGE";
-        } else if (isTrue(isNegRisk))
+        } else if (isNegRisk == true)
         {
             identifier = "NEG_RISK_CTF_EXCHANGE";
-        } else if (isTrue(isYieldBearing))
+        } else if (isYieldBearing == true)
         {
             identifier = "YIELD_BEARING_CTF_EXCHANGE";
         }
@@ -2939,19 +2939,19 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public virtual object conditionalTokensAddress(object isNegRisk, object isYieldBearing)
+    public virtual object conditionalTokensAddress(bool? isNegRisk, bool? isYieldBearing)
     {
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
         IDictionary<string, object> tokens = this.safeDict(this.options, "conditionalTokens", new Dictionary<string, object>() {});
         IDictionary<string, object> byChain = this.safeDict(tokens, this.numberToString(chainIdValue), new Dictionary<string, object>() {});
         string identifier = "CONDITIONAL_TOKENS";
-        if (isTrue(isNegRisk) && isTrue(isYieldBearing))
+        if (isNegRisk == true && isYieldBearing == true)
         {
             identifier = "YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS";
-        } else if (isTrue(isNegRisk))
+        } else if (isNegRisk == true)
         {
             identifier = "NEG_RISK_CONDITIONAL_TOKENS";
-        } else if (isTrue(isYieldBearing))
+        } else if (isYieldBearing == true)
         {
             identifier = "YIELD_BEARING_CONDITIONAL_TOKENS";
         }
@@ -2966,13 +2966,13 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public virtual object adapterAddress(object isYieldBearing)
+    public virtual object adapterAddress(bool? isYieldBearing)
     {
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
         IDictionary<string, object> adapters = this.safeDict(this.options, "adapters", new Dictionary<string, object>() {});
         IDictionary<string, object> byChain = this.safeDict(adapters, this.numberToString(chainIdValue), new Dictionary<string, object>() {});
         string identifier = "NEG_RISK_ADAPTER";
-        if (isTrue(isYieldBearing))
+        if (isYieldBearing == true)
         {
             identifier = "YIELD_BEARING_NEG_RISK_ADAPTER";
         }

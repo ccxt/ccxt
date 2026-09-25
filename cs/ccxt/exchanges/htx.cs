@@ -11147,7 +11147,7 @@ public partial class htx : Exchange
      * @param {string} [params.marginMode] "cross" (default) or "isolated"
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11155,7 +11155,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         string posMode = "single_side";
-        if (isTrue(hedged))
+        if (hedged)
         {
             posMode = "dual_side";
         }

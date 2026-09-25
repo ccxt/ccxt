@@ -4821,7 +4821,7 @@ public partial class weex : Exchange
      * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4841,7 +4841,7 @@ public partial class weex : Exchange
             throw new ArgumentsRequired ((this.id + " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
         }
         string separatedType = "COMBINED";
-        if (isTrue(hedged))
+        if (hedged)
         {
             separatedType = "SEPARATED";
         }
@@ -4995,7 +4995,7 @@ public partial class weex : Exchange
         return ((string?)((object)(marketId)));
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;

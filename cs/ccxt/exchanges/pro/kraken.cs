@@ -937,13 +937,13 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true));
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> marketsByWsName = this.safeDict(this.options, "marketsByWsName");
-        if (((marketsByWsName == null)) || isTrue(reload))
+        if (((marketsByWsName == null)) || reload == true)
         {
             marketsByWsName = new Dictionary<string, object>() {};
             List<object> symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast

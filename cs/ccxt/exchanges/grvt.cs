@@ -2095,7 +2095,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTransferEntryList((filteredResults != null && 1 < filteredResults.Count ? filteredResults[1] : null));
     }
 
-    public virtual List<object> filterTransfersByType(object transfers, object transferType, object onlyMainAccount = null)
+    public virtual List<object> filterTransfersByType(object transfers, object transferType, bool? onlyMainAccount = null)
     {
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
@@ -2103,7 +2103,7 @@ public partial class grvt : Exchange
         for (int i = 0; i < getArrayLength(transfers); i++)
         {
             object transfer = getValue(transfers, i);
-            if ((isTrue(onlyMainAccount) && (this.safeString(transfer, "fromAccount") == "0") && (this.safeString(transfer, "toAccount") == "0")) || (!isTrue(onlyMainAccount) && ((this.safeString(transfer, "fromAccount") != "0") || (this.safeString(transfer, "toAccount") != "0"))))
+            if ((onlyMainAccount == true && (this.safeString(transfer, "fromAccount") == "0") && (this.safeString(transfer, "toAccount") == "0")) || (onlyMainAccount != true && ((this.safeString(transfer, "fromAccount") != "0") || (this.safeString(transfer, "toAccount") != "0"))))
             {
                 string? metadata = this.safeString(getValue(transfer, "info"), "transfer_metadata");
                 object parsedMetadata = this.parseJson(metadata);
