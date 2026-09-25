@@ -4932,7 +4932,7 @@ class hyperliquid extends Exchange {
         return $records;
     }
 
-    public function format_vault_address(?string $address = null) {
+    public function format_vault_address(?string $address = null): ?string {
         if ($address === null) {
             return null;
         }
@@ -4954,7 +4954,7 @@ class hyperliquid extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the wallet address set');
     }
 
-    public function coin_to_market_id(?string $coin) {
+    public function coin_to_market_id(?string $coin): ?string {
         // handle also hip3 tokens like flx:CRCL
         if ($coin === null) {
             return null;
