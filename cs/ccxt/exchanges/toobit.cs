@@ -2063,10 +2063,10 @@ public partial class toobit : Exchange
         IList<object> reduceOnlyparametersVariable = (IList<object>)this.handleParamBool(parameters, "reduceOnly");
         reduceOnly = (bool?)reduceOnlyparametersVariable[0];
         parameters = reduceOnlyparametersVariable[1];
-        if (isEqual(sideVar, "buy"))
+        if ((sideVar == "buy"))
         {
             sideVar = ((reduceOnly == true)) ? "BUY_CLOSE" : "BUY_OPEN";
-        } else if (isEqual(sideVar, "sell"))
+        } else if ((sideVar == "sell"))
         {
             sideVar = ((reduceOnly == true)) ? "SELL_CLOSE" : "SELL_OPEN";
         }

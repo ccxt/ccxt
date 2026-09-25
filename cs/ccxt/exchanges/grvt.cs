@@ -2164,8 +2164,8 @@ public partial class grvt : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
             }
-            fromAccountVar = (isEqual(fromAccountVar, "trading")) ? tradingAccountId : fundingAccountId;
-            toAccountVar = (isEqual(toAccountVar, "trading")) ? tradingAccountId : fundingAccountId;
+            fromAccountVar = ((fromAccountVar == "trading")) ? tradingAccountId : fundingAccountId;
+            toAccountVar = ((toAccountVar == "trading")) ? tradingAccountId : fundingAccountId;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "from_account_id", this.safeString(parameters, "from_account_id", defaultFromAccountId) },
@@ -2186,7 +2186,7 @@ public partial class grvt : Exchange
         } catch(Exception error)
         {
             string? msg = ((string)this.exceptionMessage(error));
-            bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
+            bool isFromFundingAccount = (fromAccountVar == "funding");
             if (isFromFundingAccount && ((msg?.IndexOf("You are not authorized", StringComparison.Ordinal) ?? -1) >= 0))
             {
                 throw new PermissionDenied (((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;

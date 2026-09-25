@@ -2215,7 +2215,7 @@ public partial class extended : Exchange
         if ((fromAccountVar == null))
         {
             fromAccountVar = currentAccountId;
-        } else if (!isEqual(fromAccountVar, currentAccountId))
+        } else if (!(fromAccountVar == currentAccountId))
         {
             throw new BadRequest ((this.id + " transfer() can only transfer from the authenticated account")) ;
         }

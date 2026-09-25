@@ -1445,7 +1445,7 @@ public partial class krakenfutures : Exchange
         typeVar = this.safeString(parameters, "orderType", typeVar);
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(typeVar, "market"), isEqual(typeVar, "post"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((typeVar == "market"), (typeVar == "post"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
@@ -1454,10 +1454,10 @@ public partial class krakenfutures : Exchange
         } else if (timeInForce == "ioc")
         {
             typeVar = "ioc";
-        } else if (isEqual(typeVar, "limit"))
+        } else if ((typeVar == "limit"))
         {
             typeVar = "lmt";
-        } else if (isEqual(typeVar, "market"))
+        } else if ((typeVar == "market"))
         {
             typeVar = "mkt";
         }
@@ -1507,13 +1507,13 @@ public partial class krakenfutures : Exchange
         }
         request["orderType"] = typeVar;
         price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
-        bool isLimitOrder = (isEqual(typeVar, "lmt")) || (isEqual(typeVar, "post")) || (isEqual(typeVar, "ioc"));
+        bool isLimitOrder = ((typeVar == "lmt")) || ((typeVar == "post")) || ((typeVar == "ioc"));
         string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
         if (isLimitOrder && ((price == null)) && ((limitPriceParam == null)))
         {
             throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + (typeVar)) + " orders")) ;
         }
-        bool isMarketOrder = (isEqual(typeVar, "mkt"));
+        bool isMarketOrder = ((typeVar == "mkt"));
         if (((price != null)) && !isMarketOrder)
         {
             request["limitPrice"] = this.priceToPrecision(symbolVar, price);

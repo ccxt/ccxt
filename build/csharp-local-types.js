@@ -12459,13 +12459,26 @@ const DESTRUCTURED_DECLARATION_ELEMENT0 = {
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
 const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])$/m;
+// `const [ x, params ] = this.<helper> (…)` over an audited string helper (DESTRUCTURED_STRING_HELPERS:
+// element 0 is a string box or null on every path); a defaultValue argument the helper can hand back
+// must itself be a string literal or `undefined`
+function destructuredDeclarationStringElement0 (helper, call) {
+    if (helper === undefined || !Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper) || !stringElementIndexes (helper).includes (0)) {
+        return false;
+    }
+    const defaultValueArg = DESTRUCTURED_STRING_HELPERS[helper];
+    const argument = (defaultValueArg > 0) ? call.arguments[defaultValueArg - 1] : undefined;
+    return argument === undefined || isStringLiteral (argument) || isUndefinedLiteral (argument);
+}
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
     const helper = destructuredHandleCallName (declaration.initializer);
     const target = declaration.name.elements?.[0]?.name;
-    if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper) || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
+    const audited = !Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper)
+        && destructuredDeclarationStringElement0 (helper, declaration.initializer);
+    if ((!audited && !Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper)) || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
         return printed;
     }
-    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper];
+    const type = audited ? 'string?' : DESTRUCTURED_DECLARATION_ELEMENT0[helper];
     const match = DESTRUCTURED_ELEMENT0_LINE_RE.exec (printed);
     if (match === null || match[2] !== csharp.printNode (target, 0) || (indexScope (csharp, scope).bindingCounts.get (match[2]) ?? 0) !== 1) {
         return printed;

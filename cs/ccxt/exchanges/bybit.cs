@@ -5393,7 +5393,7 @@ public partial class bybit : Exchange
         bool hasTakeProfit = (takeProfit != null);
         bool isMarket = lowerCaseType == "market";
         bool isLimit = lowerCaseType == "limit";
-        bool isBuy = isEqual(sideVar, "buy");
+        bool isBuy = (sideVar == "buy");
         bool switchToOco = (isStopLossOrder && isTakeProfitOrder) || (this.safeBool(parameters, "tradingStopEndpoint", false) == true);
         string? defaultMethod = null;
         if (isTrailingOrder || ((switchToOco == true)))
@@ -5543,7 +5543,7 @@ public partial class bybit : Exchange
         string? cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
-        bool isMarketBuyAndCostInferable = (lowerCaseType == "market") && (isEqual(sideVar, "buy")) && (((price != null)) || ((cost != null)));
+        bool isMarketBuyAndCostInferable = (lowerCaseType == "market") && ((sideVar == "buy")) && (((price != null)) || ((cost != null)));
         bool isMarketOrder = lowerCaseType == "market";
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
         {
@@ -5566,7 +5566,7 @@ public partial class bybit : Exchange
                 request["marketUnit"] = "baseCoin";
                 request["qty"] = amountString;
             }
-        } else if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && (isEqual(sideVar, "buy")))
+        } else if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && ((sideVar == "buy")))
         {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
@@ -5711,9 +5711,9 @@ public partial class bybit : Exchange
             if ((reduceOnly == true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                sideVar = (isEqual(sideVar, "buy")) ? "sell" : "buy";
+                sideVar = ((sideVar == "buy")) ? "sell" : "buy";
             }
-            request["positionIdx"] = (isEqual(sideVar, "buy")) ? 1 : 2;
+            request["positionIdx"] = ((sideVar == "buy")) ? 1 : 2;
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"});
         return this.extend(request, parameters);
