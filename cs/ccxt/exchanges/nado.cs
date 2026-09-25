@@ -3233,7 +3233,7 @@ public partial class nado : Exchange
     public virtual string padHex(object value, object length, object left = null)
     {
         left ??= true;
-        if (isEqual(length, null))
+        if ((length == null))
         {
             throw new ArgumentsRequired ((this.id + " padHex() requires length")) ;
         }

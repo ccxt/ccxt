@@ -1530,7 +1530,7 @@ public partial class opinion : PredictionExchange
      */
     public async virtual Task<object> loadTradeMarket(object marketId)
     {
-        if (isEqual(marketId, null))
+        if ((marketId == null))
         {
             throw new ArgumentsRequired ((this.id + " loadTradeMarket() requires a marketId")) ;
         }
@@ -1994,7 +1994,7 @@ public partial class opinion : PredictionExchange
      */
     public virtual IDictionary<string, object> opinionOutcomeByMarketIdSide(object marketId, object outcomeSide)
     {
-        if ((isEqual(marketId, null)) || ((this.markets == null)))
+        if (((marketId == null)) || ((this.markets == null)))
         {
             return ((IDictionary<string, object>)((object)(null)));
         }

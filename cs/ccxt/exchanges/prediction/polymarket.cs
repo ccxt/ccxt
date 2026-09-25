@@ -1735,7 +1735,7 @@ public partial class polymarket : PredictionExchange
                 if ((vol != null))
                 {
                     object prevVol = getValue(candle, 5);
-                    ((List<object>)candle)[Convert.ToInt32(5)] = (isEqual(prevVol, null)) ? vol : this.sum(prevVol, vol); // volume
+                    ((List<object>)candle)[Convert.ToInt32(5)] = ((prevVol == null)) ? vol : this.sum(prevVol, vol); // volume
                 }
                 buckets[(string)bucketKey] = candle; // reassign after mutation, php arrays are value types
             }
@@ -2534,7 +2534,7 @@ public partial class polymarket : PredictionExchange
             orderTypeStr = isMarket ? "FOK" : "GTC";
         }
         object priceResolved = price;
-        if (isEqual(priceResolved, null))
+        if ((priceResolved == null))
         {
             if (!isMarket)
             {
@@ -2542,7 +2542,7 @@ public partial class polymarket : PredictionExchange
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             priceResolved = this.safeNumber(outcomeObj, "price");
-            if (isEqual(priceResolved, null))
+            if ((priceResolved == null))
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }

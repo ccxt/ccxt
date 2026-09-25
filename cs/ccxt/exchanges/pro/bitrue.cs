@@ -500,7 +500,7 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
     {
-        if (isEqual(rawQuantity, null))
+        if ((rawQuantity == null))
         {
             return null;
         }

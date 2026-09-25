@@ -1053,7 +1053,7 @@ public partial class hollaex : Exchange
         {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         }
-        if (isEqual(start, null))
+        if ((start == null))
         {
             start = subtract(until, timeDelta);
         }

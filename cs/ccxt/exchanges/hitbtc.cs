@@ -1618,11 +1618,11 @@ public partial class hitbtc : Exchange
             currency = this.currency(code);
             request["currencies"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        if (!isEqual(since, null))
+        if (!(since == null))
         {
             request["from"] = this.iso8601(since);
         }
-        if (!isEqual(limit, null))
+        if (!(limit == null))
         {
             request["limit"] = limit;
         }
@@ -2733,7 +2733,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual List<object> createOrderRequest(IDictionary<string, object> market, object marketType, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public virtual List<object> createOrderRequest(IDictionary<string, object> market, string? marketType, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimit = ((type == "limit"));
@@ -2797,7 +2797,7 @@ public partial class hitbtc : Exchange
             throw new ExchangeError ((this.id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"});
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             // set default margin mode to cross
             request["margin_mode"] = ((marginMode == null)) ? "cross" : marginMode;

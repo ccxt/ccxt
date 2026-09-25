@@ -1231,7 +1231,7 @@ public partial class bitvavo : Exchange
         {
             limitResolved = 1440;
         }
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             ((IDictionary<string,object>)requestUntil)["limit"] = mathMin(limitResolved, 1440); // default 1440, max 1440
         }

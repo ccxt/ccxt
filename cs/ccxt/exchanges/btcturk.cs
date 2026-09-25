@@ -795,7 +795,7 @@ public partial class btcturk : Exchange
             limitDefaulted = ((Int64?)100); // default value
         }
         object limitResolved = (!(limitDefaulted == null)) ? mathMin(limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             if ((timeframeVar == "1y"))
             {

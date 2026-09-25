@@ -1821,7 +1821,7 @@ public partial class bitget : ccxt.bitget
         bool? isTrigger = (bool?)((IList<object>) isTriggerparamsTriggerVariable)[0];
         var paramsTrigger = ((IList<object>) isTriggerparamsTriggerVariable)[1];
         string messageHash = "order";
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             messageHash = "triggerOrder";
         }
@@ -1874,7 +1874,7 @@ public partial class bitget : ccxt.bitget
         {
             subscriptionHash = ((subscriptionHash + ":") + (symbolResolved));
         }
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             subscriptionHash = (subscriptionHash + ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
@@ -1885,7 +1885,7 @@ public partial class bitget : ccxt.bitget
             instId = marketId;
         }
         string channel = "orders";
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             channel = "orders-algo";
         }

@@ -235,7 +235,7 @@ public partial class binance : PredictionExchange
     public async virtual Task<List<Dictionary<string, object>>> FetchRawTopics(object maxTopics, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
-        object maxTopicsResolved = (isEqual(maxTopics, null)) ? this.safeInteger(this.options, "maxFetchMarketsLimit", 200) : maxTopics;
+        object maxTopicsResolved = ((maxTopics == null)) ? this.safeInteger(this.options, "maxFetchMarketsLimit", 200) : maxTopics;
         object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 100);
         if (isGreaterThan(pageLimit, 100))
         {
@@ -558,7 +558,7 @@ public partial class binance : PredictionExchange
         }
         object capped = collected;
         int collectedLength = (collected?.Count ?? 0);
-        if ((!isEqual(limitResolved, null)) && (isGreaterThan(collectedLength, limitResolved)))
+        if ((!(limitResolved == null)) && (isGreaterThan(collectedLength, limitResolved)))
         {
             capped = this.arraySlice(collected, 0, limitResolved);
         }

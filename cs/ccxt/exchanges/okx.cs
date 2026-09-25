@@ -3140,7 +3140,7 @@ public partial class okx : Exchange
         {
             limitResolved = 400;
         }
-        if (!isEqual(limitResolved, null))
+        if (!(limitResolved == null))
         {
             request["sz"] = limitResolved; // max 400
         }
@@ -3897,9 +3897,9 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
-    public virtual object parseBalanceByType(object type, object response)
+    public virtual object parseBalanceByType(string? type, object response)
     {
-        if (isEqual(type, "funding"))
+        if ((type == "funding"))
         {
             return this.parseFundingBalance(response);
         } else
@@ -4318,7 +4318,7 @@ public partial class okx : Exchange
         {
             paramsHedged = paramsHedgedOption;
         }
-        bool omitReduceOnly = usesHedged && (isEqual(hedged, true)) && isReduceOnly;
+        bool omitReduceOnly = usesHedged && ((hedged == true)) && isReduceOnly;
         object paramsReduceOnly = paramsHedged;
         if (omitReduceOnly)
         {
@@ -4343,7 +4343,7 @@ public partial class okx : Exchange
                     request["posSide"] = positionSide;
                 } else
                 {
-                    if (isEqual(hedged, true))
+                    if ((hedged == true))
                     {
                         bool isBuy = ((side == "buy"));
                         bool isProtective = ((takeProfitPrice != null)) || ((stopLossPrice != null)) || isReduceOnly;
@@ -4395,20 +4395,20 @@ public partial class okx : Exchange
                     {
                         if ((price != null))
                         {
-                            if (isEqual(notional, null))
+                            if ((notional == null))
                             {
                                 string? amountString = this.numberToString(amount);
                                 string? priceString = this.numberToString(price);
                                 string? quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
-                        } else if (isEqual(notional, null))
+                        } else if ((notional == null))
                         {
                             throw new InvalidOrder ((this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
-                        notional = (isEqual(notional, null)) ? amount : notional;
+                        notional = ((notional == null)) ? amount : notional;
                     }
                     request["sz"] = this.costToPrecision(symbol, notional);
                 }
@@ -5264,7 +5264,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         object timeOut = 0;
-        if ((!isEqual(timeout, null)) && (isGreaterThan(timeout, 0)))
+        if ((!(timeout == null)) && (isGreaterThan(timeout, 0)))
         {
             timeOut = this.parseToInt(divide(timeout, 1000));
         }

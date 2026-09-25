@@ -2304,7 +2304,7 @@ public partial class kalshi : PredictionExchange
         double? amount = this.safeNumber2(order, "initial_count_fp", "count");
         double? filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
         object remaining = this.safeNumber(order, "remaining_count_fp");
-        if ((isEqual(remaining, null)) && ((amount != null)) && ((filled != null)))
+        if (((remaining == null)) && ((amount != null)) && ((filled != null)))
         {
             remaining = subtract(amount, filled);
         }

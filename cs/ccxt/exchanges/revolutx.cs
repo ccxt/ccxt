@@ -456,7 +456,7 @@ public partial class revolutx : Exchange
         bool active = (status == "active");
         string? assetType = this.safeString(currency, "asset_type");
         string type = (assetType == "crypto") ? "crypto" : "fiat";
-        double? precision = (!isEqual(scale, null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
+        double? precision = (!(scale == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },

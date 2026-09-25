@@ -916,7 +916,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual object orderMessage(IDictionary<string, object> market, object nonce, object feeRate, object type, object side, object amount, object price = null)
+    public virtual object orderMessage(IDictionary<string, object> market, object nonce, object feeRate, string? type, string? side, object amount, object price = null)
     {
         if ((type == null))
         {
@@ -927,10 +927,10 @@ public partial class hibachi : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         int sideInternal = 0;
-        if (isEqual(side, "sell"))
+        if ((side == "sell"))
         {
             sideInternal = 0;
-        } else if (isEqual(side, "buy"))
+        } else if ((side == "buy"))
         {
             sideInternal = 1;
         }
@@ -965,7 +965,7 @@ public partial class hibachi : Exchange
         string feeRatePadded = (feeRateInternal16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedFeeRate = this.base16ToBinary(feeRatePadded);
         byte[] encodedPrice = this.binaryConcat();
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             string? priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             string? priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);

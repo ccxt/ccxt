@@ -1872,14 +1872,14 @@ public partial class coinbaseexchange : Exchange
         } else if ((type == "market"))
         {
             object cost = costParam;
-            if (isEqual(cost, null))
+            if ((cost == null))
             {
                 if ((price != null))
                 {
                     cost = multiply(amount, price);
                 }
             }
-            if (!isEqual(cost, null))
+            if (!(cost == null))
             {
                 request["funds"] = this.costToPrecision(symbol, cost);
             } else
@@ -2424,7 +2424,7 @@ public partial class coinbaseexchange : Exchange
             double? feeCost = this.safeNumber(details, "fee");
             if ((feeCost != null))
             {
-                if (!isEqual(amount, null))
+                if (!(amount == null))
                 {
                     amount = subtract(amount, feeCost);
                 }

@@ -1807,7 +1807,7 @@ public partial class coinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object limitValue = limitVar;
-        if (isEqual(limitValue, null))
+        if ((limitValue == null))
         {
             limitValue = 20;
         }

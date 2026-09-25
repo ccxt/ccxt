@@ -580,7 +580,7 @@ public partial class BaseExchange
          * @description store value under key if key is defined (no-op on undefined)
          */
         object k = key;
-        if (!isEqual(k, null))
+        if (!(k == null))
         {
             ((IDictionary<string,object>)dict)[(string)k] = value;
         }
@@ -2370,7 +2370,7 @@ public partial class BaseExchange
         string? status = this.safeString(orderDict, "status");
         bool parseFilled = ((filled == null));
         bool parseCost = ((cost == null));
-        bool parseLastTradeTimeTimestamp = (isEqual(lastTradeTimeTimestamp, null));
+        bool parseLastTradeTimeTimestamp = ((lastTradeTimeTimestamp == null));
         object fee = this.safeValue(orderDict, "fee");
         bool parseFee = ((fee == null));
         bool parseFees = isEqual(this.safeValue(orderDict, "fees"), null);
@@ -2455,7 +2455,7 @@ public partial class BaseExchange
                     object tradeTimestamp = this.safeValue(trade, "timestamp");
                     if (parseLastTradeTimeTimestamp && ((tradeTimestamp != null)))
                     {
-                        if (isEqual(lastTradeTimeTimestamp, null))
+                        if ((lastTradeTimeTimestamp == null))
                         {
                             lastTradeTimeTimestamp = tradeTimestamp;
                         } else
@@ -4586,7 +4586,7 @@ public partial class BaseExchange
             IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
             object ts = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
             object price = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("price") ? ((IDictionary<string, object>)trade)["price"] : null);
-            if ((isEqual(ts, null)) || (isEqual(price, null)))
+            if (((ts == null)) || ((price == null)))
             {
                 continue;
             }
@@ -4594,7 +4594,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            if (isEqual(ts, null))
+            if ((ts == null))
             {
                 throw new ExchangeError ((this.id + " buildOHLCVC() missing ts")) ;
             }
@@ -4605,7 +4605,7 @@ public partial class BaseExchange
             }
             int ohlcv_length = (ohlcvs?.Count ?? 0);
             int candle = (ohlcv_length - 1);
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((this.id + " buildOHLCVC() requires a price argument")) ;
             }
@@ -4617,7 +4617,7 @@ public partial class BaseExchange
             if (!isNewCandle)
             {
                 object candleTimestamp = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_timestamp);
-                if (isEqual(candleTimestamp, null))
+                if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
                 }
@@ -4632,8 +4632,8 @@ public partial class BaseExchange
                 // still processing the same timeframeVar -> update opening trade
                 object prevHigh = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_high);
                 object prevLow = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_low);
-                object prevHighValue = (isEqual(prevHigh, null)) ? price : prevHigh;
-                object prevLowValue = (isEqual(prevLow, null)) ? price : prevLow;
+                object prevHighValue = ((prevHigh == null)) ? price : prevHigh;
+                object prevLowValue = ((prevLow == null)) ? price : prevLow;
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
@@ -6918,7 +6918,7 @@ public partial class BaseExchange
         Int64? newMaxEntriesPerRequest = (Int64?)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
         object maxEntriesPerRequestOption = (!(newMaxEntriesPerRequest == null)) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        object maxEntriesPerRequestResolved = (isEqual(maxEntriesPerRequestOption, null)) ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        object maxEntriesPerRequestResolved = ((maxEntriesPerRequestOption == null)) ? 1000 : maxEntriesPerRequestOption; // default to 1000
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
     }
 
@@ -6965,7 +6965,7 @@ public partial class BaseExchange
                 {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
-                    if (!isEqual(paginationTimestamp, null))
+                    if (!(paginationTimestamp == null))
                     {
                         ((IDictionary<string,object>)paramsMaxEntriesPerRequest)["until"] = subtract(paginationTimestamp, 1);
                     }
@@ -6974,7 +6974,7 @@ public partial class BaseExchange
                     if (this.verbose)
                     {
                         string backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
-                        if (!isEqual(paginationTimestamp, null))
+                        if (!(paginationTimestamp == null))
                         {
                             backwardMessage = backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
                         }
@@ -6988,7 +6988,7 @@ public partial class BaseExchange
                     result = this.arrayConcat(result, response);
                     object firstElement = this.safeValue(response, 0);
                     paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
-                    if (isEqual(paginationTimestamp, null))
+                    if ((paginationTimestamp == null))
                     {
                         break;
                     }
@@ -7004,7 +7004,7 @@ public partial class BaseExchange
                     if (this.verbose)
                     {
                         string forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
-                        if (!isEqual(paginationTimestamp, null))
+                        if (!(paginationTimestamp == null))
                         {
                             forwardMessage = forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
                         }
@@ -7183,7 +7183,7 @@ public partial class BaseExchange
         {
             try
             {
-                if (!isEqual(cursorValue, null))
+                if (!(cursorValue == null))
                 {
                     if ((cursorIncrement != null))
                     {
@@ -7221,7 +7221,7 @@ public partial class BaseExchange
                 int responseLength = getArrayLength(response);
                 if (this.verbose)
                 {
-                    object cursorString = (isEqual(cursorValue, null)) ? "" : cursorValue;
+                    object cursorString = ((cursorValue == null)) ? "" : cursorValue;
                     object iteration = (add(i, 1));
                     string cursorMessage = ((((((("Cursor pagination call " + ((object)iteration).ToString()) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString()) + " cursor ") + (cursorString));
                     this.log(cursorMessage);
@@ -7249,7 +7249,7 @@ public partial class BaseExchange
                         break;
                     }
                 }
-                if (isEqual(cursorValue, null))
+                if ((cursorValue == null))
                 {
                     break;
                 }

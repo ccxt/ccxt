@@ -1845,7 +1845,7 @@ public partial class weex : Exchange
                 Int64 now = this.milliseconds();
                 Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object numberOfCandles = maxHistoricalLimit;
-                if (!isEqual(limitResolved, null) && !isEqual(limitResolved, null) && !isEqual(limitResolved, 0))
+                if (!(limitResolved == null) && !(limitResolved == null) && !isEqual(limitResolved, 0))
                 {
                     numberOfCandles = limitResolved;
                 }
@@ -1871,7 +1871,7 @@ public partial class weex : Exchange
             response = await this.contractGetCapiV3MarketHistoryKlines(this.extend(request, paramsOmitted));
         } else
         {
-            if (!isEqual(limitResolved, null))
+            if (!(limitResolved == null))
             {
                 request["limit"] = limitResolved;
             }
@@ -2542,7 +2542,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2560,11 +2560,11 @@ public partial class weex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
-            { "type", ((string)type).ToUpper() },
+            { "side", side.ToUpper() },
+            { "type", type.ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2644,7 +2644,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2662,11 +2662,11 @@ public partial class weex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.toSandboxMarketId(market) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
-            { "type", ((string)type).ToUpper() },
+            { "type", type.ToUpper() },
         };
-        bool isMarketOrder = (isEqual(type, "market"));
+        bool isMarketOrder = ((type == "market"));
         if (!isMarketOrder)
         {
             request["price"] = this.priceToPrecision(symbol, price);
@@ -2692,11 +2692,11 @@ public partial class weex : Exchange
         string positionSide = "LONG";
         if (isReduceOnly)
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 positionSide = "SHORT";
             }
-        } else if (isEqual(side, "sell"))
+        } else if ((side == "sell"))
         {
             positionSide = "SHORT";
         }
@@ -4644,7 +4644,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToDict(await this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters)));
     }
 
-    public virtual string? encodeMarginMode(object marginMode)
+    public virtual string? encodeMarginMode(string? marginMode)
     {
         Dictionary<string, object> marginTypes = new Dictionary<string, object>() {
             { "cross", "CROSSED" },
