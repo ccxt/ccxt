@@ -15535,14 +15535,12 @@ export const CORE_LIST_ARGS = {
     'watchMyLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchMyLiquidationsForSymbols
     'watchMyTradesForSymbols': { 0: 'IList<object>' },  // WatchMyTradesForSymbols
     'watchOHLCVForSymbols': { 0: 'IList<object>' },
-    'watchOrderBookForSymbols': { 0: 'IList<object>' },
     'watchOrdersForSymbols': { 0: 'IList<object>' },  // WatchOrdersForSymbols
     'watchPositionForSymbols': { 0: 'IList<object>' },  // WatchPositionForSymbols
     'watchPositions': { 0: 'IList<object>' },
     'watchPrivateMultiple': { 0: 'IList<object>' },
     'watchStockMarketStream': { 1: 'IList<object>' },
     'watchTopics': { 1: 'IList<object>' },
-    'watchTradesForSymbols': { 0: 'IList<object>' },
     'watchUtaTickers': { 0: 'IList<object>' },  // WatchUtaTickers
 };
 
