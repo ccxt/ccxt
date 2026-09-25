@@ -2368,7 +2368,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $this->safe_string($api, 0);
         $signed = $this->safe_string($api, 1) === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);

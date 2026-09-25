@@ -443,7 +443,7 @@ public class Bitso extends BitsoApi
             //
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
-            return this.parseLedger(payload, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(payload, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -566,7 +566,7 @@ public class Bitso extends BitsoApi
             "after", null,
             "status", "ok",
             "fee", fee
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     /**
@@ -903,7 +903,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "payload", (Object) null);
             Long timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "amount", 2);
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -995,7 +995,7 @@ public class Bitso extends BitsoApi
             //         }
             //     }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1226,7 +1226,7 @@ public class Bitso extends BitsoApi
             }};
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(payload, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(payload, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1359,7 +1359,7 @@ public class Bitso extends BitsoApi
             }};
             Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, paramsMarker))).join();
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(payload, Helpers.toMapArg(market), since, java.util.Objects.requireNonNullElse(limit, 25L), new HashMap<String, Object>() {{}});
+            return this.parseTrades(payload, market, since, java.util.Objects.requireNonNullElse(limit, 25L), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1403,7 +1403,7 @@ public class Bitso extends BitsoApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -1487,7 +1487,7 @@ public class Bitso extends BitsoApi
             for (var i = 0; i < ((List<?>)payload).size(); i++)
             {
                 Object id = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
-                ((List<Object>)orders).add(this.parseOrder(id, Helpers.toMapArg(market)));
+                ((List<Object>)orders).add(this.parseOrder(id, market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1637,7 +1637,7 @@ public class Bitso extends BitsoApi
             }};
             Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, paramsMarker))).join();
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            List<Object> orders = this.parseOrders(payload, Helpers.toMapArg(market), since, java.util.Objects.requireNonNullElse(limit, 25L), new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(payload, market, since, java.util.Objects.requireNonNullElse(limit, 25L), new HashMap<String, Object>() {{}});
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1706,7 +1706,7 @@ public class Bitso extends BitsoApi
             }};
             Map<String, Object> response = (this.privateGetOrderTradesOid(this.extend(request, parameters))).join();
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(payload, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseTrades(payload, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1814,7 +1814,7 @@ public class Bitso extends BitsoApi
             //     }
             //
             List<Object> transactions = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(transactions, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2199,7 +2199,7 @@ public class Bitso extends BitsoApi
             //
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(payload, 0, (Object) null);
-            return this.parseTransaction((Map<String, Object>) (first), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (first), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2264,7 +2264,7 @@ public class Bitso extends BitsoApi
             "addressTo", withdrawalAddress,
             "amount", this.safeNumber(transaction, "amount", (Object) null),
             "type", (((java.util.Objects.equals(withdrawId, null)))) ? "deposit" : "withdrawal",
-            "currency", this.safeCurrencyCode(currencyId, Helpers.toMapArg(currencyResolved)),
+            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
             "status", this.parseTransactionStatus(status),
             "updated", null,
             "tagFrom", null,

@@ -772,7 +772,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> metadata = (Map<String, Object>) this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(metadata, "timestamp");
-            return this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "quantity", 2);
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -967,7 +967,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseTrade(trade, Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parseTrade(trade, market));
             }
             return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1231,7 +1231,7 @@ public class Revolutx extends RevolutxApi
                 "status", state,
                 "side", side,
                 "type", type
-            )), Helpers.toMapArg(market));
+            )), market);
             return order;
         }).thenApply(Order::new);
 
@@ -1335,7 +1335,7 @@ public class Revolutx extends RevolutxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1513,7 +1513,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> requestParams = this.extend(this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderStates", "order_states"))), new HashMap<String, Object>() {{
                 put( "order_states", orderStates );
             }});
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(requestParams))).join();
+            return (this.fetchOrders(symbol, since, limit, requestParams)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1634,7 +1634,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseMyTrade((Map<String, Object>) (trade), Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parseMyTrade((Map<String, Object>) (trade), market));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1715,7 +1715,7 @@ public class Revolutx extends RevolutxApi
                 put( "status", state );
                 put( "side", side );
                 put( "type", type );
-            }}), Helpers.toMapArg(market));
+            }}), market);
             return order;
         }).thenApply(Order::new);
 

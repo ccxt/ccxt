@@ -2252,7 +2252,7 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
+func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2261,14 +2261,14 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var endpoint any = Add("/", this.ImplodeParams(path, params))
+	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, endpoint)
+	var url string = *apiUrl + endpoint
 	var headersValue map[string]any = map[string]any{
 		"Hibachi-Client": "HibachiCCXT/unversioned",
 	}
@@ -2276,7 +2276,7 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query string = this.Urlencode(request)
 		if len(query) != 0 {
-			url = Add(url, "?"+query)
+			url += "?" + query
 		}
 	}
 	var hasJsonBody bool = ((method == "POST") || (method == "PUT") || (method == "DELETE"))

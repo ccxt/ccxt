@@ -900,7 +900,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(500))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 500L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1403,7 +1403,7 @@ public class Poloniex extends PoloniexApi
             "markPrice", this.safeString2(ticker, "markPrice", "mPx"),
             "indexPrice", this.safeString(ticker, "iPx"),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1437,7 +1437,7 @@ public class Poloniex extends PoloniexApi
                     }
                 }
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -1470,7 +1470,7 @@ public class Poloniex extends PoloniexApi
                 //            },
                 //
                 List<Object> data = (List<Object>) this.safeList(responseRaw, "data", (Object) null);
-                return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+                return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
             }
             List<Object> response = (this.publicGetMarketsTicker24h(paramsMarketType)).join();
             //
@@ -1497,7 +1497,7 @@ public class Poloniex extends PoloniexApi
             //         }
             //     ]
             //
-            return this.parseTickers(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1653,7 +1653,7 @@ public class Poloniex extends PoloniexApi
             //         "markPrice" : "26444.11"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1791,7 +1791,7 @@ public class Poloniex extends PoloniexApi
             "amount", amountString,
             "cost", costString,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1838,7 +1838,7 @@ public class Poloniex extends PoloniexApi
                 //         },
                 //
                 List<Object> tradesList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTrades(tradesList, market, since, limit, new HashMap<String, Object>() {{}});
             }
             List<Object> trades = (this.publicGetMarketsSymbolTrades(this.extend(request, parameters))).join();
             //
@@ -1854,7 +1854,7 @@ public class Poloniex extends PoloniexApi
             //         }
             //     ]
             //
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1893,7 +1893,7 @@ public class Poloniex extends PoloniexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             boolean isContract = this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future")));
@@ -1958,7 +1958,7 @@ public class Poloniex extends PoloniexApi
                 //            },
                 //
                 List<Object> data = (List<Object>) this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
-                return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
             }
             List<Object> response = (this.privateGetTrades(this.extend(requestUntil, paramsUntil))).join();
             //
@@ -1982,7 +1982,7 @@ public class Poloniex extends PoloniexApi
             //         }
             //     ]
             //
-            List<Object> result = this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> result = this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2179,7 +2179,7 @@ public class Poloniex extends PoloniexApi
             "reduceOnly", reduceOnly,
             "leverage", leverage,
             "hedged", hedged
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderType(String status)
@@ -2237,7 +2237,7 @@ public class Poloniex extends PoloniexApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -2324,7 +2324,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> extension = new HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(extension));
+            return this.parseOrders(response, market, since, limit, extension);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2354,7 +2354,7 @@ public class Poloniex extends PoloniexApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", Helpers.toMapArg(market), parameters, "swap");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters, "swap");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
@@ -2414,7 +2414,7 @@ public class Poloniex extends PoloniexApi
             //            },
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2472,7 +2472,7 @@ public class Poloniex extends PoloniexApi
             //         "clientOrderId" : ""
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2659,7 +2659,7 @@ public class Poloniex extends PoloniexApi
                 put( "side", side );
                 put( "type", type );
             }});
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2760,7 +2760,7 @@ public class Poloniex extends PoloniexApi
                 request.put("symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))));
             }
             List<Object> response = new ArrayList<Object>(Arrays.asList());
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap") || java.util.Objects.equals(marketType, "future"))
@@ -2781,7 +2781,7 @@ public class Poloniex extends PoloniexApi
                 //    }
                 //
                 response = (List<Object>) this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+                return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
             Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
@@ -2809,7 +2809,7 @@ public class Poloniex extends PoloniexApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2842,7 +2842,7 @@ public class Poloniex extends PoloniexApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -3174,7 +3174,7 @@ public class Poloniex extends PoloniexApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(responseRaw, "data", new HashMap<String, Object>() {{}});
                 Long ts = this.safeInteger(data, "ts");
-                return this.parseOrderBook(data, symbol, Helpers.toLongOrNull(ts), "bids", "asks", 0, 1, 2);
+                return this.parseOrderBook(data, symbol, ts, "bids", "asks", 0, 1, 2);
             }
             Map<String, Object> response = (this.publicGetMarketsSymbolOrderBook(this.extend(request, parameters))).join();
             //
@@ -3384,7 +3384,7 @@ public class Poloniex extends PoloniexApi
             //        "transferId" : "168041074"
             //    }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -3456,7 +3456,7 @@ public class Poloniex extends PoloniexApi
             //         "withdrawalNumber": 13449869
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3576,8 +3576,8 @@ public class Poloniex extends PoloniexApi
             }
             List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
-            List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
-            List<Object> depositTransactions = this.parseTransactions(deposits, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit, new HashMap<String, Object>() {{}});
+            List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
             List<Object> transactions = (List<Object>) this.arrayConcat(depositTransactions, withdrawalTransactions);
             return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3607,7 +3607,7 @@ public class Poloniex extends PoloniexApi
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
             List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
-            List<Object> transactions = this.parseTransactions(withdrawals, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit, new HashMap<String, Object>() {{}});
             return this.filterByCurrencySinceLimit(transactions, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3706,7 +3706,7 @@ public class Poloniex extends PoloniexApi
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || Helpers.isTrue((this.inArray(code, codesValue)))))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(feeInfo, Helpers.toMapArg(currency)));
+                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
                 Integer chainsLength = Helpers.getArrayLength(childChains);
                 if ((chainsLength != null && chainsLength > 0))
@@ -3791,7 +3791,7 @@ public class Poloniex extends PoloniexApi
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
             List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
-            List<Object> transactions = this.parseTransactions(deposits, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> transactions = this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
             return this.filterByCurrencySinceLimit(transactions, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4018,7 +4018,7 @@ public class Poloniex extends PoloniexApi
             //        ]
             //    }
             //
-            return this.parseLeverage((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (response), market);
         }).thenApply(Leverage::new);
 
     }
@@ -4185,7 +4185,7 @@ public class Poloniex extends PoloniexApi
             //    }
             //
             List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(positions, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(positions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4300,7 +4300,7 @@ public class Poloniex extends PoloniexApi
                 amountResolved = Precise.stringAbs(amountResolved);
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            return this.parseMarginModification((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseMarginModification((Map<String, Object>) (data), market);
         });
 
     }

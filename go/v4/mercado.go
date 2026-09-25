@@ -1312,7 +1312,7 @@ func (this *Mercado) Nonce() any {
 	// the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }
-func (this *Mercado) Sign(path any, optionalArgs ...any) any {
+func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1327,19 +1327,19 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = *apiUrl + "/"
+	var url string = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet"))
 	var privateBody *string = nil
 	var privateHeaders any = nil
 	if isPublic {
-		url = Add(url, this.ImplodeParams(path, params))
+		url += this.ImplodeParams(path, params)
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		url = Add(url, this.Version+"/")
+		url += this.Version + "/"
 		// mercado requires each tonce to be greater than the previous one
 		var nonce any = this.IncrementingNonce()
 		privateBody = SafeStringPtr(this.Urlencode(this.Extend(map[string]any{
@@ -1379,7 +1379,7 @@ func (this *Mercado) HandleErrors(httpCode any, reason any, url any, method any,
 	//
 	var errorMessage any = this.SafeValue(response, "error_message")
 	if !IsEqual(errorMessage, nil) {
-		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 	return nil
 }

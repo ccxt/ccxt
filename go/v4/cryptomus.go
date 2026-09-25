@@ -1442,7 +1442,7 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 		"taker": takerFees,
 	}
 }
-func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
+func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1453,16 +1453,16 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var endpoint any = this.ImplodeParams(path, params)
+	var endpoint string = this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", endpoint)
+	var url string = *apiUrl + "/" + endpoint
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		var jsonParams any = ""
+		var jsonParams string = ""
 		var privateHeaders map[string]any = map[string]any{
 			"userId": this.Uid,
 		}
@@ -1472,16 +1472,16 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 		} else {
 			var query string = this.Urlencode(paramsOmitted)
 			if len(query) != 0 {
-				url = Add(url, "?"+query)
+				url += "?" + query
 			}
 		}
 		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
 		var stringToSign *string = SafeStringPtr(Add(jsonParamsBase64, this.Secret))
 		var signature any = this.Hash(this.Encode(stringToSign), md5)
 		privateHeaders["sign"] = signature
-		var privateBody any = func() any {
+		var privateBody *string = func() *string {
 			if method != "GET" {
-				return jsonParams
+				return SafeStringPtr(jsonParams)
 			}
 			return body
 		}()
@@ -1494,7 +1494,7 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	} else {
 		var query string = this.Urlencode(paramsOmitted)
 		if len(query) != 0 {
-			url = Add(url, "?"+query)
+			url += "?" + query
 		}
 	}
 	return map[string]any{

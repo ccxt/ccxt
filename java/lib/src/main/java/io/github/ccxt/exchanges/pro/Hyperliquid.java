@@ -211,7 +211,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> dataObject = (Map<String, Object>) this.safeDict(responseObject, "data", new HashMap<String, Object>() {{}});
             List<Object> statuses = (List<Object>) this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(statuses, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(first, Helpers.toMapArg(market));
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(first, market);
             return parsedOrder;
         }).thenApply(Order::new);
 
@@ -398,7 +398,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             put( "asks", Hyperliquid.this.safeList(rawData, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "time");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "px", "sz", 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz", 2);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
@@ -623,7 +623,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -700,7 +700,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(Helpers.newMap(
                     "price", this.safeNumber(mids, name, (Object) null)
-                ), Helpers.toMapArg(market));
+                ), market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
             String messageHash = "tickers";
@@ -744,7 +744,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> ctx = (Map<String, Object>) this.safeDict(data, "ctx", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(ctx, Helpers.toMapArg(market));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(ctx, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
@@ -857,7 +857,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1010,7 +1010,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }}
-        ), Helpers.toMapArg(marketResolved)));
+        ), marketResolved));
     }
 
     /**
@@ -1053,7 +1053,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1474,7 +1474,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 "type", topic,
                 "user", userAddress
             );
-            String dexName = this.getDexFromSymbols("watchPositions", Helpers.toStringListArg(symbolsNormalized));
+            String dexName = this.getDexFromSymbols("watchPositions", symbolsNormalized);
             if (!java.util.Objects.equals(dexName, null))
             {
                 subscription.put("dex", dexName);
@@ -1485,14 +1485,14 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, paramsValue);
             Client client = this.client(url);
-            this.setPositionsCache(client, Helpers.toStringListArg(symbolsNormalized));
+            this.setPositionsCache(client, symbolsNormalized);
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             Object newPositions = (this.watch(url, messageHash, message, topic, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(cache, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+            return this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -1645,7 +1645,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

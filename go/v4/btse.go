@@ -4631,7 +4631,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	}
 	return nil
 }
-func (this *Btse) Sign(path any, optionalArgs ...any) any {
+func (this *Btse) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4649,24 +4649,24 @@ func (this *Btse) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl *string = apiUrl
-	var url any = Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	// the futures v3 trading api reads DELETE params from a signed json
 	// body like its POST and PUT counterparts, while the spot v4 and the
 	// legacy apis keep DELETE params in the query string, verified live
 	// in both directions
-	var isBodyDelete bool = (method == "DELETE") && (IsEqual(StartsWith(path, "futures/api/v3/"), true))
+	var isBodyDelete bool = (method == "DELETE") && (strings.HasPrefix(path, "futures/api/v3/") == true)
 	var queryString string = ""
 	if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
 		if len(ObjectKeys(query)) > 0 {
 			queryString = this.Urlencode(query)
-			url = Add(url, "?"+queryString)
+			url += "?" + queryString
 		}
 	}
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
-		var bodyString any = this.Json(query)
+		var bodyString string = this.Json(query)
 		if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
 			bodyString = ""
 		} else {
@@ -4677,8 +4677,8 @@ func (this *Btse) Sign(path any, optionalArgs ...any) any {
 		// sign the /api/v... remainder, while the public-api wallet, otc and markets
 		// endpoints mount on the bare host and sign the full path with the leading slash
 		var signPath any = nil
-		if IsEqual(StartsWith(path, "public-api/"), true) {
-			signPath = Add("/", path)
+		if strings.HasPrefix(path, "public-api/") == true {
+			signPath = "/" + path
 		} else {
 			signPath = this.CleanPath(path)
 		}
@@ -4717,8 +4717,8 @@ func (this *Btse) FuturesRequestId(market any) any {
 	// from the raw market info so that cached markets resolve it as well
 	return this.SafeString(GetValue(market, "info"), "tradeCurrency", GetValue(market, "id"))
 }
-func (this *Btse) CleanPath(path any) any {
-	var result string = Replace(path, "spot", "")
+func (this *Btse) CleanPath(path string) any {
+	var result string = strings.Replace(path, "spot", "", 1)
 	result = strings.Replace(result, "futures", "", 1)
 	result = strings.Replace(result, "otc", "", 1)
 	return result

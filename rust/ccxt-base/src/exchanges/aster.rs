@@ -5468,7 +5468,7 @@ impl AsterCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), &path);
+        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), path).into());
         if (api.as_str() == Some("fapiPublic")) || (api.as_str() == Some("sapiPublic")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
@@ -5520,7 +5520,7 @@ impl AsterCore {
             }), &[params]);
             let mut paramString: Value = Value::Null;
             let mut paramsToEncode: Value = Value::Null;
-            let mut isApproveBuilder: bool = get_index_of(&path, &Value::Str("/approveBuilder".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+            let mut isApproveBuilder: bool = Value::Int(path.as_str().and_then(|__s| __s.find("/approveBuilder")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
             if isApproveBuilder {
                 // domain['name'] = 'Aster';
                 messageTypes = Value::Map({

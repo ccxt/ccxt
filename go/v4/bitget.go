@@ -15099,7 +15099,7 @@ func (this *Bitget) Nonce() any {
 	}
 	return Subtract(this.Milliseconds(), timeDifference)
 }
-func (this *Bitget) Sign(path any, optionalArgs ...any) any {
+func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -15113,19 +15113,19 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 	var signed bool = IsEqual(GetValue(api, 0), "private")
 	var endpoint any = GetValue(api, 1)
 	var pathPart string = "/api"
-	var request any = Add("/", this.ImplodeParams(path, params))
-	var payload any = Add(pathPart, request)
+	var request string = "/" + this.ImplodeParams(path, params)
+	var payload string = pathPart + request
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), endpoint)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(this.ImplodeHostname(apiUrl), payload)
+	var url string = this.ImplodeHostname(apiUrl) + payload
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if !signed && (method == "GET") {
 		var keys []string = ObjectKeys(query)
 		var keysLength int = len(keys)
 		if keysLength > 0 {
-			url = Add(Add(url, "?"), this.Urlencode(query))
+			url = url + "?" + this.Urlencode(query)
 		}
 	}
 	var requestBody any = nil
@@ -15133,7 +15133,7 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 	if signed {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = Add(timestamp+method, payload)
+		var auth any = timestamp + method + payload
 		if method == "POST" {
 			requestBody = this.Json(params)
 			auth = Add(auth, requestBody)
@@ -15145,7 +15145,7 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 				if strings.Index(queryInner, "%24") > -1 {
 					queryInner = strings.Replace(queryInner, "%24", "$", 1)
 				}
-				url = Add(url, queryInner)
+				url += queryInner
 				// bitget signs the raw (non-percent-encoded) query string, so the
 				// signature must use the decoded values (e.g. non-ascii market ids).
 				// sort explicitly (true) so the signed order matches the url order in Go,
@@ -15173,7 +15173,7 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 		return requestHeaders
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if (sandboxMode != nil && *sandboxMode == true) && (!IsEqual(path, "v2/public/time")) && (!IsEqual(path, "v3/market/current-fund-rate")) {
+	if (sandboxMode != nil && *sandboxMode == true) && (path != "v2/public/time") && (path != "v3/market/current-fund-rate") {
 		// https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
 		if IsEqual(headersResult, nil) {
 			headersResult = map[string]any{}

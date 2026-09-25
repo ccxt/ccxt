@@ -1861,7 +1861,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	ch <- result
 	return nil
 }
-func (this *Indodax) Sign(path any, optionalArgs ...any) any {
+func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1882,7 +1882,7 @@ func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 	var isPublic bool = (IsEqual(api, "public"))
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
-		var requestPath any = Add("/", this.ImplodeParams(path, params))
+		var requestPath string = "/" + this.ImplodeParams(path, params)
 		url = Add(url, requestPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
@@ -1937,7 +1937,7 @@ func (this *Indodax) HandleErrors(code any, reason any, url any, method any, hea
 	if IsEqual(this.SafeInteger(response, "success", 0), 1) {
 		// { success: 1, return: { orders: [] }}
 		if !(InOp(response, "return")) {
-			panic(ExchangeError(Add(this.Id+": malformed response: ", this.Json(response))))
+			panic(ExchangeError(this.Id + ": malformed response: " + this.Json(response)))
 		} else {
 			return nil
 		}

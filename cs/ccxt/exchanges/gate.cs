@@ -8629,7 +8629,7 @@ public partial class gate : Exchange
         string? pathImploded = null;
         string? bodyJson = null;
         Dictionary<string, object> signedHeaders = null;
-        bool containsSettle = getIndexOf(path, "settle") > -1;
+        bool containsSettle = ((string)path).IndexOf("settle", StringComparison.Ordinal) > -1;
         if (containsSettle && ((((string)path).EndsWith("batch_cancel_orders") == true)))
         {
             // special case where we need to extract the settle from the path

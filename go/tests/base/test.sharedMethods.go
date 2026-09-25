@@ -350,7 +350,7 @@ func AssertInArray(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	Assert(!IsEqual(value, nil) || (allowNull == true), Add("value is null", logText))
 	// todo: remove undefined check
 	if !IsEqual(value, nil) {
-		var stingifiedArrayValue any = exchange.Json(expectedArray) // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+		var stingifiedArrayValue string = exchange.Json(expectedArray) // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
 		Assert(exchange.InArray(value, expectedArray), Add(Add(Add(Add(Add(Add(Add("\"", StringValue(key)), "\" key (value \""), StringValue(value)), "\") is not from the expected list : ["), stingifiedArrayValue), "]"), logText))
 	}
 }

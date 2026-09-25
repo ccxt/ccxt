@@ -872,7 +872,7 @@ public class Polymarket extends PolymarketApi
                 {
                     Map<String, Object> singleTagParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
                     singleTagParams.put("tags", new ArrayList<Object>(Arrays.asList((requestedTags == null || ti < 0 || ti >= requestedTags.size() ? null : requestedTags.get(ti)))));
-                    Object tagEvents = (this.fetchRawEventsList(Helpers.toMapArg(singleTagParams))).join();
+                    Object tagEvents = (this.fetchRawEventsList(singleTagParams)).join();
                     for (var ei = 0; ei < ((List<?>)tagEvents).size(); ei++)
                     {
                         Object rawEvent = (tagEvents == null || ei < 0 || ei >= ((List<?>)tagEvents).size() ? null : ((List<?>)tagEvents).get(ei));
@@ -1437,7 +1437,7 @@ public class Polymarket extends PolymarketApi
             //         }
             //     }
             //
-            return this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -1688,7 +1688,7 @@ public class Polymarket extends PolymarketApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
             return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
@@ -2603,7 +2603,7 @@ public class Polymarket extends PolymarketApi
                         put( "salt", Polymarket.this.numberToString(orderSalt) );
                     }});
                 }
-                Map<String, Object> built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount", (Object) null), this.safeNumber(o, "price", (Object) null), Helpers.toMapArg(orderParams));
+                Map<String, Object> built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount", (Object) null), this.safeNumber(o, "price", (Object) null), orderParams);
                 ((List<Object>)bodies).add(this.safeDict(built, "body", new HashMap<String, Object>() {{}}));
                 ((List<Object>)outcomes).add(this.safeDict(built, "outcome", new HashMap<String, Object>() {{}}));
                 ((List<Object>)requests).add(this.safeDict(built, "request", new HashMap<String, Object>() {{}}));
@@ -2833,7 +2833,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
-            return (this.createOrder(outcome, "market", "buy", cost, (Object) null, Helpers.toMapArg(request))).join();
+            return (this.createOrder(outcome, "market", "buy", cost, (Object) null, request)).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -3556,7 +3556,7 @@ public class Polymarket extends PolymarketApi
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (java.util.Objects.equals(this.privateKey, null))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " "), path) + " requires a privateKey")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + path) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
@@ -4206,7 +4206,7 @@ public class Polymarket extends PolymarketApi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcomeResolved, limitResolved);
             }
-            return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -4242,7 +4242,7 @@ public class Polymarket extends PolymarketApi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcomeResolved, limitResolved);
             }
-            return this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }

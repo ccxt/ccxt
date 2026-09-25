@@ -1442,7 +1442,7 @@ export default class btcmarkets extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         let request = '/' + this.version + '/' + this.implodeParams (path, params);

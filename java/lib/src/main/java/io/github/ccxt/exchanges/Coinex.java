@@ -1653,7 +1653,7 @@ public class Coinex extends CoinexApi
             put( "markPrice", Coinex.this.safeString(ticker, "mark_price") );
             put( "indexPrice", Coinex.this.safeString(ticker, "index_price") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1736,7 +1736,7 @@ public class Coinex extends CoinexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, Helpers.toMapArg(market));
+            return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1767,7 +1767,7 @@ public class Coinex extends CoinexApi
                 String symbol = this.safeString(symbolsNormalized, 0);
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> response = null;
@@ -1826,7 +1826,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1902,7 +1902,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> depth = (Map<String, Object>) this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(depth, "updated_at");
-            return this.parseOrderBook(depth, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(depth, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1981,7 +1981,7 @@ public class Coinex extends CoinexApi
             "amount", this.safeString(trade, "amount"),
             "cost", this.safeString(trade, "deal_money"),
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -2038,7 +2038,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            return this.parseTrades(((Map<String, Object>)response).get("data"), Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(((Map<String, Object>)response).get("data"), market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2076,7 +2076,7 @@ public class Coinex extends CoinexApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (result), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2118,7 +2118,7 @@ public class Coinex extends CoinexApi
                 String marketId = this.safeString(entry, "market");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, type);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), Helpers.toMapArg(market)));
+                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -2759,7 +2759,7 @@ public class Coinex extends CoinexApi
                 "cost", this.safeString2(order, "quote_fee", "fee")
             ),
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -3018,7 +3018,7 @@ public class Coinex extends CoinexApi
                 }
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -3080,7 +3080,7 @@ public class Coinex extends CoinexApi
                 Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
                 Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
                 isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -3139,11 +3139,11 @@ public class Coinex extends CoinexApi
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Boolean.TRUE.equals(isTriggerOrder))
                 {
                     Helpers.addElementToObject(entry, "status", status);
-                    order = this.parseOrder(entry, Helpers.toMapArg(market));
+                    order = this.parseOrder(entry, market);
                 } else
                 {
                     Helpers.addElementToObject(innerData, "status", status);
-                    order = this.parseOrder(innerData, Helpers.toMapArg(market));
+                    order = this.parseOrder(innerData, market);
                 }
                 ((List<Object>)results).add(order);
             }
@@ -3224,7 +3224,7 @@ public class Coinex extends CoinexApi
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
-                Map<String, Object> order = (Map<String, Object>) this.parseOrder(item, Helpers.toMapArg(market));
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(item, market);
                 ((List<Object>)results).add(order);
             }
             return results;
@@ -3315,7 +3315,7 @@ public class Coinex extends CoinexApi
                 }
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -3530,7 +3530,7 @@ public class Coinex extends CoinexApi
             {
                 data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -3627,7 +3627,7 @@ public class Coinex extends CoinexApi
                 response = (this.v2PrivateGetSpotOrderStatus(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -3671,7 +3671,7 @@ public class Coinex extends CoinexApi
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", Helpers.toMapArg(market), Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, Helpers.toMapArg(paramsOmitted), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -3732,7 +3732,7 @@ public class Coinex extends CoinexApi
                 }
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -3836,7 +3836,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3884,7 +3884,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3981,7 +3981,7 @@ public class Coinex extends CoinexApi
                 response = (this.v2PrivateGetSpotUserDeals(this.extend(requestUntil, paramsMarginMode))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4087,7 +4087,7 @@ public class Coinex extends CoinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)position).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4162,7 +4162,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePosition((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
         }).thenApply(Position::new);
 
     }
@@ -4420,7 +4420,7 @@ public class Coinex extends CoinexApi
             Object notional = minNotional;
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.sum(i, 1),
-                "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, "swap"),
+                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"),
                 "currency", curr,
                 "minNotional", notional,
                 "maxNotional", maxNotional,
@@ -4500,7 +4500,7 @@ public class Coinex extends CoinexApi
             {
                 type = "reduce";
             }
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), Helpers.toMapArg(market)), Helpers.newMap(
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), Helpers.newMap(
                 "type", type,
                 "amount", this.parseNumber(amount),
                 "status", status
@@ -4753,7 +4753,7 @@ public class Coinex extends CoinexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(first, Helpers.toMapArg(market));
+            return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -4885,7 +4885,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -4961,7 +4961,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> transaction = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (transaction), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (transaction), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -5016,7 +5016,7 @@ public class Coinex extends CoinexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5057,7 +5057,7 @@ public class Coinex extends CoinexApi
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market");
-                String symbolInner = this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, "swap");
+                String symbolInner = this.safeSymbol(marketId, market, (String) null, "swap");
                 Long timestamp = this.safeInteger(entry, "funding_time");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5253,7 +5253,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            return this.extend(this.parseTransfer(response, Helpers.toMapArg(currency)), Helpers.newMap(
+            return this.extend(this.parseTransfer(response, currency), Helpers.newMap(
                 "amount", this.parseNumber(amountToPrecision),
                 "fromAccount", fromAccount,
                 "toAccount", toAccount
@@ -5365,7 +5365,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -5435,7 +5435,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -5502,7 +5502,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -5592,7 +5592,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseIsolatedBorrowRate((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseIsolatedBorrowRate((Map<String, Object>) (data), market);
         }).thenApply(IsolatedBorrowRate::new);
 
     }
@@ -5655,7 +5655,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> interest = this.parseBorrowInterests(rows, Helpers.toMapArg(market));
+            List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -5742,7 +5742,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (data), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -5788,7 +5788,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (data), currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -5882,7 +5882,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositWithdrawFee(data, Helpers.toMapArg(currency));
+            return this.parseDepositWithdrawFee(data, currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }
@@ -6091,7 +6091,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
@@ -6273,7 +6273,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }

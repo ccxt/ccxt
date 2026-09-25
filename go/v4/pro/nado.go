@@ -1561,7 +1561,7 @@ func (this *Nado) watchPublicBody(ch chan any, streamType any, market any, messa
 		"stream": this.DeepExtend(stream, params),
 		"id":     this.RequestId(),
 	}
-	var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("subscribe:", this.Json(request["stream"])))
+	var subscribeHash string = "subscribe:" + this.Json(request["stream"])
 	var subscription map[string]any = map[string]any{
 		"streamType": streamType,
 		"symbol":     this.SafeString(market, "symbol"),
@@ -1770,7 +1770,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan any, streamType any, markets a
 				return ccxt.GetValue(subscriptionParams, i)
 			}()
 			var request any = this.CreatePublicSubscriptionRequest("subscribe", streamType, market, id, requestParams)
-			var subscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("subscribe:", this.Json(ccxt.GetValue(request, "stream"))))
+			var subscribeHash string = "subscribe:" + this.Json(ccxt.GetValue(request, "stream"))
 			var streamSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
 			if ccxt.IsEqual(streamSubscription, nil) {
 				var subscription map[string]any = map[string]any{
@@ -2518,7 +2518,7 @@ func (this *Nado) HandleErrorMessage(client any, message any) any {
 	if (ccxt.IsEqual(error, nil)) && (status == nil || *status != "failure") {
 		return false
 	}
-	feedback := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message)))
+	feedback := ccxt.ExchangeError(this.Id + " " + this.Json(message))
 	var id *string = this.SafeString(message, "id")
 	if id != nil {
 		var executeHash string = "execute:" + *id

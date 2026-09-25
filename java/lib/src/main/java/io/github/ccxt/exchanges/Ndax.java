@@ -1104,7 +1104,7 @@ public class Ndax extends NdaxApi
             marketId = this.safeString(ticker, "trading_pairs");
         }
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "_", (String) null);
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String last = this.safeString2(ticker, "LastTradedPx", "last_price");
         String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         String change = this.safeString(ticker, "Rolling24HrPxChange");
@@ -1132,7 +1132,7 @@ public class Ndax extends NdaxApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1231,7 +1231,7 @@ public class Ndax extends NdaxApi
             //         "Rolling24HrPxChangePercent":0,
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1535,7 +1535,7 @@ public class Ndax extends NdaxApi
             //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1748,7 +1748,7 @@ public class Ndax extends NdaxApi
             "referenceId", this.safeString(item, "ReferenceId"),
             "referenceAccount", this.safeString(item, "Counterparty"),
             "type", this.parseLedgerEntryType(this.safeString(item, "ReferenceType")),
-            "currency", this.safeCurrencyCode(currencyId, Helpers.toMapArg(currencyResolved)),
+            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
             "amount", this.parseNumber(amount),
             "before", this.parseNumber(before),
             "after", this.parseNumber(after),
@@ -1756,7 +1756,7 @@ public class Ndax extends NdaxApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "fee", null
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     /**
@@ -1816,7 +1816,7 @@ public class Ndax extends NdaxApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            return this.parseLedger(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -2014,7 +2014,7 @@ public class Ndax extends NdaxApi
             //         "OrderId": 2543565231
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2084,7 +2084,7 @@ public class Ndax extends NdaxApi
             //         "origClOrdId": 91011,
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2176,7 +2176,7 @@ public class Ndax extends NdaxApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2272,7 +2272,7 @@ public class Ndax extends NdaxApi
             }
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             return this.extend(order, Helpers.newMap(
                 "id", id,
                 "clientOrderId", clientOrderId
@@ -2366,7 +2366,7 @@ public class Ndax extends NdaxApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2465,7 +2465,7 @@ public class Ndax extends NdaxApi
             //         },
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2553,7 +2553,7 @@ public class Ndax extends NdaxApi
             //         "OMSId":1
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2646,7 +2646,7 @@ public class Ndax extends NdaxApi
             //
             Map<String,Object> grouped = this.groupBy(response, "ChangeReason");
             List<Object> trades = (List<Object>) this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2693,7 +2693,7 @@ public class Ndax extends NdaxApi
             //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2822,9 +2822,9 @@ public class Ndax extends NdaxApi
             //
             if ((response instanceof String))
             {
-                return this.parseTransactions(Helpers.parseJson(response), Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTransactions(Helpers.parseJson(response), currency, since, limit, new HashMap<String, Object>() {{}});
             }
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2888,7 +2888,7 @@ public class Ndax extends NdaxApi
             //         },
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3162,7 +3162,7 @@ public class Ndax extends NdaxApi
                 put( "Payload", Ndax.this.json(withdrawPayload) );
             }};
             Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted))).join();
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }

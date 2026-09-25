@@ -2295,7 +2295,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseTrades(tradeHistory, market, since, limit)
 	return nil
 }
-func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
+func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2310,11 +2310,11 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -2322,9 +2322,9 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 			"Accept":        "application/json",
 			"Authorization": Add("Bearer ", this.ApiKey),
 		}
-		var bodyJson any = func() any {
+		var bodyJson *string = func() *string {
 			if method == "POST" {
-				return this.Json(query)
+				return SafeStringPtr(this.Json(query))
 			}
 			return body
 		}()
@@ -2332,7 +2332,7 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 			headersSigned["Content-Type"] = "application/json"
 		} else {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		}
 		return map[string]any{

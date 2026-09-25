@@ -1759,7 +1759,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		}
 		var success bool = (ccxt.IsEqual(status, "success")) || (this.SafeString(status, "status") != nil && *this.SafeString(status, "status") == "success")
 		if !success {
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" cancelOrders() received an unexpected status: ", this.Json(status))))
+			panic(ccxt.ExchangeError(this.Id + " cancelOrders() received an unexpected status: " + this.Json(status)))
 		}
 		var requestId *string = this.SafeString(requestIds, i, this.SafeString(requestIds, 0))
 		var order map[string]any = map[string]any{
@@ -2862,7 +2862,7 @@ func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	}
 	return ccxt.ToLower(normalized)
 }
-func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
+func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "POST")
@@ -2888,7 +2888,7 @@ func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
 		var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 		baseUrl = this.SafeString(apiUrls, apiGroup, this.SafeString(apiUrls, "public", ""))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(*baseUrl+"/", path))
+	var url string = *baseUrl + "/" + path
 	var headersValue any = headers
 	var bodyValue any = body
 	if method == "POST" {

@@ -2308,7 +2308,7 @@ class hyperliquid extends Exchange {
         return strtolower($normalized);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'POST', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'public', $method = 'POST', $params = array(), mixed $headers = null, mixed $body = null) {
         $apiGroup = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) ? $api[0] : $api;
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode === true) {

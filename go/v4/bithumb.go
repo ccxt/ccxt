@@ -3898,9 +3898,9 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 			var encodedKey string = this.EncodeURIComponent(key) + "[]"
 			for j := 0; j < GetArrayLength(value); j++ {
 				var item any = GetValue(value, j)
-				var valueString any = DerefScalar(this.SafeString(value, j))
-				if IsEqual(valueString, nil) {
-					valueString = this.Json(item)
+				var valueString *string = this.SafeString(value, j)
+				if valueString == nil {
+					valueString = SafeStringPtr(this.Json(item))
 				}
 				if len(result) > 0 {
 					result += "&"
@@ -3912,14 +3912,14 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 				result += "&"
 			}
 			var encodedKey string = this.EncodeURIComponent(key)
-			var valueString any = DerefScalar(this.SafeString(query, key))
+			var valueString *string = this.SafeString(query, key)
 			var encodedValue string = this.EncodeURIComponent(valueString)
 			result += encodedKey + "=" + encodedValue
 		}
 	}
 	return result
 }
-func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
+func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3932,12 +3932,12 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
-	var endpoint any = Add("/", this.ImplodeParams(path, params))
+	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(this.ImplodeHostname(apiUrl), endpoint)
+	var url any = this.ImplodeHostname(apiUrl) + endpoint
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
@@ -3951,7 +3951,7 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var isVersionedApi bool = (StartsWith(endpoint, "/v1/") || StartsWith(endpoint, "/v2/"))
+		var isVersionedApi bool = (strings.HasPrefix(endpoint, "/v1/") || strings.HasPrefix(endpoint, "/v2/"))
 		if isVersionedApi {
 			requestHeaders = map[string]any{
 				"Accept":           "application/json",
@@ -3993,7 +3993,7 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 			var bodyParts []string = Split(requestBody, "%20")
 			requestBody = strings.Join(bodyParts, "+")
 			var nonce string = ToString(this.Nonce())
-			var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), requestBody), "//"+"0"), nonce) // eslint-disable-line quotes
+			var auth any = Add(Add(Add(endpoint+"//"+"0", requestBody), "//"+"0"), nonce) // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 			var signature64 string = this.StringToBase64(signature)
 			requestHeaders = map[string]any{

@@ -6575,7 +6575,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = add(&Value::Str(format!("{}{}", self.implode_hostname(apiUrl), Value::Str("/".into())).into()), &path);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl), Value::Str("/".into())).into()), path).into());
         let mut isPost: bool = method.as_str() == Some("POST");
         let mut postHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

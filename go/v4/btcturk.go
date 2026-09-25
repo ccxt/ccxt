@@ -1319,7 +1319,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 func (this *Btcturk) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
+func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1328,7 +1328,7 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
@@ -1337,11 +1337,11 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", path)
+	var url string = *apiUrl + "/" + path
 	var isQueryMethod bool = (method == "GET") || (method == "DELETE")
 	if isQueryMethod {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url += "?" + this.Urlencode(params)
 		}
 	}
 	var requestBody any = nil

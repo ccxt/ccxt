@@ -1666,7 +1666,7 @@ func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"interval":                 nil,
 	}
 }
-func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
+func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1679,22 +1679,22 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var bodySigned any = nil
 	var headersSigned any = nil
-	var request any = "/" + this.Version + "/"
+	var request string = "/" + this.Version + "/"
 	if IsEqual(api, "private") {
-		request = Add(request, "me/")
+		request += "me/"
 	}
-	request = Add(request, path)
+	request += path
 	if method == "GET" {
 		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?"+this.Urlencode(params))
+			request += "?" + this.Urlencode(params)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var baseUrl any = this.ImplodeHostname(apiUrl)
-	var url any = Add(baseUrl, request)
+	var baseUrl string = this.ImplodeHostname(apiUrl)
+	var url string = baseUrl + request
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())

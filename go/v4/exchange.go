@@ -706,11 +706,11 @@ func ToSafeFloat(v any) (float64, error) {
 	}
 }
 
-// json converts an object to a JSON string
-func (this *BaseExchange) Json(object any) any {
+// json converts an object to a JSON string; a value JSON cannot encode panics
+func (this *BaseExchange) Json(object any) string {
 	jsonBytes, err := j.Marshal(object)
 	if err != nil {
-		return nil
+		panic(ExchangeError(this.Id + " json() cannot encode the value: " + err.Error()))
 	}
 	return string(jsonBytes)
 }

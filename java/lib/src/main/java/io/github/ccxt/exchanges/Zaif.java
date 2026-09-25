@@ -586,7 +586,7 @@ public class Zaif extends ZaifApi
             //     "ask": 1e-07
             // }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -677,7 +677,7 @@ public class Zaif extends ZaifApi
                     trades = new ArrayList<Object>(Arrays.asList());
                 }
             }
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -720,7 +720,7 @@ public class Zaif extends ZaifApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", String.valueOf(((Map<String, Object>)data).get("order_id")) );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -850,7 +850,7 @@ public class Zaif extends ZaifApi
             }
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -892,7 +892,7 @@ public class Zaif extends ZaifApi
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -954,7 +954,7 @@ public class Zaif extends ZaifApi
             //     }
             //
             Map<String, Object> returnData = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (returnData), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (returnData), currency);
         }).thenApply(Transaction::new);
 
     }

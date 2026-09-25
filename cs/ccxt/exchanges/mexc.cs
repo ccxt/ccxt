@@ -6863,9 +6863,8 @@ public partial class mexc : Exchange
         object requestBody = body;
         string? section = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
-        var pathValueparamsValueVariable = this.resolvePath(path, parameters);
-        var pathValue = ((IList<object>) pathValueparamsValueVariable)[0];
-        var paramsValue = ((IList<object>) pathValueparamsValueVariable)[1];
+        string? pathValue = this.implodeParams(path, parameters);
+        object paramsValue = this.omit(parameters, this.extractParams(path));
         object url = null;
         if (section == "spot" || section == "broker")
         {
@@ -6876,7 +6875,7 @@ public partial class mexc : Exchange
                 {
                     throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
                 }
-                url = ((apiUrl + "/") + (pathValue));
+                url = ((apiUrl + "/") + pathValue);
             } else
             {
                 string? apiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access);
@@ -6884,7 +6883,7 @@ public partial class mexc : Exchange
                 {
                     throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
                 }
-                url = ((((apiUrl + "/api/") + this.version) + "/") + (pathValue));
+                url = ((((apiUrl + "/api/") + this.version) + "/") + pathValue);
             }
             object urlParams = paramsValue;
             if (access == "private")

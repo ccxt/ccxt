@@ -2444,7 +2444,7 @@ func (this *Gemini) withdrawBody(ch chan any, code any, amount any, address any,
 	//
 	var result *string = this.SafeString(response, "result")
 	if result != nil && *result == "error" {
-		panic(ExchangeError(Add(this.Id+" withdraw() failed: ", this.Json(response))))
+		panic(ExchangeError(this.Id + " withdraw() failed: " + this.Json(response)))
 	}
 
 	ch <- this.ParseTransaction(response, currency)
@@ -2669,7 +2669,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 	ch <- this.IndexBy(results, "network")
 	return nil
 }
-func (this *Gemini) Sign(path any, optionalArgs ...any) any {
+func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2678,9 +2678,9 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add("/", this.ImplodeParams(path, params))
+	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersSigned any = nil
 	if IsEqual(api, "private") {
@@ -2691,12 +2691,12 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		}
 		// gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
 		var nonce string = ToString(this.IncrementingNonce())
-		var finalUrl any = url
+		var finalUrl string = url
 		var request map[string]any = this.Extend(map[string]any{
 			"request": finalUrl,
 			"nonce":   nonce,
 		}, query)
-		var payload any = this.Json(request)
+		var payload string = this.Json(request)
 		payload = this.StringToBase64(payload)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 		headersSigned = map[string]any{
@@ -2707,14 +2707,14 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = Add(apiUrl, url)
+	url = *apiUrl + url
 	var headersResolved any = func() any {
 		if IsEqual(api, "private") {
 			return headersSigned

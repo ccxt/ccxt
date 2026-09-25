@@ -3788,7 +3788,7 @@ func (this *Polymarket) Nonce() any {
  * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
-func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
+func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 	// api is either a string ('gamma') or array (['gamma', 'public'])
 	api := ccxt.GetArg(optionalArgs, 0, "gamma")
 	_ = api
@@ -3814,7 +3814,7 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
-	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url any = *baseUrl + "/" + this.ImplodeParams(path, params)
 	// an empty params container must not become a body: in PHP an empty array is
 	// indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
 	var isArrayBody bool = false
@@ -3873,11 +3873,11 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 		// '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
 		// would corrupt the literal to 'auth/derive-$api-key' and break this check
 		var deriveApiKeyPath string = "auth/derive-" + "api-key"
-		var isL1Auth bool = (ccxt.IsEqual(path, "auth/api-key")) || (ccxt.IsEqual(path, deriveApiKeyPath)) || (ccxt.IsEqual(path, "auth/api-keys"))
+		var isL1Auth bool = (path == "auth/api-key") || (path == deriveApiKeyPath) || (path == "auth/api-keys")
 		if isL1Auth {
 			// L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
 			if ccxt.IsEqual(this.PrivateKey, nil) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", path), " requires a privateKey")))
+				panic(ccxt.ArgumentsRequired(this.Id + " " + path + " requires a privateKey"))
 			}
 			// the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
 			var address any = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
@@ -3907,8 +3907,8 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 			var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 			// the L2 HMAC signs only the request path (no query string), matching
 			// @polymarket/clob-client — query params are sent separately, not signed
-			var requestPath any = ccxt.Add("/", this.ImplodeParams(path, params))
-			var auth any = ccxt.Add(timestamp+method, requestPath)
+			var requestPath string = "/" + this.ImplodeParams(path, params)
+			var auth any = timestamp + method + requestPath
 			if !ccxt.IsEqual(bodyValue, nil) {
 				auth = ccxt.Add(auth, bodyValue)
 			}

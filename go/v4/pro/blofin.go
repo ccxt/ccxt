@@ -1105,7 +1105,7 @@ func (this *Blofin) HandleMessage(client any, message any) {
 			future.(*ccxt.Future).Resolve(true)
 			return
 		} else if event != nil && *event == "error" {
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" error: ", this.Json(message))))
+			panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(message)))
 		}
 		var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 		var channelName *string = this.SafeString(arg, "channel")

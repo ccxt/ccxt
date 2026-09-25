@@ -4981,7 +4981,7 @@ public partial class aster : Exchange
             }, parameters);
             object paramString = null;
             Dictionary<string, object> paramsToEncode = null;
-            bool isApproveBuilder = (getIndexOf(path, "/approveBuilder") >= 0);
+            bool isApproveBuilder = (((string)path).IndexOf("/approveBuilder", StringComparison.Ordinal) >= 0);
             if (isApproveBuilder)
             {
                 // domain['name'] = 'Aster';

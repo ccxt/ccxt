@@ -34,7 +34,7 @@ public class TestHandleMethods extends BaseTest
             //
             // case #1, should prevail: param
             //
-            var marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), Helpers.toMapArg(initialParams), "valueDefault");
+            var marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), initialParams, "valueDefault");
             var marketType1 = ((List<Object>) marketType1params1Variable).get(0);
             var params1 = ((List<Object>) marketType1params1Variable).get(1);
             Assert(initialParams.containsKey("defaultType"));

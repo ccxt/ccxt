@@ -760,7 +760,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             Long timestamp = this.parse8601(this.safeString(response, "serverTime"));
             Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(response, "orderBook", new HashMap<String, Object>() {{}});
-            return this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -810,7 +810,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1020,7 +1020,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     continue;
                 }
                 String volume = this.safeString(volumes, uid, "0");
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (schedule), Helpers.toMapArg(market), volume));
+                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (schedule), market, volume));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1098,7 +1098,7 @@ public class Krakenfutures extends KrakenfuturesApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(2000))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 2000L)).join();
             }
             String priceType = this.safeString(paramsPaginate, "price", "trade");
             if (java.util.Objects.equals(priceType, "index"))
@@ -1315,7 +1315,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //
                 rawTrades = (List<Object>) this.safeList(response, "history", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseTrades(rawTrades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(rawTrades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1681,7 +1681,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Object sendStatus = this.safeValue(response, "sendStatus");
             String status = this.safeString(sendStatus, "status");
             this.verifyOrderActionSuccess(status, "createOrder", new ArrayList<Object>(Arrays.asList("filled")));
-            return this.parseOrder(sendStatus, Helpers.toMapArg(market));
+            return this.parseOrder(sendStatus, market);
         }).thenApply(Order::new);
 
     }
@@ -1721,7 +1721,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     extendedParams.put("order_tag", String.valueOf(this.sum(i, 1))); // sequential counter
                 }
                 extendedParams.put("order", "send");
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(extendedParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2043,7 +2043,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> response = (this.privateGetOpenorders(parameters)).join();
             List<Object> orders = (List<Object>) this.safeList(response, "openOrders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2075,7 +2075,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> response = (this.privateGetOrdersStatus(parameters)).join();
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2187,7 +2187,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     }
                 }
             }
-            return this.parseOrders(closedOrders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(closedOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2270,7 +2270,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     ((List<Object>)canceledAndRejected).add(innerOrder);
                 }
             }
-            return this.parseOrders(canceledAndRejected, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(canceledAndRejected, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2932,7 +2932,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(fills, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3020,7 +3020,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     ((List<Object>)rows).add(row);
                 }
             }
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3103,7 +3103,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             List<Object> logs = (List<Object>) this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(logs, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(logs, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -3236,7 +3236,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 "cost", this.parseNumber(feeCost),
                 "currency", code
             )
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     /**
@@ -3534,7 +3534,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     }
                 }
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(entry_symbol, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, Helpers.toMapArg(market));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, market);
                 ((List<Object>)fundingRates).add(parsed);
             }
             return this.indexBy(fundingRates, "symbol");
@@ -4094,7 +4094,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.sum(i, 1),
-                "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null),
+                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
                 "currency", ((Map<String, Object>)marketResolved).get("quote"),
                 "minNotional", minNotional,
                 "maxNotional", null,
@@ -4234,7 +4234,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2022-04-12T01:22:53.420Z"
             //    }
             //
-            Object transfer = this.parseTransfer(response, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(response, currency);
             return this.extend(transfer, Helpers.newMap(
                 "amount", amount,
                 "fromAccount", fromAccount,
@@ -4362,7 +4362,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }

@@ -6443,7 +6443,7 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $pathValue = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];

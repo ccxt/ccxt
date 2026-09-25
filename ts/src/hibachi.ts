@@ -1813,7 +1813,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const endpoint = '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {

@@ -4330,7 +4330,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), ?string $body = null): array {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $api);
         if ($apiUrl === null) {

@@ -4602,14 +4602,14 @@ func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any
 	if status != nil && *status == "error" {
 		var error map[string]any = SafeMapTyped(response, "error")
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil
 }
-func (this *Extended) Sign(path any, optionalArgs ...any) any {
+func (this *Extended) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4618,15 +4618,15 @@ func (this *Extended) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
 	var version *string = this.SafeString(api, 0)
 	var accessibility *string = this.SafeString(api, 1)
-	var endpoint any = Add("/", this.ImplodeParams(path, params))
+	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var queryPost bool = (IsEqual(path, "user/deadmanswitch"))
+	var queryPost bool = (path == "user/deadmanswitch")
 	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest"))
 	if accessibility != nil && *accessibility == "private" {
 		// this.checkRequiredCredentials ();

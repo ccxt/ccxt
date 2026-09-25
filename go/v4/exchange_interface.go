@@ -180,7 +180,7 @@ type ICoreExchange interface {
 	GetMarkets() *sync.Map
 	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
-	Json(object any) any
+	Json(object any) string
 	FilterBy(aa any, key any, value any) []any
 	IndexBy(array any, key any) map[string]any
 	CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any
@@ -412,7 +412,7 @@ type IDerivedExchange interface {
 	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeveragesAsync(optionalArgs ...any) <-chan any
 	SafeMarket(optionalArgs ...any) map[string]any
-	Sign(path any, optionalArgs ...any) any
+	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan any
 	CancelOrderAsync(id any, optionalArgs ...any) <-chan any
 	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any

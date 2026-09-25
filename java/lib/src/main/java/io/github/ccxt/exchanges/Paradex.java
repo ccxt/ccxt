@@ -1097,7 +1097,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1291,7 +1291,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1342,7 +1342,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1398,7 +1398,7 @@ public class Paradex extends ParadexApi
             "quoteVolume", this.safeString(ticker, "volume_24h"),
             "markPrice", this.safeString(ticker, "mark_price"),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1437,7 +1437,7 @@ public class Paradex extends ParadexApi
             );
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -1579,7 +1579,7 @@ public class Paradex extends ParadexApi
                 request.put("depth", limit);
             }
             Long timestamp = this.safeInteger(response, "last_updated_at");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1615,7 +1615,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1655,7 +1655,7 @@ public class Paradex extends ParadexApi
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
             }
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1727,7 +1727,7 @@ public class Paradex extends ParadexApi
                 put( "currency", code );
                 put( "rate", null );
             }}
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1780,7 +1780,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> interest = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(interest, Helpers.toMapArg(market));
+            return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -1815,7 +1815,7 @@ public class Paradex extends ParadexApi
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public Object hashMessage(Object message)
@@ -2125,7 +2125,7 @@ public class Paradex extends ParadexApi
                 put( "currency", null );
             }},
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2406,7 +2406,7 @@ public class Paradex extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             return order;
         }).thenApply(Order::new);
 
@@ -2487,7 +2487,7 @@ public class Paradex extends ParadexApi
             //         "type": "MARKET"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2522,7 +2522,7 @@ public class Paradex extends ParadexApi
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
-                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, Helpers.toMapArg(extendedParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest), false)).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2694,7 +2694,7 @@ public class Paradex extends ParadexApi
                     "clientOrderId", this.safeString(result, "client_id"),
                     "status", orderStatus,
                     "symbol", ((Map<String, Object>)market).get("symbol")
-                ), Helpers.toMapArg(market)));
+                ), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2836,7 +2836,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2900,7 +2900,7 @@ public class Paradex extends ParadexApi
                 ((Map<String, Object>)first).put("next", paginationCursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2967,7 +2967,7 @@ public class Paradex extends ParadexApi
             //   }
             //
             List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3058,7 +3058,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3107,7 +3107,7 @@ public class Paradex extends ParadexApi
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
             }
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3185,7 +3185,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -3301,7 +3301,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLiquidations(data, Helpers.toMapArg(market), since, limit);
+            return this.parseLiquidations(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
@@ -3359,7 +3359,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3440,7 +3440,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3521,7 +3521,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -3563,7 +3563,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3715,7 +3715,7 @@ public class Paradex extends ParadexApi
             // }
             //
             List<Object> configs = (List<Object>) this.safeList(response, "configs", (Object) null);
-            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), Helpers.toMapArg(market));
+            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -3806,7 +3806,7 @@ public class Paradex extends ParadexApi
             // }
             //
             List<Object> configs = (List<Object>) this.safeList(response, "configs", (Object) null);
-            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), market);
         }).thenApply(Leverage::new);
 
     }
@@ -3818,7 +3818,7 @@ public class Paradex extends ParadexApi
         String marginMode = this.safeStringLower(leverage, "margin_type");
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Paradex.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
+            put( "symbol", Paradex.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
             put( "marginMode", marginMode );
             put( "longLeverage", Paradex.this.safeInteger(leverage, "leverage") );
             put( "shortLeverage", Paradex.this.safeInteger(leverage, "leverage") );
@@ -3929,7 +3929,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (greeks), Helpers.toMapArg(market));
+            return this.parseGreeks((Map<String, Object>) (greeks), market);
         }).thenApply(Greeks::new);
 
     }
@@ -3992,7 +3992,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseAllGreeks(results, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseAllGreeks(results, symbolsNormalized, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -4094,7 +4094,7 @@ public class Paradex extends ParadexApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4133,7 +4133,7 @@ public class Paradex extends ParadexApi
             // }
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(results, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(results, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -4257,11 +4257,11 @@ public class Paradex extends ParadexApi
     {
         Object version = this.version;
         Object pathValue = path;
-        if ((Helpers.getIndexOf(path, "v2/") == 0))
+        if ((((String)path).indexOf("v2/") == 0))
         {
             pathValue = Helpers.replace(((String)path), "v2/", "");
         }
-        if ((Helpers.getIndexOf(path, "v2/") == 0))
+        if ((((String)path).indexOf("v2/") == 0))
         {
             version = "v2";
         }

@@ -1222,7 +1222,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, Helpers.toMapArg(market));
+            return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1334,7 +1334,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(result, "event_time"));
             String marketId = this.safeString(result, "instrument");
-            return this.parseOrderBook(result, this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
+            return this.parseOrderBook(result, this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null), timestamp, "bids", "asks", "price", "size", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1397,7 +1397,7 @@ public class Grvt extends GrvtApi
             //            ...
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1488,7 +1488,7 @@ public class Grvt extends GrvtApi
             "cost", null,
             "fee", fee,
             "order", this.safeString(trade, "order_id")
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1658,7 +1658,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRateHistories(result, Helpers.toMapArg(market), (Long) null, (Long) null);
+            return this.parseFundingRateHistories(result, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -1842,10 +1842,10 @@ public class Grvt extends GrvtApi
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (java.util.Objects.equals(useTransfersEndpoint, true))
             {
-                Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), Helpers.toMapArg(currency), since, limit)).join();
+                Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "deposit", true);
                 List<Object> transactions = this.getListFromObjectValues(Helpers.GetValue(filteredResults, 0), "info");
-                return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
             } else
             {
                 Map<String, Object> response = (this.privateTradingPostFullV1DepositHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
@@ -1865,7 +1865,7 @@ public class Grvt extends GrvtApi
                 // }
                 //
                 List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-                return this.parseTransactions(result, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1913,10 +1913,10 @@ public class Grvt extends GrvtApi
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (java.util.Objects.equals(useTransfersEndpoint, true))
             {
-                Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), Helpers.toMapArg(currency), since, limit)).join();
+                Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
                 List<Object> transactions = this.getListFromObjectValues(Helpers.GetValue(filteredResults, 0), "info");
-                return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
             } else
             {
                 Map<String, Object> response = (this.privateTradingPostFullV1WithdrawalHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
@@ -1945,7 +1945,7 @@ public class Grvt extends GrvtApi
                 // }
                 //
                 List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-                return this.parseTransactions(result, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2186,7 +2186,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object transfers = this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
             Object filteredResults = this.filterTransfersByType(transfers, "internal", false);
             return Helpers.GetValue(filteredResults, 1);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
@@ -2292,7 +2292,7 @@ public class Grvt extends GrvtApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(result, Helpers.toMapArg(currency));
+            return this.parseTransfer(result, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -2464,7 +2464,7 @@ public class Grvt extends GrvtApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2707,7 +2707,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -2927,7 +2927,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(result, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -3063,7 +3063,7 @@ public class Grvt extends GrvtApi
             //        "success": true
             //    }
             //
-            return this.parseLeverage((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (response), market);
         });
 
     }
@@ -3182,7 +3182,7 @@ public class Grvt extends GrvtApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1000), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 1000L, true)).join();
             }
             Map<String, Object> request = Helpers.newMap(
                 "sub_account_id", this.getSubAccountId((Map<String, Object>) (paramsPaginate))
@@ -3225,7 +3225,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(result, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -3362,7 +3362,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

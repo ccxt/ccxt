@@ -4602,7 +4602,7 @@ func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) any {
 		"tierBased":  nil,
 	}
 }
-func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
+func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4621,11 +4621,11 @@ func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", path)
+	var url string = *apiUrl + "/" + path
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if access != nil && *access == "public" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4633,7 +4633,7 @@ func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
 		var requestParams map[string]any = this.Extend(map[string]any{}, params)
 		var paramsKeys []string = ObjectKeys(requestParams)
 		var strSortKey any = this.ParamsToString(requestParams, 0)
-		var payload any = Add(Add(Add(Add(path, nonce), this.ApiKey), strSortKey), nonce)
+		var payload *string = SafeStringPtr(Add(Add(Add(path+nonce, this.ApiKey), strSortKey), nonce))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256)
 		var paramsKeysLength int = len(paramsKeys)
 		requestBody = this.Json(map[string]any{

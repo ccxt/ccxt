@@ -8073,7 +8073,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
-                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, Helpers.toMapArg(market)));
+                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         } else
@@ -8088,7 +8088,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
-                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, Helpers.toMapArg(market)));
+                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         }
@@ -10347,7 +10347,7 @@ public Object describe()
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) (Helpers.GetValue(pricesData, marketId)), Helpers.toMapArg(market)), parameters);
+                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) (Helpers.GetValue(pricesData, marketId)), market), parameters);
                 ((List<Object>)results).add(priceData);
             }
         }
@@ -10395,7 +10395,7 @@ public Object describe()
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, marketId), Helpers.toMapArg(market));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, marketId), market);
                 Map<String, Object> ticker = this.extend(parsed, parameters);
                 ((List<Object>)results).add(ticker);
             }
@@ -11040,7 +11040,7 @@ public Object describe()
             String code = this.safeString(currency, "code");
             if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
             {
-                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(dictionary, Helpers.toMapArg(currency)));
+                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(dictionary, currency));
             }
         }
         return depositWithdrawFees;
@@ -11842,7 +11842,7 @@ public Object describe()
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
-                Object parsed = this.parseGreeks((Map<String, Object>) (Helpers.GetValue(greeks, marketId)), Helpers.toMapArg(market));
+                Object parsed = this.parseGreeks((Map<String, Object>) (Helpers.GetValue(greeks, marketId)), market);
                 Map<String, Object> greek = this.extend(parsed, parameters);
                 ((List<Object>)results).add(greek);
             }
@@ -11866,7 +11866,7 @@ public Object describe()
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(currencyId, (Map<String, Object>) null);
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "option");
-            optionStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseOption((Map<String, Object>) (info), Helpers.toMapArg(currency), Helpers.toMapArg(market)));
+            optionStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseOption((Map<String, Object>) (info), currency, market));
         }
         return optionStructures;
     }
@@ -11882,7 +11882,7 @@ public Object describe()
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketTypeResolved));
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
-                marginModeStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseMarginMode((Map<String, Object>) (info), Helpers.toMapArg(market)));
+                marginModeStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseMarginMode((Map<String, Object>) (info), market));
             }
         }
         return marginModeStructures;
@@ -11904,7 +11904,7 @@ public Object describe()
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketTypeResolved));
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
-                leverageStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseLeverage((Map<String, Object>) (info), Helpers.toMapArg(market)));
+                leverageStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
             }
         }
         return leverageStructures;
@@ -11934,7 +11934,7 @@ public Object describe()
             {
                 toCurrency = (Map<String, Object>) this.safeCurrency(toId, (Map<String, Object>) null);
             }
-            Map<String, Object> conversion = this.extend(this.parseConversion((Map<String, Object>) (entry), Helpers.toMapArg(fromCurrency), Helpers.toMapArg(toCurrency)), parameters);
+            Map<String, Object> conversion = this.extend(this.parseConversion((Map<String, Object>) (entry), fromCurrency, toCurrency), parameters);
             ((List<Object>)result).add(conversion);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
@@ -12108,7 +12108,7 @@ public Object describe()
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
-                ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) (info), Helpers.toMapArg(market)));
+                ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) (info), market));
             }
         }
         return marginModifications;

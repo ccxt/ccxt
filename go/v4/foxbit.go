@@ -2548,7 +2548,7 @@ func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              fee,
 	}
 }
-func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
+func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2557,7 +2557,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var version any = GetValue(api, 0)
 	var urlPath any = GetValue(api, 1)
@@ -2598,7 +2598,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 		requestBody = this.Json(paramsOmitted)
 	}
 	var bodyToSignature any = ""
-	if !IsEqual(requestBody, nil) {
+	if requestBody != nil {
 		bodyToSignature = requestBody
 	}
 	var headersValue map[string]any = map[string]any{

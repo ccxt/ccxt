@@ -711,7 +711,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        List<Object> parsed = this.parseTrades(data, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
             stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
@@ -753,7 +753,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         Long interval = this.safeInteger(first, "interval");
         Object timeframe = ((String)this.findTimeframe(interval, (Object) null));
-        String messageHash = this.getMessageHash("ohlcv", (String) null, Helpers.toStringArg(symbol));
+        String messageHash = this.getMessageHash("ohlcv", (String) null, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(stored, null))
@@ -823,7 +823,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Object ticker = (this.watchMultiHelper("ticker", "ticker", Helpers.toStringListArg(symbolsNormalized), (Object) null, parameters)).join();
+            Object ticker = (this.watchMultiHelper("ticker", "ticker", symbolsNormalized, (Object) null, parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -852,7 +852,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             ((Map<String, Object>)parameters).put("event_trigger", "bbo");
-            Object ticker = (this.watchMultiHelper("bidask", "ticker", Helpers.toStringListArg(symbolsNormalized), (Object) null, parameters)).join();
+            Object ticker = (this.watchMultiHelper("bidask", "ticker", symbolsNormalized, (Object) null, parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -909,7 +909,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String tradeSymbol = this.safeString(first, "symbol");
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1008,7 +1008,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1397,7 +1397,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(result, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(result, symbolResolved, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(result, symbolResolved, since, limitResolved, true);
         });
 
     }

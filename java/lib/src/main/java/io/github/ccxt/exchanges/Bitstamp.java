@@ -1521,7 +1521,7 @@ public class Bitstamp extends BitstampApi
                 throw new ExchangeError((this.id + " fetchOrderBook() missing microtimestamp")) ;
             }
             Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", microtimestamp);
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1615,7 +1615,7 @@ public class Bitstamp extends BitstampApi
             //     "percent_change_24": "1.24"
             // }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1940,7 +1940,7 @@ public class Bitstamp extends BitstampApi
             //         },
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2163,7 +2163,7 @@ public class Bitstamp extends BitstampApi
             {
                 tradingFee = new HashMap<String, Object>() {{}};
             }
-            return this.parseTradingFee((Map<String, Object>) (tradingFee), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2434,7 +2434,7 @@ public class Bitstamp extends BitstampApi
                 }
             }
             Object orderResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(orderResponse, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(orderResponse, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
@@ -2482,7 +2482,7 @@ public class Bitstamp extends BitstampApi
             }
             Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
             Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
@@ -2668,7 +2668,7 @@ public class Bitstamp extends BitstampApi
             //         ]
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2714,7 +2714,7 @@ public class Bitstamp extends BitstampApi
                 response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
             }
             List<Object> result = this.filterBy(response, "type", "2");
-            return this.parseTrades(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2782,7 +2782,7 @@ public class Bitstamp extends BitstampApi
             //     }
             //
             List<Object> values = (List<Object>) this.safeList(response, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRateHistories(values, Helpers.toMapArg(market), since, limit);
+            return this.parseFundingRateHistories(values, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -2863,7 +2863,7 @@ public class Bitstamp extends BitstampApi
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
             List<Object> transactions = (List<Object>) this.filterByArray(response, "type", new ArrayList<Object>(Arrays.asList("0", "1")), false);
-            return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3295,7 +3295,7 @@ public class Bitstamp extends BitstampApi
                 "after", null,
                 "status", ((Map<String, Object>)parsedTransaction).get("status"),
                 "fee", ((Map<String, Object>)parsedTransaction).get("fee")
-            ), Helpers.toMapArg(currencyResolved));
+            ), currencyResolved);
         }
     }
 
@@ -3330,7 +3330,7 @@ public class Bitstamp extends BitstampApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            return this.parseLedger(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3366,7 +3366,7 @@ public class Bitstamp extends BitstampApi
             //         "next_funding_time": "1644406050"
             //     }
             //
-            return this.parseFundingRate(response, Helpers.toMapArg(market));
+            return this.parseFundingRate(response, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -3448,7 +3448,7 @@ public class Bitstamp extends BitstampApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(response, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "status", "open" );
                 put( "type", "limit" );
             }}));
@@ -3568,7 +3568,7 @@ public class Bitstamp extends BitstampApi
                 request.put("account_currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag))).join();
             }
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3616,7 +3616,7 @@ public class Bitstamp extends BitstampApi
             //
             //    { status: 'ok' }
             //
-            Object transfer = this.parseTransfer(response, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(response, currency);
             Helpers.addElementToObject(transfer, "amount", amount);
             Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
             Helpers.addElementToObject(transfer, "toAccount", toAccount);

@@ -3222,7 +3222,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $baseUrl = $this->urls['api'][$api];
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';

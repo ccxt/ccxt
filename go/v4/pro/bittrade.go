@@ -92,7 +92,7 @@ func (this *Bittrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -180,7 +180,7 @@ func (this *Bittrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -291,7 +291,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -396,7 +396,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
 	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
@@ -491,7 +491,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan any, client any, messag
 			var hostname map[string]any = map[string]any{
 				"hostname": this.Hostname,
 			}
-			var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
+			var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "public"), hostname)
 			var requestId string = this.RequestId()
 			var request map[string]any = map[string]any{
 				"req": messageHash,

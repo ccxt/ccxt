@@ -2555,7 +2555,7 @@ public class Kalshi extends KalshiApi
             Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, paramsSelfTradePreventionType))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known order details and resolve the status from the remaining count
-            Object order = this.parsePredictionOrder((Map<String, Object>) (response), Helpers.toMapArg(outcomeObj));
+            Object order = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "amount", amount);
             Helpers.addElementToObject(order, "price", price);
@@ -2654,7 +2654,7 @@ public class Kalshi extends KalshiApi
             }}, parameters))).join();
             // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
             // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-            Object order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), Helpers.toMapArg(outcomeObj));
+            Object order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), outcomeObj);
             if (java.util.Objects.equals(((Map<String, Object>)order).get("id"), null))
             {
                 Helpers.addElementToObject(order, "id", id);

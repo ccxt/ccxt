@@ -4071,7 +4071,7 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	}
 	return nil
 }
-func (this *Blofin) Sign(path any, optionalArgs ...any) any {
+func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4082,17 +4082,17 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var request any = Add("/api/"+this.Version+"/", this.ImplodeParams(path, params))
+	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, request)
+	var url string = *apiUrl + request
 	// const type = this.getPathAuthenticationType (path);
 	if IsEqual(api, "public") {
 		if !this.IsEmpty(query) {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -4108,8 +4108,8 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 		if method == "GET" {
 			if !this.IsEmpty(query) {
 				var urlencodedQuery string = "?" + this.Urlencode(query)
-				url = Add(url, urlencodedQuery)
-				request = Add(request, urlencodedQuery)
+				url += urlencodedQuery
+				request += urlencodedQuery
 			}
 		} else {
 			if !this.IsEmpty(query) {
@@ -4118,7 +4118,7 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 			}
 			signedHeaders["Content-Type"] = "application/json"
 		}
-		var auth any = Add(Add(Add(Add(request, method), timestamp), timestamp), sign_body)
+		var auth *string = SafeStringPtr(Add(request+method+timestamp+timestamp, sign_body))
 		var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 		signedHeaders["ACCESS-SIGN"] = signature
 		var bodyResolved any = func() any {

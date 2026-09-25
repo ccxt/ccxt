@@ -3487,7 +3487,7 @@ func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, 
 	var error map[string]any = SafeMapTyped(response, "error")
 	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
@@ -3499,7 +3499,7 @@ func (this *Derive) Nonce() any {
 	// incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
 	return this.Milliseconds()
 }
-func (this *Derive) Sign(path any, optionalArgs ...any) any {
+func (this *Derive) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3514,7 +3514,7 @@ func (this *Derive) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(*apiUrl+"/", path))
+	var url string = *apiUrl + "/" + path
 	if method == "POST" {
 		var postHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
@@ -3526,7 +3526,7 @@ func (this *Derive) Sign(path any, optionalArgs ...any) any {
 			postHeaders["X-LyraTimestamp"] = now
 			postHeaders["X-LyraSignature"] = signature
 		}
-		var postBody any = this.Json(params)
+		var postBody string = this.Json(params)
 		return map[string]any{
 			"url":     url,
 			"method":  method,

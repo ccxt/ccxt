@@ -1641,7 +1641,7 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 func (this *Bitbns) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
+func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "www")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1668,24 +1668,24 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api))
-	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var baseUrl string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api))
+	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce string = ToString(this.Nonce())
 	var queryLength int = len(ObjectKeys(query))
-	var postBody any = "{}"
+	var postBody string = "{}"
 	if queryLength > 0 {
 		postBody = this.Json(query)
 	}
-	var requestBody any = func() any {
+	var requestBody *string = func() *string {
 		if method == "POST" {
-			return postBody
+			return SafeStringPtr(postBody)
 		}
 		return body
 	}()
 	if method == "GET" {
 		if queryLength > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if method == "POST" {
 		var auth map[string]any = map[string]any{

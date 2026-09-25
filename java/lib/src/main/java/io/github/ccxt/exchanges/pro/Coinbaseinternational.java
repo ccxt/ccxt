@@ -571,7 +571,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -598,7 +598,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //
         String messageHash = this.safeString(message, "channel");
         String marketId = this.safeString(message, "product_id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object timeframe = this.findTimeframe(messageHash, (Object) null);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -612,7 +612,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(data, i, (Object) null);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(tick, Helpers.toMapArg(market));
+            List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
             stored.append(parsed);
         }
         client.resolve(stored, ((messageHash + "::") + symbol));
@@ -659,7 +659,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Object trades = (this.subscribeMultiple("MATCH", Helpers.toStringListArg(symbolsNormalized), parameters)).join();
+            Object trades = (this.subscribeMultiple("MATCH", symbolsNormalized, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -667,7 +667,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 String tradeSymbol = this.safeString(first, "symbol");
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

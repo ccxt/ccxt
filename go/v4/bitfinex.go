@@ -3920,7 +3920,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) any {
 func (this *Bitfinex) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bitfinex) Sign(path any, optionalArgs ...any) any {
+func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3931,7 +3931,7 @@ func (this *Bitfinex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var request any = Add("/", this.ImplodeParams(path, params))
+	var request any = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "v1") {
 		request = Add(api, request)

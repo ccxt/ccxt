@@ -426,7 +426,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 symbolsResolved = Helpers.toStringListArg(this.symbols);
             }
             String name = "ticker_batch";
-            Object ticker = (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbolsResolved), parameters)).join();
+            Object ticker = (this.subscribeMultiple(name, false, symbolsResolved, parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -665,7 +665,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -723,7 +723,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -779,7 +779,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
-            return this.filterBySinceLimit(orders, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1047,7 +1047,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String clientOrderId = this.safeString(order, "client_order_id");
         String marketId = this.safeString(order, "product_id");
         String datetime = this.safeString2(order, "time", "creation_time");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
@@ -1134,7 +1134,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> updates = (List<Object>) this.safeList(eventVar, "updates", new ArrayList<Object>(Arrays.asList()));
             String marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("level2::" + symbol);
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});

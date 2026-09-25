@@ -1369,7 +1369,7 @@ func (this *Alpaca) GenerateClientOrderId(params any) any {
 	var uuid string = this.Uuid()
 	var parts []string = strings.Split(uuid, "-")
 	var random_id string = strings.Join(parts, "")
-	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
+	var defaultClientId string = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
 	})
 	var clientOrderId *string = this.SafeString(params, "clientOrderId", defaultClientId)
@@ -2882,7 +2882,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
+func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2893,8 +2893,8 @@ func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
+	var endpoint string = "/" + this.ImplodeParams(path, params)
+	var url string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
 	var headersValue any = map[string]any{}
 	if headers != nil {
 		headersValue = headers
@@ -2908,13 +2908,13 @@ func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
 	var bodyJson any = nil
 	if len(ObjectKeys(query)) > 0 {
 		if (method == "GET") || (method == "DELETE") {
-			endpoint = Add(endpoint, "?"+this.Urlencode(query))
+			endpoint += "?" + this.Urlencode(query)
 		} else {
 			bodyJson = this.Json(query)
 			AddElementToObject(headersValue, "Content-Type", "application/json")
 		}
 	}
-	url = Add(url, endpoint)
+	url = url + endpoint
 	var bodyResolved any = func() any {
 		if bodyJson == nil {
 			return body

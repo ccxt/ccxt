@@ -1669,7 +1669,7 @@ func (this *Coinmate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 func (this *Coinmate) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
+func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1686,10 +1686,10 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", path)
+	var url string = *apiUrl + "/" + path
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url += "?" + this.Urlencode(params)
 		}
 	} else {
 		this.CheckRequiredCredentials()

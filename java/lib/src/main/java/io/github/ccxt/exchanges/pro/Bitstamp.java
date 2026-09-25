@@ -320,7 +320,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -427,11 +427,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), Helpers.toMapArg(market));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -501,10 +501,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, Helpers.toMapArg(market));
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, market);
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
         client.resolve(fundingRate, ("fundingRate:" + symbol));
     }
@@ -548,7 +548,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolValue, limit);
             }
-            return this.filterBySinceLimit(orders, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -629,7 +629,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbolValue, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -707,7 +707,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Object trade = this.parseWsMyTrade((Map<String, Object>) (data), Helpers.toMapArg(market));
+        Object trade = this.parseWsMyTrade((Map<String, Object>) (data), market);
         stored.append(trade);
         client.resolve(stored, channel);
     }
@@ -757,7 +757,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             "amount", this.safeString(trade, "amount"),
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -807,7 +807,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Helpers.addElementToObject(order, "event", this.safeString(message, "event"));
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), Helpers.toMapArg(market));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
         stored.append(parsed);
         client.resolve(this.orders, channel);
     }
@@ -914,7 +914,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             "status", status,
             "fee", null,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public void handleOrderBookSubscription(Client client, Map<String, Object> message)

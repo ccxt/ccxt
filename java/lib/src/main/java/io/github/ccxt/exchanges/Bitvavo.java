@@ -841,7 +841,7 @@ public class Bitvavo extends BitvavoApi
             //         "timestamp":1590381666900
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -997,7 +997,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1195,7 +1195,7 @@ public class Bitvavo extends BitvavoApi
             //         "maker": "0.0015"
             //     }
             //
-            return this.parseTradingFee((Map<String, Object>) (response), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (response), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1339,7 +1339,7 @@ public class Bitvavo extends BitvavoApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(1440))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1440L)).join();
             }
             Object request = this.fetchOHLCVRequest((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(paramsPaginate));
             List<Object> response = (this.publicGetMarketCandles(request)).join();
@@ -1530,7 +1530,7 @@ public class Bitvavo extends BitvavoApi
             //         "createdAt": "1700000000000"
             //     }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -1601,7 +1601,7 @@ public class Bitvavo extends BitvavoApi
             //     }
             //
             List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(items, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(items, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -1646,7 +1646,7 @@ public class Bitvavo extends BitvavoApi
             //         "createdAt": "1700000000000"
             //     }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -1927,7 +1927,7 @@ public class Bitvavo extends BitvavoApi
             //          "postOnly":false
             //      }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2003,7 +2003,7 @@ public class Bitvavo extends BitvavoApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePutOrder(request)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2063,7 +2063,7 @@ public class Bitvavo extends BitvavoApi
             //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2111,7 +2111,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2143,7 +2143,7 @@ public class Bitvavo extends BitvavoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> codGroupIdparamsCodGroupIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", Helpers.toLongOrNull(1));
+            List<Object> codGroupIdparamsCodGroupIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1L);
             Long codGroupId = (Long) ((List<Object>) codGroupIdparamsCodGroupIdVariable).get(0);
             Map<String, Object> paramsCodGroupId = (Map<String, Object>) ((List<Object>) codGroupIdparamsCodGroupIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2229,7 +2229,7 @@ public class Bitvavo extends BitvavoApi
             //         "disableMarketProtection":false
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2328,7 +2328,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2397,7 +2397,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2525,7 +2525,7 @@ public class Bitvavo extends BitvavoApi
             "status", status,
             "fee", fee,
             "trades", rawTrades
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object fetchMyTradesRequest(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -2603,7 +2603,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2672,7 +2672,7 @@ public class Bitvavo extends BitvavoApi
             //     }
             //
             List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(items, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(items, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -2734,7 +2734,7 @@ public class Bitvavo extends BitvavoApi
             "after", null,
             "status", "ok",
             "fee", fee
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     public Object withdrawRequest(String code, Object amount, Object address, String tag, Map<String, Object> parameters)
@@ -2787,7 +2787,7 @@ public class Bitvavo extends BitvavoApi
             //         "amount": "1.5"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2853,7 +2853,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(response, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2919,7 +2919,7 @@ public class Bitvavo extends BitvavoApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(response, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));

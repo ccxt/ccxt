@@ -602,7 +602,7 @@ public class Independentreserve extends IndependentreserveApi
             }};
             Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "BuyOrders", "SellOrders", "Price", "Volume", 2);
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -654,7 +654,7 @@ public class Independentreserve extends IndependentreserveApi
             put( "baseVolume", Independentreserve.this.safeString(ticker, "DayVolumeXbtInSecondaryCurrrency") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -693,7 +693,7 @@ public class Independentreserve extends IndependentreserveApi
             //     "SecondaryCurrencyCode":"Usd",
             //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
             // }
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -876,7 +876,7 @@ public class Independentreserve extends IndependentreserveApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -917,7 +917,7 @@ public class Independentreserve extends IndependentreserveApi
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -958,7 +958,7 @@ public class Independentreserve extends IndependentreserveApi
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -999,7 +999,7 @@ public class Independentreserve extends IndependentreserveApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1077,7 +1077,7 @@ public class Independentreserve extends IndependentreserveApi
             }};
             Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
             List<Object> trades = (List<Object>) this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1187,7 +1187,7 @@ public class Independentreserve extends IndependentreserveApi
             return this.safeOrder(Helpers.newMap(
                 "info", response,
                 "id", ((Map<String, Object>)response).get("OrderGuid")
-            ), Helpers.toMapArg(market));
+            ), market);
         }).thenApply(Order::new);
 
     }
@@ -1354,7 +1354,7 @@ public class Independentreserve extends IndependentreserveApi
             //        "Transaction": null
             //    }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -1426,7 +1426,7 @@ public class Independentreserve extends IndependentreserveApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((apiUrl + "/"), path);
+        String url = ((apiUrl + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

@@ -6349,7 +6349,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	}
 	return nil
 }
-func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
+func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -6358,13 +6358,13 @@ func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(this.ImplodeHostname(apiUrl), "/"), path)
+	var url string = this.ImplodeHostname(apiUrl) + "/" + path
 	var isPost bool = (method == "POST")
 	var postHeaders map[string]any = map[string]any{
 		"Content-Type": "application/json",

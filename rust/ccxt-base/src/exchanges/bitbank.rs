@@ -1606,7 +1606,7 @@ impl BitbankCore {
                 requestBody = json_stringify(&query);
                 auth = Value::Str(format!("{}{}", auth, requestBody).into());
             }  else {
-                auth = Value::Str(format!("{}{}", auth, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), &path)).into());
+                auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), path).into())).into());
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     query = self.urlencode(query.clone(), &[]);
                     url = Value::Str(format!("{}{}", url, add(&Value::Str("?".into()), &query)).into());

@@ -2264,7 +2264,7 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'opinion', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'opinion', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the apikey/EIP-712 authentication $headers for private endpoints

@@ -3228,7 +3228,7 @@ func (this *Bitget) HandleErrorMessage(client any, message any) any {
 			// try block:
 			if event != nil && *event == "error" {
 				var code *string = this.SafeString(message, "code")
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, feedback)
 				var msg *string = this.SafeString(message, "msg", "")
 				this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "broad"), msg, feedback)

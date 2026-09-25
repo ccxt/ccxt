@@ -5355,7 +5355,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         const version = this.safeString (api, 0);

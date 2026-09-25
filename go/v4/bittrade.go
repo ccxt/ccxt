@@ -824,7 +824,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets []any = SafeListTypedDefault(response, "data", []any{})
 	var numMarkets int = len(markets)
 	if numMarkets < 1 {
-		panic(NetworkError(Add(this.Id+" fetchMarkets() returned empty response: ", this.Json(markets))))
+		panic(NetworkError(this.Id + " fetchMarkets() returned empty response: " + this.Json(markets)))
 	}
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
@@ -1059,7 +1059,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//
 	if InOp(response, "tick") {
 		if (IsEqual(GetValue(response, "tick"), nil)) || (IsEqual(GetValue(response, "tick"), nil)) {
-			panic(BadSymbol(Add(this.Id+" fetchOrderBook() returned empty response: ", this.Json(response))))
+			panic(BadSymbol(this.Id + " fetchOrderBook() returned empty response: " + this.Json(response)))
 		}
 		var tick map[string]any = SafeMapTyped(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
@@ -1069,7 +1069,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		ch <- result
 		return nil
 	}
-	panic(ExchangeError(Add(this.Id+" fetchOrderBook() returned unrecognized response: ", this.Json(response))))
+	panic(ExchangeError(this.Id + " fetchOrderBook() returned unrecognized response: " + this.Json(response)))
 }
 
 /**
@@ -2835,7 +2835,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Bittrade) Sign(path any, optionalArgs ...any) any {
+func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2856,7 +2856,7 @@ func (this *Bittrade) Sign(path any, optionalArgs ...any) any {
 	} else if (IsEqual(api, "v2Public")) || (IsEqual(api, "v2Private")) {
 		url = Add(url, "v2")
 	}
-	url = Add(url, Add("/", this.ImplodeParams(path, params)))
+	url = Add(url, "/"+this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (IsEqual(api, "private")) || (IsEqual(api, "v2Private")) {
 		this.CheckRequiredCredentials()

@@ -698,7 +698,7 @@ public class Zebpay extends ZebpayApi
                 List<Object> responseData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = (Map<String, Object>) this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -845,7 +845,7 @@ public class Zebpay extends ZebpayApi
                 response = (this.publicSwapGetV1MarketTicker24Hr(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, Helpers.toMapArg(market));
+            return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
     }
@@ -896,7 +896,7 @@ public class Zebpay extends ZebpayApi
             //     ]
             //
             List<Object> tickerList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickerList, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickerList, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -1063,7 +1063,7 @@ public class Zebpay extends ZebpayApi
             //     ]
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1093,7 +1093,7 @@ public class Zebpay extends ZebpayApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -1106,7 +1106,7 @@ public class Zebpay extends ZebpayApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(items, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(items, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1224,7 +1224,7 @@ public class Zebpay extends ZebpayApi
             put( "amount", amountString );
             put( "cost", Zebpay.this.safeString(trade, "cost") );
             put( "fee", Zebpay.this.safeDict(trade, "fee", (Object) null) );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -1367,7 +1367,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1572,7 +1572,7 @@ public class Zebpay extends ZebpayApi
             //         }
             //     }
             //
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, (Long) null, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1637,7 +1637,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(responseData, Helpers.toMapArg(market));
+            return this.parseOrder(responseData, market);
         }).thenApply(Order::new);
 
     }
@@ -1698,7 +1698,7 @@ public class Zebpay extends ZebpayApi
             put( "lastUpdateTimestamp", null );
             put( "average", null );
             put( "trades", null );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
         return parsedOrder;
     }
 
@@ -1728,7 +1728,7 @@ public class Zebpay extends ZebpayApi
             }};
             Map<String, Object> response = (this.privateSwapPostV1TradePositionClose(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1799,7 +1799,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseLeverage((Map<String, Object>) (data), market);
         }).thenApply(Leverage::new);
 
     }
@@ -1931,7 +1931,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "direction", "in" );
             }});
@@ -1979,7 +1979,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "direction", "out" );
             }});
@@ -2304,7 +2304,7 @@ public class Zebpay extends ZebpayApi
             put( "quoteVolume", Zebpay.this.safeString(ticker, "quoteVolume") );
             put( "markPrice", null );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     public Object parseMarginModification(Map<String, Object> info, Map<String, Object> market)
@@ -2337,7 +2337,7 @@ public class Zebpay extends ZebpayApi
         Object bodySigned = null;
         Map<String, Object> headersSigned = null;
         Object paramsOmitted = this.omit(parameters, "defaultType");
-        Boolean isV1 = Helpers.getIndexOf(path, "v1/") > -1;
+        Boolean isV1 = ((String)path).indexOf("v1/") > -1;
         String marketType = "spot";
         if (Boolean.TRUE.equals(isV1))
         {

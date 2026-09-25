@@ -4,6 +4,7 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
+import "strings"
 
 type Aster struct {
 	Exchange
@@ -5413,7 +5414,7 @@ func (this *Aster) SignHash(hash any, privateKey string) any {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Aster) Sign(path any, optionalArgs ...any) any {
+func (this *Aster) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5468,7 +5469,7 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 		}, params)
 		var paramString any = nil
 		var paramsToEncode any = nil
-		var isApproveBuilder bool = (GetIndexOf(path, "/approveBuilder") >= 0)
+		var isApproveBuilder bool = (strings.Index(path, "/approveBuilder") >= 0)
 		if isApproveBuilder {
 			// domain['name'] = 'Aster';
 			messageTypes = map[string]any{
@@ -5532,7 +5533,7 @@ func (this *Aster) EncodeValuesWithJson(values any) any {
 		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(values, key)
 		var isObj bool = IsArray(value) || this.IsDictionary(value)
-		var valueJsonified any = func() any {
+		var valueJsonified string = func() string {
 			if isObj {
 				return this.Json(value)
 			}
@@ -5682,7 +5683,7 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 				//
 				var codeRes *int64 = this.SafeInteger(authResponse, "code")
 				if codeRes == nil || *codeRes != 200 {
-					panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
+					panic(ExchangeError("Builder authorization failed, " + this.Json(authResponse)))
 				}
 				return nil
 			}(this)

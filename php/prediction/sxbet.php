@@ -2835,7 +2835,7 @@ class sxbet extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'sxbet', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'sxbet', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the x-sx-$api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401

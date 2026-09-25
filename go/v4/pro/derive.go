@@ -906,7 +906,7 @@ func (this *Derive) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorCode != nil {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				panic(ccxt.ExchangeError(feedback))
 			}

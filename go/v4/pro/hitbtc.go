@@ -442,7 +442,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speed *string = this.SafeString(params, "speed", "1s")
-	var name any = this.ImplodeParams(method, map[string]any{
+	var name string = this.ImplodeParams(method, map[string]any{
 		"speed": speed,
 	})
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"method", "speed"}))
@@ -623,7 +623,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/top/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speed *string = this.SafeString(params, "speed", "100ms")
-	var name any = this.ImplodeParams(method, map[string]any{
+	var name string = this.ImplodeParams(method, map[string]any{
 		"speed": speed,
 	})
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"method", "speed"}))
@@ -1680,7 +1680,7 @@ func (this *Hitbtc) HandleAuthenticate(client any, message any) any {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

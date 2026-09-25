@@ -1426,7 +1426,7 @@ public class Predictfun extends PredictfunApi
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
             if (Boolean.TRUE.equals(isYesOutcome))
             {
-                Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+                Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
                 return this.safePredictionOrderBook((Map<String, Object>) (yesOrderbook), outcomeObj);
             } else
             {
@@ -1518,7 +1518,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionTicker((Map<String, Object>) (data), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (data), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -3535,7 +3535,7 @@ public class Predictfun extends PredictfunApi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcomeResolved, limitResolved);
             }
-            return this.filterByOutcomeSinceLimit(orders, Helpers.toStringArg(outcomeResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterByOutcomeSinceLimit(orders, Helpers.toStringArg(outcomeResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -3576,7 +3576,7 @@ public class Predictfun extends PredictfunApi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcomeResolved, limitResolved);
             }
-            return this.filterByOutcomeSinceLimit(trades, Helpers.toStringArg(outcomeResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterByOutcomeSinceLimit(trades, Helpers.toStringArg(outcomeResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }

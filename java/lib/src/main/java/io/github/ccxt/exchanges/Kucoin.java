@@ -3158,7 +3158,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            return this.parseDepositWithdrawFee(data, Helpers.toMapArg(currency));
+            return this.parseDepositWithdrawFee(data, currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }
@@ -3410,7 +3410,7 @@ public class Kucoin extends KucoinApi
             "markPrice", this.safeString2(ticker, "markPrice", "value"),
             "indexPrice", this.safeString(ticker, "indexPrice"),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -3542,7 +3542,7 @@ public class Kucoin extends KucoinApi
             "markPrice", this.safeString2(ticker, "markPrice", "value"),
             "indexPrice", this.safeString(ticker, "indexPrice"),
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String typeToTradeType(String type)
@@ -3598,7 +3598,7 @@ public class Kucoin extends KucoinApi
                     firstMarket = (Map<String, Object>) this.market(firstSymbol);
                 }
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(firstMarket), Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", firstMarket, Helpers.toMapArg(paramsUta), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -3611,7 +3611,7 @@ public class Kucoin extends KucoinApi
                 response = (this.utaGetMarketTicker(this.extend(request, paramsMarketType))).join();
             } else if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
             {
-                return (this.fetchContractTickers(Helpers.toStringListArg(symbolsNormalized), Helpers.toMapArg(paramsMarketType))).join();
+                return (this.fetchContractTickers(symbolsNormalized, Helpers.toMapArg(paramsMarketType))).join();
             } else
             {
                 response = (this.publicGetMarketAllTickers(paramsMarketType)).join();
@@ -3777,7 +3777,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             Map<String, Object> response = null;
             Map<String, Object> result = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", Helpers.toMapArg(market), Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, Helpers.toMapArg(paramsUta), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
@@ -3838,7 +3838,7 @@ public class Kucoin extends KucoinApi
                 //    }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseTicker(data, Helpers.toMapArg(market));
+                return this.parseTicker(data, market);
             } else
             {
                 response = (this.publicGetMarketStats(this.extend(request, paramsMarketType))).join();
@@ -3867,7 +3867,7 @@ public class Kucoin extends KucoinApi
                 //
                 result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseSpotOrUtaTicker((Map<String, Object>) (result), Helpers.toMapArg(market));
+            return this.parseSpotOrUtaTicker((Map<String, Object>) (result), market);
         }).thenApply(Ticker::new);
 
     }
@@ -3900,12 +3900,12 @@ public class Kucoin extends KucoinApi
             {
                 response = (this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseTicker(data, Helpers.toMapArg(market));
+                return this.parseTicker(data, market);
             } else
             {
                 response = (this.publicGetMarkPriceSymbolCurrent(this.extend(request, parameters))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseSpotOrUtaTicker((Map<String, Object>) (data), Helpers.toMapArg(market));
+                return this.parseSpotOrUtaTicker((Map<String, Object>) (data), market);
             }
         }).thenApply(Ticker::new);
 
@@ -4044,7 +4044,7 @@ public class Kucoin extends KucoinApi
                 request.put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(endAt, (limit * duration))), denominator)))))));
             }
             request.put("endAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(endAt, denominator)))))));
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOHLCV", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOHLCV", market, Helpers.toMapArg(paramsPaginate), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin")))
@@ -4089,7 +4089,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> result = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), limitResolved, false);
         });
 
     }
@@ -4164,7 +4164,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -4247,7 +4247,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -4299,7 +4299,7 @@ public class Kucoin extends KucoinApi
             //   }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4373,7 +4373,7 @@ public class Kucoin extends KucoinApi
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4585,7 +4585,7 @@ public class Kucoin extends KucoinApi
             Boolean utaOption = (Boolean) ((List<Object>) utaOptionparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", Helpers.toMapArg(market), Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, Helpers.toMapArg(paramsUta), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
@@ -4711,7 +4711,7 @@ public class Kucoin extends KucoinApi
                     timestamp = this.parseToInt((((double) nanoseconds) / ((double) 1000000)));
                 }
             }
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", (level - 2L), (level - 1L), 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", (level - 2L), (level - 1L), 2);
             orderbook.put("nonce", this.safeInteger(data, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -4917,7 +4917,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         });
 
     }
@@ -5103,7 +5103,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         });
 
     }
@@ -5341,7 +5341,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         });
 
     }
@@ -5719,7 +5719,7 @@ public class Kucoin extends KucoinApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             if (java.util.Objects.equals(symbol, null))
@@ -5817,7 +5817,7 @@ public class Kucoin extends KucoinApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.futuresPrivatePostOrdersMulti(ordersRequests)).join();
@@ -5902,7 +5902,7 @@ public class Kucoin extends KucoinApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -5955,7 +5955,7 @@ public class Kucoin extends KucoinApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsUta), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
@@ -6254,7 +6254,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         });
 
     }
@@ -6301,7 +6301,7 @@ public class Kucoin extends KucoinApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsUta), (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
@@ -6515,7 +6515,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(orders, market, (Long) null, (Long) null, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }}));
         });
@@ -6720,11 +6720,11 @@ public class Kucoin extends KucoinApi
             List<Object> listData = (List<Object>) this.safeList(response, "data", (Object) null);
             if (!java.util.Objects.equals(listData, null))
             {
-                return this.parseOrders(listData, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseOrders(listData, market, since, limit, new HashMap<String, Object>() {{}});
             }
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(responseData, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -6856,7 +6856,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(responseData, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -7005,7 +7005,7 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -7298,7 +7298,7 @@ public class Kucoin extends KucoinApi
             {
                 responseData = this.safeValue(responseData, 0);
             }
-            return this.parseOrder(responseData, Helpers.toMapArg(market));
+            return this.parseOrder(responseData, market);
         });
 
     }
@@ -7384,7 +7384,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null);
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(responseData, Helpers.toMapArg(market));
+            return this.parseOrder(responseData, market);
         });
 
     }
@@ -7486,7 +7486,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, Helpers.toMapArg(market));
+            return this.parseOrder(data, market);
         });
 
     }
@@ -7537,10 +7537,10 @@ public class Kucoin extends KucoinApi
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         if ((!java.util.Objects.equals(marketResolved, null)) && (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("contract"), true)))
         {
-            return this.parseContractOrder((Map<String, Object>) (order), Helpers.toMapArg(marketResolved));
+            return this.parseContractOrder((Map<String, Object>) (order), marketResolved);
         } else
         {
-            return this.parseSpotOrder((Map<String, Object>) (order), Helpers.toMapArg(marketResolved));
+            return this.parseSpotOrder((Map<String, Object>) (order), marketResolved);
         }
     }
 
@@ -7681,7 +7681,7 @@ public class Kucoin extends KucoinApi
             "lastUpdateTimestamp", lastUpdateTimestamp,
             "average", average,
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseSpotOrder(Map<String, Object> order, Map<String, Object> market)
@@ -7974,7 +7974,7 @@ public class Kucoin extends KucoinApi
             "stopLossPrice", this.safeString(order, "slTriggerPrice"),
             "takeProfitPrice", this.safeString(order, "tpTriggerPrice"),
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderTimeInForce(String timeInForce)
@@ -8072,7 +8072,7 @@ public class Kucoin extends KucoinApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Object paramsRequest = null;
-            List<Object> marketTypeparamsRequestVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsRequestVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsRequestVariable).get(0);
             paramsRequest = ((List<Object>) marketTypeparamsRequestVariable).get(1);
             Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
@@ -8257,7 +8257,7 @@ public class Kucoin extends KucoinApi
             {
                 tradesList = this.toArray(trades);
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradesList, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -8352,7 +8352,7 @@ public class Kucoin extends KucoinApi
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradesList, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -8466,7 +8466,7 @@ public class Kucoin extends KucoinApi
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradesList, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -8511,7 +8511,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             Map<String, Object> response = null;
             List<Object> trades = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTrades", market, Helpers.toMapArg(paramsUta), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
@@ -8589,7 +8589,7 @@ public class Kucoin extends KucoinApi
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradesList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -8604,10 +8604,10 @@ public class Kucoin extends KucoinApi
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         if ((java.util.Objects.equals(marketResolved, null)) || (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("spot"), true)))
         {
-            return this.parseSpotOrUtaTrade((Map<String, Object>) (trade), Helpers.toMapArg(marketResolved));
+            return this.parseSpotOrUtaTrade((Map<String, Object>) (trade), marketResolved);
         } else
         {
-            return this.parseContractTrade((Map<String, Object>) (trade), Helpers.toMapArg(marketResolved));
+            return this.parseContractTrade((Map<String, Object>) (trade), marketResolved);
         }
     }
 
@@ -8757,7 +8757,7 @@ public class Kucoin extends KucoinApi
             "amount", amountString,
             "cost", costString,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseContractTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -8900,7 +8900,7 @@ public class Kucoin extends KucoinApi
             "amount", amountString,
             "cost", costString,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseMyUtaTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -8944,7 +8944,7 @@ public class Kucoin extends KucoinApi
             put( "amount", Kucoin.this.safeString(trade, "size") );
             put( "cost", Kucoin.this.safeString(trade, "value") );
             put( "fee", fee );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -9043,7 +9043,7 @@ public class Kucoin extends KucoinApi
             String marketId = this.safeString(entry, "symbol");
             return Helpers.newMap(
                 "info", response,
-                "symbol", this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null),
+                "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
                 "maker", this.safeNumber(entry, "makerFeeRate", (Object) null),
                 "taker", this.safeNumber(entry, "takerFeeRate", (Object) null),
                 "percentage", true,
@@ -9123,7 +9123,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -9383,7 +9383,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(items, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(items, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -9454,7 +9454,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> responseData = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(responseData, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(responseData, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }}));
         });
@@ -9574,7 +9574,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(items, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(items, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -9645,7 +9645,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> responseData = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(responseData, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(responseData, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }}));
         });
@@ -9944,7 +9944,7 @@ public class Kucoin extends KucoinApi
             }};
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             String currencyId = this.safeString(data, "currency");
-            String currencyCode = this.safeCurrencyCode(currencyId, Helpers.toMapArg(currency));
+            String currencyCode = this.safeCurrencyCode(currencyId, currency);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("free", this.safeString(data, "availableBalance"));
             account.put("total", this.safeString(data, "accountEquity"));
@@ -10248,7 +10248,7 @@ public class Kucoin extends KucoinApi
             //
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object transfer = this.parseTransfer(data, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
@@ -10354,7 +10354,7 @@ public class Kucoin extends KucoinApi
                 response = (this.privatePostAccountsUniversalTransfer(this.extend(request, paramsTransferType))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object transfer = this.parseTransfer(data, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
@@ -10691,7 +10691,7 @@ public class Kucoin extends KucoinApi
             "after", balanceAfter,
             "status", this.parseLedgerStatus(status),
             "fee", fee
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     /**
@@ -10892,11 +10892,11 @@ public class Kucoin extends KucoinApi
             List<Object> dataList = (List<Object>) this.safeList(response, "data", (Object) null);
             if (!java.util.Objects.equals(dataList, null))
             {
-                return this.parseLedger(dataList, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+                return this.parseLedger(dataList, currency, since, limit, new HashMap<String, Object>() {{}});
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             List<Object> items = (List<Object>) this.safeList2(data, "items", "dataList", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(items, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(items, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -11092,7 +11092,7 @@ public class Kucoin extends KucoinApi
             {
                 assets = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
             }
-            List<Object> interest = this.parseBorrowInterests(assets, Helpers.toMapArg(market));
+            List<Object> interest = this.parseBorrowInterests(assets, market);
             List<Object> filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit, false);
             return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -11395,7 +11395,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseBorrowRate(data, Helpers.toMapArg(currency));
+            return this.parseBorrowRate(data, currency);
         }).thenApply(CrossBorrowRate::new);
 
     }
@@ -11440,7 +11440,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (data), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11489,7 +11489,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (data), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11532,7 +11532,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (data), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11579,7 +11579,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseMarginLoan((Map<String, Object>) (data), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -11691,7 +11691,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object parsed = this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
+            Object parsed = this.parseLeverage((Map<String, Object>) (data), market);
             return this.extend(parsed, Helpers.newMap(
                 "marginMode", marginMode
             ));
@@ -11950,7 +11950,7 @@ public class Kucoin extends KucoinApi
                 response = (this.futuresPublicGetFundingRateSymbolCurrent(this.extend(request, paramsUta))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(data, Helpers.toMapArg(market));
+            return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -12007,7 +12007,7 @@ public class Kucoin extends KucoinApi
                     ((List<Object>)rates).add(entry);
                 }
             }
-            return this.parseFundingRates(rates, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseFundingRates(rates, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }
@@ -12167,7 +12167,7 @@ public class Kucoin extends KucoinApi
                 response = (this.futuresPublicGetContractFundingRates(this.extend(request, paramsOmitted))).join();
             }
             List<Object> result = (List<Object>) this.safeList(response, resultKey, new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRateHistories(result, Helpers.toMapArg(market), since, limit);
+            return this.parseFundingRateHistories(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -12313,7 +12313,7 @@ public class Kucoin extends KucoinApi
                 String marketId = this.safeString(listItem, "symbol");
                 ((List<Object>)fees).add(Helpers.newMap(
                     "info", listItem,
-                    "symbol", this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null),
+                    "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
                     "code", this.safeCurrencyCode(this.safeString(listItem, "settleCurrency"), (Map<String, Object>) null),
                     "timestamp", timestamp,
                     "datetime", this.iso8601(timestamp),
@@ -12441,7 +12441,7 @@ public class Kucoin extends KucoinApi
                 //
                 position = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parsePosition((Map<String, Object>) (position), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (position), market);
         }).thenApply(Position::new);
 
     }
@@ -12626,7 +12626,7 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(items, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(items, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -12951,7 +12951,7 @@ public class Kucoin extends KucoinApi
                 //
                 orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -13034,7 +13034,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), Helpers.toMapArg(market)), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
                 put( "amount", Kucoin.this.amountToPrecision(symbol, amount) );
                 put( "direction", "in" );
             }});
@@ -13149,7 +13149,7 @@ public class Kucoin extends KucoinApi
         Long timestamp = this.safeInteger(info, "currentTimestamp");
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", Kucoin.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
+            put( "symbol", Kucoin.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
             put( "type", null );
             put( "marginMode", mode );
             put( "amount", null );
@@ -13194,7 +13194,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseMarginMode((Map<String, Object>) (data), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -13254,7 +13254,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), Helpers.toMapArg(market));  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
+            return this.parseMarginMode((Map<String, Object>) (data), market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
         });
 
     }
@@ -13368,7 +13368,7 @@ public class Kucoin extends KucoinApi
             {
                 response = (this.futuresPrivatePostOrders(this.extend(request, paramsOmitted))).join();
             }
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -13428,7 +13428,7 @@ public class Kucoin extends KucoinApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarketLeverageTiers(data, Helpers.toMapArg(market));
+            return this.parseMarketLeverageTiers(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
     }
@@ -13471,7 +13471,7 @@ public class Kucoin extends KucoinApi
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(tier, "symbol");
-            marketCursor = (Map<String, Object>) this.safeMarket(marketId, Helpers.toMapArg(marketCursor), (String) null, (String) null);
+            marketCursor = (Map<String, Object>) this.safeMarket(marketId, marketCursor, (String) null, (String) null);
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.safeNumber2(tier, "level", "tier", (Object) null),
                 "symbol", ((Map<String, Object>)marketCursor).get("symbol"),
@@ -13619,7 +13619,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterests(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(data, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -13643,7 +13643,7 @@ public class Kucoin extends KucoinApi
             put( "timestamp", timestamp );
             put( "datetime", Kucoin.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -13715,7 +13715,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(requestUntil, paramsUntil))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
-            return this.parseOpenInterestsHistory(data, Helpers.toMapArg(market), since, limit);
+            return this.parseOpenInterestsHistory(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }
@@ -13990,7 +13990,7 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(items, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(items, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -14062,7 +14062,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseADLRanks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }

@@ -2505,7 +2505,7 @@ func (this *Zebpay) ParseMarginModification(info any, optionalArgs ...any) any {
 		"datetime":   nil,
 	}
 }
-func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
+func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2519,13 +2519,13 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var paramsOmitted any = this.Omit(params, "defaultType")
-	var isV1 bool = (GetIndexOf(path, "v1/") > -1)
+	var isV1 bool = (strings.Index(path, "v1/") > -1)
 	var marketType string = "spot"
 	if isV1 {
 		marketType = "swap"
 	}
 	var url any = GetValue(GetValue(this.Urls, "api"), marketType)
-	var tail any = Add("/api/", this.ImplodeParams(path, paramsOmitted))
+	var tail string = "/api/" + this.ImplodeParams(path, paramsOmitted)
 	url = Add(url, tail)
 	var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 	var signature string = ""

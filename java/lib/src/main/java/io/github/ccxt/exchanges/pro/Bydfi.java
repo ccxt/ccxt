@@ -340,7 +340,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), Helpers.toMapArg(subscription))).join();
+            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), subscription)).join();
         });
 
     }
@@ -476,7 +476,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
             }
-            List<Object> filtered = this.filterBySinceLimit(candles, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            List<Object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -521,7 +521,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
-            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), Helpers.toMapArg(subscription))).join();
+            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), subscription)).join();
         });
 
     }
@@ -543,7 +543,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(message, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(message, "i");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
@@ -705,7 +705,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object paramsExtended = this.extend(paramsFrequency, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), Helpers.toMapArg(subscription))).join();
+            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), subscription)).join();
         });
 
     }
@@ -729,7 +729,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, Helpers.toLongOrNull(timestamp), "b", "a", 0, 1, 2);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", 0, 1, 2);
         orderbook.reset(parsed);
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -803,7 +803,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(orders, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -840,7 +840,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawOrder, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = "orders";
         String symbolMessageHash = ((messageHash + "::") + symbol);
@@ -850,7 +850,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), Helpers.toMapArg(market));
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), market);
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
         orders.append(order);
@@ -884,7 +884,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String rawStatus = this.safeString(order, "st");
         String rawType = this.safeString(order, "t");
         Map<String, Object> fee = null;
@@ -922,7 +922,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             "trades", null,
             "fee", fee,
             "average", this.omitZero(this.safeString(order, "ap"))
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -964,7 +964,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 return positions;
             }
-            return this.filterBySymbolsSinceLimit(this.positions, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -1015,7 +1015,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         List<Object> positionsData = (List<Object>) this.safeList(data, "p", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(positionsData, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawPosition, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = "positions";
         String symbolMessageHash = ((messageHash + "::") + symbol);
@@ -1024,7 +1024,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), Helpers.toMapArg(market));
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
@@ -1056,7 +1056,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(position, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String rawPositionSide = this.safeString(position, "S");
         String positionMode = this.safeString(position, "pt");
         return this.safePosition(Helpers.newMap(

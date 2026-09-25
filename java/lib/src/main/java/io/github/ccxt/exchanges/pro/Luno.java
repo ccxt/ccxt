@@ -100,7 +100,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -141,7 +141,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, Helpers.toMapArg(market));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
             stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -275,7 +275,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (!java.util.Objects.equals(asks, null))
         {
-            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "volume", "id");
+            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {

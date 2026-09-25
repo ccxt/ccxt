@@ -399,7 +399,7 @@ public class Paymium extends PaymiumApi
             //     "size":"0.00041087"
             // }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -427,7 +427,7 @@ public class Paymium extends PaymiumApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -455,7 +455,7 @@ public class Paymium extends PaymiumApi
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -619,7 +619,7 @@ public class Paymium extends PaymiumApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Paymium.this.safeString(response, "uuid") );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -718,7 +718,7 @@ public class Paymium extends PaymiumApi
             //         ]
             //     }
             //
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }

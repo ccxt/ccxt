@@ -3642,7 +3642,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
  * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
+func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "kalshi")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
@@ -3667,12 +3667,12 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "kalshi"))
-	var implodedPath any = this.ImplodeParams(path, params)
-	var url any = ccxt.Add(*baseUrl+"/", implodedPath)
+	var implodedPath string = this.ImplodeParams(path, params)
+	var url string = *baseUrl + "/" + implodedPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring string = this.Urlencode(query)
 	if (method == "GET") && (querystring != "") {
-		url = ccxt.Add(url, "?"+querystring)
+		url += "?" + querystring
 	}
 	var existingHeaders any = func() any {
 		if !ccxt.IsEqual(headers, nil) {
@@ -3698,8 +3698,8 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 			return strings.Index(*baseUrl, "/trade-api")
 		}()
 		var versionPrefix string = ccxt.Slice(baseUrl, tradeApiIndex, nil)
-		var pathForSigning any = ccxt.Add(versionPrefix+"/", implodedPath)
-		var payload *string = ccxt.SafeStringPtr(ccxt.Add(timestamp+method, pathForSigning))
+		var pathForSigning string = versionPrefix + "/" + implodedPath
+		var payload string = timestamp + method + pathForSigning
 		// RSA-PSS SHA-256 signature with the private key PEM
 		var keyParts []string = ccxt.Split(this.PrivateKey, "\\n")
 		var cleanPrivateKey string = strings.Join(keyParts, "\n")

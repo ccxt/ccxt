@@ -678,7 +678,7 @@ public class Bitflyer extends BitflyerApi
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetGetticker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -751,7 +751,7 @@ public class Bitflyer extends BitflyerApi
             "amount", amountString,
             "cost", null,
             "fee", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -796,7 +796,7 @@ public class Bitflyer extends BitflyerApi
             //     },
             //    ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1010,7 +1010,7 @@ public class Bitflyer extends BitflyerApi
                 put( "count", java.util.Objects.requireNonNullElse(limit, 100L) );
             }};
             List<Object> response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
-            Object orders = this.parseOrders(response, Helpers.toMapArg(market), since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
+            Object orders = this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(symbol, null))
             {
                 orders = this.filterBy(orders, "symbol", symbol);
@@ -1145,7 +1145,7 @@ public class Bitflyer extends BitflyerApi
             //     },
             //    ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1236,7 +1236,7 @@ public class Bitflyer extends BitflyerApi
             //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -1286,7 +1286,7 @@ public class Bitflyer extends BitflyerApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1338,7 +1338,7 @@ public class Bitflyer extends BitflyerApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1477,7 +1477,7 @@ public class Bitflyer extends BitflyerApi
             //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
             //    }
             //
-            return this.parseFundingRate(response, Helpers.toMapArg(market));
+            return this.parseFundingRate(response, market);
         }).thenApply(FundingRate::new);
 
     }

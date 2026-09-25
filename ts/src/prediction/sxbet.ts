@@ -2749,7 +2749,7 @@ export default class sxbet extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: any, api: any = 'sxbet', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'sxbet', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const accessLevel: string = typeof api === 'string' ? 'public' : api[1];
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {

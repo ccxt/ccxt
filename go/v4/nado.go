@@ -3875,7 +3875,7 @@ func (this *Nado) RemoveMarketSuffix(marketId any) any {
 	}
 	return marketId
 }
-func (this *Nado) Sign(path any, optionalArgs ...any) any {
+func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3892,8 +3892,8 @@ func (this *Nado) Sign(path any, optionalArgs ...any) any {
 		endpoint = api
 	}
 	var url any = GetValue(GetValue(this.Urls, "api"), endpoint)
-	if !IsEqual(path, "") {
-		url = Add(url, Add("/", this.ImplodeParams(path, params)))
+	if path != "" {
+		url = Add(url, "/"+this.ImplodeParams(path, params))
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersValue map[string]any = map[string]any{}

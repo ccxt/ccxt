@@ -742,7 +742,7 @@ public class Opinion extends OpinionApi
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rawChildrenLength != null && i < rawChildrenLength); i++)
         {
-            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), Helpers.toStringArg(slug)));
+            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), slug));
         }
         String statusEnum = this.safeString(rawEvent, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
@@ -967,7 +967,7 @@ public class Opinion extends OpinionApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
             return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
@@ -1515,7 +1515,7 @@ public class Opinion extends OpinionApi
             }}, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), Helpers.toMapArg(outcomeObj));
+            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2667,7 +2667,7 @@ public class Opinion extends OpinionApi
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if ((java.util.Objects.equals(this.walletAddress, null)) || (java.util.Objects.equals(this.privateKey, null)))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " "), path) + " requires a walletAddress and privateKey")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + path) + " requires a walletAddress and privateKey")) ;
                 }
                 Map<String, Object> actionByMethod = new HashMap<String, Object>() {{
                     put( "POST", "create" );
@@ -2687,7 +2687,7 @@ public class Opinion extends OpinionApi
                 Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if (java.util.Objects.equals(apiKey, null))
                 {
-                    throw new AuthenticationError((Helpers.add((this.id + " "), path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+                    throw new AuthenticationError((((this.id + " ") + path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
                 headersExtended.put("apikey", apiKey);
             }

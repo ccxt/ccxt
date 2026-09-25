@@ -1076,7 +1076,7 @@ func (this *Zaif) CustomNonce() any {
 	var nonce any = ParseFloat(num)
 	return ToFixed(nonce, 8)
 }
-func (this *Zaif) Sign(path any, optionalArgs ...any) any {
+func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1090,9 +1090,9 @@ func (this *Zaif) Sign(path any, optionalArgs ...any) any {
 	var baseUrl any = GetValue(GetValue(this.Urls, "api"), "rest")
 	var url any = Add(baseUrl, "/")
 	if IsEqual(api, "public") {
-		url = Add(url, Add("api/"+this.Version+"/", this.ImplodeParams(path, params)))
+		url = Add(url, "api/"+this.Version+"/"+this.ImplodeParams(path, params))
 	} else if IsEqual(api, "fapi") {
-		url = Add(url, Add("fapi/"+this.Version+"/", this.ImplodeParams(path, params)))
+		url = Add(url, "fapi/"+this.Version+"/"+this.ImplodeParams(path, params))
 	} else {
 		this.CheckRequiredCredentials()
 		if IsEqual(api, "ecapi") {

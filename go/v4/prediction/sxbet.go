@@ -2997,7 +2997,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		// unknown channel) - fail the awaiting future and clear the subscription hash that
 		// watch() registered at send time, so the next call re-sends the command instead
 		// of waiting forever behind a marker that will never be served
-		error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(msg)))
+		error := ccxt.ExchangeError(this.Id + " " + this.Json(msg))
 		if !ccxt.IsEqual(pendingEntry, nil) {
 			var failedHash *string = this.SafeString(pendingEntry, "messageHash")
 			var subscription *string = this.SafeString(pendingEntry, "subscription")
@@ -3621,7 +3621,7 @@ func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, heade
  * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
-func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
+func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "sxbet")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
@@ -3645,11 +3645,11 @@ func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 		return ccxt.GetValue(api, 1)
 	}()
 	if (ccxt.IsEqual(accessLevel, "private")) && (ccxt.IsEqual(this.ApiKey, nil)) {
-		panic(ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id+" ", path), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")))
+		panic(ccxt.AuthenticationError(this.Id + " " + path + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)"))
 	}
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sxbet"))
-	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var existingHeaders any = func() any {
 		if !ccxt.IsEqual(headers, nil) {
@@ -3675,7 +3675,7 @@ func (this *Sxbet) Sign(path any, optionalArgs ...any) any {
 	if sendAsQuery {
 		var querystring string = this.Urlencode(query)
 		if querystring != "" {
-			url = ccxt.Add(url, "?"+querystring)
+			url += "?" + querystring
 		}
 	} else {
 		var queryKeys []string = ccxt.ObjectKeys(query)

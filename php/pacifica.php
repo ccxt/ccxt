@@ -3501,7 +3501,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestBody = $body;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';

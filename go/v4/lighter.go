@@ -4413,7 +4413,7 @@ func (this *Lighter) ParseMarginModification(data any, optionalArgs ...any) any 
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Lighter) Sign(path any, optionalArgs ...any) any {
+func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4428,7 +4428,7 @@ func (this *Lighter) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "root") {
 		url = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))
 	} else {
-		url = Add(Add(Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), "/api/"), this.Version), "/"), path)
+		url = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)) + "/api/" + this.Version + "/" + path
 	}
 	var authHeaders map[string]any = nil
 	if IsEqual(api, "private") {

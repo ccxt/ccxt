@@ -2925,7 +2925,7 @@ func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
 	// if empty means request failed and handle error
 	if this.IsEmpty(args) {
 		var method *string = this.SafeString(message, "op")
-		var stringMsg any = this.Json(message)
+		var stringMsg string = this.Json(message)
 		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
 	}
 	var orders []any = ccxt.ArrayTyped(this.ParseOrders(args, nil, nil, nil))
@@ -3236,7 +3236,7 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "0") {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				if errorCode == nil || *errorCode != "1" {
 					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				}

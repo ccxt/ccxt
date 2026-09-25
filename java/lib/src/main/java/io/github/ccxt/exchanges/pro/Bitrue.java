@@ -270,7 +270,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -466,7 +466,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         } else
         {
             String marketId = this.safeStringUpper(parts, 1);
-            market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         }
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(message, "ts");
@@ -486,7 +486,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, Helpers.toLongOrNull(timestamp), "buys", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
@@ -596,7 +596,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -733,7 +733,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -881,7 +881,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(tick, market, Helpers.toLongOrNull(timestamp));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(tick, market, timestamp);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         String messageHash = Helpers.add("ticker:", symbol);
         client.resolve(parsed, messageHash);

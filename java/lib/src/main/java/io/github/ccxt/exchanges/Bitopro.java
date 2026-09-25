@@ -613,7 +613,7 @@ public class Bitopro extends BitoproApi
             put( "baseVolume", Bitopro.this.safeString(ticker, "volume24hr") );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -653,7 +653,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -846,7 +846,7 @@ public class Bitopro extends BitoproApi
             "amount", amount,
             "cost", null,
             "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -887,7 +887,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1288,7 +1288,7 @@ public class Bitopro extends BitoproApi
             "fee", fee,
             "trades", null,
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -1364,7 +1364,7 @@ public class Bitopro extends BitoproApi
             //         "timeInForce": "GTC"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1407,7 +1407,7 @@ public class Bitopro extends BitoproApi
             //         "amount":"0.01"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1576,7 +1576,7 @@ public class Bitopro extends BitoproApi
             //         "updatedTimestamp":1644899002598
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1649,7 +1649,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1683,7 +1683,7 @@ public class Bitopro extends BitoproApi
             }
             Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1761,7 +1761,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1924,7 +1924,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseTransactions(result, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(result, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -1987,7 +1987,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseTransactions(result, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(result, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2040,7 +2040,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         });
 
     }
@@ -2112,7 +2112,7 @@ public class Bitopro extends BitoproApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
     }

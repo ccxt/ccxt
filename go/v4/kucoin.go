@@ -14442,7 +14442,7 @@ func (this *Kucoin) isUTAEnabledBody(ch chan any, optionalArgs ...any) any {
 	ch <- uta
 	return nil
 }
-func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
+func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	//
 	// the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
 	//                                ↑                 ↑
@@ -14456,7 +14456,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var versions map[string]any = SafeMapTyped(this.Options, "versions")
 	var apiVersions map[string]any = SafeMapTyped(versions, api)
@@ -14464,19 +14464,19 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
-	var endpoint any = Add("/api/"+*version+"/", this.ImplodeParams(path, paramsOmitted))
+	var endpoint any = "/api/" + *version + "/" + this.ImplodeParams(path, paramsOmitted)
 	if IsEqual(api, "utaV2") {
-		endpoint = Add("/api/ua/v2/", this.ImplodeParams(path, paramsOmitted))
+		endpoint = "/api/ua/v2/" + this.ImplodeParams(path, paramsOmitted)
 	}
 	if IsEqual(api, "webExchange") {
-		endpoint = Add("/", this.ImplodeParams(path, paramsOmitted))
+		endpoint = "/" + this.ImplodeParams(path, paramsOmitted)
 	}
 	if IsEqual(api, "earn") {
-		endpoint = Add("/api/v1/", this.ImplodeParams(path, paramsOmitted))
+		endpoint = "/api/v1/" + this.ImplodeParams(path, paramsOmitted)
 	}
 	var isUtaPrivate bool = false
 	if (IsEqual(api, "uta")) || (IsEqual(api, "utaPrivate")) {
-		endpoint = Add("/api/ua/v1/", this.ImplodeParams(path, paramsOmitted))
+		endpoint = "/api/ua/v1/" + this.ImplodeParams(path, paramsOmitted)
 		if IsEqual(api, "utaPrivate") {
 			isUtaPrivate = true
 		}
@@ -14495,7 +14495,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	var url any = apiUrl
 	var tradeType *string = this.SafeString(query, "tradeType")
 	if !this.IsEmpty(query) {
-		if ((method == "GET") || (method == "DELETE")) && (!IsEqual(path, "orders/multi-cancel")) {
+		if ((method == "GET") || (method == "DELETE")) && (path != "orders/multi-cancel") {
 			endpoint = Add(endpoint, "?"+this.Rawencode(query))
 		} else {
 			if (IsEqual(endpoint, "/api/ua/v1/classic/order/place")) || (IsEqual(endpoint, "/api/ua/v1/classic/order/place/batch")) || (IsEqual(endpoint, "/api/ua/v1/classic/order/cancel")) || (IsEqual(endpoint, "/api/ua/v1/classic/order/cancel/batch")) {

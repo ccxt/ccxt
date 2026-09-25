@@ -2444,7 +2444,7 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 	var result *bool = this.SafeBool(message, "result", true)
 	if result == nil || *result != true {
 		var msg *string = this.SafeString(message, "msg", "")
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+		var feedback string = this.Id + " " + this.Json(message)
 
 		{
 			ret__ := func(this *Weex) (ret_ any) {

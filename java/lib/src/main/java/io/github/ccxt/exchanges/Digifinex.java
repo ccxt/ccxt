@@ -1239,7 +1239,7 @@ public class Digifinex extends DigifinexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1337,7 +1337,7 @@ public class Digifinex extends DigifinexApi
             {
                 market = (Map<String, Object>) this.market(first);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1511,7 +1511,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
-            return this.parseTicker(result, Helpers.toMapArg(market));
+            return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
     }
@@ -1601,7 +1601,7 @@ public class Digifinex extends DigifinexApi
             "markPrice", this.safeString(ticker, "mark_price"),
             "indexPrice", indexPrice,
             "info", ticker
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1901,7 +1901,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2114,7 +2114,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, Helpers.toMapArg(market));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", ((Map<String, Object>)market).get("symbol"));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -2166,7 +2166,7 @@ public class Digifinex extends DigifinexApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object marginResult = this.handleMarginModeAndParams("createOrders", Helpers.toMapArg(orderParams), (String) null);
+                Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
                 {
@@ -2181,7 +2181,7 @@ public class Digifinex extends DigifinexApi
                         }
                     }
                 }
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -2237,7 +2237,7 @@ public class Digifinex extends DigifinexApi
                 individualOrder.put("price", this.safeNumber(rawOrder, "price", (Object) null));
                 ((List<Object>)result).add(individualOrder);
             }
-            return this.parseOrders(result, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2266,7 +2266,7 @@ public class Digifinex extends DigifinexApi
          * @returns {object} request to be sent to the exchange
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        List<Object> marketTypeRawparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrderRequest", Helpers.toMapArg(market), parameters, (Object) null);
+        List<Object> marketTypeRawparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrderRequest", market, parameters, (Object) null);
         String marketTypeRaw = (String) ((List<Object>) marketTypeRawparamsMarketTypeVariable).get(0);
         Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeRawparamsMarketTypeVariable).get(1);
         List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrderRequest", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -2451,7 +2451,7 @@ public class Digifinex extends DigifinexApi
             String idValue = String.valueOf(id);
             String marketType = null;
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2764,7 +2764,7 @@ public class Digifinex extends DigifinexApi
                 put( "cost", Digifinex.this.safeNumber(order, "fee", (Object) null) );
             }},
             "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     /**
@@ -2795,7 +2795,7 @@ public class Digifinex extends DigifinexApi
             }
             String marketType = null;
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -2893,7 +2893,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2926,7 +2926,7 @@ public class Digifinex extends DigifinexApi
             }
             String marketType = null;
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -3027,7 +3027,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3059,7 +3059,7 @@ public class Digifinex extends DigifinexApi
             }
             String marketType = null;
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -3147,7 +3147,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new OrderNotFound((((this.id + " fetchOrder() order ") + String.valueOf(id)) + " not found")) ;
             }
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -3181,7 +3181,7 @@ public class Digifinex extends DigifinexApi
             }
             String marketType = null;
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -3280,7 +3280,7 @@ public class Digifinex extends DigifinexApi
                 responseRequest = "data";
             }
             List<Object> data = (List<Object>) this.safeList(response, responseRequest, new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3340,7 +3340,7 @@ public class Digifinex extends DigifinexApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "fee", null
-        ), Helpers.toMapArg(currencyResolved));
+        ), currencyResolved);
     }
 
     /**
@@ -3459,7 +3459,7 @@ public class Digifinex extends DigifinexApi
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 ledger = (List<Object>) this.safeList(data, "finance", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseLedger(ledger, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(ledger, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3584,7 +3584,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(Helpers.newMap(
+            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(Helpers.newMap(
                 "type", type
             )));
         });
@@ -3850,7 +3850,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NullResponse((this.id + " transfer() returned empty response")) ;
             }
-            return this.parseTransfer(response, Helpers.toMapArg(currency));
+            return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
 
     }
@@ -3896,7 +3896,7 @@ public class Digifinex extends DigifinexApi
             //         "withdraw_id": 700
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3940,7 +3940,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "positions", (Object) null);
-            List<Object> interest = this.parseBorrowInterests(rows, Helpers.toMapArg(market));
+            List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -4029,7 +4029,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            return this.parseBorrowRate(result, Helpers.toMapArg(currency));
+            return this.parseBorrowRate(result, currency);
         }).thenApply(CrossBorrowRate::new);
 
     }
@@ -4161,7 +4161,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(data, Helpers.toMapArg(market));
+            return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
     }
@@ -4353,7 +4353,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -4420,7 +4420,7 @@ public class Digifinex extends DigifinexApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchPositions", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -4512,7 +4512,7 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), Helpers.toMapArg(market)));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4542,7 +4542,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String marketType = null;
             Object paramsMarketType = null;
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", Helpers.toMapArg(market), parameters, (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", Helpers.toMapArg(paramsMarketType), (String) null);
@@ -4626,7 +4626,7 @@ public class Digifinex extends DigifinexApi
                 dataRequest = "data";
             }
             List<Object> data = (List<Object>) this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), Helpers.toMapArg(market));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return position;
@@ -4858,7 +4858,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> transfers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(transfers, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -4913,7 +4913,7 @@ public class Digifinex extends DigifinexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.parseLeverageTiers(data, Helpers.toStringListArg(symbolsNormalized), "instrument_id");
+            return this.parseLeverageTiers(data, symbolsNormalized, "instrument_id");
         }).thenApply(LeverageTiers::new);
 
     }
@@ -4973,7 +4973,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarketLeverageTiers(data, Helpers.toMapArg(market));
+            return this.parseMarketLeverageTiers(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
     }
@@ -5013,7 +5013,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.sum(i, 1),
-                "symbol", this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, "swap"),
+                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"),
                 "currency", ((Map<String, Object>)marketResolved).get("settle"),
                 "minNotional", null,
                 "maxNotional", this.safeNumber(tier, "max_limit", (Object) null),
@@ -5188,7 +5188,7 @@ public class Digifinex extends DigifinexApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), Helpers.toMapArg(currency)));
+            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -5275,7 +5275,7 @@ public class Digifinex extends DigifinexApi
                 status = "ok";
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), Helpers.toMapArg(market)), Helpers.newMap(
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), Helpers.newMap(
                 "status", status
             ));
         });
@@ -5362,7 +5362,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(data, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }

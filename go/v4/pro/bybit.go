@@ -311,7 +311,7 @@ func (this *Bybit) createOrderWsBody(ch chan any, symbol any, typeVar string, si
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var orderRequest map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, true))
-	var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
@@ -373,7 +373,7 @@ func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol any, typeVar stri
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var orderRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
-	var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
@@ -424,7 +424,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) a
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
 	var orderRequest any = this.CancelOrderRequest(id, symbol, params)
-	var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
@@ -3227,7 +3227,7 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if (code != nil) && (code == nil || *code != "0") {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				var msg *string = this.SafeString2(message, "retMsg", "ret_msg")
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
@@ -3397,7 +3397,7 @@ func (this *Bybit) HandleAuthenticate(client any, message any) any {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

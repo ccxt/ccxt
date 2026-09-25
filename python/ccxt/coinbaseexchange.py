@@ -2058,7 +2058,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestHeaders = headers
         requestBody = body
         request = '/' + self.implode_params(path, params)
@@ -2105,7 +2105,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def request(self, path: object, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
+    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:

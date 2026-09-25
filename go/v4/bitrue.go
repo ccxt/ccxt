@@ -3769,7 +3769,7 @@ func (this *Bitrue) setMarginBody(ch chan any, symbol any, amount any, optionalA
 	ch <- this.ParseMarginModification(response, market)
 	return nil
 }
-func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
+func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3786,7 +3786,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 	var version *string = this.SafeString(api, 1)
 	var access *string = this.SafeString(api, 2)
 	var url any = nil
-	if ((typeVar != nil && *typeVar == "api") && (version != nil && *version == "kline")) || ((typeVar != nil && *typeVar == "open") && (GetIndexOf(path, "listenKey") >= 0)) {
+	if ((typeVar != nil && *typeVar == "api") && (version != nil && *version == "kline")) || ((typeVar != nil && *typeVar == "open") && (strings.Index(path, "listenKey") >= 0)) {
 		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))

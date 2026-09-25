@@ -5082,7 +5082,7 @@ func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) any {
 		"tierBased":  true,
 	}
 }
-func (this *Hashkey) Sign(path any, optionalArgs ...any) any {
+func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5097,7 +5097,7 @@ func (this *Hashkey) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", path)
+	var url any = *apiUrl + "/" + path
 	var query any = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -5115,7 +5115,7 @@ func (this *Hashkey) Sign(path any, optionalArgs ...any) any {
 		}
 		var signature string
 		var bodySigned any = nil
-		if (method == "POST") && ((IsEqual(path, "api/v1/spot/batchOrders")) || (IsEqual(path, "api/v1/futures/batchOrders"))) {
+		if (method == "POST") && ((path == "api/v1/spot/batchOrders") || (path == "api/v1/futures/batchOrders")) {
 			headersSigned["Content-Type"] = "application/json"
 			bodySigned = this.Json(this.SafeList(params, "orders"))
 			signature = this.Hmac(this.Encode(this.CustomUrlencode(additionalParams)), this.Encode(this.Secret), sha256)

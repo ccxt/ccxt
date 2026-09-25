@@ -2004,7 +2004,7 @@ export default class apex extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         const headersValue: NullableDict = {
             'User-Agent': 'apex-CCXT',

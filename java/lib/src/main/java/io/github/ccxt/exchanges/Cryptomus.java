@@ -607,7 +607,7 @@ public class Cryptomus extends CryptomusApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
-            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -647,7 +647,7 @@ public class Cryptomus extends CryptomusApi
             put( "baseVolume", Cryptomus.this.safeString(ticker, "base_volume") );
             put( "quoteVolume", Cryptomus.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, marketResolved);
     }
 
     /**
@@ -701,7 +701,7 @@ public class Cryptomus extends CryptomusApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeTimestamp(data, "timestamp");
-            return this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "quantity", 2);
+            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -751,7 +751,7 @@ public class Cryptomus extends CryptomusApi
             {
                 dataList = data;
             }
-            return this.parseTrades(dataList, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(dataList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -946,7 +946,7 @@ public class Cryptomus extends CryptomusApi
             //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1066,7 +1066,7 @@ public class Cryptomus extends CryptomusApi
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Object order = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                ((List<Object>)orders).add(this.parseOrder(order, Helpers.toMapArg(market)));
+                ((List<Object>)orders).add(this.parseOrder(order, market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1129,7 +1129,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1244,7 +1244,7 @@ public class Cryptomus extends CryptomusApi
             "fee", fee,
             "trades", null,
             "info", order
-        ), Helpers.toMapArg(marketResolved));
+        ), marketResolved);
     }
 
     public String parseOrderStatus(String status)

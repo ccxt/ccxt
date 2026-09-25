@@ -4537,7 +4537,7 @@ func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      "sucess",
 	}
 }
-func (this *Kraken) Sign(path any, optionalArgs ...any) any {
+func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4565,14 +4565,14 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 				return false
 			}()
 		}
-		var isCancelOrderBatch bool = (IsEqual(path, "CancelOrderBatch"))
-		var isBatchOrder bool = (IsEqual(path, "AddOrderBatch"))
+		var isCancelOrderBatch bool = (path == "CancelOrderBatch")
+		var isBatchOrder bool = (path == "AddOrderBatch")
 		this.CheckRequiredCredentials()
 		// kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
 		var nonce string = ToString(this.IncrementingNonce())
 		var isJsonBody bool = isCancelOrderBatch || isTriggerPercent || isBatchOrder
 		// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-		var bodySigned any = nil
+		var bodySigned string
 		if isJsonBody {
 			bodySigned = this.Json(this.Extend(map[string]any{
 				"nonce": nonce,
@@ -4605,7 +4605,7 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 			"headers": headersSigned,
 		}
 	} else {
-		url = Add("/", path)
+		url = "/" + path
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {

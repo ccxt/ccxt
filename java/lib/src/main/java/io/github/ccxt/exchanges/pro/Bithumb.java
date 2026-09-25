@@ -116,7 +116,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", Helpers.toLongOrNull(2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -167,7 +167,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", Helpers.toLongOrNull(2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -447,7 +447,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", Helpers.toLongOrNull(2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -659,7 +659,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", Helpers.toLongOrNull(2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -690,7 +690,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -907,7 +907,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", Helpers.toLongOrNull(2))).get(0);
+            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2L)).get(0);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
@@ -1051,7 +1051,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", Helpers.toLongOrNull(2))).get(0);
+            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2L)).get(0);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
@@ -1077,7 +1077,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1195,7 +1195,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Map<String, Object> marketForFee = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+            Map<String, Object> marketForFee = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
             String feeCurrency = this.safeString(marketForFee, "quote");
             fee = Helpers.newMap(
                 "cost", feeCost,

@@ -2610,7 +2610,7 @@ impl CexCore {
             self.check_required_credentials(&[]);
             let mut seconds: Value = to_string_val(&self.seconds());
             let mut bodySigned: Value = json_stringify(&query);
-            let mut auth: Value = Value::Str(format!("{}{}", add(&path, &seconds), bodySigned).into());
+            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut headersSigned: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

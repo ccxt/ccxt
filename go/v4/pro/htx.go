@@ -183,7 +183,7 @@ func (this *Htx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	if (topic != nil && *topic == "market.{marketId}.ticker") && (ccxt.GetValue(market, "type") != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
 	}
-	var messageHash any = this.ImplodeParams(topic, map[string]any{
+	var messageHash string = this.ImplodeParams(topic, map[string]any{
 		"marketId": market["id"],
 	})
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
@@ -223,7 +223,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	if (channel != nil && *channel == "market.{marketId}.ticker") && (ccxt.GetValue(market, "type") != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
 	}
-	var subMessageHash any = this.ImplodeParams(channel, map[string]any{
+	var subMessageHash string = this.ImplodeParams(channel, map[string]any{
 		"marketId": market["id"],
 	})
 
@@ -358,7 +358,7 @@ func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var topic string = "trades"
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTrades")
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.trade.detail")
-	var subMessageHash any = this.ImplodeParams(channel, map[string]any{
+	var subMessageHash string = this.ImplodeParams(channel, map[string]any{
 		"marketId": market["id"],
 	})
 
@@ -2932,7 +2932,7 @@ func (this *Htx) HandleErrorMessage(client any, message any) any {
 	}
 	var code *string = this.SafeString2(message, "code", "err-code")
 	if (code != nil) && ((code == nil || *code != "200") && (code == nil || *code != "0")) {
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+		var feedback string = this.Id + " " + this.Json(message)
 
 		{
 			func(this *Htx) (ret_ any) {

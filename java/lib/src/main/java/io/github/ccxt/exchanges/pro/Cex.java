@@ -301,7 +301,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             Long index = ((((long) dataLength) - 1L) - ((long) i));
             Object rawTrade = Helpers.GetValue(data, index);
-            Object parsed = this.parseWsOldTrade(rawTrade, Helpers.toMapArg(market));
+            Object parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
         String messageHash = "trades";
@@ -604,7 +604,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolValue, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbolValue, since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -896,7 +896,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object order = this.safeValue(ordersBySymbol, orderId);
         if (java.util.Objects.equals(order, null))
         {
-            order = this.parseWsOrderUpdate((Map<String, Object>) (data), Helpers.toMapArg(market));
+            order = this.parseWsOrderUpdate((Map<String, Object>) (data), market);
         }
         Helpers.addElementToObject(order, "remaining", remains);
         Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
@@ -1045,9 +1045,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         );
         if (Boolean.TRUE.equals(isTransaction))
         {
-            parsedOrder.put("trades", this.parseWsTrade((Map<String, Object>) (order), Helpers.toMapArg(marketResolved)));
+            parsedOrder.put("trades", this.parseWsTrade((Map<String, Object>) (order), marketResolved));
         }
-        return this.safeOrder((Map<String, Object>) (parsedOrder), Helpers.toMapArg(marketResolved));
+        return this.safeOrder((Map<String, Object>) (parsedOrder), marketResolved);
     }
 
     public String fromPrecision(Object amount, Object scale)
@@ -1096,8 +1096,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(symbol), (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             order.put("status", "open");
             myOrders.append(order);
         }
@@ -1186,7 +1186,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = (Long) this.safeInteger2(data, "timestamp_ms", "timestamp");
         Long incrementalId = this.safeInteger(data, "id");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", incrementalId);
         orderbook.reset(snapshot);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("orderbook")), symbol, new HashMap<String, Object>() {{
@@ -1305,7 +1305,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1352,7 +1352,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> sorted = this.sortBy(data, 0);
         for (var i = 0; i < ((List<?>)sorted).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), Helpers.toMapArg(market))});
+            Helpers.callDynamically(stored, "append", new Object[]{this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market)});
         }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
@@ -1474,7 +1474,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "data", data );
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1516,7 +1516,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "data", data );
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, parameters);
+            return this.parseOrders(response, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1564,7 +1564,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "data", data );
             }};
             Object rawOrder = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return this.parseOrder(rawOrder, Helpers.toMapArg(market));
+            return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
     }
@@ -1617,7 +1617,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "data", data );
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -1658,7 +1658,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "data", data );
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }

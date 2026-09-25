@@ -799,7 +799,7 @@ public class Coinspot extends CoinspotApi
             //     }
             //
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(prices, id, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -851,7 +851,7 @@ public class Coinspot extends CoinspotApi
                 {
                     String symbol = (String) ((Map<String, Object>)market).get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));
-                    result.put((String)symbol, this.parseTicker(ticker, Helpers.toMapArg(market)));
+                    result.put((String)symbol, this.parseTicker(ticker, market));
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols, true);
@@ -893,7 +893,7 @@ public class Coinspot extends CoinspotApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -966,7 +966,7 @@ public class Coinspot extends CoinspotApi
                 ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
             }
             List<Object> trades = (List<Object>) this.arrayConcat(buyTrades, sellTrades);
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

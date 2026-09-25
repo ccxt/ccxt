@@ -5681,7 +5681,7 @@ func (this *Digifinex) setMarginModeBody(ch chan any, marginMode any, optionalAr
 	ch <- PanicOnError((<-this.PrivateSwapPostAccountPositionMode(this.Extend(request, params))).Raw)
 	return nil
 }
-func (this *Digifinex) Sign(path any, optionalArgs ...any) any {
+func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5698,13 +5698,13 @@ func (this *Digifinex) Sign(path any, optionalArgs ...any) any {
 	if endpoint != nil && *endpoint == "spot" {
 		pathPart = "/v3"
 	}
-	var request any = Add("/", this.ImplodeParams(path, params))
-	var payload any = Add(pathPart, request)
+	var request string = "/" + this.ImplodeParams(path, params)
+	var payload string = pathPart + request
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, payload)
+	var url any = *apiUrl + payload
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var urlencoded any = nil
 	if signed && (pathPart == "/swap/v2") && (method == "POST") {
@@ -5717,7 +5717,7 @@ func (this *Digifinex) Sign(path any, optionalArgs ...any) any {
 		var nonce *string = nil
 		if pathPart == "/swap/v2" {
 			nonce = SafeStringPtr(strconv.FormatInt(this.Milliseconds(), 10))
-			auth = Add(*nonce+method, payload)
+			auth = *nonce + method + payload
 			if method == "GET" {
 				if (urlencoded != nil) && (!IsEqual(urlencoded, "")) {
 					auth = Add(auth, Add("?", urlencoded))

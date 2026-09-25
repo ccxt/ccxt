@@ -514,7 +514,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String eventVar = this.safeString(message, "e");
         String marketId = this.safeString(message, "s");
         Long timestamp = this.safeInteger(message, "E");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String last = this.safeString(message, "c");
         if (java.util.Objects.equals(eventVar, "markPriceUpdate"))
         {
@@ -548,7 +548,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             put( "baseVolume", Aster.this.safeString(message, "v") );
             put( "quoteVolume", Aster.this.safeString(message, "q") );
             put( "info", message );
-        }}, Helpers.toMapArg(market));
+        }}, market);
     }
 
     /**
@@ -674,8 +674,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl(client.url);
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
-        Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), Helpers.toMapArg(market));
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), market);
         String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -809,7 +809,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -883,8 +883,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl(client.url);
         Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), Helpers.toMapArg(market));
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -1259,14 +1259,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Long timestamp = this.safeInteger(data, "T");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, Helpers.toLongOrNull(timestamp), "b", "a", 0, 1, 2);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
         orderbook.reset(snapshot);
         String messageHash = (("orderbook" + ":") + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -1397,7 +1397,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(stored, symbol, limit);
             }
-            List<Object> filtered = this.filterBySinceLimit(stored, since, Helpers.toLongOrNull(limitResolved), 0, true);
+            List<Object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -1500,7 +1500,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl(client.url);
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> kline = (Map<String, Object>) this.safeDict(data, "k", (Object) null);
         String timeframeId = this.safeString(kline, "i");
@@ -1586,7 +1586,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                     Map<String, Object> keepAliveParams = this.extend(Helpers.newMap(
                         "type", java.util.Objects.requireNonNullElse(type, "spot")
                     ), parameters);
-                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", Helpers.toMapArg(keepAliveParams));
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", keepAliveParams);
                     // settle the flight: client.resolve () removes the future from
                     // client.futures and wakes every waiter
                     client.resolve(listenKey, messageHash);
@@ -1876,14 +1876,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(cache, null)))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
-                return this.filterBySymbolsSinceLimit(snapshot, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+                return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
             Object newPositions = (this.watchMultiple((String) (url), messageHashes, null, new ArrayList<Object>(Arrays.asList(type)), null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(cache, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
+            return this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -2095,7 +2095,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String messageHash = "orders";
             List<String> type = null;
-            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", Helpers.toMapArg(market), parameters, type);
+            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, null))
@@ -2116,7 +2116,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2152,7 +2152,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String messageHash = "myTrades";
             List<String> type = null;
-            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", Helpers.toMapArg(market), parameters, type);
+            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, null))
@@ -2173,7 +2173,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2207,7 +2207,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(Helpers.newMap(
                 "type", type
             ));
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), Helpers.toMapArg(fakeMarket));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
             String orderId = this.safeString(trade, "order");
             Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
             tradeFee = this.extend(new HashMap<String, Object>() {{}}, tradeFee);
@@ -2382,7 +2382,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         String executionType = this.safeString(order, "x");
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(order, "O");
         Long T = this.safeInteger(order, "T");
         Long lastTradeTimestamp = null;
@@ -2454,7 +2454,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         String marketId = this.safeString(order, "s");
         String marketType = this.getAccountTypeFromUrl(client.url);
-        return this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
+        return this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
     }
 
     public void handleBalanceAndPosition(Client client, Map<String, Object> message)
