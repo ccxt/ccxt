@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
@@ -502,7 +502,7 @@ export default class lbank extends lbankRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict | List, market: Market = undefined): Trade {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]

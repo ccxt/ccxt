@@ -1736,7 +1736,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict | List, market: Market = undefined): Trade {
         //
         // fetchTrades (public) spot & contract
         //

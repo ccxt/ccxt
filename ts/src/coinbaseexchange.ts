@@ -862,7 +862,7 @@ export default class coinbaseexchange extends Exchange {
         return orderbook;
     }
 
-    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict | List, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //

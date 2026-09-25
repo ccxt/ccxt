@@ -467,7 +467,7 @@ export default class lbank extends Exchange {
         return this.parseCurrencies (values);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
         const id = this.safeString (rawCurrency[0], 'assetCode'); // first member is guaranteed
         const code = this.safeCurrencyCode (id);
         const networksRaw = rawCurrency;

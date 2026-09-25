@@ -2764,7 +2764,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict | List, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
