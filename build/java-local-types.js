@@ -3631,7 +3631,10 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 let ok;
-                if (javaType === 'String') {
+                if (info?.writeOkOnly === true) {
+                    // families whose writes print with no checkcast: only writeOk proves them
+                    ok = false;
+                } else if (javaType === 'String') {
                     // the narrowed declaration can only take writes whose printed Java is
                     // statically String (isStaticallyStringExpression) or a same-family
                     // helper call the reassignment hook casts
@@ -15058,8 +15061,8 @@ export function installJavaBooleanFixedParams (transpiler) {
 }
 
 // `let x = await this.isUTAEnabled ()` / `let x = undefined`: an Object local whose every write is
-// null, a boolean literal, a safeBool-family box, that awaited call or element 0 of a
-// Pair<Boolean, ...> handler prints `Boolean`; its conditions then read `Boolean.TRUE.equals`.
+// null, a boolean literal, a primitive-boolean base call, that awaited call or element 0 of a
+// Pair<Boolean, ...> handler prints `Boolean` (safeBool* are declared Object in Java: excluded).
 function javaAwaitedUtaCall (printer, node) {
     const value = unwrapParens (node);
     if (value === undefined || !ts.isAwaitExpression (value) || !ts.isCallExpression (value.expression)) {
@@ -15073,7 +15076,7 @@ function javaAwaitedUtaCall (printer, node) {
     return declaration?.name?.text === 'isUTAEnabled' && declaration.type?.getText ().replace (/\s/g, '') === 'Promise<boolean>';
 }
 
-function javaBooleanLocalWrite (printer, node) {
+export function javaBooleanLocalWrite (printer, node) {
     const value = unwrapParens (node);
     if (value === undefined) {
         return false;
@@ -15081,7 +15084,7 @@ function javaBooleanLocalWrite (printer, node) {
     if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
         return true;
     }
-    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || printer.javaCallBooleanKind (value) !== undefined;
+    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || printer.javaCallBooleanKind (value) === 'boolean';
 }
 
 export function installJavaBooleanWriteLocals (transpiler) {
@@ -15091,7 +15094,10 @@ export function installJavaBooleanWriteLocals (transpiler) {
     }
     printer._javaBooleanWriteLocalsPatched = true;
     const retyped = new WeakSet ();
-    const tupleOk = (right, index) => index === 0 && printer.javaBooleanBoxTupleElement (right, 0);
+    // only these handlers print `Pair<Boolean, ...>`; handleParamBool* print List<Object> (slot 0 Object)
+    const pairBool = new Set (['handleOptionBoolAndParams', 'handleOptionBoolAndParams2']);
+    const tupleOk = (right, index) => index === 0 && printer.javaBooleanBoxTupleElement (right, 0)
+        && pairBool.has (unwrapParens (right)?.expression?.name?.text);
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
@@ -15111,6 +15117,7 @@ export function installJavaBooleanWriteLocals (transpiler) {
             ok = isSafeToNarrow (printer, declaration, declaration.name.text, 'Boolean', isProFile, {
                 writeOk: (rhs) => javaBooleanLocalWrite (printer, rhs),
                 tupleOk,
+                writeOkOnly: true,
             });
         } catch (e) {
             ok = false;
