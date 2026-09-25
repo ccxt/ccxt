@@ -3998,7 +3998,7 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode string, optionalA
 	var leverage int = 1
 	var leverageOptionparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage", leverage)
 	leverageOption := GetValue(leverageOptionparamsLeverageVariable, 0)
-	var paramsLeverage map[string]any = MapTyped(GetValue(leverageOptionparamsLeverageVariable, 1))
+	var paramsLeverage map[string]any = MapTyped(leverageOptionparamsLeverageVariable[1])
 	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"leverage":    leverageOption,

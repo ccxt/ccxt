@@ -881,7 +881,7 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var market map[string]any = nil
 	var callerMethodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
 	callerMethodName := ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 0)
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 1))
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameparamsCallerMethodNameVariable[1])
 	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -951,7 +951,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var market map[string]any = nil
 	var callerMethodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	callerMethodName := ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 0)
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameparamsCallerMethodNameVariable, 1))
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameparamsCallerMethodNameVariable[1])
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limits any = this.SafeList(options, "limits", []any{})
 	var limitResolved any = func() any {

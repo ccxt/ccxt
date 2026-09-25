@@ -2361,7 +2361,7 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method string, option
 	}()
 	var enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable []any = this.HandleOptionBoolAndParamsNullable(paramsAddress, method, "enableUnifiedMargin")
 	enableUnifiedMarginOption := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 0)
-	var paramsEnableUnifiedMargin map[string]any = MapTyped(GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 1))
+	var paramsEnableUnifiedMargin map[string]any = MapTyped(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable[1])
 	var enableUnifiedMargin any = enableUnifiedMarginOption
 	if IsEqual(enableUnifiedMargin, nil) || (shouldRefresh == true) {
 		var request map[string]any = map[string]any{

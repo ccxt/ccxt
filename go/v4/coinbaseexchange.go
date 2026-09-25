@@ -2278,8 +2278,8 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -2291,10 +2291,10 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 		"amount":   amount,
 	}
 	var response map[string]any = nil
-	if _, ok := paramsWithdrawTag["payment_method_id"]; ok {
+	if InOp(paramsWithdrawTag, "payment_method_id") {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, paramsWithdrawTag))).Raw))
-	} else if _, ok := paramsWithdrawTag["coinbase_account_id"]; ok {
+	} else if InOp(paramsWithdrawTag, "coinbase_account_id") {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Raw))
 	} else {

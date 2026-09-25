@@ -1301,7 +1301,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchDepositsWithdrawals", "paginate")
 	paginate := GetValue(paginateparamsPaginateVariable, 0)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paramsPaginate map[string]any = MapTyped(paginateparamsPaginateVariable[1])
 	var maxEntriesPerRequest int = 100
 	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)

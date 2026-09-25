@@ -2751,7 +2751,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	var isMarket bool = (IsEqual(typeVar, "market"))
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted2)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly == true {
 		var extendedPostFlags string = "post"
 		if flags != nil {

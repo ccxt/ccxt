@@ -2616,7 +2616,7 @@ func (this *Blofin) withdrawBody(ch chan any, code string, amount any, address a
 	var tagValue *string = nil
 	var query any = nil
 	var tagValuequeryVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagValue = SafeStringPtr(GetValue(tagValuequeryVariable, 0))
+	tagValue = SafeStringPtr(tagValuequeryVariable[0])
 	query = GetValue(tagValuequeryVariable, 1)
 
 	PanicOnError((<-this.LoadMarketsAsync()))

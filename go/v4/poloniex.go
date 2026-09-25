@@ -2538,10 +2538,10 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	var isContract bool = (market["contract"] == true)
 	var marginModeparamsMarginModeVariable []any = this.HandleParamString(params, "marginMode")
 	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	var paramsMarginMode map[string]any = MapTyped(marginModeparamsMarginModeVariable[1])
 	var hedgedparamsHedgedVariable []any = this.HandleParamString(paramsMarginMode, "hedged")
-	var hedged *string = SafeStringPtr(GetValue(hedgedparamsHedgedVariable, 0))
-	var paramsHedged map[string]any = MapTyped(GetValue(hedgedparamsHedgedVariable, 1))
+	var hedged *string = SafeStringPtr(hedgedparamsHedgedVariable[0])
+	var paramsHedged map[string]any = MapTyped(hedgedparamsHedgedVariable[1])
 	// marginMode and hedged are consumed for contract markets only
 	var query any = params
 	if isContract {
@@ -3563,8 +3563,8 @@ func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -3573,8 +3573,8 @@ func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address
 		"address": address,
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw requires a network parameter for " + code + "."))
 	}
@@ -4147,9 +4147,9 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage int64, optionalArgs 
 	}
 	var hedgedparamsHedgedVariable []any = this.HandleParamBool(paramsMarginMode, "hedged", false)
 	hedged := GetValue(hedgedparamsHedgedVariable, 0)
-	var paramsHedged map[string]any = MapTyped(GetValue(hedgedparamsHedgedVariable, 1))
+	var paramsHedged map[string]any = MapTyped(hedgedparamsHedgedVariable[1])
 	if IsEqual(hedged, true) {
-		if _, ok := paramsHedged["posSide"]; !ok {
+		if !(InOp(paramsHedged, "posSide")) {
 			panic(ArgumentsRequired(this.Id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\""))
 		}
 	}

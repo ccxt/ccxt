@@ -801,7 +801,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["toDateISO"] = this.Iso8601(until)
 	}
@@ -1167,10 +1167,10 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var accountNameparamsAccountVariable []any = this.HandleParamString(params, "account", "")
 	accountName := GetValue(accountNameparamsAccountVariable, 0)
-	var paramsAccount map[string]any = MapTyped(GetValue(accountNameparamsAccountVariable, 1)) // default is empty string
+	var paramsAccount map[string]any = MapTyped(accountNameparamsAccountVariable[1]) // default is empty string
 	var methodparamsMethodVariable []any = this.HandleParamString(paramsAccount, "method", "privatePostGetMyWalletBalance")
-	var method *string = SafeStringPtr(GetValue(methodparamsMethodVariable, 0))
-	var paramsMethod map[string]any = MapTyped(GetValue(methodparamsMethodVariable, 1))
+	var method *string = SafeStringPtr(methodparamsMethodVariable[0])
+	var paramsMethod map[string]any = MapTyped(methodparamsMethodVariable[1])
 	var accountBalance any = nil
 	if method != nil && *method == "privatePostGetMyAccountStatusV3" {
 
@@ -1288,7 +1288,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status string, optionalArg
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["serverCreateTimestampTo"] = until
 	}
@@ -1626,8 +1626,8 @@ func (this *Cex) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		request["timeInForce"] = timeInForce
 	}
 	var triggerPriceparamsTriggerPriceVariable []any = this.HandleParamString(paramsTimeInForce, "triggerPrice")
-	var triggerPrice *string = SafeStringPtr(GetValue(triggerPriceparamsTriggerPriceVariable, 0))
-	var paramsTriggerPrice map[string]any = MapTyped(GetValue(triggerPriceparamsTriggerPriceVariable, 1))
+	var triggerPrice *string = SafeStringPtr(triggerPriceparamsTriggerPriceVariable[0])
+	var paramsTriggerPrice map[string]any = MapTyped(triggerPriceparamsTriggerPriceVariable[1])
 	if triggerPrice != nil {
 		request["type"] = "Stop Limit"
 		request["stopPrice"] = triggerPrice
@@ -1832,7 +1832,7 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["dateTo"] = until
 	}
@@ -1946,7 +1946,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	}
 	var untilparamsUntilVariable []any = this.HandleParamInteger2(params, "until", "till")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["dateTo"] = until
 	}
@@ -2221,8 +2221,8 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsAccountId)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,

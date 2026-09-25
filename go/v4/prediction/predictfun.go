@@ -2314,7 +2314,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	var taker string = "0x0000000000000000000000000000000000000000"
 	var takerOptionparamsTakerVariable []any = this.HandleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker)
 	takerOption := ccxt.GetValue(takerOptionparamsTakerVariable, 0)
-	var paramsTaker map[string]any = ccxt.MapTyped(ccxt.GetValue(takerOptionparamsTakerVariable, 1))
+	var paramsTaker map[string]any = ccxt.MapTyped(takerOptionparamsTakerVariable[1])
 	var contractOrder map[string]any = map[string]any{
 		"salt":        salt,
 		"maker":       this.WalletAddress,
@@ -2347,7 +2347,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	var postOnly *bool = this.SafeBool(paramsTaker, "isPostOnly", false)
 	var postOnlyOptionparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, postOnly, paramsTaker)
 	var postOnlyOption bool = ccxt.GetValueBool(postOnlyOptionparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = ccxt.MapTyped(ccxt.GetValue(postOnlyOptionparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = ccxt.MapTyped(postOnlyOptionparamsPostOnlyVariable[1])
 	if postOnlyOption {
 		data["isPostOnly"] = postOnlyOption
 	}

@@ -1971,7 +1971,7 @@ func (this *Binance) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var stockparamsStockVariable []any = this.HandleOptionAndParams(params, "watchOHLCV", "stock")
 	stock := ccxt.GetValue(stockparamsStockVariable, 0)
-	var paramsStock map[string]any = ccxt.MapTyped(ccxt.GetValue(stockparamsStockVariable, 1))
+	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
 	if ccxt.IsEqual(stock, true) {
 		if (timeframe != "5m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
 			panic(ccxt.BadRequest(this.Id + " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes"))
@@ -2071,7 +2071,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	}
 	var klineTypeparamsChannelVariable []any = this.HandleParamString2(paramsStock, "channel", "name", "kline")
 	klineType := ccxt.GetValue(klineTypeparamsChannelVariable, 0)
-	var paramsChannel map[string]any = ccxt.MapTyped(ccxt.GetValue(klineTypeparamsChannelVariable, 1))
+	var paramsChannel map[string]any = ccxt.MapTyped(klineTypeparamsChannelVariable[1])
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, false, true)
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(marketSymbols, 0))
@@ -2091,8 +2091,8 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	}
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var timezoneparamsTimezoneVariable []any = this.HandleParamString(paramsChannel, "timezone")
-	var timezone *string = ccxt.SafeStringPtr(ccxt.GetValue(timezoneparamsTimezoneVariable, 0))
-	var paramsTimezone map[string]any = ccxt.MapTyped(ccxt.GetValue(timezoneparamsTimezoneVariable, 1))
+	var timezone *string = ccxt.SafeStringPtr(timezoneparamsTimezoneVariable[0])
+	var paramsTimezone map[string]any = ccxt.MapTyped(timezoneparamsTimezoneVariable[1])
 	var isUtc8 bool = (timezone != nil) && ((timezone != nil && *timezone == "+08:00") || ccxt.Precise.StringEq(timezone, "8"))
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
@@ -2185,7 +2185,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	}
 	var klineTypeparamsChannelVariable []any = this.HandleParamString2(params, "channel", "name", "kline")
 	klineType := ccxt.GetValue(klineTypeparamsChannelVariable, 0)
-	var paramsChannel map[string]any = ccxt.MapTyped(ccxt.GetValue(klineTypeparamsChannelVariable, 1))
+	var paramsChannel map[string]any = ccxt.MapTyped(klineTypeparamsChannelVariable[1])
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, false, true)
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(marketSymbols, 0))
@@ -2205,8 +2205,8 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	}
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var timezoneparamsTimezoneVariable []any = this.HandleParamString(paramsChannel, "timezone")
-	var timezone *string = ccxt.SafeStringPtr(ccxt.GetValue(timezoneparamsTimezoneVariable, 0))
-	var paramsTimezone map[string]any = ccxt.MapTyped(ccxt.GetValue(timezoneparamsTimezoneVariable, 1))
+	var timezone *string = ccxt.SafeStringPtr(timezoneparamsTimezoneVariable[0])
+	var paramsTimezone map[string]any = ccxt.MapTyped(timezoneparamsTimezoneVariable[1])
 	var isUtc8 bool = (timezone != nil) && ((timezone != nil && *timezone == "+08:00") || ccxt.Precise.StringEq(timezone, "8"))
 	var rawHashes []any = []any{}
 	var subMessageHashes []any = []any{}
