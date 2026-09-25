@@ -17908,7 +17908,10 @@ function integerLiteralArithmeticLocal (csharp, declaration, context) {
             return undefined;
         }
         const sibling = (consumer.left === operand) ? consumer.right : consumer.left;
-        if (!INTEGER_LITERAL_LOCAL_SIBLINGS.includes (nativeArithmeticOperandKind (csharp, sibling))) {
+        // ordered comparisons have only the (object, object) helper, which normalises both
+        // boxes before comparing, so the sibling's static type cannot select another overload
+        const comparison = NATIVE_COMPARISON_SYMBOLS[consumer.operatorToken.kind] !== undefined;
+        if (!comparison && !INTEGER_LITERAL_LOCAL_SIBLINGS.includes (nativeArithmeticOperandKind (csharp, sibling))) {
             return undefined;
         }
         reads++;
