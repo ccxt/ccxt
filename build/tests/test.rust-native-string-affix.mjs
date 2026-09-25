@@ -17,6 +17,10 @@ test('literal needle on a local / self field goes native', () => {
     assert.equal(
         rewrite('starts_with(&s, &Value::Str("a\\"b".into()))'),
         'matches!(&s, Value::Str(__s) if __s.starts_with("a\\"b"))');
+    // the pipeline spells literals `.to_string()` until write time
+    assert.equal(
+        rewrite('starts_with(&id, &Value::Str("X".to_string()))'),
+        'matches!(&id, Value::Str(__s) if __s.starts_with("X"))');
 });
 
 test('format! needle and a Value place needle reproduce the helper arms', () => {
