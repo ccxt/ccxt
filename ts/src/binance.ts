@@ -10204,7 +10204,7 @@ export default class binance extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId (networkCode, currency['code']);
+            request['network'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, paramsNetworkCode));
@@ -10538,7 +10538,7 @@ export default class binance extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId (networkCode, currency['code']);
+            request['network'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         request['amount'] = this.currencyToPrecision (currency['code'], amount, networkCode);
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, paramsNetworkCode));

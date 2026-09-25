@@ -4685,7 +4685,7 @@ export default class mexc extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -5811,7 +5811,7 @@ export default class mexc extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId (network, currency['code']);
+        network = this.networkCodeToId (network, this.safeString (currency, 'code'));
         this.checkAddress (address);
         const request: Dict = {
             'coin': currency['id'],

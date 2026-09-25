@@ -1927,7 +1927,7 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
-        const networkCode = this.networkIdToCode (networkId, currencyResolved['code']);
+        const networkCode = this.networkIdToCode (networkId, this.safeString (currencyResolved, 'code'));
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),

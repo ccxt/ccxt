@@ -1048,7 +1048,7 @@ export default class bittrade extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (result, this.safeString (market, 'symbol'), since, limit) as Trade[];
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

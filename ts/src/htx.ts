@@ -2954,7 +2954,7 @@ export default class htx extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (result, this.safeString (market, 'symbol'), since, limit) as Trade[];
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -7249,7 +7249,7 @@ export default class htx extends Exchange {
             }
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {

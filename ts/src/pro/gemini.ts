@@ -699,7 +699,7 @@ export default class gemini extends geminiRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         const messageHash = 'orders';
         const orders: ArrayCache = await this.watch (url, messageHash, undefined, messageHash);
         let limitResolved = limit;

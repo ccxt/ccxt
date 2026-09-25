@@ -2938,7 +2938,7 @@ export default class bitrue extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId (networkCode, currency['code']);
+            request['chainName'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         if (tagWithdrawTag !== undefined) {
             request['tag'] = tagWithdrawTag;

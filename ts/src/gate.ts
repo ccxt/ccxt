@@ -2880,7 +2880,7 @@ export default class gate extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        const [ request, query ] = this.prepareRequest (market, market['type'], params);
+        const [ request, query ] = this.prepareRequest (market, this.safeString (market, 'type'), params);
         if (limit !== undefined) {
             // gateeu returns an empty book for a spot limit above 100
             const maxLimit = (market['spot'] === true) ? this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
@@ -3642,7 +3642,7 @@ export default class gate extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -5527,7 +5527,7 @@ export default class gate extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const type = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsPaginate)[0];
         const [ useHistorical, paramsHistorical ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchClosedOrders', 'historical', false);
         if (!useHistorical && ((since === undefined && until === undefined) || (type !== 'swap'))) {
@@ -5591,7 +5591,7 @@ export default class gate extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
         const type = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params)[0];
         // don't omit here, omits done in prepareOrdersByStatusRequest
@@ -6436,7 +6436,7 @@ export default class gate extends Exchange {
         if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchPosition() supports contract markets only');
         }
-        const [ request, paramsValue ] = this.prepareRequest (market, market['type'], params);
+        const [ request, paramsValue ] = this.prepareRequest (market, this.safeString (market, 'type'), params);
         const extendedRequest = this.extend (request, paramsValue);
         let response = undefined;
         if (market['swap'] === true) {
@@ -7529,7 +7529,7 @@ export default class gate extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
         const isOption = type === 'option';
         const isFuture = type === 'future';

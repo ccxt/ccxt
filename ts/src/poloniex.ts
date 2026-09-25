@@ -3141,7 +3141,7 @@ export default class poloniex extends Exchange {
                     for (let j = 0; j < childChains.length; j++) {
                         let networkId = childChains[j];
                         networkId = networkId.replace (code, '');
-                        const networkCode = this.networkIdToCode (networkId, currency['code']);
+                        const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
                         const networkInfo = this.safeDict (response, networkId);
                         const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');

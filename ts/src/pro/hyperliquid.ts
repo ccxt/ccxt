@@ -1369,7 +1369,7 @@ export default class hyperliquid extends hyperliquidRest {
             market = this.market (symbol);
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'subscribe',
