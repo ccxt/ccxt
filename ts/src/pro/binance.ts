@@ -5728,7 +5728,7 @@ export default class binance extends binanceRest {
         const eventData = this.safeDict (messageValue2, 'data');
         const messageValue: any = (eventData !== undefined) ? eventData : messageValue2;
         const status = this.safeString (messageValue, 'status');
-        const error = this.safeValue (messageValue, 'error');
+        const error = this.safeDict (messageValue, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, messageValue);
             return;

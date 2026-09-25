@@ -1286,7 +1286,10 @@ export default class coinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const limitValue: Int = (limit === undefined) ? 20 : limit;
+        let limitValue: Int = limit;
+        if (limitValue === undefined) {
+            limitValue = 20;
+        }
         const request: Dict = {
             'market': market['id'],
             'limit': limitValue,

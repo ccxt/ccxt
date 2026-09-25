@@ -731,7 +731,10 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        const limitResolved: Int = (limit === undefined) ? 50 : limit;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
+        }
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
@@ -760,7 +763,10 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        const limitResolved: Int = (limit === undefined) ? 50 : limit;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
+        }
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
@@ -783,7 +789,10 @@ export default class independentreserve extends Exchange {
             await this.loadMarkets ();
         }
         const pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        const limitResolved: Int = (limit === undefined) ? 50 : limit;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
+        }
         const request: Dict = {
             'pageIndex': pageIndex,
             'pageSize': limitResolved,

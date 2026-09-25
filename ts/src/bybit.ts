@@ -2849,7 +2849,11 @@ export default class bybit extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
         };
-        const limitResolved = (limit === undefined) ? 200 : limit; // default is 200 when requested with `since`
+        // default is 200 when requested with `since`
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 200;
+        }
         if (since !== undefined) {
             // bybit returns the candle that contains `start`, whose timestamp is
             // before a mid-interval `since` and gets dropped by the client-side
