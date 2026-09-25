@@ -1434,7 +1434,7 @@ public partial class kalshi : PredictionExchange
         int tf = this.parseTimeframe(timeframeVar);
         if ((since != null))
         {
-            Int64? sinceS = this.parseToInt((since / 1000));
+            Int64? sinceS = this.parseToInt(((double?)since / 1000));
             request["start_ts"] = sinceS;
             if ((limit != null))
             {

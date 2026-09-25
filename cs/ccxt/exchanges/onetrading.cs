@@ -417,7 +417,7 @@ public partial class onetrading : Exchange
                         { "marginMode", false },
                         { "limit", 100 },
                         { "daysBack", 100000 },
-                        { "daysBackCanceled", divide(1, 12) },
+                        { "daysBackCanceled", ((double)1 / 12) },
                         { "untilDays", 30 },
                         { "trigger", false },
                         { "trailing", false },
@@ -1129,7 +1129,7 @@ public partial class onetrading : Exchange
         {
             throw new ExchangeError ((this.id + " parseOHLCV() missing timestamp")) ;
         }
-        Int64? alignedTimestamp = (duration * this.parseToInt((timestamp / duration)));
+        Int64? alignedTimestamp = (duration * this.parseToInt(((double?)timestamp / duration)));
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? volumeField = this.safeString(options, "volume", "total_amount");
         return new List<object>() {alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)};

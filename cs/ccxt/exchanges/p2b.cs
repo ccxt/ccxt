@@ -265,7 +265,7 @@ public partial class p2b : Exchange
                         { "marginMode", false },
                         { "limit", 100 },
                         { "daysBack", 100000 },
-                        { "daysBackCanceled", divide(1, 12) },
+                        { "daysBackCanceled", ((double)1 / 12) },
                         { "untilDays", 1 },
                         { "trigger", false },
                         { "trailing", false },
@@ -1212,7 +1212,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
-        Int64? untilSec = this.parseToInt((until / 1000));
+        Int64? untilSec = this.parseToInt(((double?)until / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "startTime", sinceSec },
@@ -1299,7 +1299,7 @@ public partial class p2b : Exchange
             throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
-        Int64? untilSec = this.parseToInt((until / 1000));
+        Int64? untilSec = this.parseToInt(((double?)until / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceSec },
             { "endTime", untilSec },

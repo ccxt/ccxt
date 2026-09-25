@@ -1810,7 +1810,7 @@ public partial class delta : Exchange
             request["start"] = subtract(end, multiply(limitValue, duration));
         } else
         {
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(((double?)since / 1000));
             request["start"] = start;
             request["end"] = untilIsDefined ? until : this.sum(start, multiply(limitValue, duration));
         }

@@ -192,22 +192,22 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "market/books", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "market/books-full", new Dictionary<string, object>() {
                             { "cost", 2 },
                         } },
                         { "market/books-rpi", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "market/candles", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "market/history-candles", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "market/trades", new Dictionary<string, object>() {
-                            { "cost", divide(1, 5) },
+                            { "cost", ((double)1 / 5) },
                         } },
                         { "market/history-trades", new Dictionary<string, object>() {
                             { "cost", 2 },
@@ -237,7 +237,7 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "market/sprd-candles", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "market/sprd-history-candles", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -267,7 +267,7 @@ public partial class okx : Exchange
                             { "cost", 50 },
                         } },
                         { "market/books-lite", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "public/option-trades", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -282,13 +282,13 @@ public partial class okx : Exchange
                             { "cost", 2 },
                         } },
                         { "public/delivery-exercise-history", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "public/estimated-settlement-info", new Dictionary<string, object>() {
                             { "cost", 2 },
                         } },
                         { "public/settlement-history", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "public/funding-rate", new Dictionary<string, object>() {
                             { "cost", 2 },
@@ -432,31 +432,31 @@ public partial class okx : Exchange
                             { "cost", 4 },
                         } },
                         { "asset/exchange-list", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/eth/apy-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/sol/apy-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/savings/lending-rate-summary", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/savings/lending-rate-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/fixed-loan/lending-offers", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/fixed-loan/lending-apy-history", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/fixed-loan/pending-lending-volume", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/sfp/dcd/products", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "copytrading/public-config", new Dictionary<string, object>() {
                             { "cost", 4 },
@@ -540,19 +540,19 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "trade/order", new Dictionary<string, object>() {
-                            { "cost", divide(1, 3) },
+                            { "cost", ((double)1 / 3) },
                         } },
                         { "trade/orders-pending", new Dictionary<string, object>() {
-                            { "cost", divide(1, 3) },
+                            { "cost", ((double)1 / 3) },
                         } },
                         { "trade/orders-history", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "trade/orders-history-archive", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "trade/fills", new Dictionary<string, object>() {
-                            { "cost", divide(1, 3) },
+                            { "cost", ((double)1 / 3) },
                         } },
                         { "trade/fills-history", new Dictionary<string, object>() {
                             { "cost", 2 },
@@ -591,13 +591,13 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "asset/currencies", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/balances", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/non-tradable-assets", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/asset-valuation", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -606,7 +606,7 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "asset/bills", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/bills-history", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -615,13 +615,13 @@ public partial class okx : Exchange
                             { "cost", 5 },
                         } },
                         { "asset/deposit-address", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/deposit-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/withdrawal-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/deposit-withdraw-status", new Dictionary<string, object>() {
                             { "cost", 20 },
@@ -630,40 +630,40 @@ public partial class okx : Exchange
                             { "cost", 2 },
                         } },
                         { "asset/convert/currencies", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/convert/currency-pair", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/convert/history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "fiat/deposit-payment-methods", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/withdrawal-payment-methods", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/deposit-order-history", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/deposit", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/withdrawal-order-history", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/withdrawal", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/buy-sell/currencies", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "fiat/buy-sell/currency-pair", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "fiat/buy-sell/history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "account/instruments", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -789,19 +789,19 @@ public partial class okx : Exchange
                             { "cost", 10 },
                         } },
                         { "account/subaccount/balances", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "asset/subaccount/balances", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "account/subaccount/max-withdrawal", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "asset/subaccount/bills", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/subaccount/managed-subaccount-bills", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "users/entrust-subaccount-list", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -882,37 +882,37 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "finance/savings/balance", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/savings/lending-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/offers", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/staking-defi/orders-active", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/staking-defi/orders-history", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/staking-defi/eth/product-info", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/staking-defi/eth/balance", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/eth/purchase-redeem-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/sol/product-info", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "finance/staking-defi/sol/balance", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/sol/purchase-redeem-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/flexible-loan/borrow-currencies", new Dictionary<string, object>() {
                             { "cost", 4 },
@@ -960,7 +960,7 @@ public partial class okx : Exchange
                             { "cost", 4 },
                         } },
                         { "finance/stable-rewards/apy-history", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "users/glp/todayperformance", new Dictionary<string, object>() {
                             { "cost", 4 },
@@ -1032,7 +1032,7 @@ public partial class okx : Exchange
                             { "cost", 10 },
                         } },
                         { "asset/broker/nd/subaccount-deposit-address", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/broker/nd/subaccount-deposit-history", new Dictionary<string, object>() {
                             { "cost", 4 },
@@ -1065,19 +1065,19 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "affiliate/performance/summary", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "affiliate/invitee/list", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "affiliate/link/list", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "affiliate/co-inviter/list", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "affiliate/sub-affiliate/list", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "users/partner/if-rebate", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -1142,22 +1142,22 @@ public partial class okx : Exchange
                             { "cost", 10 },
                         } },
                         { "trade/order", new Dictionary<string, object>() {
-                            { "cost", divide(1, 3) },
+                            { "cost", ((double)1 / 3) },
                         } },
                         { "trade/batch-orders", new Dictionary<string, object>() {
-                            { "cost", divide(1, 15) },
+                            { "cost", ((double)1 / 15) },
                         } },
                         { "trade/cancel-order", new Dictionary<string, object>() {
-                            { "cost", divide(1, 3) },
+                            { "cost", ((double)1 / 3) },
                         } },
                         { "trade/cancel-batch-orders", new Dictionary<string, object>() {
-                            { "cost", divide(1, 15) },
+                            { "cost", ((double)1 / 15) },
                         } },
                         { "trade/amend-order", new Dictionary<string, object>() {
-                            { "cost", divide(1, 3) },
+                            { "cost", ((double)1 / 3) },
                         } },
                         { "trade/amend-batch-orders", new Dictionary<string, object>() {
-                            { "cost", divide(1, 150) },
+                            { "cost", ((double)1 / 150) },
                         } },
                         { "trade/close-position", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -1199,13 +1199,13 @@ public partial class okx : Exchange
                             { "cost", 5 },
                         } },
                         { "asset/withdrawal", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/withdrawal-lightning", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "asset/cancel-withdrawal", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "asset/convert-dust-assets", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -1220,10 +1220,10 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "fiat/create-withdrawal", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/cancel-withdrawal", new Dictionary<string, object>() {
-                            { "cost", divide(10, 3) },
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "fiat/buy-sell/quote", new Dictionary<string, object>() {
                             { "cost", 50 },
@@ -1262,7 +1262,7 @@ public partial class okx : Exchange
                             { "cost", 4 },
                         } },
                         { "account/borrow-repay", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "account/simulated_margin", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -1469,10 +1469,10 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "finance/savings/purchase-redempt", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/savings/set-lending-rate", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "finance/staking-defi/purchase", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -1571,7 +1571,7 @@ public partial class okx : Exchange
                             { "cost", 1 },
                         } },
                         { "asset/broker/nd/modify-subaccount-deposit-address", new Dictionary<string, object>() {
-                            { "cost", divide(5, 3) },
+                            { "cost", ((double)5 / 3) },
                         } },
                         { "broker/nd/rebate-per-orders", new Dictionary<string, object>() {
                             { "cost", 36000 },
@@ -1595,7 +1595,7 @@ public partial class okx : Exchange
                             { "cost", 0.25 },
                         } },
                         { "broker/dma/subaccount/apikey", new Dictionary<string, object>() {
-                            { "cost", divide(1, 4) },
+                            { "cost", ((double)1 / 4) },
                         } },
                         { "broker/dma/trades", new Dictionary<string, object>() {
                             { "cost", 36000 },
@@ -2303,7 +2303,7 @@ public partial class okx : Exchange
                         { "marginMode", false },
                         { "limit", 100 },
                         { "daysBack", 90 },
-                        { "daysBackCanceled", divide(1, 12) },
+                        { "daysBackCanceled", ((double)1 / 12) },
                         { "untilDays", null },
                         { "trigger", true },
                         { "trailing", true },

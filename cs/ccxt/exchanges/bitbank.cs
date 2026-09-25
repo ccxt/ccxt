@@ -1013,7 +1013,7 @@ public partial class bitbank : Exchange
         }
         if ((since != null))
         {
-            request["since"] = this.parseToInt((since / 1000));
+            request["since"] = this.parseToInt(((double?)since / 1000));
         }
         Dictionary<string, object> response = await this.privateGetUserSpotActiveOrders(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1052,7 +1052,7 @@ public partial class bitbank : Exchange
         }
         if ((since != null))
         {
-            request["since"] = this.parseToInt((since / 1000));
+            request["since"] = this.parseToInt(((double?)since / 1000));
         }
         Dictionary<string, object> response = await this.privateGetUserSpotTradeHistory(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});

@@ -1711,16 +1711,16 @@ public partial class phemex : Exchange
                 int candleDuration = this.parseTimeframe(timeframeVar);
                 if ((since != null))
                 {
-                    sinceSeconds = Math.Round(Convert.ToDouble((since / 1000)));
+                    sinceSeconds = Math.Round(Convert.ToDouble(((double?)since / 1000)));
                 } else
                 {
                     // when 'to' is defined since is mandatory
-                    sinceSeconds = subtract(Math.Round(Convert.ToDouble((until / 1000))), (multiply(maxLimit, candleDuration)));
+                    sinceSeconds = subtract(Math.Round(Convert.ToDouble(((double?)until / 1000))), (multiply(maxLimit, candleDuration)));
                 }
                 request["from"] = sinceSeconds;
                 if ((until != null))
                 {
-                    request["to"] = Math.Round(Convert.ToDouble((until / 1000)));
+                    request["to"] = Math.Round(Convert.ToDouble(((double?)until / 1000)));
                 } else
                 {
                     // when since is defined 'to' is mandatory
@@ -5921,7 +5921,7 @@ public partial class phemex : Exchange
         //        volumeRq: '3388.5600312'
         //    }
         //
-        Int64? timestamp = (this.safeInteger(interest, "timestamp") / 1000000);
+        double? timestamp = ((double?)this.safeInteger(interest, "timestamp") / 1000000);
         string? id = this.safeString(interest, "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "info", interest },

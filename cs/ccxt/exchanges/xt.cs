@@ -1882,7 +1882,7 @@ public partial class xt : Exchange
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-            request["startTime"] = multiply(Math.Ceiling(Convert.ToDouble((since / duration))), duration);
+            request["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(((double?)since / duration))), duration);
         }
         object limitResolved = limit;
         if ((limit != null))

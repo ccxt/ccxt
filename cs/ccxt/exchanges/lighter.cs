@@ -2310,13 +2310,13 @@ public partial class lighter : Exchange
             marginMode = ((marginModeId == 0)) ? "cross" : "isolated";
         }
         string? imfStr = this.safeString(position, "initial_margin_fraction");
-        Int64? leverage = null;
+        double? leverage = null;
         if ((imfStr != null))
         {
             Int64? imf = this.parseToInt(imfStr);
             if ((imf > 0))
             {
-                leverage = (100 / imf);
+                leverage = ((double)100 / imf);
             }
         }
         return this.safePosition(new Dictionary<string, object>() {

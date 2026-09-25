@@ -1713,7 +1713,7 @@ public partial class myriad : PredictionExchange
         }
         if ((since != null))
         {
-            request["since"] = this.parseToInt((since / 1000));
+            request["since"] = this.parseToInt(((double?)since / 1000));
         }
         if ((limit != null))
         {

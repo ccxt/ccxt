@@ -578,7 +578,7 @@ public partial class mercado : Exchange
         };
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? to = this.safeInteger(parameters, "to");
         List<object> response = null;
@@ -1023,7 +1023,7 @@ public partial class mercado : Exchange
         object limitResolved = ((limit == null)) ? 100 : limit;
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
             request["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitResolved, this.parseTimeframe(timeframeVar)));
         } else
         {

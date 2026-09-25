@@ -602,10 +602,8 @@ public partial class BaseExchange
     //   multiply(Int64, Int64): the object overload normalizes every int / uint / long /
     //     Int64 operand to Int64 and takes its Int64 branch, so this is the same unchecked
     //     `a * b` boxed Int64.
-    //   divide(Int64, Int64): the object overload's Int64 branch — the same truncating
-    //     Int64 division (JS `/` does not truncate; that divergence predates these
-    //     overloads and is unchanged by them, because these only bind where the object
-    //     path already computed the very same division).
+    //   divide(Int64, Int64): the object overload's Int64 branch — the same double
+    //     division `(double)a / b` (JS `/`, no truncation).
     //   divide(double, double): whenever either operand is a double the object overload
     //     falls through to its else branch, `Convert.ToDouble(a) / Convert.ToDouble(b)`,
     //     which is exactly `a / b` on the converted operands.
@@ -625,14 +623,15 @@ public partial class BaseExchange
         return a * b;
     }
 
-    public static Int64? divide(Int64? a, Int64? b)
+    // integer operands divide as doubles (JS `/`): 20 / 15 is 1.333, never truncated
+    public static double? divide(Int64? a, Int64? b)
     {
-        return a / b;
+        return (double?)a / b;
     }
 
-    public static Int64 divide(Int64 a, Int64 b)
+    public static double divide(Int64 a, Int64 b)
     {
-        return a / b;
+        return (double)a / b;
     }
 
     public static double divide(double a, double b)
@@ -652,7 +651,7 @@ public partial class BaseExchange
 
         if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
         {
-            return (Int64)a / (Int64)b;
+            return (double)(Int64)a / (Int64)b;
         }
         else if (a.GetType() == typeof(double) && b.GetType() == typeof(double))
         {

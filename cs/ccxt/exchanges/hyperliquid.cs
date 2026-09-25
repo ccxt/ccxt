@@ -1501,7 +1501,7 @@ public partial class hyperliquid : Exchange
         double? funding = this.safeNumber(info, "funding");
         double? markPx = this.safeNumber(info, "markPx");
         double? oraclePx = this.safeNumber(info, "oraclePx");
-        object fundingTimestamp = multiply(multiply(multiply((((Math.Floor(Double.Parse(((((this.milliseconds() / 60) / 60) / 1000)).ToString()))) + 1)), 60), 60), 1000);
+        object fundingTimestamp = multiply(multiply(multiply((((Math.Floor(Double.Parse((((((double)this.milliseconds() / 60) / 60) / 1000)).ToString()))) + 1)), 60), 60), 1000);
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", symbol },

@@ -2260,11 +2260,11 @@ public partial class mexc : Exchange
         {
             if ((since != null))
             {
-                request["start"] = this.parseToInt((since / 1000));
+                request["start"] = this.parseToInt(((double?)since / 1000));
             }
             if ((until != null))
             {
-                request["end"] = this.parseToInt((until / 1000));
+                request["end"] = this.parseToInt(((double?)until / 1000));
                 if ((since == null))
                 {
                     request["start"] = this.parseToInt(divide(start, 1000));

@@ -1308,7 +1308,7 @@ public partial class upbit : Exchange
         }
         if (timeframeValue == "minutes")
         {
-            double numMinutes = Math.Round(Convert.ToDouble(divide(timeframePeriod, 60)));
+            double numMinutes = Math.Round(Convert.ToDouble(((double)timeframePeriod / 60)));
             request["unit"] = numMinutes;
             response = await this.publicGetCandlesTimeframeUnit(this.extend(request, parameters));
         } else

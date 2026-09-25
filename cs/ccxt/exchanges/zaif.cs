@@ -821,7 +821,7 @@ public partial class zaif : Exchange
         }
         if ((since != null))
         {
-            request["since"] = this.parseToInt((since / 1000));
+            request["since"] = this.parseToInt(((double?)since / 1000));
         }
         if ((limit != null))
         {
@@ -941,7 +941,7 @@ public partial class zaif : Exchange
 
     public virtual object customNonce()
     {
-        string? num = this.numberToString((this.milliseconds() / 1000));
+        string? num = this.numberToString(((double)this.milliseconds() / 1000));
         object nonce = parseFloat(num);
         return toFixed(nonce, 8);
     }

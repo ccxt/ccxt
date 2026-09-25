@@ -156,9 +156,9 @@ public partial class BaseTest
     public static Int64 subtract(Int64 a, Int64 b) => Exchange.subtract(a, b);
     public static double subtract(double a, double b) => Exchange.subtract(a, b);
     public static object divide(object a, object b) => Exchange.divide(a, b);
-    public static Int64 divide(Int64 a, Int64 b) => Exchange.divide(a, b);
+    public static double divide(Int64 a, Int64 b) => Exchange.divide(a, b);
     public static double divide(double a, double b) => Exchange.divide(a, b);
-    public static Int64? divide(Int64? a, Int64? b) => Exchange.divide(a, b);
+    public static double? divide(Int64? a, Int64? b) => Exchange.divide(a, b);
     public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);

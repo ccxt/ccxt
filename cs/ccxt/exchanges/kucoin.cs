@@ -3913,7 +3913,7 @@ public partial class kucoin : Exchange
         }
         if ((since != null))
         {
-            request["startAt"] = this.parseToInt((Math.Floor(Double.Parse(((since / denominator)).ToString()))));
+            request["startAt"] = this.parseToInt((Math.Floor(Double.Parse((((double?)since / denominator)).ToString()))));
             endAt = this.sum(since, multiply(windowLimit, duration));
         } else if ((limit != null))
         {
@@ -4019,7 +4019,7 @@ public partial class kucoin : Exchange
         }
         if ((since != null))
         {
-            request["startAt"] = this.parseToInt((Math.Floor(Double.Parse(((since / denominator)).ToString()))));
+            request["startAt"] = this.parseToInt((Math.Floor(Double.Parse((((double?)since / denominator)).ToString()))));
             endAt = this.sum(since, multiply(windowLimit, duration));
         } else if ((limit != null))
         {
@@ -4552,7 +4552,7 @@ public partial class kucoin : Exchange
             Int64? nanoseconds = this.safeInteger(data, "ts");
             if ((nanoseconds != null))
             {
-                timestamp = this.parseToInt((nanoseconds / 1000000));
+                timestamp = this.parseToInt(((double?)nanoseconds / 1000000));
             }
         }
         Dictionary<string, object> orderbook = this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", subtract(level, 2), subtract(level, 1));
@@ -8402,7 +8402,7 @@ public partial class kucoin : Exchange
         Int64? timestamp = this.safeInteger2(trade, "time", "ts");
         if ((timestamp != null))
         {
-            timestamp = this.parseToInt((timestamp / 1000000));
+            timestamp = this.parseToInt(((double?)timestamp / 1000000));
         } else
         {
             timestamp = this.safeInteger(trade, "createdAt");
@@ -8539,7 +8539,7 @@ public partial class kucoin : Exchange
         Int64? timestamp = this.safeInteger(trade, "ts");
         if ((timestamp != null))
         {
-            timestamp = this.parseToInt((timestamp / 1000000));
+            timestamp = this.parseToInt(((double?)timestamp / 1000000));
         } else
         {
             timestamp = this.safeInteger(trade, "createdAt");
@@ -9010,7 +9010,7 @@ public partial class kucoin : Exchange
         if ((since != null) && isLessThan(since, 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
-            request["startAt"] = this.parseToInt((since / 1000));
+            request["startAt"] = this.parseToInt(((double?)since / 1000));
             response = await this.privateGetHistDeposits(this.extend(request, paramsRequest));
         } else
         {
@@ -9188,7 +9188,7 @@ public partial class kucoin : Exchange
         if ((since != null) && isLessThan(since, 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
-            request["startAt"] = this.parseToInt((since / 1000));
+            request["startAt"] = this.parseToInt(((double?)since / 1000));
             response = await this.privateGetHistWithdrawals(this.extend(request, paramsRequest));
         } else
         {

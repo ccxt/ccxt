@@ -11,7 +11,7 @@ public partial class btse : Exchange
             { "id", "btse" },
             { "name", "BTSE" },
             { "countries", new List<object>() {"VG"} },
-            { "rateLimit", divide(1000, 75) },
+            { "rateLimit", ((double)1000 / 75) },
             { "version", "v3" },
             { "certified", false },
             { "pro", false },
@@ -933,7 +933,7 @@ public partial class btse : Exchange
         if ((since != null))
         {
             // the endpoint accepts timestamps in seconds
-            request["start"] = this.parseToInt((since / 1000));
+            request["start"] = this.parseToInt(((double?)since / 1000));
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
@@ -949,11 +949,11 @@ public partial class btse : Exchange
                 object difference = subtract(until, since);
                 if (isLessThan(difference, maxDelta))
                 {
-                    request["end"] = this.parseToInt((until / 1000));
+                    request["end"] = this.parseToInt(((double?)until / 1000));
                 }
             } else
             {
-                request["end"] = this.parseToInt((until / 1000));
+                request["end"] = this.parseToInt(((double?)until / 1000));
             }
         }
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Klines(this.extend(request, paramsUntil));
@@ -1697,7 +1697,7 @@ public partial class btse : Exchange
         // hour rounds to the same string, and the vocabulary has no minutes
         if (((fundingIntervalMinutes != null)) && ((fundingIntervalMinutes >= 60)))
         {
-            Int64? hours = this.parseToInt((fundingIntervalMinutes / 60));
+            Int64? hours = this.parseToInt(((double?)fundingIntervalMinutes / 60));
             interval = (((object)hours).ToString() + "h");
         }
         return new Dictionary<string, object>() {

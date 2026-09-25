@@ -799,7 +799,7 @@ public partial class indodax : Exchange
         object limitResolved = ((limit == null)) ? 1000 : limit;
         if ((since != null))
         {
-            request["from"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
+            request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
         } else
         {
             int duration = this.parseTimeframe(timeframeVar);

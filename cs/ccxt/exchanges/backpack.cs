@@ -1115,7 +1115,7 @@ public partial class backpack : Exchange
         {
             throw new ExchangeError ((this.id + " fetchOrderBook() missing microseconds")) ;
         }
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
@@ -1153,7 +1153,7 @@ public partial class backpack : Exchange
         var paramsUntil = untilparamsUntilVariable[1];
         if (!(until == null))
         {
-            request["endTime"] = this.parseToInt((until / 1000)); // convert milliseconds to seconds
+            request["endTime"] = this.parseToInt(((double?)until / 1000)); // convert milliseconds to seconds
         }
         int defaultLimit = 100;
         object limitResolved = limit;
@@ -1164,13 +1164,13 @@ public partial class backpack : Exchange
         if ((since == null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            Int64? endTime = (!(until == null) && !(until == null) && !(until == 0)) ? this.parseToInt((until / 1000)) : this.seconds();
+            Int64? endTime = (!(until == null) && !(until == null) && !(until == 0)) ? this.parseToInt(((double?)until / 1000)) : this.seconds();
             object windowLimit = ((limit == null)) ? defaultLimit : limit;
             object startTime = subtract(endTime, (multiply(windowLimit, duration)));
             request["startTime"] = startTime;
         } else
         {
-            request["startTime"] = this.parseToInt((since / 1000)); // convert milliseconds to seconds
+            request["startTime"] = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
         }
         string? price = this.safeString(paramsUntil, "price");
         object paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;

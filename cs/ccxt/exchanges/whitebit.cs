@@ -2281,7 +2281,7 @@ public partial class whitebit : Exchange
         object limitResolved = ((since != null)) ? sinceLimit : limit;
         if ((since != null))
         {
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(((double?)since / 1000));
             request["start"] = start;
         }
         if (!isEqual(limitResolved, null))
@@ -3258,7 +3258,7 @@ public partial class whitebit : Exchange
         }
         if ((since != null))
         {
-            request["startDate"] = this.parseToInt((since / 1000));
+            request["startDate"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? limitResolved = limit;
         if ((limit == null) || (limit > 100))
@@ -3318,7 +3318,7 @@ public partial class whitebit : Exchange
         }
         if ((since != null))
         {
-            request["startDate"] = this.parseToInt((since / 1000));
+            request["startDate"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? limitResolved = limit;
         if ((limit == null) || (limit > 100))
@@ -4459,7 +4459,7 @@ public partial class whitebit : Exchange
         }
         if ((since != null))
         {
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(((double?)since / 1000));
             request["from"] = this.numberToString(start);
         }
         if ((limit != null))
@@ -4835,7 +4835,7 @@ public partial class whitebit : Exchange
         };
         if ((since != null))
         {
-            request["startDate"] = Math.Round(Convert.ToDouble((since / 1000)));
+            request["startDate"] = Math.Round(Convert.ToDouble(((double?)since / 1000)));
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, paramsPaginate, 0.001);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];

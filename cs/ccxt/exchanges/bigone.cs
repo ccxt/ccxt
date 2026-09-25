@@ -1093,7 +1093,7 @@ public partial class bigone : Exchange
         {
             throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
-        return ccxt.BaseExchange.ToInt64Value(this.parseToInt((timestamp / 1000000)));
+        return ccxt.BaseExchange.ToInt64Value(this.parseToInt(((double?)timestamp / 1000000)));
     }
 
     /**

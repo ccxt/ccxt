@@ -339,11 +339,8 @@
 //         null -> null / Int64 branch); a double operand stays `object` (the object
 //         overload re-boxes an integer-valued product as Int64, which a double-returning
 //         twin could not reproduce)
-//       divide:   int/uint/long/Int64 pairs -> Int64 — the object overload's TRUNCATING
-//         Int64 branch, not JS division semantics (pre-existing divergence, unchanged
-//         here); any pair with a double -> double; an int-like / Int64? pair with at least
-//         one Int64? -> Int64? (divide(Int64?, Int64?): null -> null, else the same
-//         truncating division)
+//       divide:   every numeric pair -> double (JS division, no truncation); an int-like /
+//         Int64? pair with at least one Int64? -> double? (divide(Int64?, Int64?): null -> null)
 //     `a % b` prints mod(a, b) and takes modTwinCallType: `Int64` (mod(Int64, Int64) /
 //     mod(double, double)) or `Int64?` (mod(Int64?, Int64?)), never a cast.
 //     sum is the same shape:
@@ -3797,7 +3794,7 @@ function nullableIntegerArithmeticKind (csharp, node, context) {
 // (Exchange.TranspileHelpers.cs) are
 //   subtract: (int, int) -> int, (Int64, Int64) -> Int64, (double, double) -> double
 //   multiply: (Int64, Int64) -> Int64, (Int64?, Int64?) -> Int64?
-//   divide:   (Int64, Int64) -> Int64, (double, double) -> double, (Int64?, Int64?) -> Int64?
+//   divide:   (Int64, Int64) -> double, (double, double) -> double, (Int64?, Int64?) -> double?
 // plus the (object, object) fallback. C#'s implicit numeric conversions take the Int64
 // overloads for int / uint / long operands (uint and long never fit the int overload),
 // (int, int) wins for two int operands, and (Int64, Int64) beats (double, double)
@@ -3812,15 +3809,15 @@ function csharpArithmeticExpressionKind (csharp, node, context) {
     const bothSmallInt = ARITHMETIC_SMALL_INT.includes (left) && ARITHMETIC_SMALL_INT.includes (right);
     const hasDouble = (left === 'double') || (right === 'double');
     if (op === ts.SyntaxKind.SlashToken) {
-        // any double operand widens to (double, double); Int64 pairs divide truncated
+        // divide(Int64, Int64) and divide(double, double) both return double (no truncation)
         if (bothSmallInt) {
-            return 'Int64';
+            return 'double';
         }
         if ((left === 'double' && (right === 'double' || ARITHMETIC_SMALL_INT.includes (right))) ||
             (right === 'double' && ARITHMETIC_SMALL_INT.includes (left))) {
             return 'double';
         }
-        return nullableIntegerArithmeticKind (csharp, node, context);
+        return nullableIntegerArithmeticKind (csharp, node, context) ? 'double?' : undefined;
     }
     if (op === ts.SyntaxKind.MinusToken) {
         if (bothSmallInt) {
@@ -14965,7 +14962,7 @@ function nativeArithmeticResultKind (csharp, node) {
 //   -  small-int pairs        (Int64, Int64) / the promotion
 //   -  double - <numeric>     the object overload's double branch
 //   *  small-int pairs        multiply(Int64, Int64) / the promotion
-//   /  small-int pairs        divide(Int64, Int64) — the same truncating Int64 division
+//   /  small-int pairs        `((double)a / b)`, divide(Int64, Int64)'s double division
 //   /  any double operand     divide(double, double) — both orders
 // Rejected: int+int / uint*uint (the helper normalizes to Int64, so the native Int32 /
 // UInt32 box and its Int32 overflow would differ), (small-int) op double for + / - / *
@@ -15013,7 +15010,7 @@ function nativeArithmeticIsProven (op, left, right) {
         return bothSmall && !bothInt32;
     }
     if (op === ts.SyntaxKind.SlashToken) {
-        return (leftBase === 'double' || rightBase === 'double') || (bothSmall && !bothInt32);
+        return (leftBase === 'double' || rightBase === 'double') || bothSmall;
     }
     return false;
 }
@@ -15045,7 +15042,7 @@ function nativeArithmeticPairResultKind (op, left, right) {
     if (op === ts.SyntaxKind.PlusToken && NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) >= 0) {
         return left; // the lifted `+` keeps the nullable kind
     }
-    if (nativeArithmeticBaseKind (left) === 'double' || nativeArithmeticBaseKind (right) === 'double') {
+    if (op === ts.SyntaxKind.SlashToken || nativeArithmeticBaseKind (left) === 'double' || nativeArithmeticBaseKind (right) === 'double') {
         return mark ('double');
     }
     if (op === ts.SyntaxKind.MinusToken && left === 'int' && right === 'int') {
@@ -15081,7 +15078,11 @@ function nativeArithmeticExpression (csharp, node) {
     if (!nativeArithmeticIsProven (op, left, right)) {
         return undefined;
     }
-    return '(' + csharp.printNode (node.left, 0) + ' ' + symbol + ' ' + nativeArithmeticRightText (csharp, node.right, right) + ')';
+    // integer division is JS division: one operand cast to double, the result a double
+    const integerDivision = (op === ts.SyntaxKind.SlashToken) && (nativeArithmeticPairResultKind (op, left, right) !== undefined)
+        && (nativeArithmeticBaseKind (left) !== 'double') && (nativeArithmeticBaseKind (right) !== 'double');
+    const cast = integerDivision ? (nativeArithmeticIsNullableKind (left) ? '(double?)' : '(double)') : '';
+    return '(' + cast + csharp.printNode (node.left, 0) + ' ' + symbol + ' ' + nativeArithmeticRightText (csharp, node.right, right) + ')';
 }
 
 // `x += y` prints `x = add(x, y)` and `x -= y` prints `x = subtract(x, y)`: emitted

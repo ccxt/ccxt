@@ -930,7 +930,7 @@ public partial class apex : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["start"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
+            ((IDictionary<string,object>)requestUntil)["start"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
         }
         Dictionary<string, object> response = await this.publicGetV3Klines(this.extend(requestUntil, paramsUntil));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1575,7 +1575,7 @@ public partial class apex : Exchange
             { "size", orderSize },
             { "price", finalOrderPrice },
             { "limitFee", limitFee },
-            { "expiration", (Math.Floor(Double.Parse((((timeNow / 1000) + (((30L * 24L) * 60) * 60))).ToString()))) },
+            { "expiration", (Math.Floor(Double.Parse(((((double)timeNow / 1000) + (((30L * 24L) * 60) * 60))).ToString()))) },
             { "timeInForce", timeInForce },
             { "clientId", finalClientOrderId },
             { "brokerId", this.safeString(this.options, "brokerId", "6956") },
@@ -1655,7 +1655,7 @@ public partial class apex : Exchange
         double? decimalsNumber = ((decimalsNum == null)) ? 0 : decimalsNum;
         double mathPowResult = (Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimalsNumber)));
         Int64? amountNumber = this.parseToInt(multiply(amount, mathPowResult));
-        Int64? timestampSeconds = this.parseToInt((this.milliseconds() / 1000));
+        Int64? timestampSeconds = this.parseToInt(((double)this.milliseconds() / 1000));
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
         if ((clientOrderId == null))
         {

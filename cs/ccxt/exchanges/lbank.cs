@@ -1571,7 +1571,7 @@ public partial class lbank : Exchange
         string? intervalString = null;
         if ((positionFeeTime != null))
         {
-            Int64? interval = this.parseToInt(((positionFeeTime / 60) / 60));
+            Int64? interval = this.parseToInt((((double?)positionFeeTime / 60) / 60));
             intervalString = (((object)interval).ToString() + "h");
         }
         return new Dictionary<string, object>() {
@@ -3464,7 +3464,7 @@ public partial class lbank : Exchange
     {
         int lineLength = 64;
         int secretLength = (getArrayLength(secret) - 0);
-        object numLines = this.parseToInt(divide(secretLength, lineLength));
+        object numLines = this.parseToInt(((double)secretLength / lineLength));
         numLines = this.sum(numLines, 1);
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (int i = 0; isLessThan(i, numLines); i++)
